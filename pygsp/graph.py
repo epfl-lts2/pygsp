@@ -76,6 +76,9 @@ def createGraphFromWeight(weightMatrix):
 	'''
 	This function uses a weight Matrix as input and creates a Graph object
 	'''
+	sp = SpectralProp(laplacian(weightMatrix), weightMatrix)
+	am = AttributeMap()
+	return Graph(sp, am)
 
 def laplacian(weightMatrix, laplacianType = 'raw'):
 	'''
@@ -103,7 +106,6 @@ def laplacian(weightMatrix, laplacianType = 'raw'):
         # non-normalized laplaciand L = D - A
         L = np.diag(degrees - diagw)
         L[ni, nj] = -w
-        L = lil_matrix(L)
     elif laplacian_type == 'normalized':
         # TODO: Implement the normalized laplacian case
         # % normalized laplacian D^(-1/2)*(D-A)*D^(-1/2)
