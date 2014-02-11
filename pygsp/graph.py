@@ -8,26 +8,29 @@ import scipy as sp
 LMAX_TOL = 1e-6
 
 
+class LaplacianType:
+    DEFAULT = 0
+    NORMALIZED = 1
+
+
 class Graph:
     """The Graph class is composed of two main components : a SpectralProp
      object and an AttributeMap object.
 
     """
-    def __init__(self):
-        self.prop = None
-        self.attrs = None
+    def __init__(self, W, laplacianType=LaplacianType.DEFAULT):
+        self.prop = SpectralGraph(W, laplacianType)
+        self.attrs = AttributeMap()
 
 
-class SpectralProp:
-    """Container of all spectral infos of the graph.
-
-    """
-    def __init__(self, L, W=None):
-        self.L = L  # Laplacian matrix
-        self.W = W  # Weight matrix
+class SpectralGraph:
+    """Container of all spectral infos of the graph"""
+    def __init__(self, W, laplacianType):
+        self.L = compute_laplacian(W, laplacianType)  # Laplacian matrix
         self.U = None  # eigenvectors
         self.E = None  # eigenvalue array
         self.lmax = None  # largest eigenvalue
+        self.W = None  # placeholder for weight matrix if you need it
 
     def compute_eig_decomp(self):
         """Compute eigen decomposition of the laplacian and set
@@ -54,19 +57,7 @@ class AttributeMap:
         pass
 
 
-def graph_from_weight_matrix(W):
-    """Creates a Graph object from a weight adjacency matrix
-
-        Parameters
-        ----------
-        W : numpy array or scipy sparse matrix (prefer csr_matrix)
-
-        Returns
-        -------
-        g : graph object
-
-    """
-    pass
+###### Module free functions ######
 
 
 def compute_eigen_decomp(L):
@@ -92,44 +83,55 @@ def compute_lmax(L, tol=LMAX_TOL):
     """Approximate the largest eigenvalue of a symmetric matrix"""
     return sp.sparse.linalg.eigsh(L, 1, tol=tol)
 
-def laplacian(weightMatrix, laplacianType = 'raw'):
+
+def compute_laplacian(W, laplacianType):
     """Computes the laplacian of a graph from its weight matrix
-    Mostly inspired by https://github.com/aweinstein/PySGWT/blob/master/sgwt.py
+        Mostly inspired by:
+        https://github.com/aweinstein/PySGWT/blob/master/sgwt.py
+
+        Parameters
+        ----------
+        W : numpy array or scipy sparse matrix
+        normalized : normalized laplacian
+
+        Returns
+        -------
+        L : Sparse laplacian matrix (csr format)
 
     """
-    N = weightMatrix.shape[0]
-    # TODO: Raise exception if A is not square
 
-    degrees = weightMatrix.sum(1)
-    # To deal with loops, must extract diagonal part of A
-    diagw = np.diag(weightMatrix)
+    # N = weightMatrix.shape[0]
+    # # TODO: Raise exception if A is not square
 
-    # w will consist of non-diagonal entries only
-    ni2, nj2 = weightMatrix.nonzero()
-    w2 = weightMatrix[ni2, nj2]
-    ndind = (ni2 != nj2).nonzero() # Non-diagonal indices
-    ni = ni2[ndind]
-    nj = nj2[ndind]
-    w = w2[ndind]
+    # degrees = weightMatrix.sum(1)
+    # # To deal with loops, must extract diagonal part of A
+    # diagw = np.diag(weightMatrix)
 
-    di = np.arange(N) # diagonal indices
+    # # w will consist of non-diagonal entries only
+    # ni2, nj2 = weightMatrix.nonzero()
+    # w2 = weightMatrix[ni2, nj2]
+    # ndind = (ni2 != nj2).nonzero() # Non-diagonal indices
+    # ni = ni2[ndind]
+    # nj = nj2[ndind]
+    # w = w2[ndind]
 
-    if laplacian_type == 'raw':
-        # non-normalized laplaciand L = D - A
-        L = np.diag(degrees - diagw)
-        L[ni, nj] = -w
-    elif laplacian_type == 'normalized':
-        # TODO: Implement the normalized laplacian case
-        # % normalized laplacian D^(-1/2)*(D-A)*D^(-1/2)
-        # % diagonal entries
-        # dL=(1-diagw./degrees); % will produce NaN for degrees==0 locations
-        # dL(degrees==0)=0;% which will be fixed here
-        # % nondiagonal entries
-        # ndL=-w./vec( sqrt(degrees(ni).*degrees(nj)) );
-        # L=sparse([ni;di],[nj;di],[ndL;dL],N,N);
-        print 'Not implemented'
-    else:
-        # TODO: Raise an exception
-        print "Don't know what to do"
+    # di = np.arange(N) # diagonal indices
 
-    return L
+    # if laplacian_type == 'raw':
+    #     # non-normalized laplaciand L = D - A
+    #     L = np.diag(degrees - diagw)
+    #     L[ni, nj] = -w
+    # elif laplacian_type == 'normalized':
+    #     # TODO: Implement the normalized laplacian case
+    #     # % normalized laplacian D^(-1/2)*(D-A)*D^(-1/2)
+    #     # % diagonal entries
+    #     # dL=(1-diagw./degrees); % will produce NaN for degrees==0 locations
+    #     # dL(degrees==0)=0;% which will be fixed here
+    #     # % nondiagonal entries
+    #     # ndL=-w./vec( sqrt(degrees(ni).*degrees(nj)) );
+    #     # L=sparse([ni;di],[nj;di],[ndL;dL],N,N);
+    #     print 'Not implemented'
+    # else:
+    #     # TODO: Raise an exception
+    #     print "Don't know what to do"
+    return None
