@@ -2,90 +2,102 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import scipy as sp
+
+# Constants
+LMAX_TOL = 1e-6
+
 
 class Graph:
-	'''
-	The Graph class is composed of two main components : a SpectralProp object and an AttributeMap object.
-	'''
-	def __init__(self, spectralProp, attributeMap):
-		'''
-		Constructor of Graph
-		'''
-		self.spectralProp = spectralProp
-		self.attributeMap = attributeMap
+    """The Graph class is composed of two main components : a SpectralProp
+     object and an AttributeMap object.
+
+    """
+    def __init__(self):
+        self.prop = None
+        self.attrs = None
+
 
 class SpectralProp:
-	'''
-	The SpectralProp class is used to represent the mathematical formulations of the graph.
-	The only mandatory argument is the Laplacian
-	'''
-	def __init__(self, laplacian, weightMatrix = None, eigVects = None, eigVals = None):
-		'''
-		Constructor of SpectralProp
-		'''
-		self.laplacian = laplacian
-		self.weightMatrix = weightMatrix
-		self.eigVects = eigVects
-		self.eigVals = eigVals
-		self.lambdaMax = None
+    """Container of all spectral infos of the graph.
 
-	def computeEigDecomp(self, force = False):
-		'''
-		The function computes the eigen values and eigen vectors of the ``laplacian``. 
-		If they already exists, the function simply returns. This can be bypassed by setting ``force`` to True.  
-		TODO sort eigVals and eigVects
-		'''
-		if force or self.eigVals is None or self.eigVects is None:
-			self.eigVals, self.eigVects = np.linalg.eigh(self.laplacian.todense())
+    """
+    def __init__(self, L, W=None):
+        self.L = L  # Laplacian matrix
+        self.W = W  # Weight matrix
+        self.U = None  # eigenvectors
+        self.E = None  # eigenvalue array
+        self.lmax = None  # largest eigenvalue
 
-	def getLargestEigVal(self, force = False):
-		'''
-		The function compute the largest eigen value of the ``laplacian``
-		'''
-		if force or self.lambdaMax is None:
-			if self.eigVals is None:
-				self.lambdaMax = np.linalg.eigvalsh(self.laplacian.todense()).max()
-			else:
-				self.lambdaMax = self.eigVals.max()
-		return self.lambdaMax
+    def compute_eig_decomp(self):
+        """Compute eigen decomposition of the laplacian and set
+           U, E and lmax
+
+        """
+        self.E, self.U = compute_eigen_decomp(self.L)
+        self.lmax = self.E[-1]
+
+    def compute_lmax(self, tol=LMAX_TOL):
+        self.lmax = compute_lmax(self.L, tol)[0]
 
 
 class AttributeMap:
-	'''
-	The AttributeMap class is used to store the labels and coordinates map of the graph.
-	'''
-	def __init__(self):
-		'''
-		Constructor of AttributeMap
-		'''
-		self.attributes = dict(dict())
+    """The AttributeMap class is used to store the labels
+        and coordinates map of the graph.
 
-	def __init__(self, attributes):
-		'''
-		Constructor of AttributeMap
-		'''
-		self.attributes = attributes
+    """
+    def __init__(self, attrs=dict(dict())):
+        self.attrs = attrs
 
-	def readAttributes(self, path):
-		'''
-		This function is used to fill the dictionnary  ``attributes``
-		TODO
-		'''
+    def load_from_file(self, path):
+        """TODO"""
+        pass
 
-def createGraphFromWeight(weightMatrix):
-	'''
-	This function uses a weight Matrix as input and creates a Graph object
-	'''
-	sp = SpectralProp(laplacian(weightMatrix), weightMatrix)
-	am = AttributeMap()
-	return Graph(sp, am)
+
+def graph_from_weight_matrix(W):
+    """Creates a Graph object from a weight adjacency matrix
+
+        Parameters
+        ----------
+        W : numpy array or scipy sparse matrix (prefer csr_matrix)
+
+        Returns
+        -------
+        g : graph object
+
+    """
+    pass
+
+
+def compute_eigen_decomp(L):
+    """Computes the eigenvalue decomposition of a symmetric laplacian
+       matrix. The eigenvalues are sorted in ascending order.
+    """
+    tmp = None
+    if type(L) is np.ndarray:
+        tmp = L
+    else:
+        tmp = L.todense()
+
+    # Compute eigenvalues for symmetric matrix
+    E, U = np.linalg.eigh(tmp)
+    # Reorder eigenvalues
+    idx = np.argsort(E)  # sorting eigenvalues and eigenvectors
+    E = E[idx]
+    U = U[:, idx]
+    return E, U
+
+
+def compute_lmax(L, tol=LMAX_TOL):
+    """Approximate the largest eigenvalue of a symmetric matrix"""
+    return sp.sparse.linalg.eigsh(L, 1, tol=tol)
 
 def laplacian(weightMatrix, laplacianType = 'raw'):
-	'''
-	This function computes the laplacian of a graph from its weight matrix
-	Mostly inspired by https://github.com/aweinstein/PySGWT/blob/master/sgwt.py
-	'''
-	N = weightMatrix.shape[0]
+    """Computes the laplacian of a graph from its weight matrix
+    Mostly inspired by https://github.com/aweinstein/PySGWT/blob/master/sgwt.py
+
+    """
+    N = weightMatrix.shape[0]
     # TODO: Raise exception if A is not square
 
     degrees = weightMatrix.sum(1)
