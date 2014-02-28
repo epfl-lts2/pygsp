@@ -3,6 +3,8 @@
 
 import numpy as np
 
+from pygsp import operators
+
 
 class FilteringMethod:
     """Enum for different method of filtering"""
@@ -23,9 +25,27 @@ class GraphFilter(object):
         self.description = "Generic graph filter"
         self.cheby_coeffs = None
 
-    def apply(g, signal, method):
+    def __str__(self):
+        return self.description
+
+    def apply(self, g, signal, method):
         # if you don't have cheby coeff, compute them first
-        pass
+        if method == 0:
+            return self._apply_cheby(g,signal)  
+        elif method == 1:
+            return self._apply_fourier(g,signal)  
+        else:
+            raise "Unknown computation methods"
+        
+
+    def _apply_cheby(self,g,signal):
+        # TODO
+        return 0
+
+    def _apply_fourier(self,g,signal):
+        hats = operators.gft(g,signal)
+        hat = self.kernel(g.E) * hats
+        return operators.igft(g, hat)
 
 
 class HeatGraphFilter(GraphFilter):
@@ -37,15 +57,33 @@ class HeatGraphFilter(GraphFilter):
     def __str__(self):
         return self.description + "\n    lambda x: np.exp(- tau * x)"
 
+class GaussianGraphFilter(GraphFilter):
+    def __init__(self, tau):
+        kernel = lambda x: np.exp(- x**2/tau)  # Heat kernel function
+        super(HeatGraphFilter, self).__init__(kernel)
+        self.description = "Gaussian filter with tau: " + str(tau)
 
-def compute_cheby_coeff(kernel, order, N=None, arange=(-1.0, 1.0)):
+    def __str__(self):
+        return self.description + "\n    lambda x: np.exp(- x**2/tau)"
+
+class RectGraphFilter(GraphFilter):
+    def __init__(self, tau):
+        kernel = lambda x: (x<tau)*1.0  # Heat kernel function
+        super(HeatGraphFilter, self).__init__(kernel)
+        self.description = "Rectangle kernel filter with tau: " + str(tau)
+
+    def __str__(self):
+        return self.description + "\n    lambda x: (x<tau)*1.0"
+
+
+def compute_cheby_coeff(kernel, order, m, arange=(-1.0, 1.0)):
     """ Compute Chebyshev coefficients of given function.
 
         Parameters
         ----------
         g : function handle, should define function on arange
         order : maximum order Chebyshev coefficient to compute
-        N : grid order used to compute quadrature (default is m+1)
+        m : grid order used to compute quadrature (default is order+1)
         arange : interval of approximation (defaults to (-1,1) )
 
         Returns
@@ -54,39 +92,22 @@ def compute_cheby_coeff(kernel, order, N=None, arange=(-1.0, 1.0)):
         j'th Chebyshev coefficient
 
     """
-    if N is None:
-        N = order+1
 
-    a1 = (arange[1] - arange[0]) / 2.0
-    a2 = (arange[1] + arange[0]) / 2.0
-    n = np.pi * (np.r_[1:N+1] - 0.5) / N
-    s = kernel(a1 * np.cos(n) + a2)
+    if m < 1:
+        m = order+1
+
+    # Integral bounds    
+    amin = (arange[1] - arange[0]) / 2.0
+    amax = (arange[1] + arange[0]) / 2.0
+    # Integral bounds    
+    a = np.pi * (np.r_[1:m+1] - 0.5) / m
+    s = kernel(a1 * np.cos(a) + a2)
     c = np.zeros(order+1)
     for j in range(order+1):
         c[j] = np.sum(s * np.cos(j * n)) * 2 / N
 
     return c
 
-
-# def create_kernel(k_type, param=1):
-#     """ return a lambda function according the
-#     type of filter specified.
-#     type : type of filter
-#         Heatkernel, param is decrease rate
-#         Gaussian, param is the variance
-#         Rect, param is the rectangle width
-#     Return
-#     g Lambda function
-#     """
-#     if type == 'Heatkernel':
-#         g = lambda x: np.exp(- param * x)
-#     elif type == 'Gaussian':
-#         g = lambda x: np.exp(- x**2/param)
-#     elif type=='Rect':
-#         g = lambda x: (x<param)*1.0
-#     else:
-#         print "Unknow filter type"
-#     return g
 
 
 def cheby_op(f, L, c, arange):  # copy/paste of Weinstein,must be adapted
