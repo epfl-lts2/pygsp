@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """
-Test suite for the pyunlocbox package.
+Test suite for the pygsp package.
 """
 
 import unittest
-from packagename.tests import test_docstrings, test_tutorials
-from packagename.tests import test_module1, test_module2
+from pygsp.tests import test_docstrings, test_tutorials
+from pygsp.tests import test_module1, test_module2
 
 
 suites = []

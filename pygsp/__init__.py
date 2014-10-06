@@ -5,8 +5,8 @@ Package documentation.
 """
 
 # When importing the toolbox, you surely want these modules.
-from packagename import module1
-from packagename import module2
+from pygsp import module1
+from pygsp import module2
 
 # Silence the code checker warning about unused symbols.
 assert module1

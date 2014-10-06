@@ -7,15 +7,15 @@ from setuptools import setup
 
 
 setup(
-    name = 'packagename',
+    name = 'pygsp',
     version = '0.0.1',
     description = 'Short description',
     long_description = open('README.rst').read(),
     author = 'Michaël Defferrard (EPFL LTS2)',
     author_email = 'michael.defferrard@epfl.ch',
     url = 'https://github.com/epfl-lts2/',
-    packages = ['packagename', 'packagename.tests'],
-    test_suite = 'packagename.tests.test_all.suite',
+    packages = ['pygsp', 'pygsp.tests'],
+    test_suite = 'pygsp.tests.test_all.suite',
     install_requires = ['numpy'],
     requires = ['numpy'],
     license = "BSD",

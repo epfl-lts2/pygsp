@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 
 """
-Test suite for the modulename module of the packagename package.
+Test suite for the modulename module of the pygsp package.
 """
 
 import sys
 import numpy as np
 import numpy.testing as nptest
-import packagename
+import pygsp
 
 # Use the unittest2 backport on Python 2.6 to profit from the new features.
 if sys.version_info < (2, 7):
@@ -30,7 +30,7 @@ class FunctionsTestCase(unittest.TestCase):
         Dummy test.
         """
         a = np.array([1, 2])
-        b = packagename.module1.dummy(1, a, True)
+        b = pygsp.module1.dummy(1, a, True)
         nptest.assert_almost_equal(a, b)
 
 

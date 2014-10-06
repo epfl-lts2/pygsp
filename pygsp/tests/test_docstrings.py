@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Test suite for the docstrings of the pyunlocbox package.
+Test suite for the docstrings of the pygsp package.
 """
 
 import doctest
