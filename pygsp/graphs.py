@@ -74,6 +74,15 @@ class Grid2d(Graph):
         else:
             self.M = self.N
 
+        self.N = np.matrixmultiply(self.N, M)
+
+        # Create weighted adjacency matrix
+        K = 2 * self.N - 1
+        J = 2 * self.M - 1
+        i_inds = np.zeros((np.matrixmultiply(K, M) + np.matrixmultiply(J, self.N), 1), dtype=float)
+        j_inds = np.zeros((np.matrixmultiply(K, M) + np.matrixmultiply(J, self.N), 1), dtype=float)
+        
+
 
 class Torus(Graph):
 
