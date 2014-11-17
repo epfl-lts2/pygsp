@@ -4,6 +4,7 @@ r"""
 Module documentation.
 """
 
+from copy import deepcopy
 import numpy as np
 import scipy as sp
 
@@ -55,13 +56,33 @@ class Graph(object):
             pass
 
     def copy_graph_attr(self, gtype, Gn):
-        pass
+        r"""
+        TODO write doc
+        """
+        return deepcopy(self)
 
     def separate_graph(self):
-        pass
+        r"""
+        TODO write func & doc
+        """
+        raise NotImplementedError("Not implemented yet")
 
     def subgraph(self, c):
-        pass
+        r"""
+        TODO better doc
+        This function create a subgraph from G, keeping only the node(s) in c
+        """
+
+        sub_G = self
+        sub_G.W = [c,c]
+        try:
+            sub_G.N = len(c)
+        except TypeError:
+            sub_G.N = 1
+        
+        sub_G.gtype = "sub-" + self.gtype
+
+        return sub_G
 
 
 # Need M
