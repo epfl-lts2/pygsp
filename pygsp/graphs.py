@@ -74,14 +74,23 @@ class Grid2d(Graph):
         else:
             self.M = self.N
 
-        self.N = np.matrixmultiply(self.N, M)
+        self.gtype = '2d-grid'
+        self.N = np.matrixmultiply(self.N, self.M)
 
         # Create weighted adjacency matrix
         K = 2 * self.N - 1
         J = 2 * self.M - 1
-        i_inds = np.zeros((np.matrixmultiply(K, M) + np.matrixmultiply(J, self.N), 1), dtype=float)
-        j_inds = np.zeros((np.matrixmultiply(K, M) + np.matrixmultiply(J, self.N), 1), dtype=float)
-        
+        i_inds = np.zeros((np.matrixmultiply(K, self.M) + np.matrixmultiply(J, self.N), 1), dtype=float)
+        j_inds = np.zeros((np.matrixmultiply(K, self.M) + np.matrixmultiply(J, self.N), 1), dtype=float)
+        for ii in xrange(1, self.M):
+            i_inds[(ii-1) * K + np.array(range(0, K))] = (ii - 1) * self.N + np.append(range(0, self.N - 1), range(1, self.N))
+            j_inds[(ii-1) * K + np.array(range(0, K))] = (ii - 1) * self.N + np.append(range(1, self.N), range(0, self.N - 1))
+
+        for ii in xrange(1, self.M - 1):
+            i_inds[(K*self.M) + (ii-1)*2*self.N + np.array(range(1, 2*self.N))] = np.append((ii-1)*self.N + np.array(range(1, self.N)), (ii*self.N) + np.array(range(1, self.N)))
+            j_inds[(K*self.M) + (ii-1)*2*self.N + np.array(range(1, 2*self.N))] = np.append((ii*self.N) + np.array(range(1, self.N)), (ii-1)*self.N + np.array(range(1, self.N)))
+
+        self.W = sp.csr_matrix((np.ones(K*self.M+J*self.N, 1), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
 
 
 class Torus(Graph):
