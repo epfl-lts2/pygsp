@@ -34,11 +34,13 @@ class Graph(object):
             self.N = N
         else:
             # MAT: size(G.W, 1)
+            # TODO implement right!
+            self.N = 0
             pass
         if d:
             self.d = d
         else:
-            self.d = W.sum()
+            self.d = self.W.sum()
         if Ne:
             self.Ne = Ne
         else:
@@ -96,7 +98,7 @@ class Grid2d(Graph):
             self.M = self.N
 
         self.gtype = '2d-grid'
-        self.N = np.matrixmultiply(self.N, self.M)
+        self.N = self.N * self.M
 
         # Create weighted adjacency matrix
         K = 2 * self.N - 1
