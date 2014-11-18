@@ -42,9 +42,20 @@ def check_weights(W):
 
     return [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero]
 
-# def create_laplacian(G):
-#     if size(G):
-#         Ng = size(G)
-#         i = 0
-#         # TODO check indice
-#         while i < Ng:
+def create_laplacian(G):
+    # TODO ask 
+    # if size(G):
+    #     Ng = size(G)
+    #     i = 0
+    #     # TODO check indice
+    #     while i < Ng:
+    #         G[i] = create_laplacian(G[i])
+    if G.gtype == 'combinatorial':
+        G.L = sparse.lil_matrix(G.W.sum().diagonal() - G.W)
+    if G.gtype == 'normalized':
+        D = sparse.lil_matrix(G.W.sum().diagonal()^(-0.5))
+        G.L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
+    if G.gtype == 'none':
+        G.L = sparse.lil_matrix(0)
+    else:
+        raise AttributeError('Unknown laplacian type!')
