@@ -5,8 +5,8 @@ Module documentation.
 """
 
 from copy import deepcopy
+from scipy import sparse
 import numpy as np
-import scipy as sp
 
 
 class Graph(object):
@@ -21,15 +21,15 @@ class Graph(object):
         self.lap_type = lap_type
 
         if W:
-            self.W = W
+            self.W = sparse.lil_matrix(W)
         else:
             # TODO check if right
-            self.W = sp.sparse.lil_matrix(0)
+            self.W = sparse.lil_matrix(0)
         if A:
             self.A = A
         else:
             # TODO check if right
-            self.A = sp.sparse.lil_matrix(W > 0)
+            self.A = sparse.lil_matrix(W > 0)
         if N:
             self.N = N
         else:
