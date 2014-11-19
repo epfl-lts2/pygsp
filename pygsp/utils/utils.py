@@ -15,15 +15,17 @@ def is_directed(G):
 
 
 def estimate_lmax(G):
+    r"""
+    TODO write doc
+    """
     try:
-        tol = 5e-3
-        p = 10
-        disp = 0
-
+        # MAT: lmax=eigs(G.L,1,'lm',opts)
+        G.lmax = sparse.linalg.eigs(G.L, k=1, tol=5e-3, ncv=10)[0]
+        # On robustness purposes, increasing the error by 1 percent
         G.lmax *= 1.01
-    except:
+    except ValueError:
         print('GSP_ESTIMATE_LMAX: Cannot use default method')
-        # G.lmax = MAT: max(G.d)
+        G.lmax = max(G.d)
     pass
 
 
