@@ -15,6 +15,15 @@ def is_directed(G):
 
 
 def estimate_lmax(G):
+    try:
+        tol = 5e-3
+        p = 10
+        disp = 0
+
+        G.lmax *= 1.01
+    except:
+        print('GSP_ESTIMATE_LMAX: Cannot use default method')
+        # G.lmax = MAT: max(G.d)
     pass
 
 
