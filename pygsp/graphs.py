@@ -4,9 +4,10 @@ r"""
 Module documentation.
 """
 
+import numpy as np
 from copy import deepcopy
 from scipy import sparse
-import numpy as np
+from pygsp import utils
 
 
 class Graph(object):
@@ -41,17 +42,16 @@ class Graph(object):
             self.Ne = Ne
         else:
             # MAT: zeros(G.N, L)
-            pass
+            self.Ne = np.zeros((G.N), Float)
         if directed:
             self.directed = directed
         else:
-            # TODO func is_directed(self)
+            G.directed = utils.is_directed(self)
             pass
         if L:
             self.L = L
         else:
-            # TODO func create_laplacian(G)
-            pass
+            self.L = utils.create_laplacian(self)
 
     def copy_graph_attr(self, gtype, Gn):
         r"""
