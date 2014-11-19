@@ -9,7 +9,7 @@ def is_directed(G):
     The Weight matrix has to be sparse (For now)
     Can also be used to check if a matrix is symetrical
     """
-   
+
     is_dir = (G.W - G.W.sparse.transpose()).sum() != 0
     return is_dir
 
@@ -20,13 +20,13 @@ def estimate_lmax(G):
     """
     try:
         # MAT: lmax=eigs(G.L,1,'lm',opts)
-        G.lmax = sparse.linalg.eigs(G.L, k=1, tol=5e-3, ncv=10)[0]
+        lmax = sparse.linalg.eigs(G.L, k=1, tol=5e-3, ncv=10)[0]
         # On robustness purposes, increasing the error by 1 percent
-        G.lmax *= 1.01
+        lmax *= 1.01
     except ValueError:
         print('GSP_ESTIMATE_LMAX: Cannot use default method')
-        G.lmax = max(G.d)
-    pass
+        lmax = max(G.d)
+    return lmax
 
 
 def check_weights(W):
@@ -71,11 +71,12 @@ def create_laplacian(G):
     #     while i < Ng:
     #         G[i] = create_laplacian(G[i])
     if G.gtype == 'combinatorial':
-        G.L = sparse.lil_matrix(G.W.sum().diagonal() - G.W)
+        L = sparse.lil_matrix(G.W.sum().diagonal() - G.W)
     if G.gtype == 'normalized':
         D = sparse.lil_matrix(G.W.sum().diagonal() ** (-0.5))
-        G.L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
+        L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
     if G.gtype == 'none':
-        G.L = sparse.lil_matrix(0)
+        L = sparse.lil_matrix(0)
     else:
         raise AttributeError('Unknown laplacian type!')
+    return L

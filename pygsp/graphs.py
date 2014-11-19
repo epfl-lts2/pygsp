@@ -4,10 +4,11 @@ r"""
 Module documentation.
 """
 
+import numpy as np
 from copy import deepcopy
 from scipy import sparse
 from scipy import io
-import numpy as np
+from pygsp import utils
 
 
 class Graph(object):
@@ -24,20 +25,15 @@ class Graph(object):
         if W:
             self.W = sparse.lil_matrix(W)
         else:
-            # TODO check if right
             self.W = sparse.lil_matrix(0)
         if A:
             self.A = A
         else:
-            # TODO check if right
             self.A = sparse.lil_matrix(W > 0)
         if N:
             self.N = N
         else:
-            # MAT: size(G.W, 1)
-            # TODO implement right!
-            self.N = 0
-            pass
+            self.N = np.shape(G.W)[0]
         if d:
             self.d = d
         else:
@@ -45,18 +41,16 @@ class Graph(object):
         if Ne:
             self.Ne = Ne
         else:
-            # MAT: zeros(G.N, L)
-            pass
+            self.Ne = np.zeros((G.N), Float)
         if directed:
             self.directed = directed
         else:
-            # TODO func is_directed(self)
+            G.directed = utils.is_directed(self)
             pass
         if L:
             self.L = L
         else:
-            # TODO func create_laplacian(G)
-            pass
+            self.L = utils.create_laplacian(self)
 
     def copy_graph_attr(self, gtype, Gn):
         r"""
@@ -91,7 +85,7 @@ class Graph(object):
 # Need M
 class Grid2d(Graph):
 
-    def __init__(self, M, **kwargs):
+    def __init__(self, M=None, **kwargs):
         super(Grid2d, self).__init__(**kwargs)
         if M:
             self.M = M
@@ -106,20 +100,22 @@ class Grid2d(Graph):
         J = 2 * self.M - 1
         i_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
         j_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
-        for ii in xrange(1, self.M):
-            i_inds[(ii-1) * K + np.arange(0, K)] = (ii - 1) * self.N + np.append(range(0, self.N - 1), range(1, self.N))
-            j_inds[(ii-1) * K + np.arange(0, K)] = (ii - 1) * self.N + np.append(range(1, self.N), range(0, self.N - 1))
+        for i in xrange(1, self.M):
+            i_inds[(i-1) * K + np.arange(0, K)] = (i - 1) * self.N + np.append(range(0, self.N - 1), range(1, self.N))
+            j_inds[(i-1) * K + np.arange(0, K)] = (i - 1) * self.N + np.append(range(1, self.N), range(0, self.N - 1))
 
-        for ii in xrange(1, self.M - 1):
-            i_inds[(K*self.M) + (ii-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((ii-1)*self.N + np.array(range(1, self.N)), (ii*self.N) + np.array(range(1, self.N)))
-            j_inds[(K*self.M) + (ii-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((ii*self.N) + np.array(range(1, self.N)), (ii-1)*self.N + np.array(range(1, self.N)))
+        for i in xrange(1, self.M - 1):
+            i_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i-1)*self.N + np.array(range(1, self.N)), (i*self.N) + np.array(range(1, self.N)))
+            j_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i*self.N) + np.array(range(1, self.N)), (i-1)*self.N + np.array(range(1, self.N)))
 
-        self.W = sparse.csr_matrix((np.ones((K*self.M+J*self.N, 1)), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
+        self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
+        # for i_inds, j_inds in 
+        self.W = sparse.lil_matrix((np.ones((K*self.M+J*self.N, 1)), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
 
 
 class Torus(Graph):
 
-    def __init__(self, M, **kwargs):
+    def __init__(self, M=None, **kwargs):
         super(Torus, self).__init__(**kwargs)
         if M:
             self.M = M
@@ -130,7 +126,7 @@ class Torus(Graph):
 # Need K
 class Comet(Graph):
 
-    def __init__(self, k, **kwargs):
+    def __init__(self, k=None, **kwargs):
         super(Comet, self).__init__(**kwargs)
         if k:
             self.k = k
@@ -140,7 +136,7 @@ class Comet(Graph):
 
 class LowStretchTree(Graph):
 
-    def __init__(self, k, **kwargs):
+    def __init__(self, k=None, **kwargs):
         super(LowStretchTree, self).__init__(**kwargs)
         if k:
             self.k = k
@@ -150,7 +146,7 @@ class LowStretchTree(Graph):
 
 class RadomRegular(Graph):
 
-    def __init__(self, k, **kwargs):
+    def __init__(self, k=None, **kwargs):
         super(RadomRegular, self).__init__(**kwargs)
         if k:
             self.k = k
@@ -160,7 +156,7 @@ class RadomRegular(Graph):
 
 class Ring(Graph):
 
-    def __init__(self, k, **kwargs):
+    def __init__(self, k=None, **kwargs):
         super(Ring, self).__init__(**kwargs)
         if k:
             self.k = k
