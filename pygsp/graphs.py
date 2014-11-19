@@ -23,20 +23,16 @@ class Graph(object):
         if W:
             self.W = sparse.lil_matrix(W)
         else:
-            # TODO check if right
             self.W = sparse.lil_matrix(0)
         if A:
             self.A = A
         else:
-            # TODO check if right
             self.A = sparse.lil_matrix(W > 0)
         if N:
             self.N = N
         else:
             # MAT: size(G.W, 1)
-            # TODO implement right!
-            self.N = 0
-            pass
+            self.N = np.shape(G.W)[0]
         if d:
             self.d = d
         else:
