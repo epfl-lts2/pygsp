@@ -6,6 +6,7 @@ Module documentation.
 
 from copy import deepcopy
 from scipy import sparse
+from scipy import io
 import numpy as np
 
 
@@ -225,6 +226,11 @@ class Logo(Graph):
 
     def __init__(self):
         super(Logo, self).__init__()
+
+        mat = io.loadmat('misc/logogsp.mat')
+        self.W = mat['W']
+        self.gtype = 'from MAT-file'
+        # TODO implementate plot attribute
 
 
 class Path(Graph):
