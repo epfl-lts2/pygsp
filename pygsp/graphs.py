@@ -144,10 +144,10 @@ class LowStretchTree(Graph):
             self.k = 6
 
 
-class RadomRegular(Graph):
+class RandomRegular(Graph):
 
     def __init__(self, k=None, **kwargs):
-        super(RadomRegular, self).__init__(**kwargs)
+        super(RandomRegular, self).__init__(**kwargs)
         if k:
             self.k = k
         else:
