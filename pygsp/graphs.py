@@ -5,8 +5,11 @@ Module documentation.
 """
 
 import numpy as np
-import scipy as sp
 from math import ceil, sqrt, log, exp
+from copy import deepcopy
+from scipy import sparse
+from scipy import io
+from pygsp import utils
 
 
 class Graph(object):
@@ -21,72 +24,101 @@ class Graph(object):
         self.lap_type = lap_type
 
         if W:
-            self.W = W
+            self.W = sparse.lil_matrix(W)
         else:
-            # TODO check if right
-            self.W = sp.sparse.lil_matrix(0)
+            self.W = sparse.lil_matrix(0)
         if A:
             self.A = A
         else:
-            # TODO check if right
-            self.A = sp.sparse.lil_matrix(W > 0)
+            self.A = sparse.lil_matrix(W > 0)
         if N:
             self.N = N
         else:
-            self.N = np.size(self.W, 1)
             bool self.N_init_default = True
+            self.N = np.shape(G.W)[0]
         if d:
             self.d = d
         else:
-            self.d = W.sum()
+            self.d = self.W.sum()
         if Ne:
             self.Ne = Ne
         else:
-            # MAT: zeros(G.N, L)
-            pass
+            self.Ne = np.zeros((G.N), Float)
         if directed:
             self.directed = directed
         else:
-            # TODO func is_directed(self)
+            G.directed = utils.is_directed(self)
             pass
         if L:
             self.L = L
         else:
-            # TODO func create_laplacian(G)
-            pass
+            self.L = utils.create_laplacian(self)
 
     def copy_graph_attr(self, gtype, Gn):
-        pass
+        r"""
+        TODO write doc
+        """
+        return deepcopy(self)
 
     def separate_graph(self):
-        pass
+        r"""
+        TODO write func & doc
+        """
+        raise NotImplementedError("Not implemented yet")
 
     def subgraph(self, c):
-        pass
+        r"""
+        TODO better doc
+        This function create a subgraph from G, keeping only the node(s) in c
+        """
+
+        sub_G = self
+        sub_G.W = [c, c]
+        try:
+            sub_G.N = len(c)
+        except TypeError:
+            sub_G.N = 1
+
+        sub_G.gtype = "sub-" + self.gtype
+
+        return sub_G
 
 
 # Need M
 class Grid2d(Graph):
 
-    def __init__(self, M, **kwargs):
+    def __init__(self, M=None, **kwargs):
         super(Grid2d, self).__init__(**kwargs)
         if M:
             self.M = M
         else:
             self.M = self.N
 
-        self.N = np.matrixmultiply(self.N, M)
+        self.gtype = '2d-grid'
+        self.N = self.N * self.M
 
         # Create weighted adjacency matrix
         K = 2 * self.N - 1
         J = 2 * self.M - 1
-        i_inds = np.zeros((np.matrixmultiply(K, M) + np.matrixmultiply(J, self.N), 1), dtype=float)
-        j_inds = np.zeros((np.matrixmultiply(K, M) + np.matrixmultiply(J, self.N), 1), dtype=float)
+
+        i_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
+        j_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
+        for i in xrange(1, self.M):
+            i_inds[(i-1) * K + np.arange(0, K)] = (i - 1) * self.N + np.append(range(0, self.N - 1), range(1, self.N))
+            j_inds[(i-1) * K + np.arange(0, K)] = (i - 1) * self.N + np.append(range(1, self.N), range(0, self.N - 1))
+
+        for i in xrange(1, self.M - 1):
+            i_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i-1)*self.N + np.array(range(1, self.N)), (i*self.N) + np.array(range(1, self.N)))
+            j_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i*self.N) + np.array(range(1, self.N)), (i-1)*self.N + np.array(range(1, self.N)))
+
+        self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
+        # for i_inds, j_inds in
+        self.W = sparse.lil_matrix((np.ones((K*self.M+J*self.N, 1)), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
 
 
 class Torus(Graph):
 
-    def __init__(self, M, **kwargs):
+    def __init__(self, M=None, **kwargs):
         super(Torus, self).__init__(**kwargs)
         if M:
             self.M = M
@@ -97,7 +129,7 @@ class Torus(Graph):
 # Need K
 class Comet(Graph):
 
-    def __init__(self, k, **kwargs):
+    def __init__(self, k=None, **kwargs):
         super(Comet, self).__init__(**kwargs)
         if k:
             self.k = k
@@ -107,7 +139,7 @@ class Comet(Graph):
 
 class LowStretchTree(Graph):
 
-    def __init__(self, k, **kwargs):
+    def __init__(self, k=None, **kwargs):
         super(LowStretchTree, self).__init__(**kwargs)
         if k:
             self.k = k
@@ -115,10 +147,10 @@ class LowStretchTree(Graph):
             self.k = 6
 
 
-class RadomRegular(Graph):
+class RandomRegular(Graph):
 
-    def __init__(self, k, **kwargs):
-        super(RadomRegular, self).__init__(**kwargs)
+    def __init__(self, k=None, **kwargs):
+        super(RandomRegular, self).__init__(**kwargs)
         if k:
             self.k = k
         else:
@@ -127,7 +159,7 @@ class RadomRegular(Graph):
 
 class Ring(Graph):
 
-    def __init__(self, k, **kwargs):
+    def __init__(self, k=None, **kwargs):
         super(Ring, self).__init__(**kwargs)
         if k:
             self.k = k
@@ -291,6 +323,11 @@ class Logo(Graph):
 
     def __init__(self):
         super(Logo, self).__init__()
+
+        mat = io.loadmat('misc/logogsp.mat')
+        self.W = mat['W']
+        self.gtype = 'from MAT-file'
+        # TODO implementate plot attribute
 
 
 class Path(Graph):
