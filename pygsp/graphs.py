@@ -5,6 +5,7 @@ Module documentation.
 """
 
 import numpy as np
+from math import ceil, sqrt, log, exp
 from copy import deepcopy
 from scipy import sparse
 from scipy import io
@@ -33,6 +34,7 @@ class Graph(object):
         if N:
             self.N = N
         else:
+            bool self.N_init_default = True
             self.N = np.shape(G.W)[0]
         if d:
             self.d = d
@@ -98,6 +100,7 @@ class Grid2d(Graph):
         # Create weighted adjacency matrix
         K = 2 * self.N - 1
         J = 2 * self.M - 1
+
         i_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
         j_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
         for i in xrange(1, self.M):
@@ -167,10 +170,10 @@ class LowStretchTree(Graph):
             self.k = 6
 
 
-class RadomRegular(Graph):
+class RandomRegular(Graph):
 
     def __init__(self, k=None, **kwargs):
-        super(RadomRegular, self).__init__(**kwargs)
+        super(RandomRegular, self).__init__(**kwargs)
         if k:
             self.k = k
         else:
@@ -207,6 +210,88 @@ class Sensor(Graph):
     def __init__(self, **kwargs):
         super(Sensor, self).__init__(**kwargs)
         param = kwargs
+        if self.N_init_default:
+            self.N = 64
+
+        # initialization of the param
+        try:
+            param_nc = param["nc"]
+        except (KeyError, TypeError):
+            param_nc = 2
+        try:
+            param_regular = param["regular"]
+        except (KeyError, TypeError):
+            param_regular = False
+        try:
+            param_verbose = param["verbose"]
+        except (KeyError, TypeError):
+            param_verbose = 1
+        try:
+            param_n_try = param["n_try"]
+        except (KeyError, TypeError):
+            param_n_try = 50
+        try:
+            param_distribute = param["distribute"]
+        except (KeyError, TypeError):
+            param_distribute = False
+        try:
+            param_connected = param["connected"]
+        except (KeyError, TypeError):
+            param_connected = True
+        try:
+            param_set_to_one = param["set_to_one"]
+        except (KeyError, TypeError):
+            param_set_to_one = False
+
+        if param_connected:
+            for x in range(param_n_try):
+                W, XCoords, YCoords = create_weight_matrix(self.N, param)
+
+                if gsp_check_connectivity_undirected(W):
+                    break
+                elif x == param_n_try-1:
+                    print("Warning! Graph is not connected")
+        else:
+            W, XCoords, YCoords = create_weight_matrix(self.N, param)
+
+        if param_set_to_one:
+            (x > 0).choose(x, 1)
+        self.W = sparse.lil_matrix
+        self.W = (self.W + np.transpose(np.conjugate(self.W)))/2
+        self.limits = np.array([0, 1, 0, 1])
+        self.coords = [XCoords, YCoords]
+        if param_regular:
+            self.gtype = "regular sensor"
+        else:
+            self.gtype = "sensor"
+
+        self.directed = False
+
+        def create_weight_matrix(N, param):
+            XCoords = np.zeros((N, 1))
+            YCoords = np.zeros((N, 1))
+
+            if param_distribute:
+                mdim = ceil(sqrt(N))
+                for i in np.arange(mdim):
+                    for j in np.arange(mdim):
+                        if i*mdim + j < N:
+                            XCoords[i*mdim + j] = 1/mdim*np.random.rand()+i/mdim
+                            YCoords[i*mdim + j] = 1/mdim*np.random.rand()+j/mdim
+
+            # take random coordinates in a 1 by 1 square
+            else:
+                XCoords = np.random.rand(N, 1)
+                YCoords = np.random.rand(N, 1)
+
+            # Compute the distanz between all the points
+            target_dist_cutoff = 2*N**(-0.5)
+            T = 0.6
+            s = sqrt(-target_dist_cutoff**2/(2*log(T)))
+            d = gsp_distanz([XCoords, YCoords])
+            W = exp(-d**2/(2.*s**2))
+
+            W -= np.diag(np.diag(x))
 
 
 class Sphere(Graph):
@@ -221,6 +306,11 @@ class Airfoil(Graph):
 
     def __init__(self):
         super(Airfoil, self).__init__()
+        slef.A = sparse.lil_matrix()
+
+        self.W = (A + np.transpose(np.conjugate(A)))/2
+
+        self.coords = [x, y]
 
 
 class Bunny(Graph):
@@ -239,6 +329,17 @@ class FullConnected(Graph):
 
     def __init__(self):
         super(FullConnected, self).__init__()
+        if self.N_init_default:
+            self.N = 10
+
+        self.W = np.ones((self.N, self.N))-np.identity(self.N)
+
+        tmp = np.arange(0, N).reshape(N, 1)
+        self.coords = np.concatenate((np.cos(tpm*2*np.pi/self.N),
+                                      np.sin(tpm*2*np.pi/self.N)),
+                                     axis=1)
+        self.limits = np.array([-1, 1, -1, 1])
+        self.gtype = "full"
 
 
 class Logo(Graph):
@@ -256,12 +357,54 @@ class Path(Graph):
 
     def __init__(self):
         super(Path, self).__init__()
+        if self.N_init_default:
+            self.N = 16
+
+        inds_i = np.concatenate((np.arange(1, self.N), np.arange(2, self.N+1)),
+                                axis=1)
+        inds_j = np.concatenate((np.arange(2, self.N+1), np.arange(1, sefl.N)),
+                                axis=1)
+
+        np.ones((1, 2*(self.N-1)))
+        self.W = sparse.lil_matrix()
+
+        self.coord = np.concatenate((np.arange(1, self.N + 1).reshape(self.N, 1),
+                                     np.zeros((1, self.N))),
+                                    axis=1)
+
+        self.limits = np.array([0, N+1, -1, 1])
+
+        self.gtype = "path"
 
 
 class RandomRing(Graph):
 
     def __init__(self):
         super(RandomRing, self).__init__()
+        if self.N_init_default:
+            self.N = 64
+
+        position = np.sort(np.random.rand(x))
+        position = np.sort(np.random.rand(x, 1), axis=0)
+
+        weight = self.N*np.diff(x, axis=0)
+        weightend = self.N*(1 + position[0] - position[-1])
+
+        inds_j = np.conjugate(np.arange(2, self.N + 1).reshape(self.N-1, 1))
+        inds_i = np.conjugate(np.arange(1, self.N).reshape(self.N-1, 1))
+
+        # todo
+        self.W = sparse.lil_matrix(inds_i, inds_j, weight, N, N)
+        self.W(10, 0) = weightend
+        self.W += np.conjugate(np.transpose(self.W))
+
+        self.coords = np.concatenate((np.cos(position*2*np.pi),
+                                      np.sin(position*2*np.pi)),
+                                     axis=1)
+
+        self.limits = np.array([-1, 1, -1, 1])
+
+        self.gtype = 'random-ring'
 
 
 def dummy(a, b, c):
