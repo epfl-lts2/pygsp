@@ -71,7 +71,7 @@ class Graph(object):
         """
 
         sub_G = self
-        sub_G.W = [c,c]
+        sub_G.W = [c, c]
         try:
             sub_G.N = len(c)
         except TypeError:
@@ -109,7 +109,7 @@ class Grid2d(Graph):
             j_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i*self.N) + np.array(range(1, self.N)), (i-1)*self.N + np.array(range(1, self.N)))
 
         self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
-        # for i_inds, j_inds in 
+        # for i_inds, j_inds in
         self.W = sparse.lil_matrix((np.ones((K*self.M+J*self.N, 1)), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
 
 
@@ -121,6 +121,29 @@ class Torus(Graph):
             self.M = M
         else:
             self.M = self.N
+
+        self.gtype = 'Torus'
+        self.directed = False
+
+        # Create weighted adjancency matrix
+        K = 2 * self.N
+        J = 2 * self.M
+        i_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
+        j_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
+        for i in xrange(1, self.M):
+            i_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.N + np.append(self.N, np.append(range(0, self.N-1), range(0, self.N)))
+            j_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.N + np.append(range(0, self.N), np.append(self.N, range(0, self.N-1)))
+        for i in xrange(1, self.M - 1):
+            i_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i-1)*self.N + np.arange(1, self.N), (i*self.N) + np.arange(1, self.N))
+            j_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i*self.N) + np.arange(1, self.N), (i-1)*self.N + np.arange(1, self.N))
+        i_inds[K*self.M + (self.M-1)*2*self.N + np.arrange(0, 2*self.N)] = np.array([np.arange(0, self.N), (self.M-1)*self.N + np.arange(0, self.N)])
+        j_inds[K*self.M + (self.M-1)*2*self.N + np.arrange(0, 2*self.N)] = np.array([(self.M-1)*self.N + np.arange(0, self.N), np.arange(0, self.N)])
+
+        self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
+        # for i_inds, j_inds in
+        self.W = sparse.lil_matrix((np.ones((K*self.M+J*self.N, 1)), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
+
+        # TODO implementate plot attribute
 
 
 # Need K
