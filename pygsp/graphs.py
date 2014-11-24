@@ -84,6 +84,17 @@ class Graph(object):
         return sub_G
 
 
+class NNGraph(Graph):
+    r"""
+    Creates a graph from a pointcloud
+    parameters:
+        - Xin : Input Points
+    """
+
+    def __init__(self, Xin, **kwargs):
+        self.Xin = Xin
+
+
 # Need M
 class Grid2d(Graph):
 
@@ -198,7 +209,7 @@ class Community(Graph):
         param = kwargs
 
 
-class Cube(Graph):
+class Cube(NNGraph):
 
     def __init__(self, **kwargs):
         super(Cube, self).__init__(**kwargs)
@@ -376,7 +387,7 @@ class Sensor(Graph):
             W = (W + np.transpose(np.conjugate(W)))/2.
 
 
-class Sphere(Graph):
+class Sphere(NNGraph):
 
     def __init__(self, **kwargs):
         super(Sphere, self).__init__(**kwargs)
@@ -395,7 +406,7 @@ class Airfoil(Graph):
         self.coords = [x, y]
 
 
-class Bunny(Graph):
+class Bunny(NNGraph):
 
     def __init__(self):
         super(Bunny, self).__init__()
