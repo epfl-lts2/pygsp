@@ -1,4 +1,5 @@
 import numpy as np
+import scipy as sp
 from scipy import sparse
 from math import isinf, isnan
 
@@ -80,3 +81,31 @@ def create_laplacian(G):
     else:
         raise AttributeError('Unknown laplacian type!')
     return L
+
+def check_connectivity(G, **kwargs):
+    A = G.W
+    # Removing the diagonal
+    # TODO: heavy refactoring of the matlab version
+    A -= A.diagonal()
+    if G.directed:
+        pass
+    else:
+        pass
+    pass
+
+def distanz(x, y=x):
+    r"""
+    paramters:
+        - x: matrix with col vectors
+        - y: matrix with col vectors
+    """
+    rx, cx = x.shape()
+    ry, cy = y.shape()
+
+    # Size verification
+    if rx != ry:
+        raise("The sizes of x and y do not fit")
+    xx = (x**x).sum()
+    yy = (y**y).sum()
+    xy = 1
+    d = abs(sp.kron([1:cy])+)

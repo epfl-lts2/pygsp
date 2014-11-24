@@ -13,6 +13,18 @@ from pygsp import utils
 
 
 class Graph(object):
+    r"""
+    parameters:
+        - W: Weights matrix
+        - A: Adjacency matrix
+        - N: Number of nodes
+        - d: Degree vector
+        - Ne: Egde number
+        - gtype: Graph type
+        - directed: If the graph is directed
+        - lap_type: Laplacian type
+        - L: Laplacian
+    """
 
     # All the paramters that needs calculation to be set
     # or not needed are set to None
@@ -34,8 +46,8 @@ class Graph(object):
         if N:
             self.N = N
         else:
-            bool self.N_init_default = True
-            self.N = np.shape(G.W)[0]
+            self.N_init_default = True
+            self.N = np.shape(self.W)[0]
         if d:
             self.d = d
         else:
@@ -43,11 +55,11 @@ class Graph(object):
         if Ne:
             self.Ne = Ne
         else:
-            self.Ne = np.zeros((G.N), Float)
+            self.Ne = np.zeros((self.N), Float)
         if directed:
             self.directed = directed
         else:
-            G.directed = utils.is_directed(self)
+            self.directed = utils.is_directed(self)
             pass
         if L:
             self.L = L
