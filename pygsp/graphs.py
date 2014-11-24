@@ -34,7 +34,7 @@ class Graph(object):
         if N:
             self.N = N
         else:
-            self.N_init_default = True	
+            self.N_init_default = True
             self.N = np.shape(G.W)[0]
         if d:
             self.d = d
@@ -259,17 +259,18 @@ class Sensor(Graph):
 
         if param_connected:
             for x in range(param_n_try):
-                W, XCoords, YCoords = create_weight_matrix(self.N, param)
+                W, XCoords, YCoords = create_weight_matrix(self.N, param_distribute, param_regular, param_nc)
 
                 if gsp_check_connectivity_undirected(W):
                     break
                 elif x == param_n_try-1:
                     print("Warning! Graph is not connected")
         else:
-            W, XCoords, YCoords = create_weight_matrix(self.N, param)
+            W, XCoords, YCoords = create_weight_matrix(self.N, param_distribute, param_regular, param_nc)
 
         if param_set_to_one:
-            (x > 0).choose(x, 1)
+            np.where(x > 0, 1, x)
+            # TODO
         self.W = sparse.lil_matrix
         self.W = (self.W + np.transpose(np.conjugate(self.W)))/2
         self.limits = np.array([0, 1, 0, 1])
@@ -281,7 +282,7 @@ class Sensor(Graph):
 
         self.directed = False
 
-        def create_weight_matrix(N, param):
+        def create_weight_matrix(N, param_distribute, param_regular, param_nc):
             XCoords = np.zeros((N, 1))
             YCoords = np.zeros((N, 1))
 
@@ -306,6 +307,20 @@ class Sensor(Graph):
             W = exp(-d**2/(2.*s**2))
 
             W -= np.diag(np.diag(x))
+
+            if param_regular:
+                W = get_nc_connection(W, param_nc)
+            else:
+                W2 = get_nc_connection(W, param_nc)
+                np.where(W < T, 0, W)
+                np.where(W2 > 0, W2, W)
+
+            return W, XCoords, YCoords
+
+        def get_nc_connection(W, param_nc):
+            Wtmp = W
+            W = np.zeros(np.shape(W))
+            for i in np.arange(np.shape(y)[0])
 
 
 class Sphere(Graph):
@@ -380,6 +395,8 @@ class Path(Graph):
                                 axis=1)
 
         np.ones((1, 2*(self.N-1)))
+
+        # TODO
         self.W = sparse.lil_matrix()
 
         self.coord = np.concatenate((np.arange(1, self.N + 1).reshape(self.N, 1),
@@ -407,7 +424,7 @@ class RandomRing(Graph):
         inds_j = np.conjugate(np.arange(2, self.N + 1).reshape(self.N-1, 1))
         inds_i = np.conjugate(np.arange(1, self.N).reshape(self.N-1, 1))
 
-        # todo
+        # TODO
         self.W = sparse.lil_matrix(inds_i, inds_j, weight, N, N)
         self.W(10, 0) = weightend
         self.W += np.conjugate(np.transpose(self.W))
