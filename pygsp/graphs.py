@@ -204,6 +204,62 @@ class Cube(Graph):
         super(Cube, self).__init__(**kwargs)
         param = kwargs
 
+        try:
+            param_raduis = param["radius"]
+        except (KeyError, TypeError):
+            param_raduis = 1
+        try:
+            param_nb_pts = param["nb_pts"]
+        except (KeyError, TypeError):
+            param_nb_pts = 300
+        try:
+            param_nb_dim = param["nb_dim"]
+        except (KeyError, TypeError):
+            param_nb_dim = 3
+        try:
+            param_sampling = param["sampling"]
+        except (KeyError, TypeError):
+            param_sampling = "random"
+
+        if param_nb_dim > 3:
+            raise ValueError("Dimension > 3 not supported yet !")
+
+        if param_sampling == "random":
+            if param_nb_dim == 2:
+                pts = np.random.rand(param_nb_dim, param_nb_dim)
+
+            if param_nb_dim == 3:
+                n = floor(param_nb_dim/6)
+
+                pts = np.zeros((n*6, 3))
+                pts[:n, 1:] = np.random.rand(n, 2)
+                pts[n:2*n, :] = np.concatenate((np.ones((n, 1)),
+                                                np.random.rand(n, 2)),
+                                               axis=1)
+
+                pts[2*n:3*n, :] = np.concatenate((np.random.rand(n, 1),
+                                                  np.zeros((n, 1)),
+                                                  np.random.rand(n, 1)),
+                                                 axis=1)
+                pts[3*n:4*n, :] = np.concatenate((np.random.rand(n, 1),
+                                                  np.ones((n, 1)),
+                                                  np.random.rand(n, 1)),
+                                                 axis=1)
+
+                pts[4*n:5*n, :2] = np.random.rand(n, 2)
+                pts[5*n:6*n, :] = np.concatenate((np.random.rand(n, 2),
+                                                  np.ones((n, 1))),
+                                                 axis=1)
+
+        else:
+            raise ValueError("Unknown sampling !")
+
+        self.gtype = "knn"
+        self.k = 10
+
+        # call of the pcl_graph class
+        pclnngraph(pts, param)
+
 
 class Sensor(Graph):
 
@@ -256,7 +312,8 @@ class Sensor(Graph):
 
         if param_set_to_one:
             np.where(x > 0, 1, x)
-            # TODO
+
+        # TODO
         self.W = sparse.lil_matrix
         self.W = (self.W + np.transpose(np.conjugate(self.W)))/2
         self.limits = np.array([0, 1, 0, 1])
@@ -289,6 +346,8 @@ class Sensor(Graph):
             target_dist_cutoff = 2*N**(-0.5)
             T = 0.6
             s = sqrt(-target_dist_cutoff**2/(2*log(T)))
+
+            # TODO gsp_distanz
             d = gsp_distanz([XCoords, YCoords])
             W = exp(-d**2/(2.*s**2))
 
@@ -306,7 +365,15 @@ class Sensor(Graph):
         def get_nc_connection(W, param_nc):
             Wtmp = W
             W = np.zeros(np.shape(W))
-            for i in np.arange(np.shape(y)[0])
+            for i in np.arange(np.shape(W)[0]):
+                l = Wtemp[i]
+                for j in np.arange(param_nc):
+                    val = np.max(l)
+                    ind = np.argmax(l)
+                    W[i, ind] = val
+                    l[ind] = 0
+
+            W = (W + np.transpose(np.conjugate(W)))/2.
 
 
 class Sphere(Graph):
