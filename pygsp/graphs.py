@@ -26,7 +26,7 @@ class Graph(object):
         - L: Laplacian
     """
 
-    # All the paramters that needs calculation to be set
+    # All the parameters that needs calculation to be set
     # or not needed are set to None
     def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
                  gtype='unknown', directed=None,
@@ -137,6 +137,29 @@ class Torus(Graph):
         else:
             self.M = self.N
 
+        self.gtype = 'Torus'
+        self.directed = False
+
+        # Create weighted adjancency matrix
+        K = 2 * self.N
+        J = 2 * self.M
+        i_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
+        j_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
+        for i in xrange(1, self.M):
+            i_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.N + np.append(self.N, np.append(range(0, self.N-1), range(0, self.N)))
+            j_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.N + np.append(range(0, self.N), np.append(self.N, range(0, self.N-1)))
+        for i in xrange(1, self.M - 1):
+            i_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i-1)*self.N + np.arange(1, self.N), (i*self.N) + np.arange(1, self.N))
+            j_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i*self.N) + np.arange(1, self.N), (i-1)*self.N + np.arange(1, self.N))
+        i_inds[K*self.M + (self.M-1)*2*self.N + np.arrange(0, 2*self.N)] = np.array([np.arange(0, self.N), (self.M-1)*self.N + np.arange(0, self.N)])
+        j_inds[K*self.M + (self.M-1)*2*self.N + np.arrange(0, 2*self.N)] = np.array([(self.M-1)*self.N + np.arange(0, self.N), np.arange(0, self.N)])
+
+        self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
+        # for i_inds, j_inds in
+        self.W = sparse.lil_matrix((np.ones((K*self.M+J*self.N, 1)), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
+
+        # TODO implementate plot attributes
+
 
 # Need K
 class Comet(Graph):
@@ -147,6 +170,20 @@ class Comet(Graph):
             self.k = k
         else:
             self.k = 12
+        if self.N_init_default is True:
+            self.N = 32
+
+        self.gtype = 'Comet'
+
+        # Create weighted adjancency matrix
+        i_inds = np.append(np.append(np.append(np.ones((1, self.k)), np.arange(1, self.k+1)), np.arange(self.k+1, self.N-1)), np.arange(self.k+2, self.N))
+        j_inds = np.append(np.append(np.append(np.arange(1, self.k+1), np.ones((1, self.k))), np.arange(self.k+2, self.N)), np.arange(self.k+1, self.N-1))
+
+        self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
+        # for i_inds, j_inds in
+        self.W = sparse.lil_matrix((np.ones((K*self.M+J*self.N, 1)), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
+
+        # TODO implementate plot attributes
 
 
 class LowStretchTree(Graph):
@@ -234,17 +271,18 @@ class Sensor(Graph):
 
         if param_connected:
             for x in range(param_n_try):
-                W, XCoords, YCoords = create_weight_matrix(self.N, param)
+                W, XCoords, YCoords = create_weight_matrix(self.N, param_distribute, param_regular, param_nc)
 
                 if gsp_check_connectivity_undirected(W):
                     break
                 elif x == param_n_try-1:
                     print("Warning! Graph is not connected")
         else:
-            W, XCoords, YCoords = create_weight_matrix(self.N, param)
+            W, XCoords, YCoords = create_weight_matrix(self.N, param_distribute, param_regular, param_nc)
 
         if param_set_to_one:
-            (x > 0).choose(x, 1)
+            np.where(x > 0, 1, x)
+            # TODO
         self.W = sparse.lil_matrix
         self.W = (self.W + np.transpose(np.conjugate(self.W)))/2
         self.limits = np.array([0, 1, 0, 1])
@@ -256,7 +294,7 @@ class Sensor(Graph):
 
         self.directed = False
 
-        def create_weight_matrix(N, param):
+        def create_weight_matrix(N, param_distribute, param_regular, param_nc):
             XCoords = np.zeros((N, 1))
             YCoords = np.zeros((N, 1))
 
@@ -281,6 +319,20 @@ class Sensor(Graph):
             W = exp(-d**2/(2.*s**2))
 
             W -= np.diag(np.diag(x))
+
+            if param_regular:
+                W = get_nc_connection(W, param_nc)
+            else:
+                W2 = get_nc_connection(W, param_nc)
+                np.where(W < T, 0, W)
+                np.where(W2 > 0, W2, W)
+
+            return W, XCoords, YCoords
+
+        def get_nc_connection(W, param_nc):
+            Wtmp = W
+            W = np.zeros(np.shape(W))
+            for i in np.arange(np.shape(y)[0])
 
 
 class Sphere(Graph):
@@ -355,6 +407,8 @@ class Path(Graph):
                                 axis=1)
 
         np.ones((1, 2*(self.N-1)))
+
+        # TODO
         self.W = sparse.lil_matrix()
 
         self.coord = np.concatenate((np.arange(1, self.N + 1).reshape(self.N, 1),
@@ -382,7 +436,7 @@ class RandomRing(Graph):
         inds_j = np.conjugate(np.arange(2, self.N + 1).reshape(self.N-1, 1))
         inds_i = np.conjugate(np.arange(1, self.N).reshape(self.N-1, 1))
 
-        # todo
+        # TODO
         self.W = sparse.lil_matrix(inds_i, inds_j, weight, N, N)
         self.W(10, 0) = weightend
         self.W += np.conjugate(np.transpose(self.W))
