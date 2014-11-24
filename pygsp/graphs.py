@@ -14,7 +14,7 @@ from pygsp import utils
 
 class Graph(object):
 
-    # All the paramters that needs calculation to be set
+    # All the parameters that needs calculation to be set
     # or not needed are set to None
     def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
                  gtype='unknown', directed=None,
@@ -34,7 +34,7 @@ class Graph(object):
         if N:
             self.N = N
         else:
-            bool self.N_init_default = True
+            self.N_init_default = True	
             self.N = np.shape(G.W)[0]
         if d:
             self.d = d
@@ -146,7 +146,7 @@ class Torus(Graph):
         # for i_inds, j_inds in
         self.W = sparse.lil_matrix((np.ones((K*self.M+J*self.N, 1)), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
 
-        # TODO implementate plot attribute
+        # TODO implementate plot attributes
 
 
 # Need K
@@ -158,6 +158,20 @@ class Comet(Graph):
             self.k = k
         else:
             self.k = 12
+        if self.N_init_default is True:
+            self.N = 32
+
+        self.gtype = 'Comet'
+
+        # Create weighted adjancency matrix
+        i_inds = np.append(np.append(np.append(np.ones((1, self.k)), np.arange(1, self.k+1)), np.arange(self.k+1, self.N-1)), np.arange(self.k+2, self.N))
+        j_inds = np.append(np.append(np.append(np.arange(1, self.k+1), np.ones((1, self.k))), np.arange(self.k+2, self.N)), np.arange(self.k+1, self.N-1))
+
+        self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
+        # for i_inds, j_inds in
+        self.W = sparse.lil_matrix((np.ones((K*self.M+J*self.N, 1)), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
+
+        # TODO implementate plot attributes
 
 
 class LowStretchTree(Graph):
