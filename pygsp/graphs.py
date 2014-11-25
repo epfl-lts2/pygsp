@@ -98,20 +98,20 @@ class Grid2d(Graph):
         self.N = self.N * self.M
 
         # Create weighted adjacency matrix
-        K = 2 * self.N - 1
-        J = 2 * self.M - 1
+        K = 2 * self.N-1
+        J = 2 * self.M-1
 
         i_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
         j_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
         for i in xrange(1, self.M):
-            i_inds[(i-1) * K + np.arange(0, K)] = (i - 1) * self.N + np.append(range(0, self.N - 1), range(1, self.N))
-            j_inds[(i-1) * K + np.arange(0, K)] = (i - 1) * self.N + np.append(range(1, self.N), range(0, self.N - 1))
+            i_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.N + np.concatenate(np.arange(0, self.N-1), np.arange(1, self.N))
+            j_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.N + np.concatenate(np.arange(1, self.N), np.arange(0, self.N-1))
 
-        for i in xrange(1, self.M - 1):
-            i_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i-1)*self.N + np.array(range(1, self.N)), (i*self.N) + np.array(range(1, self.N)))
-            j_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i*self.N) + np.array(range(1, self.N)), (i-1)*self.N + np.array(range(1, self.N)))
+        for i in xrange(1, self.M-1):
+            i_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.concatenate((i-1)*self.N + np.arange(1, self.N), (i*self.N) + np.arange(1, self.N))
+            j_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.concatenate((i*self.N) + np.arange(1, self.N), (i-1)*self.N + np.arange(1, self.N))
 
-        self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
+        self.W = sparse.lil_matrix((self.M*self.N, self.M*self.N))
         # for i_inds, j_inds in
         self.W = sparse.lil_matrix((np.ones((K*self.M+J*self.N, 1)), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
 
@@ -134,13 +134,13 @@ class Torus(Graph):
         i_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
         j_inds = np.zeros((K*self.M + J*self.N, 1), dtype=float)
         for i in xrange(1, self.M):
-            i_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.N + np.append(self.N, np.append(range(0, self.N-1), range(0, self.N)))
-            j_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.N + np.append(range(0, self.N), np.append(self.N, range(0, self.N-1)))
-        for i in xrange(1, self.M - 1):
-            i_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i-1)*self.N + np.arange(1, self.N), (i*self.N) + np.arange(1, self.N))
-            j_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i*self.N) + np.arange(1, self.N), (i-1)*self.N + np.arange(1, self.N))
-        i_inds[K*self.M + (self.M-1)*2*self.N + np.arrange(0, 2*self.N)] = np.array([np.arange(0, self.N), (self.M-1)*self.N + np.arange(0, self.N)])
-        j_inds[K*self.M + (self.M-1)*2*self.N + np.arrange(0, 2*self.N)] = np.array([(self.M-1)*self.N + np.arange(0, self.N), np.arange(0, self.N)])
+            i_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.N + np.concatenate(self.N, np.arange(0, self.N-1), np.arange(0, self.N))
+            j_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.N + np.concatenate(np.arange(0, self.N), self.N, np.arange(0, self.N-1))
+        for i in xrange(1, self.M-1):
+            i_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.concatenate((i-1)*self.N + np.arange(1, self.N), (i*self.N) + np.arange(1, self.N))
+            j_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.concatenate((i*self.N) + np.arange(1, self.N), (i-1)*self.N + np.arange(1, self.N))
+        i_inds[K*self.M + (self.M-1)*2*self.N + np.arrange(0, 2*self.N)] = np.concatenate(np.arange(0, self.N), (self.M-1)*self.N + np.arange(0, self.N))
+        j_inds[K*self.M + (self.M-1)*2*self.N + np.arrange(0, 2*self.N)] = np.concatenate((self.M-1)*self.N + np.arange(0, self.N), np.arange(0, self.N))
 
         self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
         # for i_inds, j_inds in
@@ -164,8 +164,8 @@ class Comet(Graph):
         self.gtype = 'Comet'
 
         # Create weighted adjancency matrix
-        i_inds = np.append(np.append(np.append(np.ones((1, self.k)), np.arange(1, self.k+1)), np.arange(self.k+1, self.N-1)), np.arange(self.k+2, self.N))
-        j_inds = np.append(np.append(np.append(np.arange(1, self.k+1), np.ones((1, self.k))), np.arange(self.k+2, self.N)), np.arange(self.k+1, self.N-1))
+        i_inds = np.concatenate((np.ones(self.k), np.arange(1, self.k+1), np.arange(self.k+1, self.N-1), np.arange(self.k+2, self.N)))
+        j_inds = np.concatenate((np.arange(1, self.k+1), np.ones(self.k), np.arange(self.k+2, self.N), np.arange(self.k+1, self.N-1)))
 
         self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
         # for i_inds, j_inds in
@@ -182,6 +182,10 @@ class LowStretchTree(Graph):
             self.k = k
         else:
             self.k = 6
+
+        start_nodes = np.array([1, 1, 3])
+        end_nodes = np.array([2, 3, 4])
+
 
 
 class RandomRegular(Graph):
