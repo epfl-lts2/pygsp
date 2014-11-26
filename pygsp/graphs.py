@@ -91,8 +91,100 @@ class NNGraph(Graph):
         - Xin : Input Points
     """
 
-    def __init__(self, Xin, **kwargs):
-        self.Xin = Xin
+    def __init__(self, Xin, gtype='knn', use_flann=0, center=1, rescale=1, k=10, sigma=0.1, epsilon=0.01 **kwargs):
+        super(NNGraph, self).__init__(**kwargs)
+        N, d = np.shape(Xin)
+        Xout = Xin
+        if self.center:
+            # TODO Check if equi to repmat
+            Xout = Xin - np.kron(Xin.mean(), N)
+
+        if self.rescale:
+            # TODO find equivalent to norm
+            bounding_radius = 0.5 * norm(max(Xout) - min(Xout))
+            # TODO scale =
+            Xout *= scale * bounding_radius
+
+
+class Bunny(NNGraph):
+
+    def __init__(self):
+        self.type = "radius"
+        self.rescale = 1
+        self.center = 1
+        self.epsilon = 0.2
+        # TODO do the ritgh way when point cloud is merged
+        self.Xin = Pointcloud(name="bunny").P
+        super(Bunny, self).__init__(Xin, **kwargs)
+
+
+class Sphere(NNGraph):
+
+    def __init__(self, **kwargs):
+        super(Sphere, self).__init__(**kwargs)
+
+
+class Cube(NNGraph):
+
+    def __init__(self, **kwargs):
+        super(Cube, self).__init__(**kwargs)
+        param = kwargs
+
+        try:
+            param_raduis = param["radius"]
+        except (KeyError, TypeError):
+            param_raduis = 1
+        try:
+            param_nb_pts = param["nb_pts"]
+        except (KeyError, TypeError):
+            param_nb_pts = 300
+        try:
+            param_nb_dim = param["nb_dim"]
+        except (KeyError, TypeError):
+            param_nb_dim = 3
+        try:
+            param_sampling = param["sampling"]
+        except (KeyError, TypeError):
+            param_sampling = "random"
+
+        if param_nb_dim > 3:
+            raise ValueError("Dimension > 3 not supported yet !")
+
+        if param_sampling == "random":
+            if param_nb_dim == 2:
+                pts = np.random.rand(param_nb_dim, param_nb_dim)
+
+            if param_nb_dim == 3:
+                n = floor(param_nb_dim/6)
+
+                pts = np.zeros((n*6, 3))
+                pts[:n, 1:] = np.random.rand(n, 2)
+                pts[n:2*n, :] = np.concatenate((np.ones((n, 1)),
+                                                np.random.rand(n, 2)),
+                                               axis=1)
+
+                pts[2*n:3*n, :] = np.concatenate((np.random.rand(n, 1),
+                                                  np.zeros((n, 1)),
+                                                  np.random.rand(n, 1)),
+                                                 axis=1)
+                pts[3*n:4*n, :] = np.concatenate((np.random.rand(n, 1),
+                                                  np.ones((n, 1)),
+                                                  np.random.rand(n, 1)),
+                                                 axis=1)
+
+                pts[4*n:5*n, :2] = np.random.rand(n, 2)
+                pts[5*n:6*n, :] = np.concatenate((np.random.rand(n, 2),
+                                                  np.ones((n, 1))),
+                                                 axis=1)
+
+        else:
+            raise ValueError("Unknown sampling !")
+
+        self.gtype = "knn"
+        self.k = 10
+
+        # call of the pcl_graph class
+        pclnngraph(pts, param)
 
 
 # Need M
@@ -257,7 +349,7 @@ class Community(Graph):
                     X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([self.N])))
                 dX = np.transpose(np.diff(np.transpose(X)))
                 for i in np.arange(self.Nc):
-                    
+
 
 class Cube(NNGraph):
 
@@ -400,13 +492,6 @@ class Sensor(Graph):
             W = (W + np.transpose(np.conjugate(W)))/2.
 
 
-class Sphere(NNGraph):
-
-    def __init__(self, **kwargs):
-        super(Sphere, self).__init__(**kwargs)
-        param = kwargs
-
-
 # Need nothing
 class Airfoil(Graph):
 
@@ -417,12 +502,6 @@ class Airfoil(Graph):
         self.W = (A + np.transpose(np.conjugate(A)))/2
 
         self.coords = [x, y]
-
-
-class Bunny(NNGraph):
-
-    def __init__(self):
-        super(Bunny, self).__init__()
 
 
 class DavidSensorNet(Graph):
