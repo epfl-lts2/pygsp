@@ -10,6 +10,7 @@ from copy import deepcopy
 from scipy import sparse
 from scipy import io
 from pygsp import utils
+import random as rd
 
 
 class Graph(object):
@@ -138,36 +139,24 @@ class Sphere(NNGraph):
 
 class Cube(NNGraph):
 
-    def __init__(self, **kwargs):
+    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random", *kwargs):
         super(Cube, self).__init__(**kwargs)
         param = kwargs
 
-        try:
-            param_raduis = param["radius"]
-        except (KeyError, TypeError):
-            param_raduis = 1
-        try:
-            param_nb_pts = param["nb_pts"]
-        except (KeyError, TypeError):
-            param_nb_pts = 300
-        try:
-            param_nb_dim = param["nb_dim"]
-        except (KeyError, TypeError):
-            param_nb_dim = 3
-        try:
-            param_sampling = param["sampling"]
-        except (KeyError, TypeError):
-            param_sampling = "random"
+        self.radius = radius
+        self.nb_pts = nb_pts
+        self.nb_dim
+        self.sampling = sampling
 
-        if param_nb_dim > 3:
+        if self.nb_dim > 3:
             raise ValueError("Dimension > 3 not supported yet !")
 
-        if param_sampling == "random":
-            if param_nb_dim == 2:
-                pts = np.random.rand(param_nb_dim, param_nb_dim)
+        if self.sampling == "random":
+            if vnb_dim == 2:
+                pts = np.random.rand(self.nb_dim, self.nb_dim)
 
             if param_nb_dim == 3:
-                n = floor(param_nb_dim/6)
+                n = floor(self.nb_dim/6)
 
                 pts = np.zeros((n*6, 3))
                 pts[:n, 1:] = np.random.rand(n, 2)
@@ -302,7 +291,6 @@ class LowStretchTree(Graph):
         end_nodes = np.array([2, 3, 4])
 
 
-
 class RandomRegular(Graph):
 
     def __init__(self, k=None, **kwargs):
@@ -371,15 +359,53 @@ class Community(Graph):
             self.com_sizes = np.diff(com_lims)
 
         if self.verbose > 2:
-            # TODO
                 X = np.zeros((10000, self.Nc + 1))
-                for i in np.arange(10000):
+                # pick randomly param.Nc-1 points to cut the rows in communtities:
+                for i in xrange(10000):
                     com_lims_tmp = np.sort(np.random.choice(self.N - (self.min_com - 1)*self.Nc - 1, sefl.Nc - 1) + 1)
                     com_lims_tmp += np.cumsum((self.min_com-1)*np.ones(np.shape(com_lims)))
                     X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([self.N])))
                 dX = np.transpose(np.diff(np.transpose(X)))
-                for i in np.arange(self.Nc):
+                for i in xrange(self.Nc):
+                     # TODO
+                    print("  TODO")
+                del X
+                del com_lims_tmp
 
+        rad_world = self.size_ratio*sqrt(self.N)
+        com_coords = rad_world*np.concatenate((-np.cos(2*np.pi*(np.arange(self.Nc) + 1).reshape(10, 1)/self.Nc),
+                                               np.sin(2*np.pi*(np.arange(self.Nc) + 1).reshape(10, 1)/self.Nc)),
+                                              axis=1)
+
+        self.coords = np.ones((self.N, 2))
+
+        # create uniformly random points in the unit disc
+        for i in xrange(self.N):
+            # use rejection sampling to sample from a unit disc (probability = pi/4)
+            while np.linalg.norm(self.coords[i], 2) >= 0.5:
+                # sample from the square and reject anything outside the circle
+                self.coords[i] = rd.uniform(-0.5, 0.5), rd.uniform(-0.5, 0.5)
+
+        # TODO THE INFO THINGS
+        # add the offset for each node depending on which community it belongs to
+        for i in xrange(self.Nc):
+            com_size = self.com_size[i]
+            rad_com = sqrt(com_size)
+
+            node_ind = np.arange((com_lims[i+1]) - ((com_lims[i] + 1))) + (com_lims[i] + 1)
+            self.coords[node_ind] =
+
+        D = gsp_distanz(np.transpose(self.coords))
+        W = exp(-np.power(D, 2))
+        W = np.where(W < 1e-3, 0, W)
+
+        """W = W + abs(sprandsym(N, param.world_density));
+        matlab: we create a sparse, symetric random matrix, with N for the shape, and world_density for the density.
+        I did not thing yet how to do that in python (i dont even know if we can add a full matrix with a sparse matrix the samw way in matlb)
+        """
+        W = np.where(np.abs(W) > 0, 1, x).astype(float)
+        self.W = sparse(W)
+        self.gtype = "Community"
 
 class Cube(NNGraph):
 
@@ -446,7 +472,7 @@ class Sensor(Graph):
         self.set_to_one = set_to_one
 
         if self.connected:
-            for x in range(self.n_try):
+            for x in xrange(self.n_try):
                 W, XCoords, YCoords = create_weight_matrix(self.N, self.distribute, self.regular, self.nc)
 
                 if gsp_check_connectivity_undirected(W):
@@ -477,8 +503,8 @@ class Sensor(Graph):
 
             if param_distribute:
                 mdim = ceil(sqrt(N))
-                for i in np.arange(mdim):
-                    for j in np.arange(mdim):
+                for i in xrange(mdim):
+                    for j in xrange(mdim):
                         if i*mdim + j < N:
                             XCoords[i*mdim + j] = 1/mdim*np.random.rand()+i/mdim
                             YCoords[i*mdim + j] = 1/mdim*np.random.rand()+j/mdim
@@ -511,9 +537,9 @@ class Sensor(Graph):
         def get_nc_connection(W, param_nc):
             Wtmp = W
             W = np.zeros(np.shape(W))
-            for i in np.arange(np.shape(W)[0]):
+            for i in xrange(np.shape(W)[0]):
                 l = Wtemp[i]
-                for j in np.arange(param_nc):
+                for j in xrange(param_nc):
                     val = np.max(l)
                     ind = np.argmax(l)
                     W[i, ind] = val
