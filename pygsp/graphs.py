@@ -204,43 +204,80 @@ class Ring(Graph):
 # Need params
 class Community(Graph):
 
-    def __init__(self, **kwargs):
+    def __init__(self, N=256, Nc=None, com_sizes=[], min_com=None, min_deg=None, verboes=1, size_ratio=1, world_density=None **kwargs):
         super(Community, self).__init__(**kwargs)
         param = kwargs
 
+        # Initialisation of the parameters
+        self.N = N
+
+        if Nc:
+            self.Nc = Nc
+        else:
+
+            self.Nc = round(sqrt(self.N))
+        if len(com_sizes) != 0:
+            if np.sum(com_sizes) != self.N:
+                raise ValueError("GSP_COMMUNITY: The sum of the community sizes has to be equal to N")
+            else:
+                self.com_sizes = com_sizes
+
+        if min_com:
+            self.min_com = min_com
+        else:
+            self.min_com = round(self.N / self.Nc / 3.)
+
+        if min_deg:
+            self.min_deg = min_deg
+        else:
+            self.min_deg = round(self.min_com/2.)
+
+        self.verbose = verbose
+
+        self.size_ratio = size_ratio
+
+        if world_density:
+            self.world_density = world_density
+        else:
+            self.world_density = 1./self.N
+
+        # Begining
+        if len(self.com_sizes) == 0:
+            com_lims = np.sort(np.random.choice(self.N - (self.min_com - 1)*self.Nc - 1, sefl.Nc - 1) + 1)
+            com_lims += np.cumsum((self.min_com-1)*np.ones(np.shape(com_lims)))
+            com_lims = np.concatenate((np.array([0]), com_lims, np.array([self.N])))
+            self.com_sizes = np.diff(com_lims)
+
+        if self.verbose > 2:
+            # TODO
+                X = np.zeros((10000, self.Nc + 1))
+                for i in np.arange(10000):
+                    com_lims_tmp = np.sort(np.random.choice(self.N - (self.min_com - 1)*self.Nc - 1, sefl.Nc - 1) + 1)
+                    com_lims_tmp += np.cumsum((self.min_com-1)*np.ones(np.shape(com_lims)))
+                    X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([self.N])))
+                dX = np.transpose(np.diff(np.transpose(X)))
+                for i in np.arange(self.Nc):
+                    
 
 class Cube(NNGraph):
 
-    def __init__(self, **kwargs):
+    def __init__(self, radius=1, nb_pts=300, nb_dim=300, sampling="random", **kwargs):
         super(Cube, self).__init__(**kwargs)
         param = kwargs
+        self.raduis = radius
+        self.nb_pts = nb_pts
+        self.nb_dim = nb_dim
+        self.sampling = sampling
 
-        try:
-            param_raduis = param["radius"]
-        except (KeyError, TypeError):
-            param_raduis = 1
-        try:
-            param_nb_pts = param["nb_pts"]
-        except (KeyError, TypeError):
-            param_nb_pts = 300
-        try:
-            param_nb_dim = param["nb_dim"]
-        except (KeyError, TypeError):
-            param_nb_dim = 3
-        try:
-            param_sampling = param["sampling"]
-        except (KeyError, TypeError):
-            param_sampling = "random"
-
-        if param_nb_dim > 3:
+        if self.nb_dim > 3:
             raise ValueError("Dimension > 3 not supported yet !")
 
-        if param_sampling == "random":
-            if param_nb_dim == 2:
-                pts = np.random.rand(param_nb_dim, param_nb_dim)
+        if self.sampling == "random":
+            if self.nb_dim == 2:
+                pts = np.random.rand(self.nb_dim, self.nb_dim)
 
-            if param_nb_dim == 3:
-                n = floor(param_nb_dim/6)
+            if self.nb_dim == 3:
+                n = floor(self.nb_dim/6)
 
                 pts = np.zeros((n*6, 3))
                 pts[:n, 1:] = np.random.rand(n, 2)
@@ -274,54 +311,30 @@ class Cube(NNGraph):
 
 class Sensor(Graph):
 
-    def __init__(self, **kwargs):
+    def __init__(self, N=64, nc=2, regular=False, verbose=1, n_try=50, distribute=False, connected=True, set_to_one=False, **kwargs):
         super(Sensor, self).__init__(**kwargs)
         param = kwargs
-        if self.N_init_default:
-            self.N = 64
+        self.N = N
+        self.nc = nc
+        self.regular = regular
+        self.verbose = verbose
+        self.n_try = n_try
+        self.distribute = distribute
+        self.connected = connected
+        self.set_to_one = set_to_one
 
-        # initialization of the param
-        try:
-            param_nc = param["nc"]
-        except (KeyError, TypeError):
-            param_nc = 2
-        try:
-            param_regular = param["regular"]
-        except (KeyError, TypeError):
-            param_regular = False
-        try:
-            param_verbose = param["verbose"]
-        except (KeyError, TypeError):
-            param_verbose = 1
-        try:
-            param_n_try = param["n_try"]
-        except (KeyError, TypeError):
-            param_n_try = 50
-        try:
-            param_distribute = param["distribute"]
-        except (KeyError, TypeError):
-            param_distribute = False
-        try:
-            param_connected = param["connected"]
-        except (KeyError, TypeError):
-            param_connected = True
-        try:
-            param_set_to_one = param["set_to_one"]
-        except (KeyError, TypeError):
-            param_set_to_one = False
-
-        if param_connected:
-            for x in range(param_n_try):
-                W, XCoords, YCoords = create_weight_matrix(self.N, param_distribute, param_regular, param_nc)
+        if self.connected:
+            for x in range(self.n_try):
+                W, XCoords, YCoords = create_weight_matrix(self.N, self.distribute, self.regular, self.nc)
 
                 if gsp_check_connectivity_undirected(W):
                     break
-                elif x == param_n_try-1:
+                elif x == self.n_try-1:
                     print("Warning! Graph is not connected")
         else:
-            W, XCoords, YCoords = create_weight_matrix(self.N, param_distribute, param_regular, param_nc)
+            W, XCoords, YCoords = create_weight_matrix(self.N, self.distribute, self.regular, self.nc)
 
-        if param_set_to_one:
+        if self.set_to_one:
             np.where(x > 0, 1, x)
 
         # TODO
@@ -329,7 +342,7 @@ class Sensor(Graph):
         self.W = (self.W + np.transpose(np.conjugate(self.W)))/2
         self.limits = np.array([0, 1, 0, 1])
         self.coords = [XCoords, YCoords]
-        if param_regular:
+        if self.regular:
             self.gtype = "regular sensor"
         else:
             self.gtype = "sensor"
@@ -420,10 +433,9 @@ class DavidSensorNet(Graph):
 
 class FullConnected(Graph):
 
-    def __init__(self):
+    def __init__(self, N=10):
         super(FullConnected, self).__init__()
-        if self.N_init_default:
-            self.N = 10
+        self.N N
 
         self.W = np.ones((self.N, self.N))-np.identity(self.N)
 
@@ -448,11 +460,9 @@ class Logo(Graph):
 
 class Path(Graph):
 
-    def __init__(self):
+    def __init__(self, N=16):
         super(Path, self).__init__()
-        if self.N_init_default:
-            self.N = 16
-
+        self.N = N
         inds_i = np.concatenate((np.arange(1, self.N), np.arange(2, self.N+1)),
                                 axis=1)
         inds_j = np.concatenate((np.arange(2, self.N+1), np.arange(1, sefl.N)),
@@ -474,10 +484,9 @@ class Path(Graph):
 
 class RandomRing(Graph):
 
-    def __init__(self):
+    def __init__(self, N=64):
         super(RandomRing, self).__init__()
-        if self.N_init_default:
-            self.N = 64
+        self.N = N
 
         position = np.sort(np.random.rand(x))
         position = np.sort(np.random.rand(x, 1), axis=0)
