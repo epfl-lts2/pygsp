@@ -151,8 +151,8 @@ class Torus(Graph):
         for i in xrange(1, self.M-1):
             i_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.concatenate((i-1)*self.N + np.arange(1, self.N), (i*self.N) + np.arange(1, self.N))
             j_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.concatenate((i*self.N) + np.arange(1, self.N), (i-1)*self.N + np.arange(1, self.N))
-        i_inds[K*self.M + (self.M-1)*2*self.N + np.arrange(0, 2*self.N)] = np.concatenate(np.arange(0, self.N), (self.M-1)*self.N + np.arange(0, self.N))
-        j_inds[K*self.M + (self.M-1)*2*self.N + np.arrange(0, 2*self.N)] = np.concatenate((self.M-1)*self.N + np.arange(0, self.N), np.arange(0, self.N))
+        i_inds[K*self.M + (self.M-1)*2*self.N + np.arange(0, 2*self.N)] = np.concatenate(np.arange(0, self.N), (self.M-1)*self.N + np.arange(0, self.N))
+        j_inds[K*self.M + (self.M-1)*2*self.N + np.arange(0, 2*self.N)] = np.concatenate((self.M-1)*self.N + np.arange(0, self.N), np.arange(0, self.N))
 
         self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
         # for i_inds, j_inds in
