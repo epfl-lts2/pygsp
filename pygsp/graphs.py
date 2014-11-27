@@ -5,7 +5,7 @@ Module documentation.
 """
 
 import numpy as np
-from math import ceil, sqrt, log, exp
+from math import ceil, sqrt, log, exp, floor
 from copy import deepcopy
 from scipy import sparse
 from scipy import io
@@ -293,22 +293,53 @@ class LowStretchTree(Graph):
 
 class RandomRegular(Graph):
 
-    def __init__(self, k=None, **kwargs):
+    def __init__(self, k=6, **kwargs):
         super(RandomRegular, self).__init__(**kwargs)
-        if k:
-            self.k = k
-        else:
-            self.k = 6
+        self.k = k
 
 
 class Ring(Graph):
 
-    def __init__(self, k=None, **kwargs):
+    def __init__(self, N=64 k=1, **kwargs):
         super(Ring, self).__init__(**kwargs)
-        if k:
-            self.k = k
+
+        self.N = N
+        self.k = k
+
+        if self.k > self.N/2:
+            raise ValueError("Too many neighbors requested.")
+
+        # Create weighted adjancency matrix
+        if self.k == self.N/2:
+            num_edges = self.N*(self.k-1) + self.N/2
         else:
-            self.k = 1
+            num_edges = self.N*self.k
+
+        i_inds = np.zeros((1, 2*num_edges))
+        j_inds = np.zeros((1, 2*num_edges))
+
+        all_inds = np.arange(self.N)+1
+        for i in xrange(min(slef.k, floor((self.N_1)/2))):
+            i_inds[:, (i*2*self.N):(i*2*self.N + self.N)] = all_inds
+            j_inds[:, (i*2*self.N):(i*2*self.N + self.N)] = np.remainder(all_inds + i, self.N) + 1
+            i_inds[:, (i*2*self.N + self.N):((i + 1)*2*self.N)] = np.remainder(all_inds + i, self.N) + 1
+            j_inds[:, (i*2*self.N + self.N):((i + 1)*2*self.N)] = all_inds
+
+        if self.k == self.N/2:
+            i_inds[(2*sefl.N*(self.k - 1)):(2*self.N*(self.k - 1)+self.N)] = all_inds
+            i_inds[(2*sefl.N*(self.k - 1)):(2*self.N*(self.k - 1)+self.N)] = np.remainder(all_inds + k, self.N) + 1
+
+        # TODO G.W=sparse(i_inds,j_inds,ones(1,length(i_inds)),N,N);
+
+        self.coords = np.array([np.cos(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N),
+                                np.sin(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N)])
+
+        self.limits = np.array([-1, 1, -1, 1])
+
+        if sekf.k == 1:
+            self.gtype = "ring"
+        else:
+            self.gtype = "k-ring"
 
 
 # Need params
