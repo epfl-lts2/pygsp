@@ -104,7 +104,7 @@ class NNGraph(Graph):
         - Xin : Input Points
     """
 
-    def __init__(self, Xin, gtype='knn', use_flann=0, center=1, rescale=1, k=10, sigma=0.1, epsilon=0.01 **kwargs):
+    def __init__(self, Xin, gtype='knn', use_flann=0, center=1, rescale=1, k=10, sigma=0.1, epsilon=0.01, **kwargs):
         super(NNGraph, self).__init__(**kwargs)
         N, d = np.shape(Xin)
         Xout = Xin
@@ -293,9 +293,49 @@ class LowStretchTree(Graph):
 
 class RandomRegular(Graph):
 
-    def __init__(self, k=6, **kwargs):
+    def __init__(self, N=64, k=6, **kwargs):
         super(RandomRegular, self).__init__(**kwargs)
+        self.N = N
         self.k = k
+
+        self.gtype = "random_regular"
+        self.W = createRandRegGraph(self.N. self.k)
+
+        def createRandRegGraph(vertNum, deg):
+            r"""
+            createRegularGraph - creates a simple d-regular undirected graph
+            simple = without loops or double edges
+            d-reglar = each vertex is adjecent to d edges
+
+            input arguments :
+              vertNum - number of vertices
+              deg - the degree of each vertex
+
+            output arguments :
+              A - A sparse matrix representation of the graph
+
+            algorithm :
+            "The pairing model" : create n*d 'half edges'.
+            repeat as long as possible: pick a pair of half edges 
+              and if it's legal (doesn't creat a loop nor a double edge)
+              add it to the graph
+
+            reference: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.67.7957&rep=rep1&type=pdf
+            """
+
+            n = vertNum
+            d = deg
+            matIter = 10
+
+            # check parmaters
+            if (n*d) % 2 == 1:
+                raise ValueError("createRandRegGraph input err: n*d must be even!")
+
+            # a list of open half-edges
+            U = np.kron(np.ones((1, d)), np.arange(n)+1)
+
+            # the graphs adajency matrix
+            # A = sparse(n,n);
 
 
 class Ring(Graph):
@@ -345,7 +385,7 @@ class Ring(Graph):
 # Need params
 class Community(Graph):
 
-    def __init__(self, N=256, Nc=None, com_sizes=[], min_com=None, min_deg=None, verboes=1, size_ratio=1, world_density=None **kwargs):
+    def __init__(self, N=256, Nc=None, com_sizes=[], min_com=None, min_deg=None, verboes=1, size_ratio=1, world_density=None, **kwargs):
         super(Community, self).__init__(**kwargs)
         param = kwargs
 
@@ -398,7 +438,7 @@ class Community(Graph):
                     X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([self.N])))
                 dX = np.transpose(np.diff(np.transpose(X)))
                 for i in xrange(self.Nc):
-                     # TODO
+                    # TODO
                     print("  TODO")
                 del X
                 del com_lims_tmp
@@ -437,6 +477,7 @@ class Community(Graph):
         W = np.where(np.abs(W) > 0, 1, x).astype(float)
         self.W = sparse(W)
         self.gtype = "Community"
+
 
 class Cube(NNGraph):
 
