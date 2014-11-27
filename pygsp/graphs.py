@@ -124,8 +124,10 @@ class Grid2d(Graph):
             j_inds[(K*self.M) + (i-1)*2*self.N + np.arange(1, 2*self.N)] = np.append((i*self.N) + np.array(range(1, self.N)), (i-1)*self.N + np.array(range(1, self.N)))
 
         self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
-        # for i_inds, j_inds in
-        self.W = sparse.lil_matrix((np.ones((K*self.M+J*self.N, 1)), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
+
+        dd = range(np.shape(i_inds))
+        for d in dd:
+            self.W[i_inds[d], j_inds[d]] = 1
 
 
 class Torus(Graph):
@@ -155,10 +157,11 @@ class Torus(Graph):
         j_inds[K*self.M + (self.M-1)*2*self.N + np.arrange(0, 2*self.N)] = np.array([(self.M-1)*self.N + np.arange(0, self.N), np.arange(0, self.N)])
 
         self.W = sparse.lil_matrix((self.M * self.N, self.M * self.N))
-        # for i_inds, j_inds in
-        self.W = sparse.lil_matrix((np.ones((K*self.M+J*self.N, 1)), (i_inds, j_inds)), shape=(self.M*self.N, self.M*self.N))
+        dd = range(np.shape(i_inds))
+        for d in dd:
+            self.W[i_inds[d], j_inds[d]] = 1
 
-        # TODO implementate plot attributes
+        # TODO implement plot attributes
 
 
 # Need K
@@ -332,7 +335,7 @@ class Sensor(Graph):
         def get_nc_connection(W, param_nc):
             Wtmp = W
             W = np.zeros(np.shape(W))
-            for i in np.arange(np.shape(y)[0])
+            #for i in np.arange(np.shape(y)[0])
 
 
 class Sphere(Graph):
@@ -438,7 +441,8 @@ class RandomRing(Graph):
 
         # TODO
         self.W = sparse.lil_matrix(inds_i, inds_j, weight, N, N)
-        self.W(10, 0) = weightend
+        # TOFIX
+        # self.W(10, 0) = weightend
         self.W += np.conjugate(np.transpose(self.W))
 
         self.coords = np.concatenate((np.cos(position*2*np.pi),
