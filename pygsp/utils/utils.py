@@ -107,5 +107,5 @@ def distanz(x, y=x):
         raise("The sizes of x and y do not fit")
     xx = (x**x).sum()
     yy = (y**y).sum()
-    xy = 1
-    d = abs(sp.kron([1:cy])+)
+    xy = np.transpose(x)*y
+    d = abs(sp.kron(sp.ones((1, cy)), xx) + sp.kron(sp.ones((cx, 1)), yy) - 2*xy )

@@ -119,7 +119,7 @@ class Grid2d(Graph):
             i_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i-1)*self.Nv + np.arange(1, self.Nv), (i*self.Nv) + np.arange(1, self.Nv))
             j_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i*self.Nv) + np.arange(1, self.Nv), (i-1)*self.Nv + np.arange(1, self.Nv))
 
-        self.W = sp.sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
+        self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
 
 class Torus(Graph):
@@ -144,9 +144,9 @@ class Torus(Graph):
         i_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(0, 2*self.Nv)] = np.concatenate(np.arange(0, self.Nv), (self.Mv-1)*self.Nv + np.arange(0, self.Nv))
         j_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(0, 2*self.Nv)] = np.concatenate((self.Mv-1)*self.Nv + np.arange(0, self.Nv), np.arange(0, self.Nv))
 
-        self.W = sp.sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
+        self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
-        # TODO implementate plot attributes
+        # TODO implement plot attributes
 
 
 # Need K
@@ -161,7 +161,7 @@ class Comet(Graph):
         i_inds = np.concatenate((np.ones(self.k), np.arange(1, self.k+1), np.arange(self.k+1, self.N-1), np.arange(self.k+2, self.N)))
         j_inds = np.concatenate((np.arange(1, self.k+1), np.ones(self.k), np.arange(self.k+2, self.N), np.arange(self.k+1, self.N-1)))
 
-        self.W = sp.sparse.csc_matrix((np.ones((1, np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
+        self.W = sparse.csc_matrix((np.ones((1, np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
 
         # TODO implementate plot attributes
 
@@ -316,7 +316,7 @@ class Sensor(Graph):
         def get_nc_connection(W, param_nc):
             Wtmp = W
             W = np.zeros(np.shape(W))
-            for i in np.arange(np.shape(y)[0])
+            #for i in np.arange(np.shape(y)[0])
 
 
 class Sphere(Graph):
@@ -422,7 +422,8 @@ class RandomRing(Graph):
 
         # TODO
         self.W = sparse.lil_matrix(inds_i, inds_j, weight, N, N)
-        self.W(10, 0) = weightend
+        # TOFIX
+        # self.W(10, 0) = weightend
         self.W += np.conjugate(np.transpose(self.W))
 
         self.coords = np.concatenate((np.cos(position*2*np.pi),
