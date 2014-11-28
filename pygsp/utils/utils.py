@@ -64,13 +64,6 @@ def check_weights(W):
 
 
 def create_laplacian(G):
-    # TODO ask
-    # if size(G):
-    #     Ng = size(G)
-    #     i = 0
-    #     # TODO check indice
-    #     while i < Ng:
-    #         G[i] = create_laplacian(G[i])
     if G.gtype == 'combinatorial':
         L = sparse.lil_matrix(G.W.sum().diagonal() - G.W)
     if G.gtype == 'normalized':
@@ -88,9 +81,26 @@ def check_connectivity(G, **kwargs):
     # TODO: heavy refactoring of the matlab version
     A -= A.diagonal()
     if G.directed:
-        pass
+        _check_connectivity_directed(G, kwargs)
     else:
-        pass
+        _check_connectivity_undirected(G, kwargs)
+    pass
+
+def _check_connectivity_directed(G, **kwargs):
+    is_connected = (G.W <= 0).all()
+    for c in sp.shape(G.W)[0]:
+        c_is_connected = (c == 0).all()
+        if c_is_connected:
+            break
+    for r in sp.shape(G.W)[1]:
+        r_is_connected = (c == 0).all()
+        if r_is_connected:
+            break
+    if c_is_connected and r_is_connected:
+        return True
+        
+
+def _check_connectivity_undirected(G, **kwargs):
     pass
 
 def distanz(x, y=x):
