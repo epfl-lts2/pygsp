@@ -4,13 +4,15 @@ r"""
 Module documentation.
 """
 
-import numpy as np
+import random as rd
 from math import ceil, sqrt, log, exp, floor
 from copy import deepcopy
+
+import numpy as np
 from scipy import sparse
 from scipy import io
-from pygsp import utils
-import random as rd
+
+# import utils
 
 
 class Graph(object):
@@ -191,8 +193,12 @@ class Cube(NNGraph):
 # Need M
 class Grid2d(Graph):
 
-    def __init__(self, Nv=16, Mv=Nv, **kwargs):
+    def __init__(self, Nv=16, Mv=None, **kwargs):
         super(Grid2d, self).__init__(**kwargs)
+        if Mv is not None:
+            self.Mv = Mv
+        else:
+            self.Mv = Nv
         
         self.gtype = '2d-grid'
         self.Nv = self.Nv * self.Mv
@@ -216,8 +222,12 @@ class Grid2d(Graph):
 
 class Torus(Graph):
 
-    def __init__(self, Nv=16, Mv=Nv, **kwargs):
+    def __init__(self, Nv=16, Mv=None, **kwargs):
         super(Torus, self).__init__(**kwargs)
+        if Mv is not None:
+            self.Mv = Mv
+        else:
+            self.Mv = Nv
 
         self.gtype = 'Torus'
         self.directed = False
