@@ -78,30 +78,43 @@ def create_laplacian(G):
 def check_connectivity(G, **kwargs):
     A = G.W
     # Removing the diagonal
-    # TODO: heavy refactoring of the matlab version
     A -= A.diagonal()
     if G.directed:
-        _check_connectivity_directed(G, kwargs)
+        return _check_connectivity_directed(A, kwargs)
     else:
-        _check_connectivity_undirected(G, kwargs)
+        return _check_connectivity_undirected(A, kwargs)
     pass
 
-def _check_connectivity_directed(G, **kwargs):
-    is_connected = (G.W <= 0).all()
-    for c in sp.shape(G.W)[0]:
+def _check_connectivity_directed(A, **kwargs):
+    is_connected = (A.W <= 0).all()
+    for c in sp.shape(A.W)[0]:
         c_is_connected = (c == 0).all()
         if c_is_connected:
             break
-    for r in sp.shape(G.W)[1]:
+    for r in sp.shape(A.W)[1]:
         r_is_connected = (c == 0).all()
         if r_is_connected:
             break
+    # TODO check axises
+    in_conn = (A.sum(axis=1)>0).nonzeros()
+    out_conn = (A.sum(axis=2)>0).nonzeros()
+
     if c_is_connected and r_is_connected:
-        return True
+        return True, in_conn, out_conn
         
 
-def _check_connectivity_undirected(G, **kwargs):
-    pass
+def _check_connectivity_undirected(A, **kwargs):
+    is_connected = (A.W <= 0).all()
+    for c in sp.shape(A.W)[0]:
+        c_is_connected = (c == 0).all()
+        if c_is_connected:
+            break
+    # TODO check axises
+    in_conn = (A.sum(axis=1)>0).nonzeros()
+    out_conn = in_conn
+    if c_is_connected and r_is_connected:
+        return True, in_conn, out_conn
+        
 
 def distanz(x, y=x):
     r"""
