@@ -58,7 +58,7 @@ class Graph(object):
         if Ne:
             self.Ne = Ne
         else:
-            self.Ne = np.zeros((self.N), Float)
+            self.Ne = np.zeros((self.N), float)
         if directed:
             self.directed = directed
         else:
