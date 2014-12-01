@@ -75,6 +75,7 @@ def create_laplacian(G):
         raise AttributeError('Unknown laplacian type!')
     return L
 
+
 def check_connectivity(G, **kwargs):
     A = G.W
     # Removing the diagonal
@@ -101,7 +102,7 @@ def _check_connectivity_directed(A, **kwargs):
 
     if c_is_connected and r_is_connected:
         return True, in_conn, out_conn
-        
+
 
 def _check_connectivity_undirected(A, **kwargs):
     is_connected = (A.W <= 0).all()
@@ -115,6 +116,7 @@ def _check_connectivity_undirected(A, **kwargs):
     if c_is_connected and r_is_connected:
         return True, in_conn, out_conn
         
+
 
 def distanz(x, y=x):
     r"""
@@ -131,4 +133,4 @@ def distanz(x, y=x):
     xx = (x**x).sum()
     yy = (y**y).sum()
     xy = np.transpose(x)*y
-    d = abs(sp.kron(sp.ones((1, cy)), xx) + sp.kron(sp.ones((cx, 1)), yy) - 2*xy )
+    d = abs(sp.kron(sp.ones((1, cy)), xx) + sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
