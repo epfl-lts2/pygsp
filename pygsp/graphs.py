@@ -9,7 +9,7 @@ from math import ceil, sqrt, log, exp, floor
 from copy import deepcopy
 from scipy import sparse
 from scipy import io
-from pygsp import utils
+# from pygsp import utils
 import random as rd
 
 
@@ -104,19 +104,29 @@ class NNGraph(Graph):
         - Xin : Input Points
     """
 
-    def __init__(self, Xin, gtype='knn', use_flann=0, center=1, rescale=1, k=10, sigma=0.1, epsilon=0.01, **kwargs):
+    def __init__(self, Xin, gtype='knn', use_flann=False, center=True, rescale=True, k=10, sigma=0.1, epsilon=0.01, **kwargs):
         super(NNGraph, self).__init__(**kwargs)
         N, d = np.shape(Xin)
         Xout = Xin
         if self.center:
-            # TODO Check if equi to repmat
             Xout = Xin - np.kron(Xin.mean(), N)
+            Xout = Xin - np.kron(np.ones((N, 1)), np.mean(Xin, axis=0))
 
         if self.rescale:
-            # TODO find equivalent to norm
-            bounding_radius = 0.5 * norm(max(Xout) - min(Xout))
-            # TODO scale =
-            Xout *= scale * bounding_radius
+            bounding_radius = 0.5*np.linalg.norm(np.amax(Xout, axis=0) - np.amin(Xout, axis=0), 2)
+            scale = N**min(d, 3)/10.
+            Xout *= scale/bounding_radius
+
+        if self.gtype == "knn":
+            spi = np.zeros((N*self.k, 1))
+            spj = np.zeros((N*self.k, 1))
+            spv = np.zeros((N*self.k, 1))
+
+            # since we did not find yet a goold python flann library, we wont implement it yet
+            # if self.use_flann:
+
+        for i = xrange(N):
+            
 
 
 class Bunny(NNGraph):
@@ -191,9 +201,14 @@ class Cube(NNGraph):
 # Need M
 class Grid2d(Graph):
 
-    def __init__(self, Nv=16, Mv=Nv, **kwargs):
+    def __init__(self, Nv=16, Mv=None, **kwargs):
         super(Grid2d, self).__init__(**kwargs)
-        
+        self.Nv
+        if Mv:
+            self.Mv
+        else:
+            selb.Mv = self.Nv
+
         self.gtype = '2d-grid'
         self.Nv = self.Nv * self.Mv
 
@@ -216,8 +231,13 @@ class Grid2d(Graph):
 
 class Torus(Graph):
 
-    def __init__(self, Nv=16, Mv=Nv, **kwargs):
+    def __init__(self, Nv=16, Mv=None, **kwargs):
         super(Torus, self).__init__(**kwargs)
+        self.Nv
+        if Mv:
+            self.Mv
+        else:
+            selb.Mv = self.Nv
 
         self.gtype = 'Torus'
         self.directed = False
@@ -246,7 +266,8 @@ class Comet(Graph):
 
     def __init__(self, Nv=32, k=12, **kwargs):
         super(Comet, self).__init__(**kwargs)
-
+        self.Nv = Nv
+        self.k = k
         self.gtype = 'Comet'
 
         # Create weighted adjancency matrix
@@ -270,6 +291,7 @@ class LowStretchTree(Graph):
         start_nodes = np.array([1, 1, 3])
         end_nodes = np.array([2, 3, 4])
         # TODO
+
 
 class RandomRegular(Graph):
 
@@ -320,7 +342,7 @@ class RandomRegular(Graph):
 
 class Ring(Graph):
 
-    def __init__(self, N=64 k=1, **kwargs):
+    def __init__(self, N=64, k=1, **kwargs):
         super(Ring, self).__init__(**kwargs)
 
         self.N = N
@@ -444,7 +466,7 @@ class Community(Graph):
             rad_com = sqrt(com_size)
 
             node_ind = np.arange((com_lims[i+1]) - ((com_lims[i] + 1))) + (com_lims[i] + 1)
-            self.coords[node_ind] =
+            # TODO self.coords[node_ind] =
 
         D = gsp_distanz(np.transpose(self.coords))
         W = exp(-np.power(D, 2))
@@ -589,7 +611,7 @@ class Sensor(Graph):
         def get_nc_connection(W, param_nc):
             Wtmp = W
             W = np.zeros(np.shape(W))
-<<<<<<< HEAD
+
             for i in xrange(np.shape(W)[0]):
                 l = Wtemp[i]
                 for j in xrange(param_nc):
@@ -597,9 +619,6 @@ class Sensor(Graph):
                     ind = np.argmax(l)
                     W[i, ind] = val
                     l[ind] = 0
-=======
-            #for i in np.arange(np.shape(y)[0])
->>>>>>> default_graphs
 
             W = (W + np.transpose(np.conjugate(W)))/2.
 
@@ -626,7 +645,7 @@ class FullConnected(Graph):
 
     def __init__(self, N=10):
         super(FullConnected, self).__init__()
-        self.N N
+        self.N = N
 
         self.W = np.ones((self.N, self.N))-np.identity(self.N)
 
