@@ -11,7 +11,7 @@ def is_directed(G):
     Can also be used to check if a matrix is symetrical
     """
 
-    is_dir = (G.W - G.W.sparse.transpose()).sum() != 0
+    is_dir = (G.W - G.W.transpose()).sum() != 0
     return is_dir
 
 
@@ -64,12 +64,12 @@ def check_weights(W):
 
 
 def create_laplacian(G):
-    if G.gtype == 'combinatorial':
+    if G.lap_type == 'combinatorial':
         L = sparse.lil_matrix(G.W.sum().diagonal() - G.W)
-    if G.gtype == 'normalized':
+    if G.lap_type == 'normalized':
         D = sparse.lil_matrix(G.W.sum().diagonal() ** (-0.5))
         L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
-    if G.gtype == 'none':
+    if G.lap_type == 'none':
         L = sparse.lil_matrix(0)
     else:
         raise AttributeError('Unknown laplacian type!')

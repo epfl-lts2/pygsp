@@ -12,7 +12,7 @@ import numpy as np
 from scipy import sparse
 from scipy import io
 
-# import utils
+from pygsp import utils
 
 
 class Graph(object):
@@ -647,12 +647,12 @@ class FullConnected(Graph):
 class Logo(Graph):
 
     def __init__(self):
-        super(Logo, self).__init__()
 
         mat = io.loadmat('misc/logogsp.mat')
         self.W = mat['W']
         self.gtype = 'from MAT-file'
         # TODO implementate plot attribute
+        super(Logo, self).__init__()
 
 
 class Path(Graph):
