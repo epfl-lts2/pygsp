@@ -118,12 +118,15 @@ def _check_connectivity_undirected(A, **kwargs):
         
 
 
-def distanz(x, y=x):
+def distanz(x, y=None):
     r"""
     paramters:
         - x: matrix with col vectors
         - y: matrix with col vectors
     """
+    if y is None:
+        y = x
+
     rx, cx = x.shape()
     ry, cy = y.shape()
 

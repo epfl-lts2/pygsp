@@ -320,7 +320,7 @@ class RandomRegular(Graph):
 
 class Ring(Graph):
 
-    def __init__(self, N=64 k=1, **kwargs):
+    def __init__(self, N=64, k=1, **kwargs):
         super(Ring, self).__init__(**kwargs)
 
         self.N = N
@@ -444,7 +444,7 @@ class Community(Graph):
             rad_com = sqrt(com_size)
 
             node_ind = np.arange((com_lims[i+1]) - ((com_lims[i] + 1))) + (com_lims[i] + 1)
-            self.coords[node_ind] =
+            # self.coords[node_ind] =
 
         D = gsp_distanz(np.transpose(self.coords))
         W = exp(-np.power(D, 2))
@@ -589,7 +589,6 @@ class Sensor(Graph):
         def get_nc_connection(W, param_nc):
             Wtmp = W
             W = np.zeros(np.shape(W))
-<<<<<<< HEAD
             for i in xrange(np.shape(W)[0]):
                 l = Wtemp[i]
                 for j in xrange(param_nc):
@@ -597,9 +596,6 @@ class Sensor(Graph):
                     ind = np.argmax(l)
                     W[i, ind] = val
                     l[ind] = 0
-=======
-            #for i in np.arange(np.shape(y)[0])
->>>>>>> default_graphs
 
             W = (W + np.transpose(np.conjugate(W)))/2.
 
@@ -626,7 +622,7 @@ class FullConnected(Graph):
 
     def __init__(self, N=10):
         super(FullConnected, self).__init__()
-        self.N N
+        self.N = N
 
         self.W = np.ones((self.N, self.N))-np.identity(self.N)
 
