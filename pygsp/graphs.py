@@ -105,13 +105,23 @@ class NNGraph(Graph):
     """
 
     def __init__(self, Xin, gtype='knn', use_flann=False, center=True, rescale=True, k=10, sigma=0.1, epsilon=0.01, **kwargs):
-        super(NNGraph, self).__init__(**kwargs)
-        N, d = np.shape(Xin)
-        Xout = Xin
+        self.Xin = Xin
+        self.gtype = gtype
+        self.use_flann = use_flann
+        self.center = center
+        self.rescale = rescale
+        self.k = k
+        self.sigma = sigma
+        self.epsilon = epsilon
+        param = kwargs
+
+        N, d = np.shape(self.Xin)
+        Xout = self.Xin
 
         if self.center:
-            Xout = Xin - np.kron(Xin.mean(), N)
-            Xout = Xin - np.kron(np.ones((N, 1)), np.mean(Xin, axis=0))
+            Xout = self.Xin - np.kron(Xin.mean(), N)
+            Xout = self.Xin - np.kron(np.ones((N, 1)),
+                                      np.mean(self.Xin, axis=0))
 
         if self.rescale:
             bounding_radius = 0.5*np.linalg.norm(np.amax(Xout, axis=0) - np.amin(Xout, axis=0), 2)
@@ -124,24 +134,52 @@ class NNGraph(Graph):
             spv = np.zeros((N*self.k, 1))
 
             # since we did not find yet a goold python flann library, we wont implement it yet
-            # if self.use_flann:
+            if self.use_flann:
+                pass
+            else:
+                pass
 
-        for i in xrange(N):
-            spi[ii*k:(ii+1)*k] = np.kron(np.ones((k, 1)), i)
-            spj[ii*k:(ii+1)*k] = NN[ii, 1:]
-            spv[ii*k:(ii+1)*k] = np.exp(-np.power(D[ii, 1:], 2)/self.sigma)
+            for i in xrange(N):
+                pass
+
+            for i in xrange(N):
+                spi[ii*k:(ii+1)*k] = np.kron(np.ones((k, 1)), i)
+                spj[ii*k:(ii+1)*k] = NN[ii, 1:]
+                spv[ii*k:(ii+1)*k] = np.exp(-np.power(D[ii, 1:], 2)/self.sigma)
+
+            self.W = sparse.csc_matrix((spv, (spi, spj)),
+                                       shape=(np.shape(self.Xin)[0],
+                                              np.shape(self.Xin)[0]))
+
+        elif self.gtype == "radius":
+
+            self.W = sparse.csc_matrix((spv, (spi, spj)),
+                                       shape=(np.shape(self.Xin)[0],
+                                              np.shape(self.Xin)[0]))
+
+        else:
+            raise ValueError("Unknown type : allowed values are knn, radius")
+
+        # Sanity check
+        if np.shape(self.Xin)[0] != np.shape(self.Xin)[1]:
+            raise ValueError("Weight matrix W is not square")
+
+        self.coords = Xout
+        self.gtype = "nearest neighbors"
+
+        super(NNGraph, self).__init__(**kwargs)
 
 
 class Bunny(NNGraph):
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.type = "radius"
         self.rescale = 1
         self.center = 1
         self.epsilon = 0.2
         # TODO do the ritgh way when point cloud is merged
         self.Xin = Pointcloud(name="bunny").P
-        super(Bunny, self).__init__(Xin, **kwargs)
+        super(Bunny, self).__init__(self.Xin, **kwargs)
 
 
 class Sphere(NNGraph):
@@ -152,23 +190,21 @@ class Sphere(NNGraph):
 
 class Cube(NNGraph):
 
-    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random", *kwargs):
-        super(Cube, self).__init__(**kwargs)
+    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random", **kwargs):
         param = kwargs
-
         self.radius = radius
         self.nb_pts = nb_pts
-        self.nb_dim
+        self.nb_dim = nb_dim
         self.sampling = sampling
 
         if self.nb_dim > 3:
             raise ValueError("Dimension > 3 not supported yet !")
 
         if self.sampling == "random":
-            if vnb_dim == 2:
+            if nb_dim == 2:
                 pts = np.random.rand(self.nb_dim, self.nb_dim)
 
-            if param_nb_dim == 3:
+            if self.nb_dim == 3:
                 n = floor(self.nb_dim/6)
 
                 pts = np.zeros((n*6, 3))
@@ -200,17 +236,19 @@ class Cube(NNGraph):
         # call of the pcl_graph class
         pclnngraph(pts, param)
 
+        super(Cube, self).__init__(**kwargs)
+
 
 # Need M
 class Grid2d(Graph):
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
         super(Grid2d, self).__init__(**kwargs)
-        self.Nv
+        self.Nv = Nv
         if Mv:
-            self.Mv
+            self.Mv = Mv
         else:
-            selb.Mv = self.Nv
+            self.Mv = self.Nv
 
         self.gtype = '2d-grid'
         self.Nv = self.Nv * self.Mv
@@ -236,11 +274,11 @@ class Torus(Graph):
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
         super(Torus, self).__init__(**kwargs)
-        self.Nv
+        self.Nv = Nv
         if Mv:
-            self.Mv
+            self.Mv = Mv
         else:
-            selb.Mv = self.Nv
+            self.Mv = self.Nv
 
         self.gtype = 'Torus'
         self.directed = False
@@ -321,7 +359,7 @@ class RandomRegular(Graph):
 
             algorithm :
             "The pairing model" : create n*d 'half edges'.
-            repeat as long as possible: pick a pair of half edges 
+            repeat as long as possible: pick a pair of half edges
               and if it's legal (doesn't creat a loop nor a double edge)
               add it to the graph
 
@@ -364,24 +402,24 @@ class Ring(Graph):
         j_inds = np.zeros((1, 2*num_edges))
 
         all_inds = np.arange(self.N)+1
-        for i in xrange(min(slef.k, floor((self.N_1)/2))):
+        for i in xrange(min(self.k, floor((self.N_1)/2))):
             i_inds[:, (i*2*self.N):(i*2*self.N + self.N)] = all_inds
             j_inds[:, (i*2*self.N):(i*2*self.N + self.N)] = np.remainder(all_inds + i, self.N) + 1
             i_inds[:, (i*2*self.N + self.N):((i + 1)*2*self.N)] = np.remainder(all_inds + i, self.N) + 1
             j_inds[:, (i*2*self.N + self.N):((i + 1)*2*self.N)] = all_inds
 
         if self.k == self.N/2:
-            i_inds[(2*sefl.N*(self.k - 1)):(2*self.N*(self.k - 1)+self.N)] = all_inds
-            i_inds[(2*sefl.N*(self.k - 1)):(2*self.N*(self.k - 1)+self.N)] = np.remainder(all_inds + k, self.N) + 1
+            i_inds[(2*self.N*(self.k - 1)):(2*self.N*(self.k - 1)+self.N)] = all_inds
+            i_inds[(2*self.N*(self.k - 1)):(2*self.N*(self.k - 1)+self.N)] = np.remainder(all_inds + k, self.N) + 1
 
-        # TODO G.W=sparse(i_inds,j_inds,ones(1,length(i_inds)),N,N);
+        self.W = sparse.csc_matrix((np.ones((1, 2*num_edges)), (i_inds, j_inds)), shape=(self.N, self.N))
 
         self.coords = np.array([np.cos(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N),
                                 np.sin(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N)])
 
         self.limits = np.array([-1, 1, -1, 1])
 
-        if sekf.k == 1:
+        if self.k == 1:
             self.gtype = "ring"
         else:
             self.gtype = "k-ring"
@@ -390,18 +428,16 @@ class Ring(Graph):
 # Need params
 class Community(Graph):
 
-    def __init__(self, N=256, Nc=None, com_sizes=[], min_com=None, min_deg=None, verboes=1, size_ratio=1, world_density=None, **kwargs):
-        super(Community, self).__init__(**kwargs)
+    def __init__(self, N=256, Nc=None, com_sizes=[], min_com=None, min_deg=None, verbose=1, size_ratio=1, world_density=None, **kwargs):
         param = kwargs
 
         # Initialisation of the parameters
         self.N = N
-
         if Nc:
             self.Nc = Nc
         else:
-
             self.Nc = round(sqrt(self.N))
+
         if len(com_sizes) != 0:
             if np.sum(com_sizes) != self.N:
                 raise ValueError("GSP_COMMUNITY: The sum of the community sizes has to be equal to N")
@@ -419,7 +455,6 @@ class Community(Graph):
             self.min_deg = round(self.min_com/2.)
 
         self.verbose = verbose
-
         self.size_ratio = size_ratio
 
         if world_density:
@@ -429,7 +464,7 @@ class Community(Graph):
 
         # Begining
         if len(self.com_sizes) == 0:
-            com_lims = np.sort(np.random.choice(self.N - (self.min_com - 1)*self.Nc - 1, sefl.Nc - 1) + 1)
+            com_lims = np.sort(np.random.choice(self.N - (self.min_com - 1)*self.Nc - 1, self.Nc - 1) + 1)
             com_lims += np.cumsum((self.min_com-1)*np.ones(np.shape(com_lims)))
             com_lims = np.concatenate((np.array([0]), com_lims, np.array([self.N])))
             self.com_sizes = np.diff(com_lims)
@@ -438,7 +473,7 @@ class Community(Graph):
                 X = np.zeros((10000, self.Nc + 1))
                 # pick randomly param.Nc-1 points to cut the rows in communtities:
                 for i in xrange(10000):
-                    com_lims_tmp = np.sort(np.random.choice(self.N - (self.min_com - 1)*self.Nc - 1, sefl.Nc - 1) + 1)
+                    com_lims_tmp = np.sort(np.random.choice(self.N - (self.min_com - 1)*self.Nc - 1, self.Nc - 1) + 1)
                     com_lims_tmp += np.cumsum((self.min_com-1)*np.ones(np.shape(com_lims)))
                     X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([self.N])))
                 dX = np.transpose(np.diff(np.transpose(X)))
@@ -483,61 +518,12 @@ class Community(Graph):
         self.W = sparse(W)
         self.gtype = "Community"
 
-
-class Cube(NNGraph):
-
-    def __init__(self, radius=1, nb_pts=300, nb_dim=300, sampling="random", **kwargs):
-        super(Cube, self).__init__(**kwargs)
-        param = kwargs
-        self.raduis = radius
-        self.nb_pts = nb_pts
-        self.nb_dim = nb_dim
-        self.sampling = sampling
-
-        if self.nb_dim > 3:
-            raise ValueError("Dimension > 3 not supported yet !")
-
-        if self.sampling == "random":
-            if self.nb_dim == 2:
-                pts = np.random.rand(self.nb_dim, self.nb_dim)
-
-            if self.nb_dim == 3:
-                n = floor(self.nb_dim/6)
-
-                pts = np.zeros((n*6, 3))
-                pts[:n, 1:] = np.random.rand(n, 2)
-                pts[n:2*n, :] = np.concatenate((np.ones((n, 1)),
-                                                np.random.rand(n, 2)),
-                                               axis=1)
-
-                pts[2*n:3*n, :] = np.concatenate((np.random.rand(n, 1),
-                                                  np.zeros((n, 1)),
-                                                  np.random.rand(n, 1)),
-                                                 axis=1)
-                pts[3*n:4*n, :] = np.concatenate((np.random.rand(n, 1),
-                                                  np.ones((n, 1)),
-                                                  np.random.rand(n, 1)),
-                                                 axis=1)
-
-                pts[4*n:5*n, :2] = np.random.rand(n, 2)
-                pts[5*n:6*n, :] = np.concatenate((np.random.rand(n, 2),
-                                                  np.ones((n, 1))),
-                                                 axis=1)
-
-        else:
-            raise ValueError("Unknown sampling !")
-
-        self.gtype = "knn"
-        self.k = 10
-
-        # call of the pcl_graph class
-        pclnngraph(pts, param)
+        super(Community, self).__init__(**kwargs)
 
 
 class Sensor(Graph):
 
     def __init__(self, N=64, nc=2, regular=False, verbose=1, n_try=50, distribute=False, connected=True, set_to_one=False, **kwargs):
-        super(Sensor, self).__init__(**kwargs)
         param = kwargs
         self.N = N
         self.nc = nc
@@ -550,20 +536,23 @@ class Sensor(Graph):
 
         if self.connected:
             for x in xrange(self.n_try):
-                W, XCoords, YCoords = create_weight_matrix(self.N, self.distribute, self.regular, self.nc)
+                W, XCoords, YCoords = create_weight_matrix(self.N,
+                                                           self.distribute,
+                                                           self.regular,
+                                                           self.nc)
 
                 if gsp_check_connectivity_undirected(W):
                     break
                 elif x == self.n_try-1:
                     print("Warning! Graph is not connected")
         else:
-            W, XCoords, YCoords = create_weight_matrix(self.N, self.distribute, self.regular, self.nc)
+            W, XCoords, YCoords = create_weight_matrix(self.N, self.distribute,
+                                                       self.regular, self.nc)
 
         if self.set_to_one:
             np.where(x > 0, 1, x)
 
-        # TODO
-        self.W = sparse.lil_matrix
+        # TODO         G.W = sparse(W)
         self.W = (self.W + np.transpose(np.conjugate(self.W)))/2
         self.limits = np.array([0, 1, 0, 1])
         self.coords = [XCoords, YCoords]
@@ -573,6 +562,8 @@ class Sensor(Graph):
             self.gtype = "sensor"
 
         self.directed = False
+
+        super(Sensor, self).__init__(**kwargs)
 
         def create_weight_matrix(N, param_distribute, param_regular, param_nc):
             XCoords = np.zeros((N, 1))
@@ -616,7 +607,7 @@ class Sensor(Graph):
             W = np.zeros(np.shape(W))
 
             for i in xrange(np.shape(W)[0]):
-                l = Wtemp[i]
+                l = Wtmp[i]
                 for j in xrange(param_nc):
                     val = np.max(l)
                     ind = np.argmax(l)
@@ -647,71 +638,74 @@ class DavidSensorNet(Graph):
 class FullConnected(Graph):
 
     def __init__(self, N=10):
-        super(FullConnected, self).__init__()
         self.N = N
 
         self.W = np.ones((self.N, self.N))-np.identity(self.N)
 
         tmp = np.arange(0, N).reshape(N, 1)
-        self.coords = np.concatenate((np.cos(tpm*2*np.pi/self.N),
-                                      np.sin(tpm*2*np.pi/self.N)),
+        self.coords = np.concatenate((np.cos(tmp*2*np.pi/self.N),
+                                      np.sin(tmp*2*np.pi/self.N)),
                                      axis=1)
         self.limits = np.array([-1, 1, -1, 1])
         self.gtype = "full"
+
+        super(FullConnected, self).__init__()
 
 
 class Logo(Graph):
 
     def __init__(self):
-        super(Logo, self).__init__()
-
         mat = io.loadmat('misc/logogsp.mat')
         self.W = mat['W']
         self.gtype = 'from MAT-file'
         # TODO implementate plot attribute
 
 
+
+        super(Logo, self).__init__()
+
+
 class Path(Graph):
 
     def __init__(self, N=16):
-        super(Path, self).__init__()
         self.N = N
+
         inds_i = np.concatenate((np.arange(1, self.N), np.arange(2, self.N+1)),
                                 axis=1)
-        inds_j = np.concatenate((np.arange(2, self.N+1), np.arange(1, sefl.N)),
+        inds_j = np.concatenate((np.arange(2, self.N+1), np.arange(1, self.N)),
                                 axis=1)
 
         np.ones((1, 2*(self.N-1)))
 
-        # TODO
-        self.W = sparse.lil_matrix()
-
+        self.W = sparse.csc_matrix((np.ones((1, 2*(self.N - 1))),
+                                    (inds_i, inds_j)),
+                                   shape=(self.N, self.N))
         self.coord = np.concatenate((np.arange(1, self.N + 1).reshape(self.N, 1),
                                      np.zeros((1, self.N))),
                                     axis=1)
-
         self.limits = np.array([0, N+1, -1, 1])
-
         self.gtype = "path"
+
+        super(Path, self).__init__()
 
 
 class RandomRing(Graph):
 
     def __init__(self, N=64):
-        super(RandomRing, self).__init__()
         self.N = N
 
-        position = np.sort(np.random.rand(x))
-        position = np.sort(np.random.rand(x, 1), axis=0)
+        position = np.sort(np.random.rand(self.N))
+        position = np.sort(np.random.rand(self.N, 1), axis=0)
 
-        weight = self.N*np.diff(x, axis=0)
+        weight = self.N*np.diff(self.N, axis=0)
         weightend = self.N*(1 + position[0] - position[-1])
 
         inds_j = np.conjugate(np.arange(2, self.N + 1).reshape(self.N-1, 1))
         inds_i = np.conjugate(np.arange(1, self.N).reshape(self.N-1, 1))
 
-        # TODO
-        self.W = sparse.lil_matrix(inds_i, inds_j, weight, N, N)
+        self.W = sparse.csc_matrix((weight, (inds_i, inds_j)),
+                                   shape=(self.N, self.N))
+        self.W[self.N, 1] = weightend
         # TOFIX
         # self.W(10, 0) = weightend
         self.W += np.conjugate(np.transpose(self.W))
@@ -721,8 +715,9 @@ class RandomRing(Graph):
                                      axis=1)
 
         self.limits = np.array([-1, 1, -1, 1])
-
         self.gtype = 'random-ring'
+
+        super(RandomRing, self).__init__()
 
 
 def dummy(a, b, c):
