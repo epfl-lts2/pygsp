@@ -4,13 +4,17 @@ r"""
 Module documentation.
 """
 
+import os
+import os.path
 import numpy as np
+import random as rd
 from math import ceil, sqrt, log, exp, floor
 from copy import deepcopy
 from scipy import sparse
 from scipy import io
-# from pygsp import utils
 import random as rd
+
+from pygsp import utils
 
 
 class Graph(object):
@@ -56,7 +60,7 @@ class Graph(object):
         if Ne:
             self.Ne = Ne
         else:
-            self.Ne = np.zeros((self.N), Float)
+            self.Ne = np.zeros((self.N), float)
         if directed:
             self.directed = directed
         else:
@@ -245,12 +249,11 @@ class Cube(NNGraph):
 class Grid2d(Graph):
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
-        super(Grid2d, self).__init__(**kwargs)
         self.Nv = Nv
         if Mv:
             self.Mv = Mv
         else:
-            self.Mv = self.Nv
+            self.Mv = Nv
 
         self.gtype = '2d-grid'
         self.Nv = self.Nv * self.Mv
@@ -271,16 +274,17 @@ class Grid2d(Graph):
 
         self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
+        super(Grid2d, self).__init__(**kwargs)
+
 
 class Torus(Graph):
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
-        super(Torus, self).__init__(**kwargs)
         self.Nv = Nv
         if Mv:
             self.Mv = Mv
         else:
-            self.Mv = self.Nv
+            self.Mv = Nv
 
         self.gtype = 'Torus'
         self.directed = False
@@ -301,6 +305,7 @@ class Torus(Graph):
 
         self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
+        super(Torus, self).__init__(**kwargs)
         # TODO implement plot attributes
 
 
@@ -308,7 +313,6 @@ class Torus(Graph):
 class Comet(Graph):
 
     def __init__(self, Nv=32, k=12, **kwargs):
-        super(Comet, self).__init__(**kwargs)
         self.Nv = Nv
         self.k = k
         self.gtype = 'Comet'
@@ -319,6 +323,7 @@ class Comet(Graph):
 
         self.W = sparse.csc_matrix((np.ones((1, np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
 
+        super(Comet, self).__init__(**kwargs)
         # TODO implementate plot attributes
 
 
@@ -333,7 +338,7 @@ class LowStretchTree(Graph):
 
         start_nodes = np.array([1, 1, 3])
         end_nodes = np.array([2, 3, 4])
-        # TODO
+        # TODO finish
 
 
 class RandomRegular(Graph):
@@ -506,6 +511,7 @@ class Community(Graph):
             rad_com = sqrt(com_size)
 
             node_ind = np.arange((com_lims[i+1]) - ((com_lims[i] + 1))) + (com_lims[i] + 1)
+
             # TODO self.coords[node_ind] =
 
         D = gsp_distanz(np.transpose(self.coords))
@@ -659,13 +665,11 @@ class FullConnected(Graph):
 class Logo(Graph):
 
     def __init__(self):
-        mat = io.loadmat('misc/logogsp.mat')
+        mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + 'misc/logogsp.mat')
+
         self.W = mat['W']
         self.gtype = 'from MAT-file'
         # TODO implementate plot attribute
-
-
-
         super(Logo, self).__init__()
 
 
