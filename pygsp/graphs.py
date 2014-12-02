@@ -140,9 +140,6 @@ class NNGraph(Graph):
                 pass
 
             for i in xrange(N):
-                pass
-
-            for i in xrange(N):
                 spi[ii*k:(ii+1)*k] = np.kron(np.ones((k, 1)), i)
                 spj[ii*k:(ii+1)*k] = NN[ii, 1:]
                 spv[ii*k:(ii+1)*k] = np.exp(-np.power(D[ii, 1:], 2)/self.sigma)
@@ -152,6 +149,11 @@ class NNGraph(Graph):
                                               np.shape(self.Xin)[0]))
 
         elif self.gtype == "radius":
+
+            for i in xrange(N):
+                spi[ii*k:(ii+1)*k] = np.kron(np.ones((k, 1)), i)
+                spj[ii*k:(ii+1)*k] = NN[ii, 1:]
+                spv[ii*k:(ii+1)*k] = np.exp(-np.power(D[ii, 1:], 2)/self.sigma)
 
             self.W = sparse.csc_matrix((spv, (spi, spj)),
                                        shape=(np.shape(self.Xin)[0],
@@ -615,6 +617,8 @@ class Sensor(Graph):
                     l[ind] = 0
 
             W = (W + np.transpose(np.conjugate(W)))/2.
+
+            return W
 
 
 # Need nothing
