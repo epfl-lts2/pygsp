@@ -11,7 +11,7 @@ def is_directed(G):
     Can also be used to check if a matrix is symetrical
     """
 
-    is_dir = (G.W - G.W.sparse.transpose()).sum() != 0
+    is_dir = (G.W - G.W.transpose()).sum() != 0
     return is_dir
 
 
@@ -64,41 +64,69 @@ def check_weights(W):
 
 
 def create_laplacian(G):
-    # TODO ask
-    # if size(G):
-    #     Ng = size(G)
-    #     i = 0
-    #     # TODO check indice
-    #     while i < Ng:
-    #         G[i] = create_laplacian(G[i])
-    if G.gtype == 'combinatorial':
+    if G.lap_type == 'combinatorial':
         L = sparse.lil_matrix(G.W.sum().diagonal() - G.W)
-    if G.gtype == 'normalized':
+    if G.lap_type == 'normalized':
         D = sparse.lil_matrix(G.W.sum().diagonal() ** (-0.5))
         L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
-    if G.gtype == 'none':
+    if G.lap_type == 'none':
         L = sparse.lil_matrix(0)
     else:
         raise AttributeError('Unknown laplacian type!')
     return L
 
+
 def check_connectivity(G, **kwargs):
     A = G.W
     # Removing the diagonal
-    # TODO: heavy refactoring of the matlab version
     A -= A.diagonal()
     if G.directed:
-        pass
+        return _check_connectivity_directed(A, kwargs)
     else:
-        pass
+        return _check_connectivity_undirected(A, kwargs)
     pass
 
-def distanz(x, y=x):
+def _check_connectivity_directed(A, **kwargs):
+    is_connected = (A.W <= 0).all()
+    for c in sp.shape(A.W)[0]:
+        c_is_connected = (c == 0).all()
+        if c_is_connected:
+            break
+    for r in sp.shape(A.W)[1]:
+        r_is_connected = (c == 0).all()
+        if r_is_connected:
+            break
+    # TODO check axises
+    in_conn = (A.sum(axis=1)>0).nonzeros()
+    out_conn = (A.sum(axis=2)>0).nonzeros()
+
+    if c_is_connected and r_is_connected:
+        return True, in_conn, out_conn
+
+
+def _check_connectivity_undirected(A, **kwargs):
+    is_connected = (A.W <= 0).all()
+    for c in sp.shape(A.W)[0]:
+        c_is_connected = (c == 0).all()
+        if c_is_connected:
+            break
+    # TODO check axises
+    in_conn = (A.sum(axis=1)>0).nonzeros()
+    out_conn = in_conn
+    if c_is_connected and r_is_connected:
+        return True, in_conn, out_conn
+        
+
+
+def distanz(x, y=None):
     r"""
     paramters:
         - x: matrix with col vectors
         - y: matrix with col vectors
     """
+    if y is None:
+        y = x
+
     rx, cx = x.shape()
     ry, cy = y.shape()
 
@@ -108,4 +136,4 @@ def distanz(x, y=x):
     xx = (x**x).sum()
     yy = (y**y).sum()
     xy = np.transpose(x)*y
-    d = abs(sp.kron(sp.ones((1, cy)), xx) + sp.kron(sp.ones((cx, 1)), yy) - 2*xy )
+    d = abs(sp.kron(sp.ones((1, cy)), xx) + sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
