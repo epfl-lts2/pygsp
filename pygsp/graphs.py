@@ -108,6 +108,7 @@ class NNGraph(Graph):
         super(NNGraph, self).__init__(**kwargs)
         N, d = np.shape(Xin)
         Xout = Xin
+
         if self.center:
             Xout = Xin - np.kron(Xin.mean(), N)
             Xout = Xin - np.kron(np.ones((N, 1)), np.mean(Xin, axis=0))
@@ -125,8 +126,10 @@ class NNGraph(Graph):
             # since we did not find yet a goold python flann library, we wont implement it yet
             # if self.use_flann:
 
-        for i = xrange(N):
-            
+        for i in xrange(N):
+            spi[ii*k:(ii+1)*k] = np.kron(np.ones((k, 1)), i)
+            spj[ii*k:(ii+1)*k] = NN[ii, 1:]
+            spv[ii*k:(ii+1)*k] = np.exp(-np.power(D[ii, 1:], 2)/self.sigma)
 
 
 class Bunny(NNGraph):
