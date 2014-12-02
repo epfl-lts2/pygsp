@@ -603,7 +603,7 @@ class Sensor(Graph):
             W = np.zeros(np.shape(W))
 
             for i in xrange(np.shape(W)[0]):
-                l = Wtemp[i]
+                l = Wtmp[i]
                 for j in xrange(param_nc):
                     val = np.max(l)
                     ind = np.argmax(l)
