@@ -12,7 +12,6 @@ from math import ceil, sqrt, log, exp, floor
 from copy import deepcopy
 from scipy import sparse
 from scipy import io
-import random as rd
 
 from pygsp import utils
 
@@ -665,7 +664,7 @@ class FullConnected(Graph):
 class Logo(Graph):
 
     def __init__(self):
-        mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + 'misc/logogsp.mat')
+        mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/logogsp.mat')
 
         self.W = mat['W']
         self.gtype = 'from MAT-file'
