@@ -554,8 +554,8 @@ class Sensor(Graph):
         if self.set_to_one:
             np.where(x > 0, 1, x)
 
-        # TODO         G.W = sparse(W)
-        self.W = (self.W + np.transpose(np.conjugate(self.W)))/2
+        self.W = sparse.lil_matrix(W)
+        self.W = (self.W + self.W.conjugate().transpose())/2
         self.limits = np.array([0, 1, 0, 1])
         self.coords = [XCoords, YCoords]
         if self.regular:
