@@ -258,16 +258,16 @@ class Grid2d(Graph):
         self.Nv = self.Nv * self.Mv
 
         # Create weighted adjacency matrix
-        K = 2 * self.Nv-1
-        J = 2 * self.Mv-1
+        K = 2 * (self.Nv-1)
+        J = 2 * (self.Mv-1)
 
         i_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
         j_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
-        for i in xrange(1, self.Mv):
+        for i in xrange(1, self.Mv+1):
             i_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.Nv + np.concatenate(np.arange(0, self.Nv-1), np.arange(1, self.Nv))
             j_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.Nv + np.concatenate(np.arange(1, self.Nv), np.arange(0, self.Nv-1))
 
-        for i in xrange(1, self.Mv-1):
+        for i in xrange(1, self.Mv):
             i_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i-1)*self.Nv + np.arange(1, self.Nv), (i*self.Nv) + np.arange(1, self.Nv))
             j_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i*self.Nv) + np.arange(1, self.Nv), (i-1)*self.Nv + np.arange(1, self.Nv))
 
@@ -293,10 +293,10 @@ class Torus(Graph):
         J = 2 * self.Mv
         i_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
         j_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
-        for i in xrange(1, self.Mv):
+        for i in xrange(1, self.Mv+1):
             i_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.Nv + np.concatenate(self.Nv, np.arange(0, self.Nv-1), np.arange(0, self.Nv))
             j_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.Nv + np.concatenate(np.arange(0, self.Nv), self.Nv, np.arange(0, self.Nv-1))
-        for i in xrange(1, self.Mv-1):
+        for i in xrange(1, self.Mv):
             i_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i-1)*self.Nv + np.arange(1, self.Nv), (i*self.Nv) + np.arange(1, self.Nv))
             j_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i*self.Nv) + np.arange(1, self.Nv), (i-1)*self.Nv + np.arange(1, self.Nv))
         i_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(0, 2*self.Nv)] = np.concatenate(np.arange(0, self.Nv), (self.Mv-1)*self.Nv + np.arange(0, self.Nv))
