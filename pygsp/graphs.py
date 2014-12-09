@@ -172,19 +172,20 @@ class NNGraph(Graph):
         self.coords = Xout
         self.gtype = "nearest neighbors"
 
-        super(NNGraph, self).__init__(Xin=pts, **kwargs)
+        super(NNGraph, self).__init__(**kwargs)
 
 
 class Bunny(NNGraph):
 
     def __init__(self, **kwargs):
         self.type = "radius"
-        self.rescale = 1
-        self.center = 1
+        self.rescale = True
+        self.center = True
         self.epsilon = 0.2
         # TODO do the ritgh way when point cloud is merged
-        self.Xin = Pointcloud(name="bunny").P
-        super(Bunny, self).__init__(self.Xin, **kwargs)
+        self.Xin = Pointcloud(name="bunny").Pointcloud
+
+        super(Bunny, self).__init__(Xin=self.Xin, center=self.center, rescale=self.rescale, epsilon=self.epsilon, **kwargs)
 
 
 class Sphere(NNGraph):
