@@ -12,7 +12,6 @@ from math import ceil, sqrt, log, exp, floor
 from copy import deepcopy
 from scipy import sparse
 from scipy import io
-import random as rd
 
 from pygsp import utils
 
@@ -173,7 +172,7 @@ class NNGraph(Graph):
         self.coords = Xout
         self.gtype = "nearest neighbors"
 
-        super(NNGraph, self).__init__(**kwargs)
+        super(NNGraph, self).__init__(Xin=pts, **kwargs)
 
 
 class Bunny(NNGraph):
@@ -190,8 +189,23 @@ class Bunny(NNGraph):
 
 class Sphere(NNGraph):
 
-    def __init__(self, **kwargs):
-        super(Sphere, self).__init__(**kwargs)
+    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random", **kwargs):
+        self.radius = radius
+        self.nb_pts = nb_pts
+        self.nb_dim = nb_dim
+        self.sampling = sampling
+
+        if self.sampling == "random":
+            pts = np.random.normal(0, 1, (self.nb_pts, self.nb_dim))
+            for i in xrange(self.nb_pts):
+                pts[i] /= np.linalg.norm(pts[i])
+        else:
+            raise ValueError("Unknow sampling!")
+
+        self.gtype = "knn"
+        self.k = 10
+
+        super(Sphere, self).__init__(Xin=pts, gtype=self.gtype, k=self.k, **kwargs)
 
 
 class Cube(NNGraph):
@@ -239,10 +253,7 @@ class Cube(NNGraph):
         self.gtype = "knn"
         self.k = 10
 
-        # call of the pcl_graph class
-        pclnngraph(pts, param)
-
-        super(Cube, self).__init__(**kwargs)
+        super(Cube, self).__init__(Xin=pts, gtype=self.gtype, k=self.k, **kwargs)
 
 
 # Need M
@@ -264,13 +275,13 @@ class Grid2d(Graph):
 
         i_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
         j_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
-        for i in xrange(1, self.Mv):
-            i_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.Nv + np.concatenate(np.arange(0, self.Nv-1), np.arange(1, self.Nv))
-            j_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.Nv + np.concatenate(np.arange(1, self.Nv), np.arange(0, self.Nv-1))
+        for i in xrange(self.Mv):
+            i_inds[i*K + np.arange(K), i] = i*self.Nv + np.concatenate((np.arange(1, self.Nv), np.arange(2, self.Nv+1)))
+            j_inds[i*K + np.arange(K), i] = i*self.Nv + np.concatenate((np.arange(2, self.Nv+1), np.arange(1, self.Nv)))
 
-        for i in xrange(1, self.Mv-1):
-            i_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i-1)*self.Nv + np.arange(1, self.Nv), (i*self.Nv) + np.arange(1, self.Nv))
-            j_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i*self.Nv) + np.arange(1, self.Nv), (i-1)*self.Nv + np.arange(1, self.Nv))
+        for i in xrange(self.Mv):
+            i_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i*self.Nv + np.arange(1, self.Nv), (i+1)*self.Nv + np.arange(1, self.Nv)))
+            j_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate(((i+1)*self.Nv + np.arange(1, self.Nv), i*self.Nv + np.arange(1, self.Nv)))
 
         self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
