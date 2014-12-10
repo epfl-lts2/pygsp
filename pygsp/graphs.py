@@ -39,33 +39,33 @@ class Graph(object):
         self.gtype = gtype
         self.lap_type = lap_type
 
-        if W:
+        if W is not None:
             self.W = sparse.lil_matrix(W)
         else:
             self.W = sparse.lil_matrix(0)
-        if A:
+        if A is not None:
             self.A = A
         else:
             self.A = sparse.lil_matrix(W > 0)
-        if N:
+        if N is not None:
             self.N = N
         else:
             self.N_init_default = True
             self.N = np.shape(self.W)[0]
-        if d:
+        if d is not None:
             self.d = d
         else:
             self.d = self.W.sum()
-        if Ne:
+        if Ne is not None:
             self.Ne = Ne
         else:
             self.Ne = np.zeros((self.N), float)
-        if directed:
+        if directed is not None:
             self.directed = directed
         else:
             self.directed = utils.is_directed(self)
             pass
-        if L:
+        if L is not None:
             self.L = L
         else:
             self.L = utils.create_laplacian(self)
@@ -750,7 +750,7 @@ def dummy(a, b, c):
     Examples
     --------
     >>> import pygsp
-    >>> pygsp.module1.dummy(0, [1, 2, 3], True)
+    >>> pygsp.graphs.dummy(0, [1, 2, 3], True)
     array([1, 2, 3])
 
     """

@@ -89,6 +89,7 @@ def check_connectivity(G, **kwargs):
         return _check_connectivity_undirected(A, kwargs)
     pass
 
+
 def _check_connectivity_directed(A, **kwargs):
     is_connected = (A.W <= 0).all()
     for c in sp.shape(A.W)[0]:
@@ -120,7 +121,6 @@ def _check_connectivity_undirected(A, **kwargs):
         return True, in_conn, out_conn
         
 
-
 def distanz(x, y=None):
     r"""
     paramters:
@@ -140,3 +140,33 @@ def distanz(x, y=None):
     yy = (y**y).sum()
     xy = np.transpose(x)*y
     d = abs(sp.kron(sp.ones((1, cy)), xx) + sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
+
+
+def dummy(a, b, c):
+    r"""
+    Short description.
+
+    Long description.
+
+    Parameters
+    ----------
+    a : int
+        Description.
+    b : array_like
+        Description.
+    c : bool
+        Description.
+
+    Returns
+    -------
+    d : ndarray
+        Description.
+
+    Examples
+    --------
+    >>> import pygsp
+    >>> pygsp.utils.dummy(0, [1, 2, 3], True)
+    array([1, 2, 3])
+
+    """
+    return np.array(b)
