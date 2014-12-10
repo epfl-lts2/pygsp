@@ -140,6 +140,7 @@ def distanz(x, y=None):
     yy = (y**y).sum()
     xy = np.transpose(x)*y
     d = abs(sp.kron(sp.ones((1, cy)), xx) + sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
+    return d
 
 
 def dummy(a, b, c):
