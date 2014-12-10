@@ -568,7 +568,7 @@ class Sensor(Graph):
                                                        self.regular, self.nc)
 
         if self.set_to_one:
-            np.where(x > 0, 1, x)
+            W = np.where(W > 0, 1, W)
 
         self.W = sparse.lil_matrix(W)
         self.W = (self.W + self.W.conjugate().transpose())/2
@@ -615,8 +615,8 @@ class Sensor(Graph):
                 W = get_nc_connection(W, param_nc)
             else:
                 W2 = get_nc_connection(W, param_nc)
-                np.where(W < T, 0, W)
-                np.where(W2 > 0, W2, W)
+                W = np.where(W < T, 0, W)
+                W = np.where(W2 > 0, W2, W)
 
             return W, XCoords, YCoords
 
