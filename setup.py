@@ -15,6 +15,7 @@ setup(
     author_email = 'michael.defferrard@epfl.ch',
     url = 'https://github.com/epfl-lts2/',
     packages = ['pygsp', 'pygsp.tests'],
+    package_data = {'pygsp': ['misc/*']},
     test_suite = 'pygsp.tests.test_all.suite',
     install_requires = ['numpy', 'scipy', 'matplotlib'],
     requires = ['numpy'],
