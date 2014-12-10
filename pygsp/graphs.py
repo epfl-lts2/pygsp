@@ -39,11 +39,11 @@ class Graph(object):
         self.gtype = gtype
         self.lap_type = lap_type
 
-        if W:
+        if W is not None:
             self.W = sparse.lil_matrix(W)
         else:
             self.W = sparse.lil_matrix(0)
-        if A:
+        if A is not None:
             self.A = A
         else:
             self.A = sparse.lil_matrix(W > 0)
@@ -67,8 +67,8 @@ class Graph(object):
             pass
         if L:
             self.L = L
-        else:
-            self.L = utils.create_laplacian(self)
+        #else:
+        #    self.L = utils.create_laplacian(self)
 
     def copy_graph_attr(self, gtype, Gn):
         r"""
@@ -136,16 +136,16 @@ class NNGraph(Graph):
             spj = np.zeros((N*self.k, 1))
             spv = np.zeros((N*self.k, 1))
 
-            # since we did not find yet a goold python flann library, we wont implement it yet
+            # since we didn't find a good python flann library yet, we wont implement it for now
             if self.use_flann:
                 pass
             else:
                 pass
 
             for i in xrange(N):
-                spi[ii*k:(ii+1)*k] = np.kron(np.ones((k, 1)), i)
-                spj[ii*k:(ii+1)*k] = NN[ii, 1:]
-                spv[ii*k:(ii+1)*k] = np.exp(-np.power(D[ii, 1:], 2)/self.sigma)
+                spi[i*k:(i+1)*k] = np.kron(np.ones((k, 1)), i)
+                spj[i*k:(i+1)*k] = NN[i, 1:]
+                spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
 
             self.W = sparse.csc_matrix((spv, (spi, spj)),
                                        shape=(np.shape(self.Xin)[0],
@@ -153,9 +153,9 @@ class NNGraph(Graph):
 
         elif self.gtype == "radius":
             for i in xrange(N):
-                spi[ii*k:(ii+1)*k] = np.kron(np.ones((k, 1)), i)
-                spj[ii*k:(ii+1)*k] = NN[ii, 1:]
-                spv[ii*k:(ii+1)*k] = np.exp(-np.power(D[ii, 1:], 2)/self.sigma)
+                spi[i*k:(i+1)*k] = np.kron(np.ones((k, 1)), i)
+                spj[i*k:(i+1)*k] = NN[i, 1:]
+                spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
 
             self.W = sparse.csc_matrix((spv, (spi, spj)),
                                        shape=(np.shape(self.Xin)[0],
@@ -181,7 +181,7 @@ class Bunny(NNGraph):
         self.rescale = True
         self.center = True
         self.epsilon = 0.2
-        # TODO do the ritgh way when point cloud is merged
+        # TODO do the right way when pointcloud is merged
         self.Xin = Pointcloud(name="bunny").P
 
         super(Bunny, self).__init__(Xin=self.Xin, center=self.center, rescale=self.rescale, epsilon=self.epsilon, gtype=self.gtype, **kwargs)
@@ -267,7 +267,7 @@ class Grid2d(Graph):
             self.Mv = Nv
 
         self.gtype = '2d-grid'
-        N = self.Nv * self.Mv
+        self.N = self.Nv * self.Mv
 
         # Create weighted adjacency matrix
         K = 2 * (self.Nv-1)
@@ -275,17 +275,18 @@ class Grid2d(Graph):
 
         i_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
         j_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
-        for i in xrange(self.Mv):
-            i_inds[i*K + np.arange(K), i] = i*self.Nv + np.concatenate((np.arange(1, self.Nv), np.arange(2, self.Nv+1)))
-            j_inds[i*K + np.arange(K), i] = i*self.Nv + np.concatenate((np.arange(2, self.Nv+1), np.arange(1, self.Nv)))
 
-        for i in xrange(self.Mv):
-            i_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i*self.Nv + np.arange(1, self.Nv), (i+1)*self.Nv + np.arange(1, self.Nv)))
-            j_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate(((i+1)*self.Nv + np.arange(1, self.Nv), i*self.Nv + np.arange(1, self.Nv)))
+        for i in xrange(1, self.Mv+1):
+            i_inds[(i-1)*K + np.arange(K), i-1] = (i-1)*self.Nv + np.concatenate(np.arange(self.Nv-1), np.arange(1, self.Nv))
+            j_inds[(i-1)*K + np.arange(K), i-1] = (i-1)*self.Nv + np.concatenate(np.arange(1, self.Nv), np.arange(self.Nv-1))
+        # TODO correct index
+        for i in xrange(1, self.Mv):
+            i_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i-1)*self.Nv + np.arange(1, self.Nv), (i*self.Nv) + np.arange(1, self.Nv))
+            j_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i*self.Nv) + np.arange(1, self.Nv), (i-1)*self.Nv + np.arange(1, self.Nv))
 
         self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
-        super(Grid2d, self).__init__(N=N, W=self.W, gtype=self.gtype, **kwargs)
+        super(Grid2d, self).__init__(N=self.N, W=self.W, gtype=self.gtype, **kwargs)
 
 
 class Torus(Graph):
@@ -334,7 +335,7 @@ class Comet(Graph):
 
         self.W = sparse.csc_matrix((np.ones((1, np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
 
-        super(Comet, self).__init__(gtype=self.gtype, W=self.W, **kwargs)
+        super(Comet, self).__init__(W=self.W, gtype=self.gtype, **kwargs)
         # TODO implementate plot attributes
 
 
@@ -641,16 +642,20 @@ class Sensor(Graph):
 class Airfoil(Graph):
 
     def __init__(self):
-        self.N = 4253
-        # TODO
-        # self.A = sparse.csc_matrix((1, (i_inds, j_inds)), shape=(self.N, self.N))
+        mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/airfoil.mat')
+        i_inds = mat['i_inds']
+        j_inds = mat['j_inds']
+        self.A = sparse.csc_matrix((np.ones((12289)), (np.reshape(i_inds, (12289)), np.reshape(j_inds, (12289)))), shape=(12289, 12289))
+        self.W = (self.A + sparse.csc_matrix.getH(self.A))/2
 
-        # self.W = (A + np.transpose(np.conjugate(A)))/2
-
+        x = mat['x']
+        y = mat['y']
         self.coords = [x, y]
-        self.gtype = "airfoil"
+
+        self.gtype = 'Airfoil'
 
         super(Airfoil, self).__init__(W=self.W, A=self.A, coords=self.coords, gtype=self.gtype)
+        # TODO plot attributes
 
 
 class DavidSensorNet(Graph):
@@ -712,9 +717,10 @@ class Logo(Graph):
         mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/logogsp.mat')
 
         self.W = mat['W']
-        self.gtype = 'from MAT-file'
-        # TODO implementate plot attribute
+        self.gtype = 'LogoGSP'
+
         super(Logo, self).__init__(W=self.W, gtype=self.gtype)
+        # TODO implementate plot attribute
 
 
 class Path(Graph):
