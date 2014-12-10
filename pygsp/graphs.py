@@ -143,20 +143,19 @@ class NNGraph(Graph):
                 pass
 
             for i in xrange(N):
-                spi[ii*k:(ii+1)*k] = np.kron(np.ones((k, 1)), i)
-                spj[ii*k:(ii+1)*k] = NN[ii, 1:]
-                spv[ii*k:(ii+1)*k] = np.exp(-np.power(D[ii, 1:], 2)/self.sigma)
+                spi[i*k:(i+1)*k] = np.kron(np.ones((k, 1)), i)
+                spj[i*k:(i+1)*k] = NN[i, 1:]
+                spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
 
             self.W = sparse.csc_matrix((spv, (spi, spj)),
                                        shape=(np.shape(self.Xin)[0],
                                               np.shape(self.Xin)[0]))
 
         elif self.gtype == "radius":
-
             for i in xrange(N):
-                spi[ii*k:(ii+1)*k] = np.kron(np.ones((k, 1)), i)
-                spj[ii*k:(ii+1)*k] = NN[ii, 1:]
-                spv[ii*k:(ii+1)*k] = np.exp(-np.power(D[ii, 1:], 2)/self.sigma)
+                spi[i*k:(i+1)*k] = np.kron(np.ones((k, 1)), i)
+                spj[i*k:(i+1)*k] = NN[i, 1:]
+                spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
 
             self.W = sparse.csc_matrix((spv, (spi, spj)),
                                        shape=(np.shape(self.Xin)[0],
@@ -172,19 +171,19 @@ class NNGraph(Graph):
         self.coords = Xout
         self.gtype = "nearest neighbors"
 
-        super(NNGraph, self).__init__(**kwargs)
+        super(NNGraph, self).__init__(N=N, W=self.W, coords=self.coords, gtype=self.gtype, **kwargs)
 
 
 class Bunny(NNGraph):
 
     def __init__(self, **kwargs):
-        self.type = "radius"
+        self.gtype = "radius"
         self.rescale = 1
         self.center = 1
         self.epsilon = 0.2
         # TODO do the right way when pointcloud is merged
         self.Xin = Pointcloud(name="bunny").P
-        super(Bunny, self).__init__(self.Xin, **kwargs)
+        super(Bunny, self).__init__(Xin=self.Xin, center=self.center, rescale=self.rescale, epsilon=self.epsilon, gtype=self.gtype, **kwargs)
 
 
 class Sphere(NNGraph):
@@ -255,7 +254,7 @@ class Grid2d(Graph):
             self.Mv = Nv
 
         self.gtype = '2d-grid'
-        self.Nv = self.Nv * self.Mv
+        self.N = self.Nv * self.Mv
 
         # Create weighted adjacency matrix
         K = 2 * (self.Nv-1)
@@ -273,7 +272,7 @@ class Grid2d(Graph):
 
         self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
-        super(Grid2d, self).__init__(W=self.W, **kwargs)
+        super(Grid2d, self).__init__(N=self.N, W=self.W, gtype=self.gtype, **kwargs)
 
 
 class Torus(Graph):
@@ -304,7 +303,7 @@ class Torus(Graph):
 
         self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
-        super(Torus, self).__init__(W=self.W, **kwargs)
+        super(Torus, self).__init__(W=self.W, directed=self.directed, gtype=self.gtype, **kwargs)
         # TODO implement plot attributes
 
 
@@ -322,33 +321,32 @@ class Comet(Graph):
 
         self.W = sparse.csc_matrix((np.ones((1, np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
 
-        super(Comet, self).__init__(**kwargs)
+        super(Comet, self).__init__(W=self.W, gtype=self.gtype, **kwargs)
         # TODO implementate plot attributes
 
 
 class LowStretchTree(Graph):
 
-    def __init__(self, k=None, **kwargs):
-        super(LowStretchTree, self).__init__(**kwargs)
-        if k:
-            self.k = k
-        else:
-            self.k = 6
+    def __init__(self, k=6, **kwargs):
+        self.k = k
 
         start_nodes = np.array([1, 1, 3])
         end_nodes = np.array([2, 3, 4])
         # TODO finish
 
+        super(LowStretchTree, self).__init__(**kwargs)
+
 
 class RandomRegular(Graph):
 
     def __init__(self, N=64, k=6, **kwargs):
-        super(RandomRegular, self).__init__(**kwargs)
         self.N = N
         self.k = k
 
         self.gtype = "random_regular"
         self.W = createRandRegGraph(self.N. self.k)
+
+        super(RandomRegular, self).__init__(W=self.W, gtype=self.gtype, **kwargs)
 
         def createRandRegGraph(vertNum, deg):
             r"""
@@ -390,8 +388,6 @@ class RandomRegular(Graph):
 class Ring(Graph):
 
     def __init__(self, N=64, k=1, **kwargs):
-        super(Ring, self).__init__(**kwargs)
-
         self.N = N
         self.k = k
 
@@ -429,6 +425,8 @@ class Ring(Graph):
             self.gtype = "ring"
         else:
             self.gtype = "k-ring"
+
+        super(Ring, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, limits=self.limits, **kwargs)
 
 
 # Need params
@@ -522,10 +520,10 @@ class Community(Graph):
         I did not thing yet how to do that in python (i dont even know if we can add a full matrix with a sparse matrix the samw way in matlb)
         """
         W = np.where(np.abs(W) > 0, 1, x).astype(float)
-        self.W = sparse(W)
+        self.W = sparse.csc_matrix(W)
         self.gtype = "Community"
 
-        super(Community, self).__init__(**kwargs)
+        super(Community, self).__init__(W=self.W, gtype=self.gtype, coords=self.coords, **kwargs)
 
 
 class Sensor(Graph):
@@ -569,8 +567,8 @@ class Sensor(Graph):
             self.gtype = "sensor"
 
         self.directed = False
+        super(Sensor, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, limits=self.limits, directed=self.directed, **kwargs)
 
-        super(Sensor, self).__init__(**kwargs)
 
         def create_weight_matrix(N, param_distribute, param_regular, param_nc):
             XCoords = np.zeros((N, 1))
@@ -642,14 +640,44 @@ class Airfoil(Graph):
 
         self.gtype = 'Airfoil'
 
-        super(Airfoil, self).__init__(W=self.W, A=self.A, gytpe=self.gtype)
+        super(Airfoil, self).__init__(W=self.W, A=self.A, coords=self.coords, gtype=self.gtype)
         # TODO plot attributes
 
 
 class DavidSensorNet(Graph):
 
-    def __init__(self):
-        super(DavidSensorNet, self).__init__()
+    def __init__(self, N=64):
+        self.N = N
+
+        if self.N == 64:
+            # load("david64.mat")
+            self.W = W
+            self.N = N
+            self.coords = coords
+
+        elif self.N == 500:
+            # load("david500.mat")
+            self.W = W
+            self.N = N
+            self.coords = coords
+
+        else:
+            self.coords = np.random.rand(self.N, 2)
+
+            target_dist_cutoff = -0.125*self.N/436.075+0.2183
+            T = 0.6
+            s = sqrt(-target_dist_cutoff**2/(2.*log(T)))
+            d = gsp_distanz(np.conjugate(np.transpose(self.coords)))
+            W = np.exp(-np.power(d, 2)/2.*s**2)
+            W = np.where(W < T, 0, W)
+
+        self.limits = [0, 1, 0, 1]
+        W -= np.diag(np.diag(W))
+        self.W = sparse.lil_matrix(W)
+
+        self.gtype = 'davidsensornet'
+
+        super(DavidSensorNet, self).__init__(W=self.W, N=self.N, coords=self.coords, limits=self.limits, gtype=self.gtype)
 
 
 class FullConnected(Graph):
@@ -666,7 +694,7 @@ class FullConnected(Graph):
         self.limits = np.array([-1, 1, -1, 1])
         self.gtype = "full"
 
-        super(FullConnected, self).__init__()
+        super(FullConnected, self).__init__(N=self.N, W=self.W, coords=self.coords, limits=self.limits, gtype=self.gtype)
 
 
 class Logo(Graph):
@@ -702,7 +730,7 @@ class Path(Graph):
         self.limits = np.array([0, N+1, -1, 1])
         self.gtype = "path"
 
-        super(Path, self).__init__()
+        super(Path, self).__init__(W=self.W, coords=self.coords, limits=self.limits, gtype=self.gtype)
 
 
 class RandomRing(Graph):
@@ -733,7 +761,7 @@ class RandomRing(Graph):
         self.limits = np.array([-1, 1, -1, 1])
         self.gtype = 'random-ring'
 
-        super(RandomRing, self).__init__()
+        super(RandomRing, self).__init__(N=self.N, W=self.W, coords=self.coords, limits=self.limits, gtype=self.gtype)
 
 
 def dummy(a, b, c):
