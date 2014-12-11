@@ -7,8 +7,11 @@ Test suite for the modulename module of the pygsp package.
 
 import sys
 import numpy as np
+import scipy as sp
 import numpy.testing as nptest
+from scipy import sparse
 import pygsp
+from pygsp import graphs
 
 # Use the unittest2 backport on Python 2.6 to profit from the new features.
 if sys.version_info < (2, 7):
@@ -26,9 +29,16 @@ class FunctionsTestCase(unittest.TestCase):
         pass
 
     def test_graphs(self):
-        
-        def test_default_graph(W):
-            pass
+
+        def test_default_graph():
+            G = graphs.Graph()
+            self.assertEqual(G.W, sparse.lil_matrix(0))
+            self.assertEqual(G.A, sparse.lil_matrix(G.W > 0))
+            self.assertEqual(G.N, 0)
+            self.assertEqual(G.d, 0)
+            self.assertEqual(G.Ne, 0)
+            self.assertFalse(G.directed)
+            self.assertEqual(G.L, #TODO )
 
         def test_NNGraph(Xin):
             pass

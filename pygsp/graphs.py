@@ -59,7 +59,8 @@ class Graph(object):
         if Ne is not None:
             self.Ne = Ne
         else:
-            self.Ne = np.zeros((self.N), float)
+            # self.Ne = np.zeros((self.N), float)
+            self.Ne = np.count_nonzero(self.W)
         if directed is not None:
             self.directed = directed
         else:
