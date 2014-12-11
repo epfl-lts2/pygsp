@@ -18,16 +18,22 @@ from pygsp import utils
 
 class Graph(object):
     r"""
-    parameters:
-        - W: Weights matrix
-        - A: Adjacency matrix
-        - N: Number of nodes
-        - d: Degree vector
-        - Ne: Egde number
-        - gtype: Graph type
-        - directed: If the graph is directed
-        - lap_type: Laplacian type
-        - L: Laplacian
+    The main graph object
+
+    It is used to initialize by default every missing field of the subgraphs
+    It can also be used alone to initialize customs graphs
+
+    Parameters
+    ----------
+    W : weights matrix
+    A : adjancency matrix
+    N : number of nodes
+    d : degree vector
+    Ne : edge number
+    gtype : graph type
+    directed : whether the graph is directed
+    lap_type : laplacian type
+    L : laplacian
     """
 
     # All the parameters that needs calculation to be set
@@ -103,14 +109,26 @@ class Graph(object):
 class NNGraph(Graph):
     r"""
     Creates a graph from a pointcloud
-    parameters:
-        - Xin : Input Points
+
+    Parameters:
+        Xin : Input Points
+        use_flann : Whether flann method should be used
+            (not implemented yet)
+        center : 
+        rescale :
+        k :
+        sigma :
+        epsilon :
     """
 
     def __init__(self, Xin, gtype='knn', use_flann=False, center=True, rescale=True, k=10, sigma=0.1, epsilon=0.01, **kwargs):
         self.Xin = Xin
         self.gtype = gtype
-        self.use_flann = use_flann
+        if use_flann == True:
+            print("Flann hs not been implemented yet default method is used")
+            use_flann = False
+        else:
+            self.use_flann = use_flann
         self.center = center
         self.rescale = rescale
         self.k = k
@@ -176,6 +194,9 @@ class NNGraph(Graph):
 
 
 class Bunny(NNGraph):
+    r"""
+    Example graph extracted from matlab data
+    """
 
     def __init__(self, **kwargs):
         self.type = "radius"
