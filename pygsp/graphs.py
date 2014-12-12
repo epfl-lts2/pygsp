@@ -34,6 +34,11 @@ class Graph(object):
     directed : whether the graph is directed
     lap_type : laplacian type
     L : laplacian
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Graph()
     """
 
     # All the parameters that needs calculation to be set
@@ -112,20 +117,26 @@ class NNGraph(Graph):
 
     Parameters:
         Xin : Input Points
-        use_flann : Whether flann method should be used
+        use_flann : Whether flann method should be used (knn is otherwise used)
             (not implemented yet)
         center : 
         rescale :
-        k :
-        sigma :
-        epsilon :
+        k : number of neighbors for knn
+        sigma : variance of the distance kernel
+        epsilon : radius for the range search
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> Xin = np.arange(16)
+    >>> G = graphs.NNGraph(Xin)
     """
 
     def __init__(self, Xin, gtype='knn', use_flann=False, center=True, rescale=True, k=10, sigma=0.1, epsilon=0.01, **kwargs):
         self.Xin = Xin
         self.gtype = gtype
         if use_flann == True:
-            print("Flann hs not been implemented yet default method is used")
+            print("Flann hs not been implemented yet knn method is used")
             use_flann = False
         else:
             self.use_flann = use_flann
@@ -196,6 +207,11 @@ class NNGraph(Graph):
 class Bunny(NNGraph):
     r"""
     Example graph extracted from matlab data
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Bunny()
     """
 
     def __init__(self, **kwargs):
@@ -209,12 +225,46 @@ class Bunny(NNGraph):
 
 
 class Sphere(NNGraph):
+    r"""
+    Creates a spherical-shaped graph
+
+    Parameters
+    ----------
+    radius : radius of the sphere
+    nb_pts : number of vertices
+    nb_dim : dimension
+    sampling : variance of the distance kernel
+        (Can now only be 'random')
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> radius = 10
+    >>> G = graphs.Sphere(radius=radius)
+    """
 
     def __init__(self, **kwargs):
         super(Sphere, self).__init__(**kwargs)
 
 
 class Cube(NNGraph):
+    r"""
+    Creates the graph of an hyper-cube
+
+    Parameters
+    ----------
+    radius = edge lenght
+    nb_pts : number of vertices
+    nb_dim : dimension
+    sampling : variance of the distance kernel
+        (Can now only be 'random')
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> radius = 5
+    >>> G = graphs.Cube(radius=radius)
+    """
 
     def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random", **kwargs):
         param = kwargs
@@ -267,6 +317,22 @@ class Cube(NNGraph):
 
 # Need M
 class Grid2d(Graph):
+    r"""
+    Creates a 2 dimensional grid graph
+
+    Parameters
+    ----------
+    Nv : Number of vertices along the first dimension
+        default is 16
+    Mv : Number of vertices along the second dimension
+        default is Nv
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> Nv = 32
+    >>> G = graphs.Grid2d(Nv)
+    """
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
         self.Nv = Nv
@@ -298,6 +364,23 @@ class Grid2d(Graph):
 
 
 class Torus(Graph):
+    r"""
+    Creates a Torus graph
+
+    Parameters
+    ----------
+    Nv : Number of vertices along the first dimension
+        default is 16
+    Mv : Number of vertices along the second dimension
+        default is Nv
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> Nv = 32
+    >>> G = graphs.Torus(Nv=Nv)
+
+    """
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
         self.Nv = Nv
@@ -331,6 +414,22 @@ class Torus(Graph):
 
 # Need K
 class Comet(Graph):
+    r"""
+    Creates a Comet graph
+
+    Parameters
+    ----------
+    Nv : Number of vertices along the first dimension
+        default is 16
+    Mv : Number of vertices along the second dimension
+        default is Nv
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Comet()
+
+    """
 
     def __init__(self, Nv=32, k=12, **kwargs):
         self.Nv = Nv
@@ -348,6 +447,14 @@ class Comet(Graph):
 
 
 class LowStretchTree(Graph):
+    r"""
+    Creates a low stretch tree graph
+
+    Parameters
+    ----------
+    k : 2^k points on each side of the grid of vertices
+        default is 6
+    """
 
     def __init__(self, k=None, **kwargs):
         super(LowStretchTree, self).__init__(**kwargs)
@@ -362,6 +469,16 @@ class LowStretchTree(Graph):
 
 
 class RandomRegular(Graph):
+    r"""
+    Creates a random regular graph
+
+    Parameters
+    ----------
+    N : Number of nodes
+        default 64
+    k : Number of connections of each nodes
+        default 6
+    """
 
     def __init__(self, N=64, k=6, **kwargs):
         super(RandomRegular, self).__init__(**kwargs)
@@ -409,6 +526,16 @@ class RandomRegular(Graph):
 
 
 class Ring(Graph):
+    r"""
+    Creates a ring graph
+
+    Parameters
+    ----------
+    N : Number of vertices
+        default 64
+    k : Number of neighbors in each directions
+        default 1
+    """
 
     def __init__(self, N=64, k=1, **kwargs):
         super(Ring, self).__init__(**kwargs)
@@ -454,6 +581,28 @@ class Ring(Graph):
 
 # Need params
 class Community(Graph):
+    r"""
+    Create a community graph
+
+    Parameters
+    ----------
+    N : Number of nodes
+        default 256
+    Nc : Number of communities
+        default round(sqrt(N)/2)
+    com_sizes : Size of the communities
+        default is random
+    min_comm : Minimum size of the communities
+        default round(N/Nc/3)
+    min_deg : Minimum degree of each node
+        default round(min_comm/2) (not implemented yet)
+    verbose : Verbosity output
+        default 1
+    size_ratio : Ratio between the radius of world and the radius of communities
+        default 1
+    world_density : Probability of a random edge between any pair of edges
+        default 1/N
+    """
 
     def __init__(self, N=256, Nc=None, com_sizes=[], min_com=None, min_deg=None, verbose=1, size_ratio=1, world_density=None, **kwargs):
         param = kwargs
@@ -496,7 +645,7 @@ class Community(Graph):
             com_lims = np.concatenate((np.array([0]), com_lims, np.array([self.N])))
             self.com_sizes = np.diff(com_lims)
 
-        if self.verbose > 2:
+        if self.verbose >= 2:
                 X = np.zeros((10000, self.Nc + 1))
                 # pick randomly param.Nc-1 points to cut the rows in communtities:
                 for i in xrange(10000):
@@ -550,6 +699,29 @@ class Community(Graph):
 
 
 class Sensor(Graph):
+    r"""
+    Creates a random sensor graph
+
+    Parameters
+    ----------
+    N : Number of nodes
+        default 64
+    nc : Minimum number of connections
+        default 1
+    regular : Flag to fix the number of connections to nc
+        default False
+    verbose : Verbosity parameter
+        default 1
+    n_try : Number of attempt to create the graph
+        default 50
+    distribute : To distribute the points more evenly
+        default False
+    connected : To force the graph to be connected
+        default True
+    TODO 
+    set_to_one :
+        default False
+    """
 
     def __init__(self, N=64, nc=2, regular=False, verbose=1, n_try=50, distribute=False, connected=True, set_to_one=False, **kwargs):
         param = kwargs
@@ -649,6 +821,9 @@ class Sensor(Graph):
 
 # Need nothing
 class Airfoil(Graph):
+    r"""
+    Creates the aifoil graph
+    """
 
     def __init__(self):
         super(Airfoil, self).__init__()
@@ -660,12 +835,23 @@ class Airfoil(Graph):
 
 
 class DavidSensorNet(Graph):
+    r"""
+    Creates a sensor network
+    """
 
     def __init__(self):
         super(DavidSensorNet, self).__init__()
 
 
 class FullConnected(Graph):
+    r"""
+    Creates a fully connected graph
+
+    Parameters
+    ----------
+    N : Number of vertices
+        default 10
+    """
 
     def __init__(self, N=10):
         self.N = N
@@ -683,6 +869,9 @@ class FullConnected(Graph):
 
 
 class Logo(Graph):
+    r"""
+    Creates a graph with the GSP Logo
+    """
 
     def __init__(self):
         mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/logogsp.mat')
@@ -694,6 +883,14 @@ class Logo(Graph):
 
 
 class Path(Graph):
+    r"""
+    Creates a path graph
+
+    Parameters
+    ----------
+    N : Number of vertices
+        default 32
+    """
 
     def __init__(self, N=16):
         self.N = N
@@ -718,6 +915,14 @@ class Path(Graph):
 
 
 class RandomRing(Graph):
+    r"""
+    Creates a ring graph
+
+    Parameters
+    ----------
+    N : Number of vertices
+        default 64
+    """
 
     def __init__(self, N=64):
         self.N = N
