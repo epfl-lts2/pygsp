@@ -26,23 +26,23 @@ class Graph(object):
     Parameters
     ----------
     W: weights matrix
-        default empty
+        default is empty
     A: adjancency matrix
-        default constructed with W
+        default is constructed with W
     N: number of nodes
-        default lenght of the first dimension of W
+        default is the lenght of the first dimension of W
     d: degree vector
         default
     Ne: edge number
     gtype: graph type
-        default "unknown"
+        default is "unknown"
     directed: whether the graph is directed
         default depending of the previous values
     lap_type: laplacian type
-        default "combinatorial"
+        default is "combinatorial"
     L: laplacian
     coords: Coordinates of the vertices
-        defautl np.array([0, 0])
+        default is np.array([0, 0])
 
     Examples
     --------
@@ -130,20 +130,20 @@ class NNGraph(Graph):
     Parameters:
         Xin: Input Points
         use_flann: Whether flann method should be used (knn is otherwise used)
-            default False
+            default is False
             (not implemented yet)
         center: center the data
-            default True
+            default is True
         rescale: rescale the data (in a 1-ball)
-            default True
+            default is True
         k: number of neighbors for knn
-            default 10
+            default is 10
         sigma: variance of the distance kernel
-            default 0.1
+            default is 0.1
         epsilon: radius for the range search
-            default 0.01
+            default is 0.01
         gtype: the type of graph
-            default "knn"
+            default is "knn"
 
     Examples
     --------
@@ -251,9 +251,13 @@ class Sphere(NNGraph):
     Parameters
     ----------
     radius: radius of the sphere
+        default is 1
     nb_pts: number of vertices
+        default is 300
     nb_dim: dimension
+         default is 3
     sampling: variance of the distance kernel
+        default is "random"
         (Can now only be 'random')
 
     Examples
@@ -289,9 +293,13 @@ class Cube(NNGraph):
     Parameters
     ----------
     radius: edge lenght
+        default is 1
     nb_pts: number of vertices
+        default is 300
     nb_dim: dimension
+        default is 3
     sampling: variance of the distance kernel
+        default is "random"
         (Can now only be 'random')
 
     Examples
@@ -509,9 +517,9 @@ class RandomRegular(Graph):
     Parameters
     ----------
     N: Number of nodes
-        default 64
+        default is 64
     k: Number of connections of each nodes
-        default 6
+        default is 6
     """
 
     def __init__(self, N=64, k=6, **kwargs):
@@ -529,15 +537,15 @@ class RandomRegular(Graph):
             simple = without loops or double edges
             d-reglar = each vertex is adjecent to d edges
 
-            input arguments :
-              vertNum - number of vertices
-              deg - the degree of each vertex
+            input arguments:
+                vertNum: number of vertices
+                deg: the degree of each vertex
 
-            output arguments :
+            output arguments:
               A - A sparse matrix representation of the graph
 
             algorithm :
-            "The pairing model" : create n*d 'half edges'.
+            "The pairing model": create n*d 'half edges'.
             repeat as long as possible: pick a pair of half edges
               and if it's legal (doesn't creat a loop nor a double edge)
               add it to the graph
@@ -567,9 +575,9 @@ class Ring(Graph):
     Parameters
     ----------
     N: Number of vertices
-        default 64
+        default is 64
     k: Number of neighbors in each directions
-    default 1
+        default is 1
     """
 
     def __init__(self, N=64, k=1, **kwargs):
@@ -621,23 +629,22 @@ class Community(Graph):
 
     Parameters
     ----------
-    N : Number of nodes
-        default 256
-        Number of nodes
-    Nc : Number of communities
-        default round(sqrt(N)/2)
-    com_sizes : Size of the communities
-        default is random
-    min_comm : Minimum size of the communities
-        default round(N/Nc/3)
-    min_deg : Minimum degree of each node
-        default round(min_comm/2) (not implemented yet)
-    verbose : Verbosity output
-        default 1
-    size_ratio : Ratio between the radius of world and the radius of communities
-        default 1
-    world_density : Probability of a random edge between any pair of edges
-        default 1/N
+    N: Number of nodes
+        default is 256
+    Nc: Number of communities
+        default is round(sqrt(N)/2)
+    com_sizes: Size of the communities
+        default is is random
+    min_comm: Minimum size of the communities
+        default is round(N/Nc/3)
+    min_deg: Minimum degree of each node
+        default is round(min_comm/2) (not implemented yet)
+    verbose: Verbosity output
+        default is 1
+    size_ratio: Ratio between the radius of world and the radius of communities
+        default is 1
+    world_density: Probability of a random edge between any pair of edges
+        default is 1/N
     """
 
     def __init__(self, N=256, Nc=None, com_sizes=[], min_com=None, min_deg=None, verbose=1, size_ratio=1, world_density=None, **kwargs):
@@ -740,25 +747,25 @@ class Sensor(Graph):
 
     Parameters
     ----------
-    N : Number of nodes
-        default 64
-    nc : Minimum number of connections
-        default 1
-    regular : Flag to fix the number of connections to nc
-        default False
-    verbose : Verbosity parameter
-        default 1
-    n_try : Number of attempt to create the graph
-        default 50
-    distribute : To distribute the points more evenly
-        default False
-    connected : To force the graph to be connected
-        default True
-    set_to_one :
-        default False
+    N: Number of nodes
+        default is 64
+    nc: Minimum number of connections
+        default is 1
+    regular: Flag to fix the number of connections to nc
+        default is False
+    verbose: Verbosity parameter
+        default is True
+    n_try: Number of attempt to create the graph
+        default is 50
+    distribute: To distribute the points more evenly
+        default is False
+    connected: To force the graph to be connected
+        default is True
+    set_to_one:
+        default is False
     """
 
-    def __init__(self, N=64, nc=2, regular=False, verbose=1, n_try=50, distribute=False, connected=True, set_to_one=False, **kwargs):
+    def __init__(self, N=64, nc=2, regular=False, verbose=True, n_try=50, distribute=False, connected=True, set_to_one=False, **kwargs):
         param = kwargs
         self.N = N
         self.nc = nc
@@ -798,7 +805,6 @@ class Sensor(Graph):
 
         self.directed = False
         super(Sensor, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, limits=self.limits, directed=self.directed, **kwargs)
-
 
         def create_weight_matrix(N, param_distribute, param_regular, param_nc):
             XCoords = np.zeros((N, 1))
@@ -880,6 +886,11 @@ class Airfoil(Graph):
 class DavidSensorNet(Graph):
     r"""
     Creates a sensor network
+
+    Parameters
+    ----------
+    N: Number of vertices
+        default is 64
     """
 
     def __init__(self, N=64):
@@ -922,7 +933,7 @@ class FullConnected(Graph):
 
     Parameters
     ----------
-    N : Number of vertices
+    N: Number of vertices
         default 10
     """
 
@@ -962,7 +973,7 @@ class Path(Graph):
 
     Parameters
     ----------
-    N : Number of vertices
+    N: Number of vertices
         default 32
     """
 
@@ -994,7 +1005,7 @@ class RandomRing(Graph):
 
     Parameters
     ----------
-    N : Number of vertices
+    N: Number of vertices
         default 64
     """
 
@@ -1035,16 +1046,16 @@ def dummy(a, b, c):
 
     Parameters
     ----------
-    a : int
+    a: int
         Description.
-    b : array_like
+    b: array_like
         Description.
-    c : bool
+    c: bool
         Description.
 
     Returns
     -------
-    d : ndarray
+    d: ndarray
         Description.
 
     Examples
