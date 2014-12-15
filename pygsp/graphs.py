@@ -25,15 +25,24 @@ class Graph(object):
 
     Parameters
     ----------
-    W : weights matrix
-    A : adjancency matrix
-    N : number of nodes
-    d : degree vector
-    Ne : edge number
-    gtype : graph type
-    directed : whether the graph is directed
-    lap_type : laplacian type
-    L : laplacian
+    W: weights matrix
+        default empty
+    A: adjancency matrix
+        default constructed with W
+    N: number of nodes
+        default lenght of the first dimension of W
+    d: degree vector
+        default
+    Ne: edge number
+    gtype: graph type
+        default "unknown"
+    directed: whether the graph is directed
+        default depending of the previous values
+    lap_type: laplacian type
+        default "combinatorial"
+    L: laplacian
+    coords: Coordinates of the vertices
+        defautl np.array([0, 0])
 
     Examples
     --------
@@ -44,7 +53,7 @@ class Graph(object):
     # All the parameters that needs calculation to be set
     # or not needed are set to None
     def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
-                 gtype='unknown', directed=None,
+                 gtype='unknown', directed=None, coords=None,
                  lap_type='combinatorial', L=None, **kwargs):
 
         self.gtype = gtype
@@ -61,7 +70,6 @@ class Graph(object):
         if N:
             self.N = N
         else:
-            self.N_init_default = True
             self.N = np.shape(self.W)[0]
         if d:
             self.d = d
@@ -80,6 +88,10 @@ class Graph(object):
             self.L = L
         else:
             self.L = utils.create_laplacian(self)
+        if coords:
+            self.coords = coords
+        else:
+            self.coords = np.zeros((self.N, 2))
 
     def copy_graph_attr(self, gtype, Gn):
         r"""
@@ -116,14 +128,22 @@ class NNGraph(Graph):
     Creates a graph from a pointcloud
 
     Parameters:
-        Xin : Input Points
-        use_flann : Whether flann method should be used (knn is otherwise used)
+        Xin: Input Points
+        use_flann: Whether flann method should be used (knn is otherwise used)
+            default False
             (not implemented yet)
-        center : 
-        rescale :
-        k : number of neighbors for knn
-        sigma : variance of the distance kernel
-        epsilon : radius for the range search
+        center: center the data
+            default True
+        rescale: rescale the data (in a 1-ball)
+            default True
+        k: number of neighbors for knn
+            default 10
+        sigma: variance of the distance kernel
+            default 0.1
+        epsilon: radius for the range search
+            default 0.01
+        gtype: the type of graph
+            default "knn"
 
     Examples
     --------
@@ -230,10 +250,10 @@ class Sphere(NNGraph):
 
     Parameters
     ----------
-    radius : radius of the sphere
-    nb_pts : number of vertices
-    nb_dim : dimension
-    sampling : variance of the distance kernel
+    radius: radius of the sphere
+    nb_pts: number of vertices
+    nb_dim: dimension
+    sampling: variance of the distance kernel
         (Can now only be 'random')
 
     Examples
@@ -253,10 +273,10 @@ class Cube(NNGraph):
 
     Parameters
     ----------
-    radius = edge lenght
-    nb_pts : number of vertices
-    nb_dim : dimension
-    sampling : variance of the distance kernel
+    radius: edge lenght
+    nb_pts: number of vertices
+    nb_dim: dimension
+    sampling: variance of the distance kernel
         (Can now only be 'random')
 
     Examples
@@ -322,9 +342,9 @@ class Grid2d(Graph):
 
     Parameters
     ----------
-    Nv : Number of vertices along the first dimension
+    Nv: Number of vertices along the first dimension
         default is 16
-    Mv : Number of vertices along the second dimension
+    Mv: Number of vertices along the second dimension
         default is Nv
 
     Examples
@@ -369,9 +389,9 @@ class Torus(Graph):
 
     Parameters
     ----------
-    Nv : Number of vertices along the first dimension
+    Nv: Number of vertices along the first dimension
         default is 16
-    Mv : Number of vertices along the second dimension
+    Mv: Number of vertices along the second dimension
         default is Nv
 
     Examples
@@ -419,9 +439,9 @@ class Comet(Graph):
 
     Parameters
     ----------
-    Nv : Number of vertices along the first dimension
+    Nv: Number of vertices along the first dimension
         default is 16
-    Mv : Number of vertices along the second dimension
+    Mv: Number of vertices along the second dimension
         default is Nv
 
     Examples
@@ -452,8 +472,8 @@ class LowStretchTree(Graph):
 
     Parameters
     ----------
-    k : 2^k points on each side of the grid of vertices
-        default is 6
+    k: 2^k points on each side of the grid of vertices
+        default 6
     """
 
     def __init__(self, k=None, **kwargs):
@@ -474,9 +494,9 @@ class RandomRegular(Graph):
 
     Parameters
     ----------
-    N : Number of nodes
+    N: Number of nodes ^
         default 64
-    k : Number of connections of each nodes
+    k: Number of connections of each nodes
         default 6
     """
 
@@ -531,10 +551,10 @@ class Ring(Graph):
 
     Parameters
     ----------
-    N : Number of vertices
+    N: Number of vertices
         default 64
-    k : Number of neighbors in each directions
-        default 1
+    k: Number of neighbors in each directions
+    default 1
     """
 
     def __init__(self, N=64, k=1, **kwargs):
@@ -588,6 +608,7 @@ class Community(Graph):
     ----------
     N : Number of nodes
         default 256
+        Number of nodes
     Nc : Number of communities
         default round(sqrt(N)/2)
     com_sizes : Size of the communities
