@@ -670,13 +670,16 @@ class DavidSensorNet(Graph):
         self.N = N
 
         if self.N == 64:
-            # load("david64.mat")
+
+            mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/david64.mat')
+            # TODO use david64
             self.W = W
             self.N = N
             self.coords = coords
 
         elif self.N == 500:
-            # load("david500.mat")
+            mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/david500.mat')
+            # TODO use david500
             self.W = W
             self.N = N
             self.coords = coords
