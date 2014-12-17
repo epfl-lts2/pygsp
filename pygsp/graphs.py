@@ -143,6 +143,7 @@ class NNGraph(Graph):
             if self.use_flann:
                 pass
             else:
+                # TODO
                 pass
 
             for i in xrange(N):
@@ -187,6 +188,8 @@ class Bunny(NNGraph):
         # TODO do the right way when pointcloud is merged
         self.Xin = Pointcloud(name="bunny").P
 
+        # plotting["vertex_size"] = 10
+
         super(Bunny, self).__init__(Xin=self.Xin, center=self.center, rescale=self.rescale, epsilon=self.epsilon, gtype=self.gtype, **kwargs)
 
 
@@ -227,7 +230,7 @@ class Cube(NNGraph):
             if nb_dim == 2:
                 pts = np.random.rand(self.nb_dim, self.nb_dim)
 
-            if self.nb_dim == 3:
+            elif self.nb_dim == 3:
                 n = floor(self.nb_dim/6)
 
                 pts = np.zeros((n*6, 3))
@@ -289,7 +292,15 @@ class Grid2d(Graph):
 
         self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
-        super(Grid2d, self).__init__(N=self.N, W=self.W, gtype=self.gtype, **kwargs)
+        xtmp = np.kron(np.ones((self.Mv, 1)), (np.arange(Nv)+1).reshape(Nv, 1))
+        ytmp = np.sort(np.kron(np.ones((self.Nv, 1)), np.arange(Mv)+1)).reshape(self.Mv*self.Nv, 1)
+        self.coords = np.concatenate((xtmp, ytmp), axis=1)
+
+        self.plotting = {}
+        self.plotting["limits"] = np.array([0, self.Nv+1, 0, self.Mv+1])
+        self.plotting["vertex_size"] = 30
+
+        super(Grid2d, self).__init__(N=self.N, W=self.W, gtype=self.gtype, plotting=self.plotting, coords=self.coords **kwargs)
 
 
 class Torus(Graph):
@@ -323,8 +334,12 @@ class Torus(Graph):
 
         self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
-        super(Torus, self).__init__(W=self.W, directed=self.directed, gtype=self.gtype, **kwargs)
-        # TODO implement plot attributes
+        T = 1.5 + np.sin(np.arange(self.Mv)*2*np.pi/np.Mv)
+        U = np.cos(np.arange(self.Mv)*2*np.pi/self.Mv)
+
+        self.plotting["vertex_size"] = 30
+        self.plotting["limits"] = np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])
+        super(Torus, self).__init__(W=self.W, directed=self.directed, gtype=self.gtype, coords=self.coords, plotting=self.plotting, **kwargs)
 
 
 # Need K
