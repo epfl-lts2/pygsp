@@ -334,8 +334,16 @@ class Torus(Graph):
 
         self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
-        T = 1.5 + np.sin(np.arange(self.Mv)*2*np.pi/np.Mv)
-        U = np.cos(np.arange(self.Mv)*2*np.pi/self.Mv)
+        # Create Coordinate
+        T = 1.5 + np.sin(np.arange(self.Mv)*2*np.pi/self.Mv).reshape(1, self.Mv)
+        U = np.cos(np.arange(self.Mv)*2*np.pi/self.Mv).reshape(1, self.Mv)
+        xtmp = np.cos(np.arange(self.Nv).reshape(self.Nv, 1)*2*np.pi/self.Nv)*T
+        ytmp = np.sin(np.arange(self.Nv).reshape(self.Nv, 1)*2*np.pi/self.Nv)*T
+        ztmp = np.kron(np.ones((self.Nv, 1)), U)
+        self.coords = np.concatenate((np.reshape(xtmp, (self.Mv*self.Nv, 1), order='F'),
+                                      np.reshape(ytmp, (self.Mv*self.Nv, 1), order='F'),
+                                      np.reshape(ztmp, (self.Mv*self.Nv, 1), order='F')),
+                                     axis=1)
 
         self.plotting["vertex_size"] = 30
         self.plotting["limits"] = np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])
