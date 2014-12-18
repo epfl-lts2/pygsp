@@ -34,13 +34,14 @@ class FunctionsTestCase(unittest.TestCase):
             G = graphs.Graph()
             self.assertEqual(G.W, sparse.lil_matrix(0))
             self.assertEqual(G.A, sparse.lil_matrix(G.W > 0))
-            self.assertEqual(G.N, 0)
+            self.assertEqual(G.N, 1)
             self.assertEqual(G.d, 0)
             self.assertEqual(G.Ne, 0)
             self.assertFalse(G.directed)
-            self.assertEqual(G.L, #TODO )
+            # TODO
+            # self.assertEqual(G.L, )
 
-        def test_NNGraph(Xin):
+        def test_NNGraph():
             pass
 
         def test_Bunny():
@@ -94,25 +95,25 @@ class FunctionsTestCase(unittest.TestCase):
         def test_RandomRing():
             pass
 
-    test_default_graph(W)
-    test_NNGraph(Xin)
-    test_Bunny()
-    test_Sphere()
-    test_Cube()
-    test_Grid2d()
-    test_Torus()
-    test_Comet()
-    test_LowStretchTree()
-    test_RandomRegular()
-    test_Ring()
-    test_Community()
-    test_Sensor()
-    test_Airfoil()
-    test_DavidSensorNet()
-    test_FullConnected()
-    test_Logo()
-    test_Path()
-    test_RandomRing()
+        test_default_graph()
+        test_NNGraph()
+        test_Bunny()
+        test_Sphere()
+        test_Cube()
+        test_Grid2d()
+        test_Torus()
+        test_Comet()
+        test_LowStretchTree()
+        test_RandomRegular()
+        test_Ring()
+        test_Community()
+        test_Sensor()
+        test_Airfoil()
+        test_DavidSensorNet()
+        test_FullConnected()
+        test_Logo()
+        test_Path()
+        test_RandomRing()
 
     def test_dummy(self):
         """
