@@ -819,10 +819,10 @@ class Path(Graph):
         self.coord = np.concatenate((np.arange(1, self.N + 1).reshape(self.N, 1),
                                      np.zeros((1, self.N))),
                                     axis=1)
-        self.limits = np.array([0, N+1, -1, 1])
+        self.plotting = {"limits": np.array([0, N+1, -1, 1])}
         self.gtype = "path"
 
-        super(Path, self).__init__(W=self.W, coords=self.coords, limits=self.limits, gtype=self.gtype)
+        super(Path, self).__init__(W=self.W, coords=self.coords, plotting=self.plotting, gtype=self.gtype)
 
 
 class RandomRing(Graph):
@@ -830,7 +830,6 @@ class RandomRing(Graph):
     def __init__(self, N=64):
         self.N = N
 
-        position = np.sort(np.random.rand(self.N))
         position = np.sort(np.random.rand(self.N, 1), axis=0)
 
         weight = self.N*np.diff(self.N, axis=0)
@@ -842,8 +841,7 @@ class RandomRing(Graph):
         self.W = sparse.csc_matrix((weight, (inds_i, inds_j)),
                                    shape=(self.N, self.N))
         self.W[self.N, 1] = weightend
-        # TOFIX
-        # self.W(10, 0) = weightend
+
         self.W += np.conjugate(np.transpose(self.W))
 
         self.coords = np.concatenate((np.cos(position*2*np.pi),
