@@ -188,9 +188,10 @@ class Bunny(NNGraph):
         # TODO do the right way when pointcloud is merged
         self.Xin = Pointcloud(name="bunny").P
 
-        # plotting["vertex_size"] = 10
+        self.plotting = {}
+        self.plotting["vertex_size"] = 10
 
-        super(Bunny, self).__init__(Xin=self.Xin, center=self.center, rescale=self.rescale, epsilon=self.epsilon, gtype=self.gtype, **kwargs)
+        super(Bunny, self).__init__(Xin=self.Xin, center=self.center, rescale=self.rescale, epsilon=self.epsilon, gtype=self.gtype, plotting=self.plotting, **kwargs)
 
 
 class Sphere(NNGraph):
@@ -300,7 +301,7 @@ class Grid2d(Graph):
         self.plotting["limits"] = np.array([0, self.Nv+1, 0, self.Mv+1])
         self.plotting["vertex_size"] = 30
 
-        super(Grid2d, self).__init__(N=self.N, W=self.W, gtype=self.gtype, plotting=self.plotting, coords=self.coords **kwargs)
+        super(Grid2d, self).__init__(N=self.N, W=self.W, gtype=self.gtype, plotting=self.plotting, coords=self.coords, **kwargs)
 
 
 class Torus(Graph):
@@ -345,8 +346,10 @@ class Torus(Graph):
                                       np.reshape(ztmp, (self.Mv*self.Nv, 1), order='F')),
                                      axis=1)
 
+        self.plotting = {}
         self.plotting["vertex_size"] = 30
         self.plotting["limits"] = np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])
+
         super(Torus, self).__init__(W=self.W, directed=self.directed, gtype=self.gtype, coords=self.coords, plotting=self.plotting, **kwargs)
 
 
@@ -364,8 +367,17 @@ class Comet(Graph):
 
         self.W = sparse.csc_matrix((np.ones((1, np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
 
-        super(Comet, self).__init__(W=self.W, gtype=self.gtype, **kwargs)
-        # TODO implementate plot attributes
+        tcoods = np.zeros((self.Nv, 2))
+        inds = np.arange(k)+1
+        tmpcoords[1:k+1, 1] = np.cos(inds*2*np.pi/k)
+        tmpcoords[1:k+1, 2] = np.sin(inds*2*np.pi/k)
+        tmpcoords[k+1:, 1] = np.arange(2, self.Nv-k+1)
+        self.coords = tmpcoords
+
+        self.plotting = {}
+        self.plotting["limits"] = np.arange([-2, np.max(tmpcoords[:, 0]), np.min(tmpcoords[:, 1]), np.max(tmpcoords[:, 1])])
+
+        super(Comet, self).__init__(W=self.W, coords=self.coords, plotting=self.plotting, gtype=self.gtype, **kwargs)
 
 
 class LowStretchTree(Graph):
