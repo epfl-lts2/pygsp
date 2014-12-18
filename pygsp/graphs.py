@@ -188,8 +188,9 @@ class Bunny(NNGraph):
         # TODO do the right way when pointcloud is merged
         self.Xin = Pointcloud(name="bunny").P
 
-        self.plotting = {}
-        self.plotting["vertex_size"] = 10
+        plotting = {}
+        plotting["vertex_size"] = 10
+        self.plotting = plotting
 
         super(Bunny, self).__init__(Xin=self.Xin, center=self.center, rescale=self.rescale, epsilon=self.epsilon, gtype=self.gtype, plotting=self.plotting, **kwargs)
 
@@ -297,9 +298,10 @@ class Grid2d(Graph):
         ytmp = np.sort(np.kron(np.ones((self.Nv, 1)), np.arange(Mv)+1)).reshape(self.Mv*self.Nv, 1)
         self.coords = np.concatenate((xtmp, ytmp), axis=1)
 
-        self.plotting = {}
-        self.plotting["limits"] = np.array([0, self.Nv+1, 0, self.Mv+1])
-        self.plotting["vertex_size"] = 30
+        plotting = {}
+        plotting["limits"] = np.array([0, self.Nv+1, 0, self.Mv+1])
+        plotting["vertex_size"] = 30
+        self.plotting = plotting
 
         super(Grid2d, self).__init__(N=self.N, W=self.W, gtype=self.gtype, plotting=self.plotting, coords=self.coords, **kwargs)
 
@@ -346,9 +348,10 @@ class Torus(Graph):
                                       np.reshape(ztmp, (self.Mv*self.Nv, 1), order='F')),
                                      axis=1)
 
-        self.plotting = {}
-        self.plotting["vertex_size"] = 30
-        self.plotting["limits"] = np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])
+        plotting = {}
+        plotting["vertex_size"] = 30
+        plotting["limits"] = np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])
+        self.plotting = plotting
 
         super(Torus, self).__init__(W=self.W, directed=self.directed, gtype=self.gtype, coords=self.coords, plotting=self.plotting, **kwargs)
 
@@ -374,8 +377,9 @@ class Comet(Graph):
         tmpcoords[k+1:, 1] = np.arange(2, self.Nv-k+1)
         self.coords = tmpcoords
 
-        self.plotting = {}
-        self.plotting["limits"] = np.arange([-2, np.max(tmpcoords[:, 0]), np.min(tmpcoords[:, 1]), np.max(tmpcoords[:, 1])])
+        plotting = {}
+        plotting["limits"] = np.arange([-2, np.max(tmpcoords[:, 0]), np.min(tmpcoords[:, 1]), np.max(tmpcoords[:, 1])])
+        self.plotting = plotting
 
         super(Comet, self).__init__(W=self.W, coords=self.coords, plotting=self.plotting, gtype=self.gtype, **kwargs)
 
@@ -383,13 +387,37 @@ class Comet(Graph):
 class LowStretchTree(Graph):
 
     def __init__(self, k=6, **kwargs):
-        self.k = k
 
         start_nodes = np.array([1, 1, 3])
         end_nodes = np.array([2, 3, 4])
-        # TODO finish
+        W = csc_matrix((np.ones((1, 3)), (start_nodes, end_nodes)), shape=(4, 4))
+        # TODO W=W+W'
 
-        super(LowStretchTree, self).__init__(**kwargs)
+        XCoords = np.array([1, 2, 1, 2])
+        YCoords = np.array([1, 1, 2, 2])
+
+        for p in xrange(2, k+1):
+            #TODO the ii/jj part
+
+            YCoords = np.kron(np.ones((1, 2)), YCoords)
+            YCoords_new = np.array([YCoords, YCoords+2**(p-1)])
+            YCoords = YCoords_new
+            XCoords_new = np.array([XCoords, XCoords+2**(p-1)])
+            XCoords = np.kron(np.ones((1, 2)), XCoords_new)
+
+        self.coords = np.array([np.transpose(XCoords), np.transpose(YCoords)])
+        self.limits = np.array([0, 2**k+1, 0, 2**k+1])
+        self.N = (2**k)**2
+        self.W = W
+        self.root = 4**(k-1)
+        self.gtype = "low strech tree"
+
+        plotting = {}
+        plotting["edges_width"] = 1.25
+        plotting["vertex_sizee"] = 75
+        self.plotting = plotting
+
+        super(LowStretchTree, self).__init__(W=self.W, coords=self.coords, N=self.N, limits=self.limits, root=self.root, gtype=self.gtype, plotting=self.plotting, **kwargs)
 
 
 class RandomRegular(Graph):
