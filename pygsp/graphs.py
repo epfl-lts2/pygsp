@@ -741,16 +741,16 @@ class DavidSensorNet(Graph):
         self.N = N
 
         if self.N == 64:
-            # load("david64.mat")
-            self.W = W
-            self.N = N
-            self.coords = coords
+            mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/david64.mat')
+            self.W = mat["W"]
+            self.N = mat["N"][0, 0]
+            self.coords = mat["coords"]
 
         elif self.N == 500:
-            # load("david500.mat")
-            self.W = W
-            self.N = N
-            self.coords = coords
+            mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/david500.mat')
+            self.W = mat["W"]
+            self.N = mat["N"][0, 0]
+            self.coords = mat["coords"]
 
         else:
             self.coords = np.random.rand(self.N, 2)
@@ -761,14 +761,13 @@ class DavidSensorNet(Graph):
             d = gsp_distanz(np.conjugate(np.transpose(self.coords)))
             W = np.exp(-np.power(d, 2)/2.*s**2)
             W = np.where(W < T, 0, W)
-
-        self.limits = [0, 1, 0, 1]
-        W -= np.diag(np.diag(W))
-        self.W = sparse.lil_matrix(W)
+            W -= np.diag(np.diag(W))
+            self.W = sparse.lil_matrix(W)
 
         self.gtype = 'davidsensornet'
+        self.plotting = {"limits": [0, 1, 0, 1]}
 
-        super(DavidSensorNet, self).__init__(W=self.W, N=self.N, coords=self.coords, limits=self.limits, gtype=self.gtype)
+        super(DavidSensorNet, self).__init__(W=self.W, N=self.N, coords=self.coords, plotting=self.plotting, gtype=self.gtype)
 
 
 class FullConnected(Graph):
@@ -782,10 +781,10 @@ class FullConnected(Graph):
         self.coords = np.concatenate((np.cos(tmp*2*np.pi/self.N),
                                       np.sin(tmp*2*np.pi/self.N)),
                                      axis=1)
-        self.limits = np.array([-1, 1, -1, 1])
+        self.plotting = {"limits": np.array([-1, 1, -1, 1])}
         self.gtype = "full"
 
-        super(FullConnected, self).__init__(N=self.N, W=self.W, coords=self.coords, limits=self.limits, gtype=self.gtype)
+        super(FullConnected, self).__init__(N=self.N, W=self.W, coords=self.coords, plotting=self.plotting, gtype=self.gtype)
 
 
 class Logo(Graph):
@@ -796,8 +795,10 @@ class Logo(Graph):
         self.W = mat['W']
         self.gtype = 'LogoGSP'
 
-        super(Logo, self).__init__(W=self.W, gtype=self.gtype)
-        # TODO implementate plot attribute
+        self.plotting = {"vertex_size": 30}
+        self.limits = np.array([0, 640, -400, 0])
+
+        super(Logo, self).__init__(W=self.W, gtype=self.gtype, limits=self.limits, plotting=self.plotting)
 
 
 class Path(Graph):
