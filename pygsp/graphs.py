@@ -502,14 +502,16 @@ class Ring(Graph):
         self.coords = np.array([np.cos(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N),
                                 np.sin(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N)])
 
-        self.limits = np.array([-1, 1, -1, 1])
+        plotting = {}
+        plotting["limits"] = np.array([-1, 1, -1, 1])
+        self.plotting = plotting
 
         if self.k == 1:
             self.gtype = "ring"
         else:
             self.gtype = "k-ring"
 
-        super(Ring, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, limits=self.limits, **kwargs)
+        super(Ring, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, plotting=self.plotting, **kwargs)
 
 
 # Need params
@@ -642,16 +644,18 @@ class Sensor(Graph):
 
         self.W = sparse.lil_matrix(W)
         self.W = (self.W + self.W.conjugate().transpose())/2
-        self.limits = np.array([0, 1, 0, 1])
-        self.coords = [XCoords, YCoords]
+        self.coords = np.array([XCoords, YCoords])
         if self.regular:
             self.gtype = "regular sensor"
         else:
             self.gtype = "sensor"
-
         self.directed = False
-        super(Sensor, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, limits=self.limits, directed=self.directed, **kwargs)
 
+        plotting = {}
+        plotting["limits"] = np.array([0, 1, 0, 1])
+        self.plotting = plotting
+
+        super(Sensor, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, plotting=self.plotting, directed=self.directed, **kwargs)
 
         def create_weight_matrix(N, param_distribute, param_regular, param_nc):
             XCoords = np.zeros((N, 1))
@@ -719,12 +723,16 @@ class Airfoil(Graph):
 
         x = mat['x']
         y = mat['y']
-        self.coords = [x, y]
 
+        self.coords = np.array([x, y])
         self.gtype = 'Airfoil'
 
-        super(Airfoil, self).__init__(W=self.W, A=self.A, coords=self.coords, gtype=self.gtype)
-        # TODO plot attributes
+        plotting = {}
+        plotting["limits"] = np.array([-1e-4, 1.01*np.max(x), -1e-4, 1.01*np.max(y)])
+        plotting["vertex_size"] = 30
+        self.plotting = plotting
+
+        super(Airfoil, self).__init__(W=self.W, A=self.A, coords=self.coords, plotting=self.plotting, gtype=self.gtype)
 
 
 class DavidSensorNet(Graph):
