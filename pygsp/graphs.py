@@ -457,7 +457,7 @@ class RandomRegular(Graph):
             d = deg
             matIter = 10
 
-            # check parmaters
+            # continue until a proper graph is formed
             if (n*d) % 2 == 1:
                 raise ValueError("createRandRegGraph input err: n*d must be even!")
 
@@ -465,12 +465,49 @@ class RandomRegular(Graph):
             U = np.kron(np.ones((1, d)), np.arange(n)+1)
 
             # the graphs adajency matrix
-            A = sparse.coo_matrix(n, n)
+            A = sparse.csc_matrix(n, n)
 
-            edgesTested=0
-            repetition=1
+            edgesTested = 0
+            repetition = 1
 
+            # check that there are no loops nor parallel edges
+            while np.size(U) != 0 and repetition < matIter:
+                edgesTested += 1
 
+                # print progess
+                if edgesTested % 5000 == 0:
+                    print("createRandRegGraph() progress: edges=%d/%d\n" % (edgesTested, n*d))
+
+                # chose at random 2 half edges
+                v1 = ceil(rd.random()*np.shape(U)[0])
+                i2 = ceil(rd.random()*np.shape(U)[0])
+                v1 = U[i1]
+                v2 = U[i2]
+
+                # check that there are no loops nor parallel edges
+                if vi == v2 or A[v1, v2] == 1:
+                    # restart process if needed
+                    if edgesTested == n*d:
+                        repetition = repetition + 1
+                        edgesTested = 0
+                        U = np.kron(np.ones((1, d)), np.arange(n)+1)
+                        A = sparse.csc_matrix(n, n)
+                else:
+                    # add edge to graph
+                    A[v1, v2] = 1
+                    A[v2, v1] = 1
+
+                    # remove used half-edges
+                    v = sorted([v1, v2])
+                    U = np.concatenate((U[1:v[0]], U[v[0]+1:v[1]], U[v[1]+1:]))
+
+            msg = isRegularGraph(A)
+            if msg:
+                print(msg)
+
+        def isRegularGraph(G):
+
+            # TODO
 
 
 class Ring(Graph):
