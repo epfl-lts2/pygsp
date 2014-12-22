@@ -33,7 +33,7 @@ class Graph(object):
     # All the parameters that needs calculation to be set
     # or not needed are set to None
     def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
-                 gtype='unknown', directed=None,
+                 gtype='unknown', directed=None, coords=None,
                  lap_type='combinatorial', L=None, **kwargs):
 
         self.gtype = gtype
@@ -50,7 +50,6 @@ class Graph(object):
         if N:
             self.N = N
         else:
-            self.N_init_default = True
             self.N = np.shape(self.W)[0]
         if d:
             self.d = d
@@ -59,7 +58,11 @@ class Graph(object):
         if Ne:
             self.Ne = Ne
         else:
-            self.Ne = np.zeros((self.N), float)
+            self.Ne = sel.W.nnz()
+        if coords:
+            self.coords = coords
+        else:
+            self.coords = np.zeros((self.N, 2))
         if directed:
             self.directed = directed
         else:
@@ -67,7 +70,7 @@ class Graph(object):
             pass
         if L:
             self.L = L
-        #else:
+        # else:
         #    self.L = utils.create_laplacian(self)
 
     def copy_graph_attr(self, gtype, Gn):
@@ -140,6 +143,7 @@ class NNGraph(Graph):
             if self.use_flann:
                 pass
             else:
+                # TODO
                 pass
 
             for i in xrange(N):
@@ -177,19 +181,39 @@ class NNGraph(Graph):
 class Bunny(NNGraph):
 
     def __init__(self, **kwargs):
-        self.gtype = "radius"
-        self.rescale = 1
-        self.center = 1
+        self.type = "radius"
+        self.rescale = True
+        self.center = True
         self.epsilon = 0.2
         # TODO do the right way when pointcloud is merged
         self.Xin = Pointcloud(name="bunny").P
-        super(Bunny, self).__init__(Xin=self.Xin, center=self.center, rescale=self.rescale, epsilon=self.epsilon, gtype=self.gtype, **kwargs)
+
+        plotting = {}
+        plotting["vertex_size"] = 10
+        self.plotting = plotting
+
+        super(Bunny, self).__init__(Xin=self.Xin, center=self.center, rescale=self.rescale, epsilon=self.epsilon, gtype=self.gtype, plotting=self.plotting, **kwargs)
 
 
 class Sphere(NNGraph):
 
-    def __init__(self, **kwargs):
-        super(Sphere, self).__init__(**kwargs)
+    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random", **kwargs):
+        self.radius = radius
+        self.nb_pts = nb_pts
+        self.nb_dim = nb_dim
+        self.sampling = sampling
+
+        if self.sampling == "random":
+            pts = np.random.normal(0, 1, (self.nb_pts, self.nb_dim))
+            for i in xrange(self.nb_pts):
+                pts[i] /= np.linalg.norm(pts[i])
+        else:
+            raise ValueError("Unknow sampling!")
+
+        self.gtype = "knn"
+        self.k = 10
+
+        super(Sphere, self).__init__(Xin=pts, gtype=self.gtype, k=self.k, **kwargs)
 
 
 class Cube(NNGraph):
@@ -208,7 +232,7 @@ class Cube(NNGraph):
             if nb_dim == 2:
                 pts = np.random.rand(self.nb_dim, self.nb_dim)
 
-            if self.nb_dim == 3:
+            elif self.nb_dim == 3:
                 n = floor(self.nb_dim/6)
 
                 pts = np.zeros((n*6, 3))
@@ -237,10 +261,7 @@ class Cube(NNGraph):
         self.gtype = "knn"
         self.k = 10
 
-        # call of the pcl_graph class
-        pclnngraph(pts, param)
-
-        super(Cube, self).__init__(**kwargs)
+        super(Cube, self).__init__(Xin=pts, gtype=self.gtype, k=self.k, **kwargs)
 
 
 # Need M
@@ -257,22 +278,32 @@ class Grid2d(Graph):
         self.N = self.Nv * self.Mv
 
         # Create weighted adjacency matrix
-        K = 2 * (self.Nv-1)
-        J = 2 * (self.Mv-1)
+        K = 2*(self.Nv-1)
+        J = 2*(self.Mv-1)
 
         i_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
         j_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
-        for i in xrange(1, self.Mv+1):
-            i_inds[(i-1)*K + np.arange(0, K), i-1] = (i-1)*self.Nv + np.concatenate(np.arange(0, self.Nv-1), np.arange(1, self.Nv))
-            j_inds[(i-1)*K + np.arange(0, K), i-1] = (i-1)*self.Nv + np.concatenate(np.arange(1, self.Nv), np.arange(0, self.Nv-1))
-        # TODO correct index
-        for i in xrange(1, self.Mv):
-            i_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i-1)*self.Nv + np.arange(1, self.Nv), (i*self.Nv) + np.arange(1, self.Nv))
-            j_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i*self.Nv) + np.arange(1, self.Nv), (i-1)*self.Nv + np.arange(1, self.Nv))
+
+        for i in xrange(self.Mv):
+            i_inds[i*self.K + np.arange(self.K), 0] = i*self.Nv + np.concatenate((np.arange(1, self.Nv), np.arange(1, self.Nv)+1))
+            j_inds[i*self.K + np.arange(self.K), 0] = i*self.Nv + np.concatenate((np.arange(1, self.Nv)+1, np.arange(1, self.Nv)))
+
+        for i in xrange(self.Mv-1):
+            i_inds[(self.K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate((i*self.Nv + np.arange(self.Nv)+1, (i+1)*self.Nv + np.arange(self.Nv)+1))
+            j_inds[(self.K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate(((i+1)*self.Nv + np.arange(self.Nv), i*self.Nv + np.arange(self.Nv)+1))
 
         self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
-        super(Grid2d, self).__init__(N=self.N, W=self.W, gtype=self.gtype, **kwargs)
+        xtmp = np.kron(np.ones((self.Mv, 1)), (np.arange(Nv)+1).reshape(Nv, 1))
+        ytmp = np.sort(np.kron(np.ones((self.Nv, 1)), np.arange(Mv)+1)).reshape(self.Mv*self.Nv, 1)
+        self.coords = np.concatenate((xtmp, ytmp), axis=1)
+
+        plotting = {}
+        plotting["limits"] = np.array([0, self.Nv+1, 0, self.Mv+1])
+        plotting["vertex_size"] = 30
+        self.plotting = plotting
+
+        super(Grid2d, self).__init__(N=self.N, W=self.W, gtype=self.gtype, plotting=self.plotting, coords=self.coords, **kwargs)
 
 
 class Torus(Graph):
@@ -292,19 +323,37 @@ class Torus(Graph):
         J = 2 * self.Mv
         i_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
         j_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
-        for i in xrange(1, self.Mv+1):
-            i_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.Nv + np.concatenate(self.Nv, np.arange(0, self.Nv-1), np.arange(0, self.Nv))
-            j_inds[(i-1)*K + np.arange(0, K)] = (i-1)*self.Nv + np.concatenate(np.arange(0, self.Nv), self.Nv, np.arange(0, self.Nv-1))
-        for i in xrange(1, self.Mv):
-            i_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i-1)*self.Nv + np.arange(1, self.Nv), (i*self.Nv) + np.arange(1, self.Nv))
-            j_inds[(K*self.Mv) + (i-1)*2*self.Nv + np.arange(1, 2*self.Nv)] = np.concatenate((i*self.Nv) + np.arange(1, self.Nv), (i-1)*self.Nv + np.arange(1, self.Nv))
-        i_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(0, 2*self.Nv)] = np.concatenate(np.arange(0, self.Nv), (self.Mv-1)*self.Nv + np.arange(0, self.Nv))
-        j_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(0, 2*self.Nv)] = np.concatenate((self.Mv-1)*self.Nv + np.arange(0, self.Nv), np.arange(0, self.Nv))
+
+        for i in xrange(self.Mv):
+            i_inds[i*K + np.arange(K), 0] = i*self.Nv + np.concatenate((self.Nv, np.arange(self.Nv-1)+1, np.arange(self.Nv)+1))
+            j_inds[i*K + np.arange(K), 0] = i*self.Nv + np.concatenate((np.arange(self.Nv)+1, self.Nv, np.arange(self.Nv-1)+1))
+
+        for i in xrange(self.Mv-1):
+            i_inds[K*self.Mv + i*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate((i*self.Nv + np.arange(self.Nv)+1, (i+1)*self.Nv + np.arange(self.Nv)+1))
+            j_inds[K*self.Mv + i*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate(((i+1)*self.Nv + np.arange(self.Nv)+1, i*self.Nv + np.arange(self.Nv)+1))
+
+        i_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate((np.arange(self.Nv), (self.Mv-1)*self.Nv + np.arange(self.Nv)))+1
+        j_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate(((self.Mv-1)*self.Nv + np.arange(self.Nv), np.arange(self.Nv)))+1
 
         self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
-        super(Torus, self).__init__(W=self.W, directed=self.directed, gtype=self.gtype, **kwargs)
-        # TODO implement plot attributes
+        # Create Coordinate
+        T = 1.5 + np.sin(np.arange(self.Mv)*2*np.pi/self.Mv).reshape(1, self.Mv)
+        U = np.cos(np.arange(self.Mv)*2*np.pi/self.Mv).reshape(1, self.Mv)
+        xtmp = np.cos(np.arange(self.Nv).reshape(self.Nv, 1)*2*np.pi/self.Nv)*T
+        ytmp = np.sin(np.arange(self.Nv).reshape(self.Nv, 1)*2*np.pi/self.Nv)*T
+        ztmp = np.kron(np.ones((self.Nv, 1)), U)
+        self.coords = np.concatenate((np.reshape(xtmp, (self.Mv*self.Nv, 1), order='F'),
+                                      np.reshape(ytmp, (self.Mv*self.Nv, 1), order='F'),
+                                      np.reshape(ztmp, (self.Mv*self.Nv, 1), order='F')),
+                                     axis=1)
+
+        plotting = {}
+        plotting["vertex_size"] = 30
+        plotting["limits"] = np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])
+        self.plotting = plotting
+
+        super(Torus, self).__init__(W=self.W, directed=self.directed, gtype=self.gtype, coords=self.coords, plotting=self.plotting, **kwargs)
 
 
 # Need K
@@ -316,25 +365,59 @@ class Comet(Graph):
         self.gtype = 'Comet'
 
         # Create weighted adjancency matrix
-        i_inds = np.concatenate((np.ones(self.k), np.arange(1, self.k+1), np.arange(self.k+1, self.N-1), np.arange(self.k+2, self.N)))
-        j_inds = np.concatenate((np.arange(1, self.k+1), np.ones(self.k), np.arange(self.k+2, self.N), np.arange(self.k+1, self.N-1)))
+        i_inds = np.concatenate((np.ones((self.k)), np.arange(self.k)+2, np.arange(self.k+1, self.N), np.arange(self.k+2, self.N+1)))
+        j_inds = np.concatenate((np.arange(self.k)+2, np.ones((self.k)), np.arange(self.k+2, self.N+1), np.arange(self.k+1, self.N)))
 
         self.W = sparse.csc_matrix((np.ones((1, np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
 
-        super(Comet, self).__init__(W=self.W, gtype=self.gtype, **kwargs)
-        # TODO implementate plot attributes
+        tcoods = np.zeros((self.Nv, 2))
+        inds = np.arange(k)+1
+        tmpcoords[1:k+1, 1] = np.cos(inds*2*np.pi/k)
+        tmpcoords[1:k+1, 2] = np.sin(inds*2*np.pi/k)
+        tmpcoords[k+1:, 1] = np.arange(2, self.Nv-k+1)
+        self.coords = tmpcoords
+
+        plotting = {}
+        plotting["limits"] = np.arange([-2, np.max(tmpcoords[:, 0]), np.min(tmpcoords[:, 1]), np.max(tmpcoords[:, 1])])
+        self.plotting = plotting
+
+        super(Comet, self).__init__(W=self.W, coords=self.coords, plotting=self.plotting, gtype=self.gtype, **kwargs)
 
 
 class LowStretchTree(Graph):
 
     def __init__(self, k=6, **kwargs):
-        self.k = k
 
         start_nodes = np.array([1, 1, 3])
         end_nodes = np.array([2, 3, 4])
-        # TODO finish
+        W = csc_matrix((np.ones((1, 3)), (start_nodes, end_nodes)), shape=(4, 4))
+        # TODO W=W+W'
 
-        super(LowStretchTree, self).__init__(**kwargs)
+        XCoords = np.array([1, 2, 1, 2])
+        YCoords = np.array([1, 1, 2, 2])
+
+        for p in xrange(2, k+1):
+            # TODO the ii/jj part
+
+            YCoords = np.kron(np.ones((1, 2)), YCoords)
+            YCoords_new = np.array([YCoords, YCoords+2**(p-1)])
+            YCoords = YCoords_new
+            XCoords_new = np.array([XCoords, XCoords+2**(p-1)])
+            XCoords = np.kron(np.ones((1, 2)), XCoords_new)
+
+        self.coords = np.array([np.transpose(XCoords), np.transpose(YCoords)])
+        self.limits = np.array([0, 2**k+1, 0, 2**k+1])
+        self.N = (2**k)**2
+        self.W = W
+        self.root = 4**(k-1)
+        self.gtype = "low strech tree"
+
+        plotting = {}
+        plotting["edges_width"] = 1.25
+        plotting["vertex_sizee"] = 75
+        self.plotting = plotting
+
+        super(LowStretchTree, self).__init__(W=self.W, coords=self.coords, N=self.N, limits=self.limits, root=self.root, gtype=self.gtype, plotting=self.plotting, **kwargs)
 
 
 class RandomRegular(Graph):
@@ -419,14 +502,16 @@ class Ring(Graph):
         self.coords = np.array([np.cos(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N),
                                 np.sin(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N)])
 
-        self.limits = np.array([-1, 1, -1, 1])
+        plotting = {}
+        plotting["limits"] = np.array([-1, 1, -1, 1])
+        self.plotting = plotting
 
         if self.k == 1:
             self.gtype = "ring"
         else:
             self.gtype = "k-ring"
 
-        super(Ring, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, limits=self.limits, **kwargs)
+        super(Ring, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, plotting=self.plotting, **kwargs)
 
 
 # Need params
@@ -555,20 +640,22 @@ class Sensor(Graph):
                                                        self.regular, self.nc)
 
         if self.set_to_one:
-            np.where(x > 0, 1, x)
+            W = np.where(W > 0, 1, W)
 
         self.W = sparse.lil_matrix(W)
         self.W = (self.W + self.W.conjugate().transpose())/2
-        self.limits = np.array([0, 1, 0, 1])
-        self.coords = [XCoords, YCoords]
+        self.coords = np.array([XCoords, YCoords])
         if self.regular:
             self.gtype = "regular sensor"
         else:
             self.gtype = "sensor"
-
         self.directed = False
-        super(Sensor, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, limits=self.limits, directed=self.directed, **kwargs)
 
+        plotting = {}
+        plotting["limits"] = np.array([0, 1, 0, 1])
+        self.plotting = plotting
+
+        super(Sensor, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, plotting=self.plotting, directed=self.directed, **kwargs)
 
         def create_weight_matrix(N, param_distribute, param_regular, param_nc):
             XCoords = np.zeros((N, 1))
@@ -602,8 +689,8 @@ class Sensor(Graph):
                 W = get_nc_connection(W, param_nc)
             else:
                 W2 = get_nc_connection(W, param_nc)
-                np.where(W < T, 0, W)
-                np.where(W2 > 0, W2, W)
+                W = np.where(W < T, 0, W)
+                W = np.where(W2 > 0, W2, W)
 
             return W, XCoords, YCoords
 
@@ -631,19 +718,27 @@ class Airfoil(Graph):
         mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/airfoil.mat')
         i_inds = mat['i_inds']
         j_inds = mat['j_inds']
-        self.A = sparse.csc_matrix((np.ones((12289)), (np.reshape(i_inds, (12289)), np.reshape(j_inds, (12289)))), shape=(12289, 12289))
+        self.A = sparse.coo_matrix((np.ones((12289)), (np.reshape(i_inds, (12289)), np.reshape(j_inds, (12289)))), shape=(4254, 4254))
         self.W = (self.A + sparse.csc_matrix.getH(self.A))/2
 
         x = mat['x']
         y = mat['y']
+<<<<<<< HEAD
         self.coords = np.concatenate((x, y), axis=1)
 
         self.limits = np.array([-1e-4, 1.01*np.max(x), -1e-4, 1.01*np.max(y)])
+=======
+>>>>>>> 0152bee416b878be2628ba78006e034daf1d2dab
 
+        self.coords = np.array([x, y])
         self.gtype = 'Airfoil'
 
-        super(Airfoil, self).__init__(W=self.W, A=self.A, coords=self.coords, gtype=self.gtype)
-        # TODO plot attributes
+        plotting = {}
+        plotting["limits"] = np.array([-1e-4, 1.01*np.max(x), -1e-4, 1.01*np.max(y)])
+        plotting["vertex_size"] = 30
+        self.plotting = plotting
+
+        super(Airfoil, self).__init__(W=self.W, A=self.A, coords=self.coords, plotting=self.plotting, gtype=self.gtype)
 
 
 class DavidSensorNet(Graph):
@@ -652,16 +747,16 @@ class DavidSensorNet(Graph):
         self.N = N
 
         if self.N == 64:
-            # load("david64.mat")
-            self.W = W
-            self.N = N
-            self.coords = coords
+            mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/david64.mat')
+            self.W = mat["W"]
+            self.N = mat["N"][0, 0]
+            self.coords = mat["coords"]
 
         elif self.N == 500:
-            # load("david500.mat")
-            self.W = W
-            self.N = N
-            self.coords = coords
+            mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/david500.mat')
+            self.W = mat["W"]
+            self.N = mat["N"][0, 0]
+            self.coords = mat["coords"]
 
         else:
             self.coords = np.random.rand(self.N, 2)
@@ -672,14 +767,13 @@ class DavidSensorNet(Graph):
             d = gsp_distanz(np.conjugate(np.transpose(self.coords)))
             W = np.exp(-np.power(d, 2)/2.*s**2)
             W = np.where(W < T, 0, W)
-
-        self.limits = [0, 1, 0, 1]
-        W -= np.diag(np.diag(W))
-        self.W = sparse.lil_matrix(W)
+            W -= np.diag(np.diag(W))
+            self.W = sparse.lil_matrix(W)
 
         self.gtype = 'davidsensornet'
+        self.plotting = {"limits": [0, 1, 0, 1]}
 
-        super(DavidSensorNet, self).__init__(W=self.W, N=self.N, coords=self.coords, limits=self.limits, gtype=self.gtype)
+        super(DavidSensorNet, self).__init__(W=self.W, N=self.N, coords=self.coords, plotting=self.plotting, gtype=self.gtype)
 
 
 class FullConnected(Graph):
@@ -693,10 +787,10 @@ class FullConnected(Graph):
         self.coords = np.concatenate((np.cos(tmp*2*np.pi/self.N),
                                       np.sin(tmp*2*np.pi/self.N)),
                                      axis=1)
-        self.limits = np.array([-1, 1, -1, 1])
+        self.plotting = {"limits": np.array([-1, 1, -1, 1])}
         self.gtype = "full"
 
-        super(FullConnected, self).__init__(N=self.N, W=self.W, coords=self.coords, limits=self.limits, gtype=self.gtype)
+        super(FullConnected, self).__init__(N=self.N, W=self.W, coords=self.coords, plotting=self.plotting, gtype=self.gtype)
 
 
 class Logo(Graph):
@@ -709,8 +803,10 @@ class Logo(Graph):
         self.limits = np.array([0, 640, -400, 0])
         self.gtype = 'LogoGSP'
 
-        super(Logo, self).__init__(W=self.W, gtype=self.gtype)
-        # TODO implementate plot attribute
+        self.plotting = {"vertex_size": 30}
+        self.limits = np.array([0, 640, -400, 0])
+
+        super(Logo, self).__init__(W=self.W, gtype=self.gtype, limits=self.limits, plotting=self.plotting)
 
 
 class Path(Graph):
@@ -731,10 +827,10 @@ class Path(Graph):
         self.coord = np.concatenate((np.arange(1, self.N + 1).reshape(self.N, 1),
                                      np.zeros((1, self.N))),
                                     axis=1)
-        self.limits = np.array([0, N+1, -1, 1])
+        self.plotting = {"limits": np.array([0, N+1, -1, 1])}
         self.gtype = "path"
 
-        super(Path, self).__init__(W=self.W, coords=self.coords, limits=self.limits, gtype=self.gtype)
+        super(Path, self).__init__(W=self.W, coords=self.coords, plotting=self.plotting, gtype=self.gtype)
 
 
 class RandomRing(Graph):
@@ -742,7 +838,6 @@ class RandomRing(Graph):
     def __init__(self, N=64):
         self.N = N
 
-        position = np.sort(np.random.rand(self.N))
         position = np.sort(np.random.rand(self.N, 1), axis=0)
 
         weight = self.N*np.diff(self.N, axis=0)
@@ -754,8 +849,7 @@ class RandomRing(Graph):
         self.W = sparse.csc_matrix((weight, (inds_i, inds_j)),
                                    shape=(self.N, self.N))
         self.W[self.N, 1] = weightend
-        # TOFIX
-        # self.W(10, 0) = weightend
+
         self.W += np.conjugate(np.transpose(self.W))
 
         self.coords = np.concatenate((np.cos(position*2*np.pi),
