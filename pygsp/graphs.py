@@ -136,7 +136,7 @@ class NNGraph(Graph):
             spj = np.zeros((N*self.k, 1))
             spv = np.zeros((N*self.k, 1))
 
-            # since we didn't find a good python flann library yet, we wont implement it for now
+            # since we didn't find a good flann python library yet, we wont implement it for now
             if self.use_flann:
                 pass
             else:
@@ -636,7 +636,9 @@ class Airfoil(Graph):
 
         x = mat['x']
         y = mat['y']
-        self.coords = [x, y]
+        self.coords = np.concatenate((x, y), axis=1)
+
+        self.limits = np.array([-1e-4, 1.01*np.max(x), -1e-4, 1.01*np.max(y)])
 
         self.gtype = 'Airfoil'
 
@@ -703,6 +705,8 @@ class Logo(Graph):
         mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/logogsp.mat')
 
         self.W = mat['W']
+        self.coords = mat['coords']
+        self.limits = np.array([0, 640, -400, 0])
         self.gtype = 'LogoGSP'
 
         super(Logo, self).__init__(W=self.W, gtype=self.gtype)
