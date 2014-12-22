@@ -567,8 +567,8 @@ class Community(Graph):
                     X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([self.N])))
                 dX = np.transpose(np.diff(np.transpose(X)))
                 for i in xrange(self.Nc):
-                    # TODO
-                    print("  TODO")
+                    # TODO for i=1:param.Nc; figure; hist(dX(:,i), 100); title('histogram of row community size'); end
+                    pass
                 del X
                 del com_lims_tmp
 
@@ -586,29 +586,34 @@ class Community(Graph):
                 # sample from the square and reject anything outside the circle
                 self.coords[i] = rd.uniform(-0.5, 0.5), rd.uniform(-0.5, 0.5)
 
-        # TODO THE INFO THINGS
+        info = {}
+        info["node_com"] = np.zeros((self.N, 1))
+
         # add the offset for each node depending on which community it belongs to
         for i in xrange(self.Nc):
-            com_size = self.com_size[i]
+            com_size = self.com_sizes[i]
             rad_com = sqrt(com_size)
+            node_ind = np.arange(com_lims[i] + 1, com_lims[i+1])
+            self.coords[node_ind] = rad_com*self.coords[node_ind] + com_coords[i]
+            info["node_com"] = i
 
-            node_ind = np.arange((com_lims[i+1]) - ((com_lims[i] + 1))) + (com_lims[i] + 1)
-
-            # TODO self.coords[node_ind] =
-
-        D = gsp_distanz(np.transpose(self.coords))
+        D = utils.distanz(np.transpose(self.coords))
         W = exp(-np.power(D, 2))
         W = np.where(W < 1e-3, 0, W)
 
-        """W = W + abs(sprandsym(N, param.world_density));
-        matlab: we create a sparse, symetric random matrix, with N for the shape, and world_density for the density.
-        I did not thing yet how to do that in python (i dont even know if we can add a full matrix with a sparse matrix the samw way in matlb)
-        """
+        W = W + np.abs(sparse.rand(self.N, self.N, density=self.world_density))
+
         W = np.where(np.abs(W) > 0, 1, x).astype(float)
-        self.W = sparse.csc_matrix(W)
+        self.W = sparse.coo_matrix(W)
         self.gtype = "Community"
 
-        super(Community, self).__init__(W=self.W, gtype=self.gtype, coords=self.coords, **kwargs)
+        # return additional info about the communities
+        info["com_lims"] = com_lims
+        info["com_coords"] = com_coords
+        info["com_sizes"] = self.com_sizes
+        self.info = info
+
+        super(Community, self).__init__(W=self.W, gtype=self.gtype, coords=self.coords, info=self.info, **kwargs)
 
 
 class Sensor(Graph):
