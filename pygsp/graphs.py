@@ -70,7 +70,7 @@ class Graph(object):
             pass
         if L:
             self.L = L
-        #else:
+        # else:
         #    self.L = utils.create_laplacian(self)
 
     def copy_graph_attr(self, gtype, Gn):
@@ -397,7 +397,7 @@ class LowStretchTree(Graph):
         YCoords = np.array([1, 1, 2, 2])
 
         for p in xrange(2, k+1):
-            #TODO the ii/jj part
+            # TODO the ii/jj part
 
             YCoords = np.kron(np.ones((1, 2)), YCoords)
             YCoords_new = np.array([YCoords, YCoords+2**(p-1)])
@@ -718,7 +718,7 @@ class Airfoil(Graph):
         mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/airfoil.mat')
         i_inds = mat['i_inds']
         j_inds = mat['j_inds']
-        self.A = sparse.csc_matrix((np.ones((12289)), (np.reshape(i_inds, (12289)), np.reshape(j_inds, (12289)))), shape=(12289, 12289))
+        self.A = sparse.coo_matrix((np.ones((12289)), (np.reshape(i_inds, (12289)), np.reshape(j_inds, (12289)))), shape=(4254, 4254))
         self.W = (self.A + sparse.csc_matrix.getH(self.A))/2
 
         x = mat['x']
