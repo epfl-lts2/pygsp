@@ -465,7 +465,12 @@ class RandomRegular(Graph):
             U = np.kron(np.ones((1, d)), np.arange(n)+1)
 
             # the graphs adajency matrix
-            # A = sparse(n,n);
+            A = sparse.coo_matrix(n, n)
+
+            edgesTested=0
+            repetition=1
+
+
 
 
 class Ring(Graph):
@@ -567,7 +572,7 @@ class Community(Graph):
                     X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([self.N])))
                 dX = np.transpose(np.diff(np.transpose(X)))
                 for i in xrange(self.Nc):
-                    # TODO for i=1:param.Nc; figure; hist(dX(:,i), 100); title('histogram of row community size'); end
+                    # TODO figure; hist(dX(:,i), 100); title('histogram of row community size'); end
                     pass
                 del X
                 del com_lims_tmp
@@ -601,9 +606,13 @@ class Community(Graph):
         W = exp(-np.power(D, 2))
         W = np.where(W < 1e-3, 0, W)
 
-        W = W + np.abs(sparse.rand(self.N, self.N, density=self.world_density))
+        # When we make W symetric, the density get bigger (because we add a ramdom number of values)
+        density = self.N/(2.-1./self.world_density)
 
-        W = np.where(np.abs(W) > 0, 1, x).astype(float)
+        W = W + np.abs(sparse.rand(self.N, self.N, density=density))
+        w = (W + W.getH())/2  # make W symetric
+
+        W = np.where(np.abs(W) > 0, 1, W).astype(float)
         self.W = sparse.coo_matrix(W)
         self.gtype = "Community"
 
