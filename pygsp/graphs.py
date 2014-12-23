@@ -28,13 +28,14 @@ class Graph(object):
         - directed: If the graph is directed
         - lap_type: Laplacian type
         - L: Laplacian
+        - plotting: dictionnary conataining the plotting parameters
     """
 
     # All the parameters that needs calculation to be set
     # or not needed are set to None
     def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
                  gtype='unknown', directed=None, coords=None,
-                 lap_type='combinatorial', L=None, **kwargs):
+                 lap_type='combinatorial', L=None, plotting=None, **kwargs):
 
         self.gtype = gtype
         self.lap_type = lap_type
@@ -58,7 +59,7 @@ class Graph(object):
         if Ne:
             self.Ne = Ne
         else:
-            self.Ne = sel.W.nnz()
+            self.Ne = self.W.nnz
         if coords:
             self.coords = coords
         else:
@@ -72,6 +73,29 @@ class Graph(object):
             self.L = L
         # else:
         #    self.L = utils.create_laplacian(self)
+
+        # Plotting default parameters
+        self.plotting = {}
+        if 'edge_width' in plotting:
+            self.plotting['edge_width'] = plotting['edge_width']
+        else:
+            self.plotting['edge_width'] = 1
+        if 'edge_color' in plotting:
+            self.plotting['edge_color'] = plotting['edge_color']
+        else:
+            self.plotting['edge_color'] = np.array([255, 88, 41])/255
+        if 'edge_style' in plotting:
+            self.plotting['edge_style'] = plotting['edge_style']
+        else:
+            self.plotting['edge_style'] = '-'
+        if 'vertex_size' in plotting:
+            self.plotting['vertex_size'] = plotting['vertex_size']
+        else:
+            self.plotting['vertex_size'] = 50
+        if 'vertex_color' in plotting:
+            self.plotting['vertex_color'] = plotting['vertex_color']
+        else:
+            self.plotting['vertex_color'] = 'b'
 
     def copy_graph_attr(self, gtype, Gn):
         r"""
@@ -723,12 +747,6 @@ class Airfoil(Graph):
 
         x = mat['x']
         y = mat['y']
-<<<<<<< HEAD
-        self.coords = np.concatenate((x, y), axis=1)
-
-        self.limits = np.array([-1e-4, 1.01*np.max(x), -1e-4, 1.01*np.max(y)])
-=======
->>>>>>> 0152bee416b878be2628ba78006e034daf1d2dab
 
         self.coords = np.array([x, y])
         self.gtype = 'Airfoil'
