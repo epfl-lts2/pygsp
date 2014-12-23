@@ -58,7 +58,7 @@ class Graph(object):
         if Ne:
             self.Ne = Ne
         else:
-            self.Ne = sel.W.nnz()
+            self.Ne = self.W.nnz
         if coords:
             self.coords = coords
         else:
@@ -294,12 +294,12 @@ class Grid2d(Graph):
 
         self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
-        xtmp = np.kron(np.ones((self.Mv, 1)), (np.arange(Nv)+1).reshape(Nv, 1))
-        ytmp = np.sort(np.kron(np.ones((self.Nv, 1)), np.arange(Mv)+1)).reshape(self.Mv*self.Nv, 1)
+        xtmp = np.kron(np.ones((self.Mv, 1)), (np.arange(self.Nv)/self.Nv).reshape(self.Nv, 1))
+        ytmp = np.sort(np.kron(np.ones((self.Nv, 1)), np.arange(Mv)/self.Mv)).reshape(self.Mv*self.Nv, 1)
         self.coords = np.concatenate((xtmp, ytmp), axis=1)
 
         plotting = {}
-        plotting["limits"] = np.array([0, self.Nv+1, 0, self.Mv+1])
+        plotting["limits"] = np.array([-1/self.Nv, 1 + 1/self.Nv, 1/self.Mv, 1 + 1/self.Mv])
         plotting["vertex_size"] = 30
         self.plotting = plotting
 
@@ -501,13 +501,36 @@ class RandomRegular(Graph):
                     v = sorted([v1, v2])
                     U = np.concatenate((U[1:v[0]], U[v[0]+1:v[1]], U[v[1]+1:]))
 
-            msg = isRegularGraph(A)
-            if msg:
-                print(msg)
+            isRegularGraph(A)
+
+            return A
 
         def isRegularGraph(G):
 
-            # TODO
+            msg = "the grpah G "
+
+            # check symmetry
+            tmp = (G-G.getH())
+            if np.sum((tmp.getH()*tmp).diagonal()) > 0:
+                msg += "is not symetric, "
+
+            # check parallel edged
+            if G.max(axis=None) > 1:
+                msg += "has parallel edges, "
+
+            # check that d is d-regular
+            d_vec = G.sum(axis=0)
+            if np.min(d_vec) < d_vec[:, 0] and np.max(d_vec) > d_vec[:, 0]:
+                msg += "not d-regular, "
+
+            # check that g doesn't contain any loops
+            if G.diagonal().any() > 0:
+                msg += "has self loops, "
+
+            else:
+                msg += "is ok"
+
+            print(msg)
 
 
 class Ring(Graph):
