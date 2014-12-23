@@ -64,7 +64,7 @@ def check_weights(W):
 
 
 def create_laplacian(G):
-    if sp.shape(G.W) == (1,1):
+    if sp.shape(G.W) == (1, 1):
         return sparse.lil_matrix(0)
     else:
         if G.lap_type == 'combinatorial':
@@ -89,6 +89,7 @@ def check_connectivity(G, **kwargs):
         return _check_connectivity_undirected(A, kwargs)
     pass
 
+
 def _check_connectivity_directed(A, **kwargs):
     is_connected = (A.W <= 0).all()
     for c in sp.shape(A.W)[0]:
@@ -100,8 +101,8 @@ def _check_connectivity_directed(A, **kwargs):
         if r_is_connected:
             break
     # TODO check axises
-    in_conn = (A.sum(axis=1)>0).nonzeros()
-    out_conn = (A.sum(axis=2)>0).nonzeros()
+    in_conn = (A.sum(axis=1) > 0).nonzeros()
+    out_conn = (A.sum(axis=2) > 0).nonzeros()
 
     if c_is_connected and r_is_connected:
         return True, in_conn, out_conn
@@ -114,11 +115,10 @@ def _check_connectivity_undirected(A, **kwargs):
         if c_is_connected:
             break
     # TODO check axises
-    in_conn = (A.sum(axis=1)>0).nonzeros()
+    in_conn = (A.sum(axis=1) > 0).nonzeros()
     out_conn = in_conn
     if c_is_connected and r_is_connected:
         return True, in_conn, out_conn
-        
 
 
 def distanz(x, y=None):
@@ -139,4 +139,7 @@ def distanz(x, y=None):
     xx = (x**x).sum()
     yy = (y**y).sum()
     xy = np.transpose(x)*y
-    d = abs(sp.kron(sp.ones((1, cy)), xx) + sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
+    d = abs(sp.kron(sp.ones((1, cy)), xx) +
+            sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
+
+    return d
