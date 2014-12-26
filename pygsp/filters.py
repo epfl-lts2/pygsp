@@ -16,6 +16,15 @@ class Filter(object):
         pass
 
 
+class FilterBank(object):
+    r"""
+    A filterbank should just be a list of filter to apply
+    """
+
+    def __init__(self, F):
+        self.F = F
+
+
 def dummy(a, b, c):
     r"""
     Short description.
