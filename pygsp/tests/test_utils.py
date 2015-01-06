@@ -29,7 +29,6 @@ class FunctionsTestCase(unittest.TestCase):
 
     def test_utils(self):
 
-
         def test_is_directed(G):
             pass
 
@@ -38,7 +37,7 @@ class FunctionsTestCase(unittest.TestCase):
 
         def test_check_weights(W):
             pass
-        
+
         def test_create_laplacian(G):
             pass
 
@@ -54,8 +53,6 @@ class FunctionsTestCase(unittest.TestCase):
     test_create_laplacian(G)
     test_check_connectivity(G, **kwargs)
     test_distanz(x,y)
-
-
 
     def test_dummy(self):
         """
