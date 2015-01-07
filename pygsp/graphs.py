@@ -1182,6 +1182,31 @@ class RandomRing(Graph):
 
 
 class PointsCloud(object):
+    r"""
+    GSP_POINTCLOUD Load models and return the points
+    Usage:  P = gsp_pointcloud(name)
+            P = gsp_pointcloud(name, max_dim)
+
+    Input parameters:
+            name: the name of the point cloud to load ('airfoil', 'bunny', 'david64', 'david500', 'logo', 'two_moons')
+            max_dim: the maximum dimensionality of the points (only valid for two_moons)
+                default is 2
+
+    Output parameters:
+            P: set of points in a NxD with N the number of points and D the dimensionality of the pointcloud
+            info        : optional additional information
+
+    'gsp_pointcloud( name, max_dim)' load pointcloud data and format it in
+    a unified way as a set of points with each dimension in a different
+    column
+
+    Note that the bunny is the model from the Stanford Computer Graphics
+    Laboratory see references.
+
+    See also: gsp_nn_graph
+
+    References: turk1994zippered
+    """
 
     def __init__(self, pointcloudname):
         if pointcloudname == "airfoil":
@@ -1216,6 +1241,9 @@ class PointsCloud(object):
             self.info = {"idx_g": logomat["idx_g"],
                          "idx_s": logomat["idx_s"],
                          "idx_p": logomat["idx_p"]}
+
+        else:
+            raise ValueError("This PointsCloud does not exist. Check that you wrote the coorect name in lower case.")
 
 
 def dummy(a, b, c):
