@@ -1,6 +1,7 @@
 import numpy as np
 import scipy as sp
 from scipy import sparse
+from scipy.sparse import linalg
 from math import isinf, isnan
 
 
@@ -11,6 +12,7 @@ def is_directed(G):
     Can also be used to check if a matrix is symetrical
     """
 
+    # Python Bug Can't use this in tests
     if np.shape(G.W) != (1, 1):
         is_dir = (G.W - G.W.transpose()).sum() != 0
     else:
@@ -67,15 +69,15 @@ def check_weights(W):
 
 
 def create_laplacian(G):
-    if sp.shape(G.W) == (1,1):
+    if sp.shape(G.W) == (1, 1):
         return sparse.lil_matrix(0)
     else:
         if G.lap_type == 'combinatorial':
-            L = sparse.lil_matrix(G.W.sum().diagonal() - G.W)
-        if G.lap_type == 'normalized':
-            D = sparse.lil_matrix(G.W.sum().diagonal() ** (-0.5))
+            L = sparse.lil_matrix(G.W.sum(1).diagonal() - G.W)
+        elif G.lap_type == 'normalized':
+            D = sparse.lil_matrix(G.W.sum(1).diagonal() ** (-0.5))
             L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
-        if G.lap_type == 'none':
+        elif G.lap_type == 'none':
             L = sparse.lil_matrix(0)
         else:
             raise AttributeError('Unknown laplacian type!')
@@ -104,8 +106,8 @@ def _check_connectivity_directed(A, **kwargs):
         if r_is_connected:
             break
     # TODO check axises
-    in_conn = (A.sum(axis=1)>0).nonzeros()
-    out_conn = (A.sum(axis=2)>0).nonzeros()
+    in_conn = (A.sum(axis=1) > 0).nonzeros()
+    out_conn = (A.sum(axis=2) > 0).nonzeros()
 
     if c_is_connected and r_is_connected:
         return True, in_conn, out_conn
@@ -142,7 +144,8 @@ def distanz(x, y=None):
     xx = (x**x).sum()
     yy = (y**y).sum()
     xy = np.transpose(x)*y
-    d = abs(sp.kron(sp.ones((1, cy)), xx) + sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
+    d = abs(sp.kron(sp.ones((1, cy)), xx) +
+            sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
     return d
 
 

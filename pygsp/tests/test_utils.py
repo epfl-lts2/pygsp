@@ -37,7 +37,7 @@ class FunctionsTestCase(unittest.TestCase):
         y = None
 
         def test_is_directed(G):
-            self.assertTrue(utils.is_directed(G))
+            self.assertFalse(utils.is_directed(G))
 
         def test_estimate_lmax(G):
             # TODO test with matlab
@@ -47,7 +47,7 @@ class FunctionsTestCase(unittest.TestCase):
         def test_check_weights(W):
             mat_answser = [False, False, False, True]
             self.assertEqual(utils.check_weights(W), mat_answser)
-        
+
         def test_create_laplacian(G):
             mat_answser = None
             self.assertEqual(utils.create_laplacian(G), mat_answser)
