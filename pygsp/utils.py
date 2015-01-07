@@ -11,7 +11,7 @@ def is_directed(G):
     Can also be used to check if a matrix is symetrical
     """
 
-    if np.shape(G.W).all() != (1, 1):
+    if np.shape(G.W) != (1, 1):
         is_dir = (G.W - G.W.transpose()).sum() != 0
     else:
         is_dir = False
