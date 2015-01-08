@@ -985,30 +985,35 @@ class PointsCloud(object):
 
     def __init__(self, pointcloudname):
         if pointcloudname == "airfoil":
-            airfoilmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/airfoil.mat')
+            airfoilmat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
+                                    + '/misc/airfoil.mat')
             self.i_inds = airfoilmat['i_inds']
             self.j_inds = airfoilmat['j_inds']
             self.x = airfoilmat['x']
             self.y = airfoilmat['y']
 
         elif pointcloudname == "bunny":
-            bunnymat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/bunny.mat')
+            bunnymat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) +
+                                  '/misc/bunny.mat')
             self.Xin = bunnymat["bunny"]
 
         elif pointcloudname == "david64":
-            david64mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/david64.mat')
+            david64mat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
+                                    + '/misc/david64.mat')
             self.W = david64mat["W"]
             self.N = david64mat["N"][0, 0]
             self.coords = david64mat["coords"]
 
         elif pointcloudname == "david500":
-            david500mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/david500.mat')
+            david500mat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
+                                     + '/misc/david500.mat')
             self.W = david500mat["W"]
             self.N = david500mat["N"][0, 0]
             self.coords = david500mat["coords"]
 
         elif pointcloudname == "logo":
-            logomat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/logogsp.mat')
+            logomat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) +
+                                 '/misc/logogsp.mat')
             self.W = logomat["W"]
             self.coords = logomat["coords"]
             self.limits = np.array([0, 640, -400, 0])
