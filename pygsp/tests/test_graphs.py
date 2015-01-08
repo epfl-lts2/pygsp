@@ -31,7 +31,7 @@ class FunctionsTestCase(unittest.TestCase):
     def test_graphs(self):
 
         def test_default_graph():
-            G = graphs.Graph()
+            G = graphs.Graph(directed=False)
             self.assertEqual(G.W, sparse.lil_matrix(0))
             self.assertEqual(G.A, sparse.lil_matrix(G.W > 0))
             self.assertEqual(G.N, 1)

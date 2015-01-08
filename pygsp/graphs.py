@@ -68,8 +68,8 @@ class Graph(object):
             pass
         if L is not None:
             self.L = L
-        #else:
-        #    self.L = utils.create_laplacian(self)
+        else:
+            self.L = utils.create_laplacian(self)
 
     def copy_graph_attr(self, gtype, Gn):
         r"""

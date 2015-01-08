@@ -124,7 +124,7 @@ def _check_connectivity_undirected(A, **kwargs):
     out_conn = in_conn
     if c_is_connected and r_is_connected:
         return True, in_conn, out_conn
-        
+
 
 def distanz(x, y=None):
     r"""
