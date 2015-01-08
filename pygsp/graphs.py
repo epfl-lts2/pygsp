@@ -12,6 +12,7 @@ from math import ceil, sqrt, log, exp, floor
 from copy import deepcopy
 from scipy import sparse
 from scipy import io
+from scipy import spatial
 
 from pygsp import utils
 
@@ -134,7 +135,8 @@ class NNGraph(Graph):
         - Xin : Input Points
     """
 
-    def __init__(self, Xin, gtype='knn', use_flann=False, center=True, rescale=True, k=10, sigma=0.1, epsilon=0.01, **kwargs):
+    def __init__(self, Xin, gtype='knn', use_flann=False, center=True,
+                 rescale=True, k=10, sigma=0.1, epsilon=0.01, **kwargs):
         self.Xin = Xin
         self.gtype = gtype
         self.use_flann = use_flann
@@ -154,7 +156,8 @@ class NNGraph(Graph):
                                       np.mean(self.Xin, axis=0))
 
         if self.rescale:
-            bounding_radius = 0.5*np.linalg.norm(np.amax(Xout, axis=0) - np.amin(Xout, axis=0), 2)
+            bounding_radius = 0.5*np.linalg.norm(np.amax(Xout, axis=0)
+                                                 - np.amin(Xout, axis=0), 2)
             scale = N**min(d, 3)/10.
             Xout *= scale/bounding_radius
 
@@ -163,12 +166,14 @@ class NNGraph(Graph):
             spj = np.zeros((N*self.k, 1))
             spv = np.zeros((N*self.k, 1))
 
-            # since we didn't find a good flann python library yet, we wont implement it for now
+            # since we didn't find a good flann python library yet,
+            # we wont implement it for now
             if self.use_flann:
-                pass
+                raise NotImplementedError("Suitable library for flann has not \
+                                          been found yet.")
             else:
-                # TODO
-                pass
+                kdt = spatial.KDTree(Xout)
+                D, NN = kdt.query(Xout)
 
             for i in xrange(N):
                 spi[i*k:(i+1)*k] = np.kron(np.ones((k, 1)), i)
@@ -180,6 +185,9 @@ class NNGraph(Graph):
                                               np.shape(self.Xin)[0]))
 
         elif self.gtype == "radius":
+
+            kdt = spatial.KDTree(Xout)
+            D, NN = kdt.query(Xout, eps=epsilon)
             for i in xrange(N):
                 spi[i*k:(i+1)*k] = np.kron(np.ones((k, 1)), i)
                 spj[i*k:(i+1)*k] = NN[i, 1:]
@@ -199,7 +207,8 @@ class NNGraph(Graph):
         self.coords = Xout
         self.gtype = "nearest neighbors"
 
-        super(NNGraph, self).__init__(N=N, W=self.W, coords=self.coords, gtype=self.gtype, **kwargs)
+        super(NNGraph, self).__init__(N=N, W=self.W, coords=self.coords,
+                                      gtype=self.gtype, **kwargs)
 
 
 class Bunny(NNGraph):
@@ -216,12 +225,16 @@ class Bunny(NNGraph):
 
         self.plotting = {"vertex_size": 10}
 
-        super(Bunny, self).__init__(Xin=self.Xin, center=self.center, rescale=self.rescale, epsilon=self.epsilon, gtype=self.gtype, plotting=self.plotting, **kwargs)
+        super(Bunny, self).__init__(Xin=self.Xin, center=self.center,
+                                    rescale=self.rescale, epsilon=self.epsilon,
+                                    gtype=self.gtype, plotting=self.plotting,
+                                    **kwargs)
 
 
 class Cube(NNGraph):
 
-    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random", **kwargs):
+    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random",
+                 **kwargs):
         param = kwargs
         self.radius = radius
         self.nb_pts = nb_pts
@@ -264,12 +277,14 @@ class Cube(NNGraph):
         self.gtype = "knn"
         self.k = 10
 
-        super(Cube, self).__init__(Xin=pts, gtype=self.gtype, k=self.k, **kwargs)
+        super(Cube, self).__init__(Xin=pts, gtype=self.gtype, k=self.k,
+                                   **kwargs)
 
 
 class Sphere(NNGraph):
 
-    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random", **kwargs):
+    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random",
+                 **kwargs):
         self.radius = radius
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
@@ -385,8 +400,12 @@ class Comet(Graph):
         self.gtype = 'Comet'
 
         # Create weighted adjancency matrix
-        i_inds = np.concatenate((np.ones((self.k)), np.arange(self.k)+2, np.arange(self.k+1, self.N), np.arange(self.k+2, self.N+1)))
-        j_inds = np.concatenate((np.arange(self.k)+2, np.ones((self.k)), np.arange(self.k+2, self.N+1), np.arange(self.k+1, self.N)))
+        i_inds = np.concatenate((np.ones((self.k)), np.arange(self.k)+2,
+                                 np.arange(self.k+1, self.N),
+                                 np.arange(self.k+2, self.N+1)))
+        j_inds = np.concatenate((np.arange(self.k)+2, np.ones((self.k)),
+                                 np.arange(self.k+2, self.N+1),
+                                 np.arange(self.k+1, self.N)))
 
         self.W = sparse.csc_matrix((np.ones((1, np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
 
@@ -397,9 +416,13 @@ class Comet(Graph):
         tmpcoords[k+1:, 1] = np.arange(2, self.Nv-k+1)
         self.coords = tmpcoords
 
-        self.plotting = {"limits": np.arange([-2, np.max(tmpcoords[:, 0]), np.min(tmpcoords[:, 1]), np.max(tmpcoords[:, 1])])}
+        self.plotting = {"limits": np.arange([-2, np.max(tmpcoords[:, 0]),
+                                              np.min(tmpcoords[:, 1]),
+                                              np.max(tmpcoords[:, 1])])}
 
-        super(Comet, self).__init__(W=self.W, coords=self.coords, plotting=self.plotting, gtype=self.gtype, **kwargs)
+        super(Comet, self).__init__(W=self.W, coords=self.coords,
+                                    plotting=self.plotting,
+                                    gtype=self.gtype, **kwargs)
 
 
 class LowStretchTree(Graph):
@@ -408,7 +431,8 @@ class LowStretchTree(Graph):
 
         start_nodes = np.array([1, 1, 3])
         end_nodes = np.array([2, 3, 4])
-        W = csc_matrix((np.ones((1, 3)), (start_nodes, end_nodes)), shape=(4, 4))
+        W = csc_matrix((np.ones((1, 3)),
+                        (start_nodes, end_nodes)), shape=(4, 4))
         # TODO W=W+W'
 
         XCoords = np.array([1, 2, 1, 2])
@@ -433,7 +457,10 @@ class LowStretchTree(Graph):
         self.plotting = {"edges_width": 1.25,
                          "vertex_sizee": 75}
 
-        super(LowStretchTree, self).__init__(W=self.W, coords=self.coords, N=self.N, limits=self.limits, root=self.root, gtype=self.gtype, plotting=self.plotting, **kwargs)
+        super(LowStretchTree, self).__init__(W=self.W, coords=self.coords,
+                                             N=self.N, limits=self.limits,
+                                             root=self.root, gtype=self.gtype,
+                                             plotting=self.plotting, **kwargs)
 
 
 class RandomRegular(Graph):
@@ -445,7 +472,8 @@ class RandomRegular(Graph):
         self.gtype = "random_regular"
         self.W = createRandRegGraph(self.N. self.k)
 
-        super(RandomRegular, self).__init__(W=self.W, gtype=self.gtype, **kwargs)
+        super(RandomRegular, self).__init__(W=self.W, gtype=self.gtype,
+                                            **kwargs)
 
         def createRandRegGraph(vertNum, deg):
             r"""
@@ -475,7 +503,8 @@ class RandomRegular(Graph):
 
             # continue until a proper graph is formed
             if (n*d) % 2 == 1:
-                raise ValueError("createRandRegGraph input err: n*d must be even!")
+                raise ValueError("createRandRegGraph input err:\
+                                 n*d must be even!")
 
             # a list of open half-edges
             U = np.kron(np.ones((1, d)), np.arange(n)+1)
@@ -590,13 +619,17 @@ class Ring(Graph):
         else:
             self.gtype = "k-ring"
 
-        super(Ring, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, plotting=self.plotting, **kwargs)
+        super(Ring, self).__init__(W=self.W, N=self.N, gtype=self.gtype,
+                                   coords=self.coords, plotting=self.plotting,
+                                   **kwargs)
 
 
 # Need params
 class Community(Graph):
 
-    def __init__(self, N=256, Nc=None, com_sizes=[], min_com=None, min_deg=None, verbose=1, size_ratio=1, world_density=None, **kwargs):
+    def __init__(self, N=256, Nc=None, com_sizes=[], min_com=None,
+                 min_deg=None, verbose=1, size_ratio=1, world_density=None,
+                 **kwargs):
         param = kwargs
 
         # Initialisation of the parameters
@@ -608,7 +641,8 @@ class Community(Graph):
 
         if len(com_sizes) != 0:
             if np.sum(com_sizes) != self.N:
-                raise ValueError("GSP_COMMUNITY: The sum of the community sizes has to be equal to N")
+                raise ValueError("GSP_COMMUNITY: The sum of the community \
+                                 sizes has to be equal to N")
             else:
                 self.com_sizes = com_sizes
 
