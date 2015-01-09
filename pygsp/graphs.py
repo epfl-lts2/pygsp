@@ -173,7 +173,7 @@ class NNGraph(Graph):
                                           been found yet.")
             else:
                 kdt = spatial.KDTree(Xout)
-                D, NN = kdt.query(Xout)
+                D, NN = kdt.query(Xout, k=k + 1)
 
             for i in xrange(N):
                 spi[i*k:(i+1)*k] = np.kron(np.ones((k, 1)), i)
