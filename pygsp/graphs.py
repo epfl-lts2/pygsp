@@ -12,6 +12,7 @@ from math import ceil, sqrt, log, exp, floor
 from copy import deepcopy
 from scipy import sparse
 from scipy import io
+from scipy import spatial
 
 from pygsp import utils
 
@@ -177,7 +178,8 @@ class NNGraph(Graph):
     >>> G = graphs.NNGraph(Xin)
     """
 
-    def __init__(self, Xin, gtype='knn', use_flann=False, center=True, rescale=True, k=10, sigma=0.1, epsilon=0.01, **kwargs):
+    def __init__(self, Xin, gtype='knn', use_flann=False, center=True,
+                 rescale=True, k=10, sigma=0.1, epsilon=0.01, **kwargs):
         self.Xin = Xin
         self.gtype = gtype
         if use_flann:
@@ -201,7 +203,8 @@ class NNGraph(Graph):
                                       np.mean(self.Xin, axis=0))
 
         if self.rescale:
-            bounding_radius = 0.5*np.linalg.norm(np.amax(Xout, axis=0) - np.amin(Xout, axis=0), 2)
+            bounding_radius = 0.5*np.linalg.norm(np.amax(Xout, axis=0)
+                                                 - np.amin(Xout, axis=0), 2)
             scale = N**min(d, 3)/10.
             Xout *= scale/bounding_radius
 
@@ -210,12 +213,14 @@ class NNGraph(Graph):
             spj = np.zeros((N*self.k, 1))
             spv = np.zeros((N*self.k, 1))
 
-            # since we didn't find a good flann python library yet, we wont implement it for now
+            # since we didn't find a good flann python library yet,
+            # we wont implement it for now
             if self.use_flann:
-                pass
+                raise NotImplementedError("Suitable library for flann has not \
+                                          been found yet.")
             else:
-                # TODO
-                pass
+                kdt = spatial.KDTree(Xout)
+                D, NN = kdt.query(Xout, k=k + 1)
 
             for i in xrange(N):
                 spi[i*k:(i+1)*k] = np.kron(np.ones((k, 1)), i)
@@ -227,6 +232,9 @@ class NNGraph(Graph):
                                               np.shape(self.Xin)[0]))
 
         elif self.gtype == "radius":
+
+            kdt = spatial.KDTree(Xout)
+            D, NN = kdt.query(Xout, eps=epsilon)
             for i in xrange(N):
                 spi[i*k:(i+1)*k] = np.kron(np.ones((k, 1)), i)
                 spj[i*k:(i+1)*k] = NN[i, 1:]
@@ -246,7 +254,8 @@ class NNGraph(Graph):
         self.coords = Xout
         self.gtype = "nearest neighbors"
 
-        super(NNGraph, self).__init__(N=N, W=self.W, coords=self.coords, gtype=self.gtype, **kwargs)
+        super(NNGraph, self).__init__(N=N, W=self.W, coords=self.coords,
+                                      gtype=self.gtype, **kwargs)
 
 
 class Bunny(NNGraph):
@@ -271,7 +280,10 @@ class Bunny(NNGraph):
 
         self.plotting = {"vertex_size": 10}
 
-        super(Bunny, self).__init__(Xin=self.Xin, center=self.center, rescale=self.rescale, epsilon=self.epsilon, gtype=self.gtype, plotting=self.plotting, **kwargs)
+        super(Bunny, self).__init__(Xin=self.Xin, center=self.center,
+                                    rescale=self.rescale, epsilon=self.epsilon,
+                                    gtype=self.gtype, plotting=self.plotting,
+                                    **kwargs)
 
 
 class Cube(NNGraph):
@@ -297,7 +309,8 @@ class Cube(NNGraph):
     >>> G = graphs.Cube(radius=radius)
     """
 
-    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random", **kwargs):
+    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random",
+                 **kwargs):
         param = kwargs
         self.radius = radius
         self.nb_pts = nb_pts
@@ -309,10 +322,10 @@ class Cube(NNGraph):
 
         if self.sampling == "random":
             if nb_dim == 2:
-                pts = np.random.rand(self.nb_dim, self.nb_dim)
+                pts = np.random.rand(self.nb_pts, self.nb_pts)
 
             elif self.nb_dim == 3:
-                n = floor(self.nb_dim/6)
+                n = floor(self.nb_pts/6)
 
                 pts = np.zeros((n*6, 3))
                 pts[:n, 1:] = np.random.rand(n, 2)
@@ -340,12 +353,14 @@ class Cube(NNGraph):
         self.gtype = "knn"
         self.k = 10
 
-        super(Cube, self).__init__(Xin=pts, gtype=self.gtype, k=self.k, **kwargs)
+        super(Cube, self).__init__(Xin=pts, gtype=self.gtype, k=self.k,
+                                   **kwargs)
 
 
 class Sphere(NNGraph):
 
-    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random", **kwargs):
+    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random",
+                 **kwargs):
         self.radius = radius
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
@@ -364,6 +379,84 @@ class Sphere(NNGraph):
         super(Sphere, self).__init__(Xin=pts, gtype=self.gtype, k=self.k, **kwargs)
 
 
+class TwoMoons(NNGraph):
+
+    r"""
+    Creates a 2 dimensional graph of the Two Moons
+
+    Parameters
+    ----------
+    moontype: You have the freedom to chose if you want to create a standard two_moons graph or a synthetised one (default is 'standard').
+        'standard': create a two_moons graph from a based graph.
+            sigmag: variance of the distance kernel
+                default is 0.05
+
+        'synthetised': create a synthetised two_moons
+            N: Number of vertices
+                default is 2000
+            sigmad: variance of the data (do not set it to high or you won't see anything)
+                default is 0.05
+            d: distance of the two moons
+                default is 0.5
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G1 = graphs.TwoMoons(moontype='standard')
+    >>> 
+    >>> G2 =  graphs.TwoMoons(moontype='synthetised', N=1000, sigmad=0.1, d=1)
+    """
+
+    def __inti__(self, moontype="standard", sigmag=0.05, N=2000, sigmad=0.05, d=0.5):
+
+        self.k = 5
+        self.sigma = sigmag
+
+        if moontype == "standard":
+            two_moons = PointsCloud("two_moons")
+            self.Xin = two_moons.Xin
+
+            self.gtype = "Two Moons standard"
+            self.labels = 2*(np.where(np.arange(1, N+1).reshape(N, 1) > 1000, 1, 0) + 1)
+
+            super(TwoMoons, self).__init__(Xin=self.Xin, sigma=sigmag, labels=self.labels, gtype=self.gtype, k=self.k)
+
+        elif moontype == 'synthetised':
+            self.gtype = "Two Moons synthetised"
+
+            N1 = floor(N/2)
+            N2 = N - N1
+
+            # Moon 1
+            phi1 = np.random.rand(1, N1)*np.pi
+            r1 = 1
+            rb = sigmad*np.random.normal(size=(1, N1))
+            ab = np.random.rand(1, N1)*2*np.pi
+            b = rb*np.exp(1j*ab)
+            bx = np.real(b)
+            by = np.imag(b)
+
+            moon1x = np.cos(phi1)*r1 + bx + 0.5
+            moon1y = -np.sin(phi1)*r1 + by - (d-1)/2
+
+            # Moon 2
+            phi2 = np.random.rand(1, N2)*np.pi
+            r2 = 1
+            rb = sigmad*np.random.normal(size=(1, N2))
+            ab = np.random.rand(1, N2)*2*np.pi
+            b = rb*np.exp(1j*ab)
+            bx = np.real(b)
+            by = np.imag(b)
+
+            moon2x = np.cos(phi2)*r2 + bx - 0.5
+            moon2y = np.sin(phi2)*r2 + by + (d-1)/2
+
+            self.Xin = np.concatenate((np.concatenate((moon1x, moon1y)), np.concatenate((moon2x, moon2y))), axis=1)
+            self.labels = 2*(np.where(np.arange(1, N+1).reshape(N, 1) > N1, 1, 0) + 1)
+
+            super(TwoMoons, self).__init__(Xin=self.Xin, sigma=sigmag, labels=self.labels, gtype=self.gtype, k=self.k)
+
+
 # Need M
 class Grid2d(Graph):
     r"""
@@ -379,8 +472,7 @@ class Grid2d(Graph):
     Examples
     --------
     >>> from pygsp import graphs
-    >>> Nv = 32
-    >>> G = graphs.Grid2d(Nv)
+    >>> G = graphs.Grid2d(Nv = 32)
     """
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
@@ -500,7 +592,7 @@ class Comet(Graph):
     Examples
     --------
     >>> from pygsp import graphs
-    >>> G = graphs.Comet()
+    >>> G = graphs.Comet() (== graphs.Comet(Nv=32, k=12))
 
     """
 
@@ -510,8 +602,12 @@ class Comet(Graph):
         self.gtype = 'Comet'
 
         # Create weighted adjancency matrix
-        i_inds = np.concatenate((np.ones((self.k)), np.arange(self.k)+2, np.arange(self.k+1, self.N), np.arange(self.k+2, self.N+1)))
-        j_inds = np.concatenate((np.arange(self.k)+2, np.ones((self.k)), np.arange(self.k+2, self.N+1), np.arange(self.k+1, self.N)))
+        i_inds = np.concatenate((np.ones((self.k)), np.arange(self.k)+2,
+                                 np.arange(self.k+1, self.N),
+                                 np.arange(self.k+2, self.N+1)))
+        j_inds = np.concatenate((np.arange(self.k)+2, np.ones((self.k)),
+                                 np.arange(self.k+2, self.N+1),
+                                 np.arange(self.k+1, self.N)))
 
         self.W = sparse.csc_matrix((np.ones((1, np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
 
@@ -522,9 +618,13 @@ class Comet(Graph):
         tmpcoords[k+1:, 1] = np.arange(2, self.Nv-k+1)
         self.coords = tmpcoords
 
-        self.plotting = {"limits": np.arange([-2, np.max(tmpcoords[:, 0]), np.min(tmpcoords[:, 1]), np.max(tmpcoords[:, 1])])}
+        self.plotting = {"limits": np.arange([-2, np.max(tmpcoords[:, 0]),
+                                              np.min(tmpcoords[:, 1]),
+                                              np.max(tmpcoords[:, 1])])}
 
-        super(Comet, self).__init__(W=self.W, coords=self.coords, plotting=self.plotting, gtype=self.gtype, **kwargs)
+        super(Comet, self).__init__(W=self.W, coords=self.coords,
+                                    plotting=self.plotting,
+                                    gtype=self.gtype, **kwargs)
 
 
 class LowStretchTree(Graph):
@@ -541,8 +641,10 @@ class LowStretchTree(Graph):
 
         start_nodes = np.array([1, 1, 3])
         end_nodes = np.array([2, 3, 4])
-        W = csc_matrix((np.ones((1, 3)), (start_nodes, end_nodes)), shape=(4, 4))
-        # TODO W=W+W'
+
+        W = csc_matrix((np.ones((1, 3)), (start_nodes, end_nodes)),
+                       shape=(4, 4))
+        W += W.getH()
 
         XCoords = np.array([1, 2, 1, 2])
         YCoords = np.array([1, 1, 2, 2])
@@ -566,7 +668,10 @@ class LowStretchTree(Graph):
         self.plotting = {"edges_width": 1.25,
                          "vertex_sizee": 75}
 
-        super(LowStretchTree, self).__init__(W=self.W, coords=self.coords, N=self.N, limits=self.limits, root=self.root, gtype=self.gtype, plotting=self.plotting, **kwargs)
+        super(LowStretchTree, self).__init__(W=self.W, coords=self.coords,
+                                             N=self.N, limits=self.limits,
+                                             root=self.root, gtype=self.gtype,
+                                             plotting=self.plotting, **kwargs)
 
 
 class RandomRegular(Graph):
@@ -588,7 +693,8 @@ class RandomRegular(Graph):
         self.gtype = "random_regular"
         self.W = createRandRegGraph(self.N. self.k)
 
-        super(RandomRegular, self).__init__(W=self.W, gtype=self.gtype, **kwargs)
+        super(RandomRegular, self).__init__(W=self.W, gtype=self.gtype,
+                                            **kwargs)
 
         def createRandRegGraph(vertNum, deg):
             r"""
@@ -618,7 +724,8 @@ class RandomRegular(Graph):
 
             # continue until a proper graph is formed
             if (n*d) % 2 == 1:
-                raise ValueError("createRandRegGraph input err: n*d must be even!")
+                raise ValueError("createRandRegGraph input err:\
+                                 n*d must be even!")
 
             # a list of open half-edges
             U = np.kron(np.ones((1, d)), np.arange(n)+1)
@@ -743,7 +850,9 @@ class Ring(Graph):
         else:
             self.gtype = "k-ring"
 
-        super(Ring, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, plotting=self.plotting, **kwargs)
+        super(Ring, self).__init__(W=self.W, N=self.N, gtype=self.gtype,
+                                   coords=self.coords, plotting=self.plotting,
+                                   **kwargs)
 
 
 # Need params
@@ -771,7 +880,9 @@ class Community(Graph):
         default is 1/N
     """
 
-    def __init__(self, N=256, Nc=None, com_sizes=[], min_com=None, min_deg=None, verbose=1, size_ratio=1, world_density=None, **kwargs):
+    def __init__(self, N=256, Nc=None, com_sizes=[], min_com=None,
+                 min_deg=None, verbose=1, size_ratio=1, world_density=None,
+                 **kwargs):
         param = kwargs
 
         # Initialisation of the parameters
@@ -783,7 +894,8 @@ class Community(Graph):
 
         if len(com_sizes) != 0:
             if np.sum(com_sizes) != self.N:
-                raise ValueError("GSP_COMMUNITY: The sum of the community sizes has to be equal to N")
+                raise ValueError("GSP_COMMUNITY: The sum of the community \
+                                 sizes has to be equal to N")
             else:
                 self.com_sizes = com_sizes
 
@@ -961,8 +1073,7 @@ class Sensor(Graph):
             T = 0.6
             s = sqrt(-target_dist_cutoff**2/(2*log(T)))
 
-            # TODO gsp_distanz
-            d = gsp_distanz([XCoords, YCoords])
+            d = utils.distanz([XCoords, YCoords])
             W = exp(-d**2/(2.*s**2))
 
             W -= np.diag(np.diag(x))
@@ -1183,7 +1294,7 @@ class RandomRing(Graph):
 
 class PointsCloud(object):
     r"""
-    GSP_POINTCLOUD Load models and return the points
+    POINTCLOUD Load the parameters of models and the points
     Usage:  P = gsp_pointcloud(name)
             P = gsp_pointcloud(name, max_dim)
 
@@ -1193,8 +1304,10 @@ class PointsCloud(object):
                 default is 2
 
     Output parameters:
-            P: set of points in a NxD with N the number of points and D the dimensionality of the pointcloud
-            info        : optional additional information
+            The differents informations of the PointsCloud Loaded.
+
+            bunny = PointsCloud('bunny')
+            x = bunny.Xin
 
     'gsp_pointcloud( name, max_dim)' load pointcloud data and format it in
     a unified way as a set of points with each dimension in a different
@@ -1208,32 +1321,37 @@ class PointsCloud(object):
     References: turk1994zippered
     """
 
-    def __init__(self, pointcloudname):
+    def __init__(self, pointcloudname, max_dim=2):
         if pointcloudname == "airfoil":
-            airfoilmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/airfoil.mat')
+            airfoilmat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
+                                    + '/misc/airfoil.mat')
             self.i_inds = airfoilmat['i_inds']
             self.j_inds = airfoilmat['j_inds']
             self.x = airfoilmat['x']
             self.y = airfoilmat['y']
 
         elif pointcloudname == "bunny":
-            bunnymat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/bunny.mat')
+            bunnymat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) +
+                                  '/misc/bunny.mat')
             self.Xin = bunnymat["bunny"]
 
         elif pointcloudname == "david64":
-            david64mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/david64.mat')
+            david64mat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
+                                    + '/misc/david64.mat')
             self.W = david64mat["W"]
             self.N = david64mat["N"][0, 0]
             self.coords = david64mat["coords"]
 
         elif pointcloudname == "david500":
-            david500mat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/david500.mat')
+            david500mat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
+                                     + '/misc/david500.mat')
             self.W = david500mat["W"]
             self.N = david500mat["N"][0, 0]
             self.coords = david500mat["coords"]
 
         elif pointcloudname == "logo":
-            logomat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/logogsp.mat')
+            logomat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) +
+                                 '/misc/logogsp.mat')
             self.W = logomat["W"]
             self.coords = logomat["coords"]
             self.limits = np.array([0, 640, -400, 0])
@@ -1242,8 +1360,14 @@ class PointsCloud(object):
                          "idx_s": logomat["idx_s"],
                          "idx_p": logomat["idx_p"]}
 
+        elif pointcloudname == "two_moons":
+            twomoonsmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/two_moons.mat')
+            if max_dim == -1:
+                max_dim == 2
+            self.Xin = twomoonsmat[:max_dim]
+
         else:
-            raise ValueError("This PointsCloud does not exist. Check that you wrote the coorect name in lower case.")
+            raise ValueError("This PointsCloud does not exist. Please verify you wrote the right name in lower case.")
 
 
 def dummy(a, b, c):
