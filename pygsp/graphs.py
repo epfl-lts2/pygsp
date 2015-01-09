@@ -233,10 +233,10 @@ class Cube(NNGraph):
 
         if self.sampling == "random":
             if nb_dim == 2:
-                pts = np.random.rand(self.nb_dim, self.nb_dim)
+                pts = np.random.rand(self.nb_pts, self.nb_pts)
 
             elif self.nb_dim == 3:
-                n = floor(self.nb_dim/6)
+                n = floor(self.nb_pts/6)
 
                 pts = np.zeros((n*6, 3))
                 pts[:n, 1:] = np.random.rand(n, 2)
@@ -286,6 +286,58 @@ class Sphere(NNGraph):
         self.k = 10
 
         super(Sphere, self).__init__(Xin=pts, gtype=self.gtype, k=self.k, **kwargs)
+
+
+class TwoMoons(NNGraph):
+
+    def __inti__(self, moontype="standard", sigmag=0.05, N=200, sigmad=1, d=0.5):
+
+        self.k = 5
+        self.sigma = sigmag
+
+        if moontype == "standard":
+            two_moons = PointsCloud("two_moons")
+            self.Xin = two_moons.Xin
+
+            self.gtype = "Two Moons standard"
+            self.labels = 2*(np.where(np.arange(1, N+1).reshape(N, 1) > 1000, 1, 0) + 1)
+
+            super(TwoMoons, self).__init__(Xin=self.Xin, sigma=sigmag, labels=self.labels, gtype=self.gtype, k=self.k)
+
+        else:
+            self.gtype = "Two Moons synthetised"
+
+            N1 = floor(N/2)
+            N2 = N - N1
+
+            # Moon 1
+            phi1 = np.random.rand(1, N1)*np.pi
+            r1 = 1
+            rb = sigmad*np.random.normal(size=(1, N1))
+            ab = np.random.rand(1, N1)*2*np.pi
+            b = rb*np.exp(1j*ab)
+            bx = np.real(b)
+            by = np.imag(b)
+
+            moon1x = np.cos(phi1)*r1 + bx + 0.5
+            moon1y = -np.sin(phi1)*r1 + by - (d-1)/2
+
+            # Moon 2
+            phi2 = np.random.rand(1, N2)*np.pi
+            r2 = 1
+            rb = sigmad*np.random.normal(size=(1, N2))
+            ab = np.random.rand(1, N2)*2*np.pi
+            b = rb*np.exp(1j*ab)
+            bx = np.real(b)
+            by = np.imag(b)
+
+            moon2x = np.cos(phi2)*r2 + bx - 0.5
+            moon2y = np.sin(phi2)*r2 + by + (d-1)/2
+
+            self.Xin = np.concatenate((np.concatenate((moon1x, moon1y)), np.concatenate((moon2x, moon2y))), axis=1)
+            self.labels = 2*(np.where(np.arange(1, N+1).reshape(N, 1) > N1, 1, 0) + 1)
+
+            super(TwoMoons, self).__init__(Xin=self.Xin, sigma=sigmag, labels=self.labels, gtype=self.gtype, k=self.k)
 
 
 # Need M
@@ -409,7 +461,7 @@ class LowStretchTree(Graph):
         start_nodes = np.array([1, 1, 3])
         end_nodes = np.array([2, 3, 4])
         W = csc_matrix((np.ones((1, 3)), (start_nodes, end_nodes)), shape=(4, 4))
-        # TODO W=W+W'
+        W += W.getH()
 
         XCoords = np.array([1, 2, 1, 2])
         YCoords = np.array([1, 1, 2, 2])
@@ -765,8 +817,7 @@ class Sensor(Graph):
             T = 0.6
             s = sqrt(-target_dist_cutoff**2/(2*log(T)))
 
-            # TODO gsp_distanz
-            d = gsp_distanz([XCoords, YCoords])
+            d = utils.distanz([XCoords, YCoords])
             W = exp(-d**2/(2.*s**2))
 
             W -= np.diag(np.diag(x))
@@ -949,7 +1000,7 @@ class RandomRing(Graph):
 
 class PointsCloud(object):
 
-    def __init__(self, pointcloudname):
+    def __init__(self, pointcloudname, max_dim=2):
         if pointcloudname == "airfoil":
             airfoilmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/airfoil.mat')
             self.i_inds = airfoilmat['i_inds']
@@ -982,6 +1033,15 @@ class PointsCloud(object):
             self.info = {"idx_g": logomat["idx_g"],
                          "idx_s": logomat["idx_s"],
                          "idx_p": logomat["idx_p"]}
+
+        elif pointcloudname == "two_moons":
+            twomoonsmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/two_moons.mat')
+            if max_dim == -1:
+                max_dim == 2
+            self.Xin = twomoonsmat[:max_dim]
+
+        else:
+            raise ValueError("This PointsCloud does not exist. Please verify you wrote the right name in lower case.")
 
 
 def dummy(a, b, c):
