@@ -49,15 +49,15 @@ class Graph(object):
             self.A = A
         else:
             self.A = sparse.lil_matrix(W > 0)
-        if N:
+        if N is not None:
             self.N = N
         else:
             self.N = np.shape(self.W)[0]
-        if d:
+        if d is not None:
             self.d = d
         else:
             self.d = self.W.sum()
-        if Ne:
+        if Ne is not None:
             self.Ne = Ne
         else:
             self.Ne = self.W.nnz
@@ -70,10 +70,11 @@ class Graph(object):
         else:
             self.directed = utils.is_directed(self)
             pass
-        if L:
+        if L is not None:
             self.L = L
-        # else:
-        #    self.L = utils.create_laplacian(self)
+        else:
+            self.L = utils.create_laplacian(self)
+
 
         # Plotting default parameters
         self.plotting = {}
@@ -1046,7 +1047,7 @@ def dummy(a, b, c):
     Examples
     --------
     >>> import pygsp
-    >>> pygsp.module1.dummy(0, [1, 2, 3], True)
+    >>> pygsp.graphs.dummy(0, [1, 2, 3], True)
     array([1, 2, 3])
 
     """

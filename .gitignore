@@ -44,3 +44,4 @@ doc/_build
 
 # Vim swap files
 .*.swp
+.*.swo

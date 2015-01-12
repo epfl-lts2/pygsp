@@ -4,11 +4,11 @@
 # When importing the tests, you surely want these modules.
 from pygsp.tests import test_all
 from pygsp.tests import test_docstrings, test_tutorials
-from pygsp.tests import test_module1, test_module2
+from pygsp.tests import test_graphs, test_utils
 
 # Silence the code checker warning about unused symbols.
 assert test_all
 assert test_docstrings
 assert test_tutorials
-assert test_module1
-assert test_module2
+assert test_graphs
+assert test_utils
