@@ -800,38 +800,6 @@ class Sensor(Graph):
         self.connected = connected
         self.set_to_one = set_to_one
 
-        if self.connected:
-            for x in xrange(self.n_try):
-                W, XCoords, YCoords = create_weight_matrix(self.N,
-                                                           self.distribute,
-                                                           self.regular,
-                                                           self.nc)
-
-                if gsp_check_connectivity_undirected(W):
-                    break
-                elif x == self.n_try-1:
-                    print("Warning! Graph is not connected")
-        else:
-            W, XCoords, YCoords = create_weight_matrix(self.N, self.distribute,
-                                                       self.regular, self.nc)
-
-        if self.set_to_one:
-            W = np.where(W > 0, 1, W)
-
-        W = sparse.lil_matrix(W)
-        self.W = (W + W.conjugate().transpose())/2
-        self.coords = np.array([XCoords, YCoords])
-        if self.regular:
-            self.gtype = "regular sensor"
-        else:
-            self.gtype = "sensor"
-        self.directed = False
-
-        self.plotting = {"limits", np.array([0, 1, 0, 1])}
-
-        super(Sensor, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, plotting=self.plotting, directed=self.directed, **kwargs)
-
-
         def create_weight_matrix(N, param_distribute, param_regular, param_nc):
             XCoords = np.zeros((N, 1))
             YCoords = np.zeros((N, 1))
@@ -841,8 +809,8 @@ class Sensor(Graph):
                 for i in xrange(mdim):
                     for j in xrange(mdim):
                         if i*mdim + j < N:
-                            XCoords[i*mdim + j] = 1/mdim*np.random.rand()+i/mdim
-                            YCoords[i*mdim + j] = 1/mdim*np.random.rand()+j/mdim
+                            XCoords[i*mdim + j] = np.array(1/mdim*np.random.rand()+i/mdim)
+                            YCoords[i*mdim + j] = np.array(1/mdim*np.random.rand()+j/mdim)
 
             # take random coordinates in a 1 by 1 square
             else:
@@ -854,10 +822,10 @@ class Sensor(Graph):
             T = 0.6
             s = sqrt(-target_dist_cutoff**2/(2*log(T)))
 
-            d = utils.distanz([XCoords, YCoords])
-            W = exp(-d**2/(2.*s**2))
+            d = utils.distanz(x=XCoords, y=YCoords)
+            W = np.exp(-d**2/(2.*s**2))
 
-            W -= np.diag(np.diag(x))
+            W -= np.diag(np.diag(W))
 
             if param_regular:
                 W = get_nc_connection(W, param_nc)
@@ -867,7 +835,6 @@ class Sensor(Graph):
                 W = np.where(W2 > 0, W2, W)
 
             return W, XCoords, YCoords
-
 
         def get_nc_connection(W, param_nc):
             Wtmp = W
@@ -884,6 +851,41 @@ class Sensor(Graph):
             W = (W + np.transpose(np.conjugate(W)))/2.
 
             return W
+
+        if self.regular:
+            self.gtype = "regular sensor"
+        else:
+            self.gtype = "sensor"
+        self.directed = False
+
+        if self.connected:
+            for x in xrange(self.n_try):
+                W, XCoords, YCoords = create_weight_matrix(self.N,
+                                                           self.distribute,
+                                                           self.regular,
+                                                           self.nc)
+
+                self.W = W
+
+                if utils.check_connectivity(self):
+                    break
+                elif x == self.n_try-1:
+                    print("Warning! Graph is not connected")
+        else:
+            W, XCoords, YCoords = create_weight_matrix(self.N, self.distribute,
+                                                       self.regular, self.nc)
+
+        if self.set_to_one:
+            W = np.where(W > 0, 1, W)
+
+        W = sparse.lil_matrix(W)
+        self.W = (W + W.conjugate().transpose())/2
+        self.coords = np.array([XCoords, YCoords])
+
+
+        self.plotting = {"limits", np.array([0, 1, 0, 1])}
+
+        super(Sensor, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, plotting=self.plotting, directed=self.directed, **kwargs)
 
 
 # Need nothing
