@@ -89,40 +89,46 @@ def check_connectivity(G, **kwargs):
     # Removing the diagonal
     A -= A.diagonal()
     if G.directed:
-        return _check_connectivity_directed(A, kwargs)
+        return _check_connectivity_directed(A, **kwargs)
     else:
-        return _check_connectivity_undirected(A, kwargs)
+        return _check_connectivity_undirected(A, **kwargs)
     pass
 
 
 def _check_connectivity_directed(A, **kwargs):
-    is_connected = (A.W <= 0).all()
-    for c in sp.shape(A.W)[0]:
+    is_connected = (A <= 0).all()
+    c = 0
+    while c <= sp.shape(A)[0]:
         c_is_connected = (c == 0).all()
+        c += 1
         if c_is_connected:
             break
-    for r in sp.shape(A.W)[1]:
+    r = 0
+    while r <= sp.shape(A)[1]:
         r_is_connected = (c == 0).all()
+        r += 1
         if r_is_connected:
             break
     # TODO check axises
-    in_conn = (A.sum(axis=1) > 0).nonzeros()
-    out_conn = (A.sum(axis=2) > 0).nonzeros()
+    in_conn = (A.sum(axis=1) > 0).nonzero()
+    out_conn = (A.sum(axis=2) > 0).nonzero()
 
     if c_is_connected and r_is_connected:
         return True, in_conn, out_conn
 
 
 def _check_connectivity_undirected(A, **kwargs):
-    is_connected = (A.W <= 0).all()
-    for c in sp.shape(A.W)[0]:
-        c_is_connected = (c == 0).all()
+    is_connected = (A <= 0).all()
+    c = 0
+    while c <= sp.shape(A)[0]:
+        c_is_connected = (c == 0)
+        c += 1
         if c_is_connected:
             break
     # TODO check axises
-    in_conn = (A.sum(axis=1) > 0).nonzeros()
+    in_conn = (A.sum(axis=1) > 0).nonzero()
     out_conn = in_conn
-    if c_is_connected and r_is_connected:
+    if c_is_connected:
         return True, in_conn, out_conn
 
 
@@ -135,8 +141,8 @@ def distanz(x, y=None):
     if y is None:
         y = x
 
-    rx, cx = x.shape()
-    ry, cy = y.shape()
+    rx, cx = x.shape
+    ry, cy = y.shape
 
     # Size verification
     if rx != ry:
