@@ -462,11 +462,11 @@ class Comet(Graph):
 
         self.W = sparse.csc_matrix((np.ones((1, np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
 
-        tcoods = np.zeros((self.Nv, 2))
+        tmpcoords = np.zeros((self.Nv, 2))
         inds = np.arange(k)+1
-        tmpcoords[1:k+1, 1] = np.cos(inds*2*np.pi/k)
-        tmpcoords[1:k+1, 2] = np.sin(inds*2*np.pi/k)
-        tmpcoords[k+1:, 1] = np.arange(2, self.Nv-k+1)
+        tmpcoords[1:k+1, 0] = np.cos(inds*2*np.pi/k)
+        tmpcoords[1:k+1, 1] = np.sin(inds*2*np.pi/k)
+        tmpcoords[k+1:, 0] = np.arange(1, self.Nv-k)+1
         self.coords = tmpcoords
 
         self.plotting = {"limits": np.arange([-2, np.max(tmpcoords[:, 0]),
@@ -663,8 +663,9 @@ class Ring(Graph):
 
         self.W = sparse.csc_matrix((np.ones((1, 2*num_edges)), (i_inds, j_inds)), shape=(self.N, self.N))
 
-        self.coords = np.array([np.cos(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N),
-                                np.sin(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N)])
+        self.coords = np.concatenate((np.cos(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N),
+                                      np.sin(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N)),
+                                     axis=1)
 
         self.plotting = {"limits": np.array([-1, 1, -1, 1])}
 
@@ -900,7 +901,7 @@ class Airfoil(Graph):
         x = airfoil.x
         y = airfoil.y
 
-        self.coords = np.array([x, y])
+        self.coords = np.concatenate((x, y), axis=1)
         self.gtype = 'Airfoil'
 
         self.plotting = {"limits": np.array([-1e-4, 1.01*np.max(x), -1e-4, 1.01*np.max(y)]),
@@ -996,8 +997,8 @@ class Path(Graph):
         self.W = sparse.csc_matrix((np.ones((1, 2*(self.N - 1))),
                                     (inds_i, inds_j)),
                                    shape=(self.N, self.N))
-        self.coord = np.concatenate((np.arange(1, self.N + 1).reshape(self.N, 1),
-                                     np.zeros((1, self.N))),
+        self.coord = np.concatenate((np.arange(1, self.N+1).reshape(self.N, 1),
+                                     np.zeros((self.N, 1))),
                                     axis=1)
         self.plotting = {"limits": np.array([0, N+1, -1, 1])}
         self.gtype = "path"
