@@ -29,7 +29,7 @@ class Graph(object):
         - directed: If the graph is directed
         - lap_type: Laplacian type
         - L: Laplacian
-        - plotting: dictionnary conataining the plotting parameters
+        - plotting: dictionnary containing the plotting parameters
     """
 
     # All the parameters that needs calculation to be set
@@ -61,7 +61,7 @@ class Graph(object):
             self.Ne = Ne
         else:
             self.Ne = self.W.nnz
-        if coords:
+        if coords is not None:
             self.coords = coords
         else:
             self.coords = np.zeros((self.N, 2))
@@ -228,7 +228,7 @@ class Bunny(NNGraph):
 
         super(Bunny, self).__init__(Xin=self.Xin, center=self.center,
                                     rescale=self.rescale, epsilon=self.epsilon,
-                                    gtype=self.gtype, plotting=self.plotting,
+                                    plotting=self.plotting,
                                     **kwargs)
 
 
@@ -894,19 +894,20 @@ class Airfoil(Graph):
         i_inds = airfoil.i_inds
         j_inds = airfoil.j_inds
 
-        self.A = sparse.coo_matrix((np.ones((12289)), (np.reshape(i_inds, (12289)), np.reshape(j_inds, (12289)))), shape=(4254, 4254))
-        self.W = (self.A + sparse.csc_matrix.getH(self.A))/2
+        A = sparse.coo_matrix((np.ones((12289)), (np.reshape(i_inds-1, (12289)), np.reshape(j_inds-1, (12289)))), shape=(4253, 4253))
+        self.W = (A + sparse.coo_matrix.getH(A))/2
 
         x = airfoil.x
         y = airfoil.y
 
-        self.coords = np.array([x, y])
+        coords = np.array([x, y])
+        self.coords = coords.reshape(2, 4253).transpose()
         self.gtype = 'Airfoil'
 
         self.plotting = {"limits": np.array([-1e-4, 1.01*np.max(x), -1e-4, 1.01*np.max(y)]),
                          "vertex_size": 30}
 
-        super(Airfoil, self).__init__(W=self.W, A=self.A, coords=self.coords, plotting=self.plotting, gtype=self.gtype)
+        super(Airfoil, self).__init__(W=self.W, coords=self.coords, plotting=self.plotting, gtype=self.gtype)
 
 
 class DavidSensorNet(Graph):
@@ -978,7 +979,7 @@ class Logo(Graph):
                          # "edge_color": np.array([0, 136./255., 204./255.]),
                          "vertex_size": 20}
 
-        super(Logo, self).__init__(W=self.W, gtype=self.gtype, limits=self.limits, plotting=self.plotting)
+        super(Logo, self).__init__(W=self.W, coords=self.coords, gtype=self.gtype, limits=self.limits, plotting=self.plotting)
 
 
 class Path(Graph):
