@@ -377,17 +377,20 @@ class Grid2d(Graph):
         j_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
 
         for i in xrange(self.Mv):
-            i_inds[i*self.K + np.arange(self.K), 0] = i*self.Nv + np.concatenate((np.arange(1, self.Nv), np.arange(1, self.Nv)+1))
-            j_inds[i*self.K + np.arange(self.K), 0] = i*self.Nv + np.concatenate((np.arange(1, self.Nv)+1, np.arange(1, self.Nv)))
+            i_inds[i*K + np.arange(K), 0] = i*self.Nv + np.concatenate((np.arange(1, self.Nv), np.arange(1, self.Nv)+1))
+            j_inds[i*K + np.arange(K), 0] = i*self.Nv + np.concatenate((np.arange(1, self.Nv)+1, np.arange(1, self.Nv)))
 
         for i in xrange(self.Mv-1):
-            i_inds[(self.K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate((i*self.Nv + np.arange(self.Nv)+1, (i+1)*self.Nv + np.arange(self.Nv)+1))
-            j_inds[(self.K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate(((i+1)*self.Nv + np.arange(self.Nv), i*self.Nv + np.arange(self.Nv)+1))
+            i_inds[(K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate((i*self.Nv + np.arange(self.Nv)+1, (i+1)*self.Nv + np.arange(self.Nv)+1))
+            j_inds[(K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate(((i+1)*self.Nv + np.arange(self.Nv)+1, i*self.Nv + np.arange(self.Nv)+1))
 
-        self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv, 1)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
+        i_inds -= 1
+        j_inds -= 1
 
-        xtmp = np.kron(np.ones((self.Mv, 1)), (np.arange(self.Nv)/self.Nv).reshape(self.Nv, 1))
-        ytmp = np.sort(np.kron(np.ones((self.Nv, 1)), np.arange(Mv)/self.Mv)).reshape(self.Mv*self.Nv, 1)
+        self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv)), (i_inds.reshape(np.shape(i_inds)[0]), j_inds.reshape(np.shape(j_inds)[0]))), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
+
+        xtmp = np.kron(np.ones((self.Mv, 1)), (np.arange(self.Nv)/float(self.Nv)).reshape(self.Nv, 1))
+        ytmp = np.sort(np.kron(np.ones((self.Nv, 1)), np.arange(self.Mv)/float(self.Mv)).reshape(self.Mv*self.Nv, 1), axis=0)
         self.coords = np.concatenate((xtmp, ytmp), axis=1)
 
         self.plotting = {"limits": np.array([-1/self.Nv, 1 + 1/self.Nv, 1/self.Mv, 1 + 1/self.Mv]),
