@@ -903,12 +903,8 @@ class Airfoil(Graph):
         x = airfoil.x
         y = airfoil.y
 
-<<<<<<< HEAD
         coords = np.array([x, y])
         self.coords = coords.reshape(2, 4253).transpose()
-=======
-        self.coords = np.concatenate((x, y), axis=1)
->>>>>>> a9762aeb0e2abd5cd906fd9413bcb87d88aed5b8
         self.gtype = 'Airfoil'
 
         self.plotting = {"limits": np.array([-1e-4, 1.01*np.max(x), -1e-4, 1.01*np.max(y)]),
