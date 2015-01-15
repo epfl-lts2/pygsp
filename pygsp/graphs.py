@@ -995,17 +995,15 @@ class Path(Graph):
     def __init__(self, N=16):
         self.N = N
 
-        inds_i = np.concatenate((np.arange(1, self.N), np.arange(2, self.N+1)),
+        inds_i = np.concatenate((np.arange(self.N-1), np.arange(1, self.N)),
                                 axis=1)
-        inds_j = np.concatenate((np.arange(2, self.N+1), np.arange(1, self.N)),
+        inds_j = np.concatenate((np.arange(1, self.N), np.arange(self.N-1)),
                                 axis=1)
 
-        np.ones((1, 2*(self.N-1)))
-
-        self.W = sparse.csc_matrix((np.ones((1, 2*(self.N - 1))),
+        self.W = sparse.csc_matrix((np.ones((2*(self.N - 1))),
                                     (inds_i, inds_j)),
                                    shape=(self.N, self.N))
-        self.coord = np.concatenate((np.arange(1, self.N+1).reshape(self.N, 1),
+        self.coords = np.concatenate((np.arange(1, self.N+1).reshape(self.N, 1),
                                      np.zeros((self.N, 1))),
                                     axis=1)
         self.plotting = {"limits": np.array([0, N+1, -1, 1])}
