@@ -888,7 +888,6 @@ class Sensor(Graph):
         self.W = (W + W.conjugate().transpose())/2
         self.coords = np.array([XCoords, YCoords])
 
-
         self.plotting = {"limits", np.array([0, 1, 0, 1])}
 
         super(Sensor, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, plotting=self.plotting, directed=self.directed, **kwargs)
