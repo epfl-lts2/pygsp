@@ -870,6 +870,8 @@ class Sensor(Graph):
                                                            self.regular,
                                                            self.nc)
 
+                self.W = W
+
                 if utils.check_connectivity(self):
                     self.W = W
                     break
