@@ -827,22 +827,13 @@ class Sensor(Graph):
             target_dist_cutoff = 2*N**(-0.5)
             T = 0.6
             s = sqrt(-target_dist_cutoff**2/(2*log(T)))
-
             d = utils.distanz(x=XCoords, y=YCoords)
             W = np.exp(-d**2/(2.*s**2))
-
-            W -= np.diag(np.diag(W))
-
-            target_dist_cutoff = -0.125*self.N/436.075+0.2183
-            T = 0.6
-            
-            d = gsp_distanz(np.conjugate(np.transpose(self.coords)))
-            W = np.exp(-np.power(d, 2)/2.*s**2)
-            W = np.where(W < T, 0, W)
             W -= np.diag(np.diag(W))
 
             if param_regular:
                 W = get_nc_connection(W, param_nc)
+
             else:
                 W2 = get_nc_connection(W, param_nc)
                 W = np.where(W < T, 0, W)
