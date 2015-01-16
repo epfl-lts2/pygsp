@@ -373,21 +373,18 @@ class Grid2d(Graph):
         K = 2*(self.Nv-1)
         J = 2*(self.Mv-1)
 
-        i_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
-        j_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
+        i_inds = np.zeros((K*self.Mv + J*self.Nv), dtype=float)
+        j_inds = np.zeros((K*self.Mv + J*self.Nv), dtype=float)
 
         for i in xrange(self.Mv):
-            i_inds[i*K + np.arange(K), 0] = i*self.Nv + np.concatenate((np.arange(1, self.Nv), np.arange(1, self.Nv)+1))
-            j_inds[i*K + np.arange(K), 0] = i*self.Nv + np.concatenate((np.arange(1, self.Nv)+1, np.arange(1, self.Nv)))
+            i_inds[i*K + np.arange(K)] = i*self.Nv + np.concatenate((np.arange(self.Nv-1), np.arange(1, self.Nv)))
+            j_inds[i*K + np.arange(K)] = i*self.Nv + np.concatenate((np.arange(1, self.Nv), np.arange(self.Nv-1)))
 
         for i in xrange(self.Mv-1):
-            i_inds[(K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate((i*self.Nv + np.arange(self.Nv)+1, (i+1)*self.Nv + np.arange(self.Nv)+1))
-            j_inds[(K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate(((i+1)*self.Nv + np.arange(self.Nv)+1, i*self.Nv + np.arange(self.Nv)+1))
+            i_inds[(K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate((i*self.Nv + np.arange(self.Nv), (i+1)*self.Nv + np.arange(self.Nv)))
+            j_inds[(K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate(((i+1)*self.Nv + np.arange(self.Nv), i*self.Nv + np.arange(self.Nv)))
 
-        i_inds -= 1
-        j_inds -= 1
-
-        self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv)), (i_inds.reshape(np.shape(i_inds)[0]), j_inds.reshape(np.shape(j_inds)[0]))), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
+        self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
         xtmp = np.kron(np.ones((self.Mv, 1)), (np.arange(self.Nv)/float(self.Nv)).reshape(self.Nv, 1))
         ytmp = np.sort(np.kron(np.ones((self.Nv, 1)), np.arange(self.Mv)/float(self.Mv)).reshape(self.Mv*self.Nv, 1), axis=0)
@@ -414,24 +411,21 @@ class Torus(Graph):
         # Create weighted adjancency matrix
         K = 2 * self.Nv
         J = 2 * self.Mv
-        i_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
-        j_inds = np.zeros((K*self.Mv + J*self.Nv, 1), dtype=float)
+        i_inds = np.zeros((K*self.Mv + J*self.Nv), dtype=float)
+        j_inds = np.zeros((K*self.Mv + J*self.Nv), dtype=float)
 
         for i in xrange(self.Mv):
-            i_inds[i*K + np.arange(K), 0] = i*self.Nv + np.concatenate((np.array([self.Nv]), np.arange(self.Nv-1)+1, np.arange(self.Nv)+1))
-            j_inds[i*K + np.arange(K), 0] = i*self.Nv + np.concatenate((np.arange(self.Nv)+1, np.array([self.Nv]), np.arange(self.Nv-1)+1))
+            i_inds[i*K + np.arange(K)] = i*self.Nv + np.concatenate((np.array([self.Nv-1]), np.arange(self.Nv-1), np.arange(self.Nv)))
+            j_inds[i*K + np.arange(K)] = i*self.Nv + np.concatenate((np.arange(self.Nv), np.array([self.Nv-1]), np.arange(self.Nv-1)))
 
         for i in xrange(self.Mv-1):
-            i_inds[K*self.Mv + i*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate((i*self.Nv + np.arange(self.Nv)+1, (i+1)*self.Nv + np.arange(self.Nv)+1))
-            j_inds[K*self.Mv + i*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate(((i+1)*self.Nv + np.arange(self.Nv)+1, i*self.Nv + np.arange(self.Nv)+1))
+            i_inds[K*self.Mv + i*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate((i*self.Nv + np.arange(self.Nv), (i+1)*self.Nv + np.arange(self.Nv)))
+            j_inds[K*self.Mv + i*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate(((i+1)*self.Nv + np.arange(self.Nv), i*self.Nv + np.arange(self.Nv)))
 
-        i_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate((np.arange(self.Nv), (self.Mv-1)*self.Nv + np.arange(self.Nv)))+1
-        j_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(2*self.Nv), 0] = np.concatenate(((self.Mv-1)*self.Nv + np.arange(self.Nv), np.arange(self.Nv)))+1
+        i_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate((np.arange(self.Nv), (self.Mv-1)*self.Nv + np.arange(self.Nv)))
+        j_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate(((self.Mv-1)*self.Nv + np.arange(self.Nv), np.arange(self.Nv)))
 
-        i_inds -= 1
-        j_inds -= 1
-
-        self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv)), (i_inds.reshape(np.shape(i_inds)[0]), j_inds.reshape(np.shape(j_inds)[0]))), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
+        self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
 
         # Create Coordinate
         T = 1.5 + np.sin(np.arange(self.Mv)*2*np.pi/self.Mv).reshape(1, self.Mv)
@@ -459,14 +453,14 @@ class Comet(Graph):
         self.gtype = 'Comet'
 
         # Create weighted adjancency matrix
-        i_inds = np.concatenate((np.ones((self.k)), np.arange(self.k)+2,
-                                 np.arange(self.k+1, self.N),
-                                 np.arange(self.k+2, self.N+1)))
-        j_inds = np.concatenate((np.arange(self.k)+2, np.ones((self.k)),
-                                 np.arange(self.k+2, self.N+1),
-                                 np.arange(self.k+1, self.N)))
+        i_inds = np.concatenate((np.zeros((self.k)), np.arange(self.k)+1,
+                                 np.arange(self.k, self.Nv-1),
+                                 np.arange(self.k+1, self.Nv)))
+        j_inds = np.concatenate((np.arange(self.k)+1, np.zeros((self.k)),
+                                 np.arange(self.k+1, self.Nv),
+                                 np.arange(self.k, self.Nv-1)))
 
-        self.W = sparse.csc_matrix((np.ones((1, np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
+        self.W = sparse.csc_matrix((np.ones((np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
 
         tmpcoords = np.zeros((self.Nv, 2))
         inds = np.arange(k)+1
@@ -475,7 +469,7 @@ class Comet(Graph):
         tmpcoords[k+1:, 0] = np.arange(1, self.Nv-k)+1
         self.coords = tmpcoords
 
-        self.plotting = {"limits": np.arange([-2, np.max(tmpcoords[:, 0]),
+        self.plotting = {"limits": np.array([-2, np.max(tmpcoords[:, 0]),
                                               np.min(tmpcoords[:, 1]),
                                               np.max(tmpcoords[:, 1])])}
 
