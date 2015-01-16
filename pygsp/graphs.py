@@ -653,24 +653,24 @@ class Ring(Graph):
         else:
             num_edges = self.N*self.k
 
-        i_inds = np.zeros((1, 2*num_edges))
-        j_inds = np.zeros((1, 2*num_edges))
+        i_inds = np.zeros((2*num_edges))
+        j_inds = np.zeros((2*num_edges))
 
-        all_inds = np.arange(self.N)+1
-        for i in xrange(min(self.k, floor((self.N_1)/2))):
-            i_inds[:, (i*2*self.N):(i*2*self.N + self.N)] = all_inds
-            j_inds[:, (i*2*self.N):(i*2*self.N + self.N)] = np.remainder(all_inds + i, self.N) + 1
-            i_inds[:, (i*2*self.N + self.N):((i + 1)*2*self.N)] = np.remainder(all_inds + i, self.N) + 1
-            j_inds[:, (i*2*self.N + self.N):((i + 1)*2*self.N)] = all_inds
+        all_inds = np.arange(self.N)
+        for i in xrange(min(self.k, floor((self.N-1)/2))):
+            i_inds[(i*2*self.N):(i*2*self.N + self.N)] = all_inds
+            j_inds[(i*2*self.N):(i*2*self.N + self.N)] = np.remainder(all_inds + i +1, self.N)
+            i_inds[(i*2*self.N + self.N):((i + 1)*2*self.N)] = np.remainder(all_inds + i +1, self.N)
+            j_inds[(i*2*self.N + self.N):((i + 1)*2*self.N)] = all_inds
 
         if self.k == self.N/2:
             i_inds[(2*self.N*(self.k - 1)):(2*self.N*(self.k - 1)+self.N)] = all_inds
-            i_inds[(2*self.N*(self.k - 1)):(2*self.N*(self.k - 1)+self.N)] = np.remainder(all_inds + k, self.N) + 1
+            i_inds[(2*self.N*(self.k - 1)):(2*self.N*(self.k - 1)+self.N)] = np.remainder(all_inds + k +1, self.N)
 
-        self.W = sparse.csc_matrix((np.ones((1, 2*num_edges)), (i_inds, j_inds)), shape=(self.N, self.N))
+        self.W = sparse.csc_matrix((np.ones((2*num_edges)), (i_inds, j_inds)), shape=(self.N, self.N))
 
-        self.coords = np.concatenate((np.cos(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N),
-                                      np.sin(np.arange(self.N).reshape(self.N, 1)*2*np.pi/self.N)),
+        self.coords = np.concatenate((np.cos(np.arange(self.N).reshape(self.N, 1)*2*np.pi/float(self.N)),
+                                      np.sin(np.arange(self.N).reshape(self.N, 1)*2*np.pi/float(self.N))),
                                      axis=1)
 
         self.plotting = {"limits": np.array([-1, 1, -1, 1])}
@@ -831,6 +831,14 @@ class Sensor(Graph):
             d = utils.distanz(x=XCoords, y=YCoords)
             W = np.exp(-d**2/(2.*s**2))
 
+            W -= np.diag(np.diag(W))
+
+            target_dist_cutoff = -0.125*self.N/436.075+0.2183
+            T = 0.6
+            
+            d = gsp_distanz(np.conjugate(np.transpose(self.coords)))
+            W = np.exp(-np.power(d, 2)/2.*s**2)
+            W = np.where(W < T, 0, W)
             W -= np.diag(np.diag(W))
 
             if param_regular:
