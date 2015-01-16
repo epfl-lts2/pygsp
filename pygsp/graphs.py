@@ -811,12 +811,12 @@ class Sensor(Graph):
             YCoords = np.zeros((N, 1))
 
             if param_distribute:
-                mdim = ceil(sqrt(N))
+                mdim = int(ceil(sqrt(N)))
                 for i in xrange(mdim):
                     for j in xrange(mdim):
                         if i*mdim + j < N:
-                            XCoords[i*mdim + j] = np.array(1/mdim*np.random.rand()+i/mdim)
-                            YCoords[i*mdim + j] = np.array(1/mdim*np.random.rand()+j/mdim)
+                            XCoords[i*mdim + j] = np.array(1./float(mdim)*np.random.rand()+i/float(mdim))
+                            YCoords[i*mdim + j] = np.array(1./float(mdim)*np.random.rand()+j/float(mdim))
 
             # take random coordinates in a 1 by 1 square
             else:
@@ -871,9 +871,8 @@ class Sensor(Graph):
                                                            self.regular,
                                                            self.nc)
 
-                self.W = W
-
                 if utils.check_connectivity(self):
+                    self.W = W
                     break
                 elif x == self.n_try-1:
                     print("Warning! Graph is not connected")
@@ -885,10 +884,10 @@ class Sensor(Graph):
             W = np.where(W > 0, 1, W)
 
         W = sparse.lil_matrix(W)
-        self.W = (W + W.conjugate().transpose())/2
-        self.coords = np.array([XCoords, YCoords])
+        self.W = (W + W.getH())/2
+        self.coords = np.concatenate((XCoords, YCoords), axis=1)
 
-        self.plotting = {"limits", np.array([0, 1, 0, 1])}
+        self.plotting = {"limits": np.array([0, 1, 0, 1])}
 
         super(Sensor, self).__init__(W=self.W, N=self.N, gtype=self.gtype, coords=self.coords, plotting=self.plotting, directed=self.directed, **kwargs)
 
