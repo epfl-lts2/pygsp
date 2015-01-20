@@ -8,6 +8,25 @@ from math import isinf, isnan
 def is_directed(G):
     r"""
     Returns a bool:  True if the graph is directed and false if not
+
+    Parameters
+    ----------
+    G : Graph object
+
+    Returns
+    -------
+    is_dir : bool
+
+    Examples
+    --------
+    Just define a Graph and look if it is directed
+
+    >>> import pygsp
+    >>> G = pygsp.graph.Bunny()
+    >>> pygsp.utils.is_directed(G)
+
+    Notes
+    -----
     The Weight matrix has to be sparse (For now)
     Can also be used to check if a matrix is symetrical
     """
@@ -22,7 +41,23 @@ def is_directed(G):
 
 def estimate_lmax(G):
     r"""
-    TODO write doc
+    This function estimates lmax from a Graph object
+
+    Parameters
+    ----------
+    G : Graph object
+
+    Returns
+    -------
+    lmax : float
+
+    Examples
+    --------
+    Just define a graph an apply the estimation on it
+
+    >>> import pygsp
+    >>> G = pygsp.graph.Graph()
+    >>> lmax = pygsp.utils.estimate_lmax(G)
     """
     try:
         # MAT: lmax=eigs(G.L,1,'lm',opts)
@@ -37,8 +72,15 @@ def estimate_lmax(G):
 
 def check_weights(W):
     r"""
-    Check a weight matrix
-    Returns an array of bools:
+    Check the values of a weight matrix
+
+    Parameters
+    ----------
+    W : sparse matrix
+        Weight matrix
+
+    Returns
+    -------
         has_inf_val
         has_nan_value
         is_not_square
