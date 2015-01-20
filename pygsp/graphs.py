@@ -1105,7 +1105,7 @@ class PointsCloud(object):
             twomoonsmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/two_moons.mat')
             if max_dim == -1:
                 max_dim == 2
-            self.Xin = twomoonsmat["features"][:max_dim]
+            self.Xin = twomoonsmat["features"][:max_dim].transpose()
 
         else:
             raise ValueError("This PointsCloud does not exist. Please verify you wrote the right name in lower case.")
