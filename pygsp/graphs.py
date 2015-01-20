@@ -136,36 +136,48 @@ class NNGraph(Graph):
         - Xin : Input Points
     """
 
-    def __init__(self, Xin, gtype='knn', use_flann=False, center=True,
-                 rescale=True, k=10, sigma=0.1, epsilon=0.01, **kwargs):
-        self.Xin = Xin
-        self.gtype = gtype
+    def __init__(self, Xin, NNtype='knn', use_flann=False, center=True,
+                 rescale=True, k=10, sigma=0.1, epsilon=0.01,
+                 plotting=None, gtype=None, **kwargs):
+        if Xin is None:
+            raise ValueError("You must enter a Xin to process the NNgraph")
+        else:
+            self.Xin = Xin
+        self.NNtype = NNtype
         self.use_flann = use_flann
         self.center = center
         self.rescale = rescale
         self.k = k
         self.sigma = sigma
         self.epsilon = epsilon
+        if plotting:
+            self.plotting = plotting
+        else:
+            self.plotting = {}
+        if gtype is None:
+            self.gtype = "nearest neighbors"
+        else:
+            self.gtype = gtype + ", NNgraph"
+
         param = kwargs
 
         N, d = np.shape(self.Xin)
         Xout = self.Xin
 
         if self.center:
-            Xout = self.Xin - np.kron(Xin.mean(), N)
             Xout = self.Xin - np.kron(np.ones((N, 1)),
                                       np.mean(self.Xin, axis=0))
 
         if self.rescale:
             bounding_radius = 0.5*np.linalg.norm(np.amax(Xout, axis=0)
                                                  - np.amin(Xout, axis=0), 2)
-            scale = N**min(d, 3)/10.
+            scale = np.power(N, 1./float(min(d, 3)))/10.
             Xout *= scale/bounding_radius
 
-        if self.gtype == "knn":
-            spi = np.zeros((N*self.k, 1))
-            spj = np.zeros((N*self.k, 1))
-            spv = np.zeros((N*self.k, 1))
+        if self.NNtype == "knn":
+            spi = np.zeros((N*self.k))
+            spj = np.zeros((N*self.k))
+            spv = np.zeros((N*self.k))
 
             # since we didn't find a good flann python library yet,
             # we wont implement it for now
@@ -177,20 +189,31 @@ class NNGraph(Graph):
                 D, NN = kdt.query(Xout, k=k + 1)
 
             for i in xrange(N):
-                spi[i*k:(i+1)*k] = np.kron(np.ones((k, 1)), i)
+                spi[i*k:(i+1)*k] = np.kron(np.ones((k)), i)
                 spj[i*k:(i+1)*k] = NN[i, 1:]
-                spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
+                spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/float(self.sigma))
 
             self.W = sparse.csc_matrix((spv, (spi, spj)),
                                        shape=(np.shape(self.Xin)[0],
                                               np.shape(self.Xin)[0]))
 
-        elif self.gtype == "radius":
+        elif self.NNtype == "radius":
 
             kdt = spatial.KDTree(Xout)
             D, NN = kdt.query(Xout, eps=epsilon)
+            print(np.shape(NN)[0])
+
+            count = 0
             for i in xrange(N):
-                spi[i*k:(i+1)*k] = np.kron(np.ones((k, 1)), i)
+                count = count + size(NN[i]) - 1
+
+            spi = np.zeros((count))
+            spj = np.zeros((count))
+            spv = np.zeros((count))
+            start = 1
+
+            for i in xrange(N):
+                spi[i*k:(i+1)*k] = np.kron(np.ones((k)), i)
                 spj[i*k:(i+1)*k] = NN[i, 1:]
                 spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
 
@@ -202,24 +225,24 @@ class NNGraph(Graph):
             raise ValueError("Unknown type : allowed values are knn, radius")
 
         # Sanity check
-        if np.shape(self.Xin)[0] != np.shape(self.Xin)[1]:
+        if np.shape(self.W)[0] != np.shape(self.W)[1]:
             raise ValueError("Weight matrix W is not square")
 
         self.coords = Xout
-        self.gtype = "nearest neighbors"
 
-        super(NNGraph, self).__init__(N=N, W=self.W, coords=self.coords,
-                                      gtype=self.gtype, **kwargs)
+        super(NNGraph, self).__init__(N=N, W=self.W, plotting=self.plotting,
+                                      gtype=self.gtype, coords=self.coords, **kwargs)
 
 
 class Bunny(NNGraph):
 
     def __init__(self, **kwargs):
 
-        self.type = "radius"
+        self.NNtype = "radius"
         self.rescale = True
         self.center = True
         self.epsilon = 0.2
+        self.gtype = "Bunny"
 
         bunny = PointsCloud("bunny")
         self.Xin = bunny.Xin
@@ -228,7 +251,7 @@ class Bunny(NNGraph):
 
         super(Bunny, self).__init__(Xin=self.Xin, center=self.center,
                                     rescale=self.rescale, epsilon=self.epsilon,
-                                    plotting=self.plotting,
+                                    plotting=self.plotting, NNtype=self.NNtype,
                                     **kwargs)
 
 
@@ -275,11 +298,11 @@ class Cube(NNGraph):
         else:
             raise ValueError("Unknown sampling !")
 
-        self.gtype = "knn"
+        self.NNtype = "knn"
+        self.gtype = "Cube"
         self.k = 10
 
-        super(Cube, self).__init__(Xin=pts, gtype=self.gtype, k=self.k,
-                                   **kwargs)
+        super(Cube, self).__init__(Xin=pts, NNtype=self.NNtype, gtype=self.gtype, k=self.k, **kwargs)
 
 
 class Sphere(NNGraph):
@@ -298,15 +321,17 @@ class Sphere(NNGraph):
         else:
             raise ValueError("Unknow sampling!")
 
-        self.gtype = "knn"
+        self.NNtype = "knn"
         self.k = 10
+        self.gtype = "Sphere"
 
-        super(Sphere, self).__init__(Xin=pts, gtype=self.gtype, k=self.k, **kwargs)
+        super(Sphere, self).__init__(Xin=pts, NNtype=self.NNtype, k=self.k,
+                                     gtype=self.gtype, **kwargs)
 
 
 class TwoMoons(NNGraph):
 
-    def __inti__(self, moontype="standard", sigmag=0.05, N=200, sigmad=1, d=0.5):
+    def __init__(self, moontype="standard", sigmag=0.05, N=200, sigmad=1, d=0.5):
 
         self.k = 5
         self.sigma = sigmag
@@ -1080,7 +1105,7 @@ class PointsCloud(object):
             twomoonsmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/two_moons.mat')
             if max_dim == -1:
                 max_dim == 2
-            self.Xin = twomoonsmat[:max_dim]
+            self.Xin = twomoonsmat["features"][:max_dim]
 
         else:
             raise ValueError("This PointsCloud does not exist. Please verify you wrote the right name in lower case.")
