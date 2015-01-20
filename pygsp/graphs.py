@@ -331,7 +331,7 @@ class Sphere(NNGraph):
 
 class TwoMoons(NNGraph):
 
-    def __init__(self, moontype="standard", sigmag=0.05, N=200, sigmad=1, d=0.5):
+    def __init__(self, moontype="standard", sigmag=0.05, N=400, sigmad=0.07, d=0.5):
 
         self.k = 5
         self.sigma = sigmag
@@ -352,10 +352,10 @@ class TwoMoons(NNGraph):
             N2 = N - N1
 
             # Moon 1
-            phi1 = np.random.rand(1, N1)*np.pi
+            phi1 = np.random.rand(N1, 1)*np.pi
             r1 = 1
-            rb = sigmad*np.random.normal(size=(1, N1))
-            ab = np.random.rand(1, N1)*2*np.pi
+            rb = sigmad*np.random.normal(size=(N1, 1))
+            ab = np.random.rand(N1, 1)*2*np.pi
             b = rb*np.exp(1j*ab)
             bx = np.real(b)
             by = np.imag(b)
@@ -364,10 +364,10 @@ class TwoMoons(NNGraph):
             moon1y = -np.sin(phi1)*r1 + by - (d-1)/2
 
             # Moon 2
-            phi2 = np.random.rand(1, N2)*np.pi
+            phi2 = np.random.rand(N2, 1)*np.pi
             r2 = 1
-            rb = sigmad*np.random.normal(size=(1, N2))
-            ab = np.random.rand(1, N2)*2*np.pi
+            rb = sigmad*np.random.normal(size=(N2, 1))
+            ab = np.random.rand(N2, 1)*2*np.pi
             b = rb*np.exp(1j*ab)
             bx = np.real(b)
             by = np.imag(b)
@@ -375,7 +375,7 @@ class TwoMoons(NNGraph):
             moon2x = np.cos(phi2)*r2 + bx - 0.5
             moon2y = np.sin(phi2)*r2 + by + (d-1)/2
 
-            self.Xin = np.concatenate((np.concatenate((moon1x, moon1y)), np.concatenate((moon2x, moon2y))), axis=1)
+            self.Xin = np.concatenate((np.concatenate((moon1x, moon1y), axis=1), np.concatenate((moon2x, moon2y), axis=1)))
             self.labels = 2*(np.where(np.arange(1, N+1).reshape(N, 1) > N1, 1, 0) + 1)
 
             super(TwoMoons, self).__init__(Xin=self.Xin, sigma=sigmag, labels=self.labels, gtype=self.gtype, k=self.k)
