@@ -16,6 +16,7 @@ class Filter(object):
         pass
 
     def analysis(G, s, **kwargs):
+        Nf = len(self.fi)
         pass
 
     def evaluate(x):
