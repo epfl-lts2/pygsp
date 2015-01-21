@@ -204,18 +204,20 @@ class NNGraph(Graph):
             print(np.shape(NN)[0])
 
             count = 0
-            for i in xrange(N):
-                count = count + size(NN[i]) - 1
+            for i in range(N):
+                count = count + np.size(NN[i]) - 1
 
             spi = np.zeros((count))
             spj = np.zeros((count))
             spv = np.zeros((count))
             start = 1
 
-            for i in xrange(N):
+            for i in range(N):
+                leng = np.size(NN[i]) - 1
                 spi[i*k:(i+1)*k] = np.kron(np.ones((k)), i)
                 spj[i*k:(i+1)*k] = NN[i, 1:]
                 spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
+                start = start + 
 
             self.W = sparse.csc_matrix((spv, (spi, spj)),
                                        shape=(np.shape(self.Xin)[0],
