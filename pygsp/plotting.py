@@ -29,7 +29,7 @@ def plot_graph(G):
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
                 # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
-                ax.plot(x, y, color='blue', marker='o', markerfacecolor='red')
+                ax.plot(x, y, color='red', marker='o', markerfacecolor='blue')
                 plt.show()
             if G.coords.shape[1] == 3:
                 # Very dirty way to display a 3d graph
@@ -52,6 +52,17 @@ def plot_graph(G):
                     x3 = x2[i:i + 2]
                     y3 = y2[i:i + 2]
                     z3 = z2[i:i + 2]
-                    ax.plot(x3, y3, z3, color='blue', marker='o', markerfacecolor='red')
+                    ax.plot(x3, y3, z3, color='red', marker='o', markerfacecolor='blue')
                     # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
                 plt.show()
+    else:
+        if G.coords.shape[1] == 2:
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo')
+            plt.show()
+        if G.coords.shape[1] == 3:
+            fig = plt.figure()
+            ax = fig.gca(projection='3d')
+            ax.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
+            plt.show()
