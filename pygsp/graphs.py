@@ -75,7 +75,6 @@ class Graph(object):
         else:
             self.L = utils.create_laplacian(self)
 
-
         # Plotting default parameters
         self.plotting = {}
         if 'edge_width' in plotting:
@@ -217,7 +216,7 @@ class NNGraph(Graph):
                 spi[i*k:(i+1)*k] = np.kron(np.ones((k)), i)
                 spj[i*k:(i+1)*k] = NN[i, 1:]
                 spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
-                start = start + 
+                start += 1
 
             self.W = sparse.csc_matrix((spv, (spi, spj)),
                                        shape=(np.shape(self.Xin)[0],
@@ -240,7 +239,7 @@ class Bunny(NNGraph):
 
     def __init__(self, **kwargs):
 
-        self.NNtype = "radius"
+        self.NNtype = "knn"
         self.rescale = True
         self.center = True
         self.epsilon = 0.2
@@ -1003,9 +1002,8 @@ class Logo(Graph):
         self.limits = np.array([0, 640, -400, 0])
         self.gtype = 'LogoGSP'
 
-        self.plotting = {
-                         # "vertex_color": np.array([200, 136./255., 204./255.]),
-                         # "edge_color": np.array([0, 136./255., 204./255.]),
+        self.plotting = {"vertex_color": np.array([200./255., 136./255., 204./255.]),
+                         "edge_color": np.array([0, 136./255., 204./255.]),
                          "vertex_size": 20}
 
         super(Logo, self).__init__(W=self.W, coords=self.coords, gtype=self.gtype, limits=self.limits, plotting=self.plotting)

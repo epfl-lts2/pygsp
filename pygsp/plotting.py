@@ -10,8 +10,10 @@ def plot_graph(G):
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
 
+    show_edges = G.Ne < 10000
+
     # TODO Fix this condition
-    if True:
+    if show_edges:
         ki, kj = np.nonzero(G.A)
         if G.directed:
             raise NotImplementedError('TODO')
@@ -21,12 +23,16 @@ def plot_graph(G):
                 raise NotImplementedError('TODO')
         else:
             if G.coords.shape[1] == 2:
+                fig = plt.figure()
+                ax = fig.add_subplot(111)
                 ki, kj = np.nonzero(G.A)
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
-                plt.plot(x, y)
+                # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
+                ax.plot(x, y, color='blue', marker='o', markerfacecolor='red')
                 plt.show()
             if G.coords.shape[1] == 3:
+                # Very dirty way to display a 3d graph
                 fig = plt.figure()
                 ax = fig.gca(projection='3d')
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
@@ -46,6 +52,6 @@ def plot_graph(G):
                     x3 = x2[i:i + 2]
                     y3 = y2[i:i + 2]
                     z3 = z2[i:i + 2]
-                    ax.plot(x3, y3, z3)
-                ax.plot(x2, y2, z2, 'ro')
+                    ax.plot(x3, y3, z3, color='blue', marker='o', markerfacecolor='red')
+                    # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
                 plt.show()
