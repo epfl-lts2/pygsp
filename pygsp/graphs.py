@@ -216,11 +216,7 @@ class NNGraph(Graph):
                 spi[i*k:(i+1)*k] = np.kron(np.ones((k)), i)
                 spj[i*k:(i+1)*k] = NN[i, 1:]
                 spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
-<<<<<<< HEAD
                 start += 1
-=======
-                start = start + 1
->>>>>>> 31af75d21a50834c1b05fc4b875dbed7438184b0
 
             self.W = sparse.csc_matrix((spv, (spi, spj)),
                                        shape=(np.shape(self.Xin)[0],
