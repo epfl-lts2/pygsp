@@ -217,7 +217,7 @@ class NNGraph(Graph):
                 spi[i*k:(i+1)*k] = np.kron(np.ones((k)), i)
                 spj[i*k:(i+1)*k] = NN[i, 1:]
                 spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
-                start = start + 
+                start = start + 1
 
             self.W = sparse.csc_matrix((spv, (spi, spj)),
                                        shape=(np.shape(self.Xin)[0],
@@ -460,9 +460,12 @@ class Torus(Graph):
         xtmp = np.cos(np.arange(self.Nv).reshape(self.Nv, 1)*2*np.pi/self.Nv)*T
         ytmp = np.sin(np.arange(self.Nv).reshape(self.Nv, 1)*2*np.pi/self.Nv)*T
         ztmp = np.kron(np.ones((self.Nv, 1)), U)
-        self.coords = np.concatenate((np.reshape(xtmp, (self.Mv*self.Nv, 1), order='F'),
-                                      np.reshape(ytmp, (self.Mv*self.Nv, 1), order='F'),
-                                      np.reshape(ztmp, (self.Mv*self.Nv, 1), order='F')),
+        self.coords = np.concatenate((np.reshape(xtmp, (self.Mv*self.Nv, 1),
+                                      order='F'),
+                                      np.reshape(ytmp, (self.Mv*self.Nv, 1),
+                                      order='F'),
+                                      np.reshape(ztmp, (self.Mv*self.Nv, 1),
+                                      order='F')),
                                      axis=1)
 
         self.plotting = {"vertex_size": 30,
@@ -487,7 +490,9 @@ class Comet(Graph):
                                  np.arange(self.k+1, self.Nv),
                                  np.arange(self.k, self.Nv-1)))
 
-        self.W = sparse.csc_matrix((np.ones((np.size(i_inds))), (i_inds, j_inds)), shape=(self.Nv, self.Nv))
+        self.W = sparse.csc_matrix((np.ones((np.size(i_inds))),
+                                    (i_inds, j_inds)),
+                                   shape=(self.Nv, self.Nv))
 
         tmpcoords = np.zeros((self.Nv, 2))
         inds = np.arange(k)+1
@@ -497,8 +502,8 @@ class Comet(Graph):
         self.coords = tmpcoords
 
         self.plotting = {"limits": np.array([-2, np.max(tmpcoords[:, 0]),
-                                              np.min(tmpcoords[:, 1]),
-                                              np.max(tmpcoords[:, 1])])}
+                                             np.min(tmpcoords[:, 1]),
+                                             np.max(tmpcoords[:, 1])])}
 
         super(Comet, self).__init__(W=self.W, coords=self.coords,
                                     plotting=self.plotting,
