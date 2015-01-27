@@ -24,7 +24,7 @@ class Graph(object):
         - A: Adjacency matrix
         - N: Number of nodes
         - d: Degree vector
-        - Ne: Egde number
+        - Ne: Edges number
         - gtype: Graph type
         - directed: If the graph is directed
         - lap_type: Laplacian type
@@ -516,9 +516,9 @@ class LowStretchTree(Graph):
         start_nodes = np.array([1, 1, 3])
         end_nodes = np.array([2, 3, 4])
 
-        W = csc_matrix((np.ones((1, 3)), (start_nodes, end_nodes)),
+        W = sparse.csc_matrix((np.ones((3)), (start_nodes, end_nodes)),
                        shape=(4, 4))
-        W += W.getH()
+        W = W + W.getH()
 
         XCoords = np.array([1, 2, 1, 2])
         YCoords = np.array([1, 1, 2, 2])
