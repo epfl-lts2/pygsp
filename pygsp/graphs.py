@@ -136,8 +136,8 @@ class NNGraph(Graph):
     """
 
     def __init__(self, Xin, NNtype='knn', use_flann=False, center=True,
-                 rescale=True, k=10, sigma=0.1, epsilon=0.01,
-                 plotting=None, gtype=None, **kwargs):
+                 rescale=True, k=10, sigma=0.1, epsilon=0.01, gtype=None,
+                 plotting=None, symetrize_type='average', **kwargs):
         if Xin is None:
             raise ValueError("You must enter a Xin to process the NNgraph")
         else:
@@ -149,15 +149,15 @@ class NNGraph(Graph):
         self.k = k
         self.sigma = sigma
         self.epsilon = epsilon
-        if plotting:
-            self.plotting = plotting
-        else:
-            self.plotting = {}
         if gtype is None:
             self.gtype = "nearest neighbors"
         else:
             self.gtype = gtype + ", NNgraph"
-
+        if plotting:
+            self.plotting = plotting
+        else:
+            self.plotting = {}
+        self.symetrize_type = symetrize_type
         param = kwargs
 
         N, d = np.shape(self.Xin)
@@ -187,7 +187,7 @@ class NNGraph(Graph):
                 kdt = spatial.KDTree(Xout)
                 D, NN = kdt.query(Xout, k=k + 1)
 
-            for i in xrange(N):
+            for i in range(N):
                 spi[i*k:(i+1)*k] = np.kron(np.ones((k)), i)
                 spj[i*k:(i+1)*k] = NN[i, 1:]
                 spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/float(self.sigma))
@@ -199,48 +199,55 @@ class NNGraph(Graph):
         elif self.NNtype == "radius":
 
             kdt = spatial.KDTree(Xout)
-            NN = kdt.query_ball_point(Xout, epsilon)
-            self.NN = NN
+            D, NN = kdt.query(Xout, k=None, distance_upper_bound=epsilon)
             count = 0
             for i in range(N):
                 count = count + len(NN[i])
 
             spi = np.zeros((count))
             spj = np.zeros((count))
-            # spv = np.zeros((count))
+            spv = np.zeros((count))
 
             start = 0
-
-            for i in np.arange(N):
+            for i in range(N):
                 leng = len(NN[i]) - 1
                 spi[start:start+leng] = np.kron(np.ones((leng)), i)
                 spj[start:start+leng] = NN[i][1:]
-                # spv[start:start+leng] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
+                spv[start:start+leng] = np.exp(-np.power(D[i][1:], 2)/float(self.sigma))
                 start = start+leng
 
-            self.W = sparse.csc_matrix((np.ones((np.shape(spi)[0])), (spi, spj)),
-                                       shape=(np.shape(self.Xin)[0],
-                                              np.shape(self.Xin)[0]))
-            print(self.W)
+            W = sparse.csc_matrix((spv, (spi, spj)),
+                                  shape=(np.shape(self.Xin)[0],
+                                         np.shape(self.Xin)[0]))
 
         else:
             raise ValueError("Unknown type : allowed values are knn, radius")
 
         # Sanity check
-        if np.shape(self.W)[0] != np.shape(self.W)[1]:
+        if np.shape(W)[0] != np.shape(W)[1]:
             raise ValueError("Weight matrix W is not square")
+
+        # Symmetry checks
+        self.W = W
+        if utils.is_directed(self):
+            self.W = utils.symetrize(W, symetrize_type=self.symetrize_type)
+        else:
+            print('The matrix W is symmetric')
+
+        self.N = N
 
         self.coords = Xout
 
-        super(NNGraph, self).__init__(N=N, plotting=self.plotting, W=self.W,
-                                      gtype=self.gtype, coords=self.coords, **kwargs)
+        super(NNGraph, self).__init__(N=self.N, gtype=self.gtype, W=self.W,
+                                      plotting=self.plotting,
+                                      coords=self.coords, **kwargs)
 
 
 class Bunny(NNGraph):
 
     def __init__(self, **kwargs):
 
-        self.NNtype = "knn"
+        self.NNtype = "radius"
         self.rescale = True
         self.center = True
         self.epsilon = 0.2
@@ -300,7 +307,7 @@ class Cube(NNGraph):
         else:
             raise ValueError("Unknown sampling !")
 
-        self.NNtype = "knn"
+        self.NNtype = "radius"
         self.gtype = "Cube"
         self.k = 10
 
