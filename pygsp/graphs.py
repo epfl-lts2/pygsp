@@ -200,39 +200,40 @@ class NNGraph(Graph):
         elif self.NNtype == "radius":
 
             kdt = spatial.KDTree(Xout)
-            D, NN = kdt.query(Xout, eps=epsilon)
-            print(np.shape(NN)[0])
-
+            NN = kdt.query_ball_point(Xout, epsilon)
+            self.NN = NN
             count = 0
             for i in range(N):
-                count = count + np.size(NN[i]) - 1
+                count = count + len(NN[i])
 
             spi = np.zeros((count))
             spj = np.zeros((count))
-            spv = np.zeros((count))
-            start = 1
+            # spv = np.zeros((count))
 
-            for i in range(N):
-                leng = np.size(NN[i]) - 1
-                spi[i*k:(i+1)*k] = np.kron(np.ones((k)), i)
-                spj[i*k:(i+1)*k] = NN[i, 1:]
-                spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
-                start = start + 1
+            start = 0
 
-            self.W = sparse.csc_matrix((spv, (spi, spj)),
+            for i in np.arange(N):
+                leng = len(NN[i]) - 1
+                spi[start:start+leng] = np.kron(np.ones((leng)), i)
+                spj[start:start+leng] = NN[i][1:]
+                # spv[start:start+leng] = np.exp(-np.power(D[i, 1:], 2)/self.sigma)
+                start = start+leng
+
+            self.W = sparse.csc_matrix((np.ones((np.shape(spi)[0])), (spi, spj)),
                                        shape=(np.shape(self.Xin)[0],
                                               np.shape(self.Xin)[0]))
+            print(self.W)
 
         else:
             raise ValueError("Unknown type : allowed values are knn, radius")
 
         # Sanity check
-        if np.shape(self.W)[0] != np.shape(self.W)[1]:
-            raise ValueError("Weight matrix W is not square")
+        """if np.shape(self.W)[0] != np.shape(self.W)[1]:
+                                    raise ValueError("Weight matrix W is not square")"""
 
         self.coords = Xout
 
-        super(NNGraph, self).__init__(N=N, W=self.W, plotting=self.plotting,
+        super(NNGraph, self).__init__(N=N, plotting=self.plotting, W=self.W,
                                       gtype=self.gtype, coords=self.coords, **kwargs)
 
 
