@@ -5,13 +5,13 @@ from scipy.sparse import linalg
 from math import isinf, isnan
 
 
-def is_directed(G):
+def is_directed(W):
     r"""
     Returns a bool:  True if the graph is directed and false if not
 
     Parameters
     ----------
-    G : Graph object
+    W : sparse matrix
 
     Returns
     -------
@@ -23,7 +23,7 @@ def is_directed(G):
 
     >>> import pygsp
     >>> G = pygsp.graph.Bunny()
-    >>> pygsp.utils.is_directed(G)
+    >>> pygsp.utils.is_directed(G.W)
 
     Notes
     -----
@@ -32,8 +32,8 @@ def is_directed(G):
     """
 
     # Python Bug Can't use this in tests
-    if np.shape(G.W) != (1, 1):
-        is_dir = (G.W - G.W.transpose()).sum() != 0
+    if np.shape(W) != (1, 1):
+        is_dir = (W - W.transpose()).sum() != 0
     else:
         is_dir = False
     return is_dir
@@ -196,6 +196,40 @@ def distanz(x, y=None):
             sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
 
     return np.sqrt(d)
+
+
+def symetrize(W, symetrize_type='avarage'):
+    r"""
+    symetrize a matrix
+    Usage:  W = gsp_symetrize(W)
+            W = gsp_symetrize(W, symetrize_type='average')
+
+    Input parameters:
+        W: square matrix
+        symetrize_type: type of symetrization (default 'average')
+
+    Output parameters:
+        W: symetrized matrix
+
+    The availlable symetrization_types are:
+        'average' : average of W and W^T (default)
+        'full'    : copy the missing entries
+        'none'    : nothing is done (the matrix might stay unsymetric!)
+    """
+
+    if symetrize_type == 'average':
+        W = (W + W.getH())/2.
+        return W
+
+    elif symetrize_type == 'full':
+        # TODO
+        return W
+
+    elif symetrize_type == 'none':
+        return W
+
+    else:
+        raise ValueError("Unknown symetrize type")
 
 
 def dummy(a, b, c):
