@@ -24,7 +24,7 @@ class Graph(object):
         - A: Adjacency matrix
         - N: Number of nodes
         - d: Degree vector
-        - Ne: Egde number
+        - Ne: Edges number
         - gtype: Graph type
         - directed: If the graph is directed
         - lap_type: Laplacian type
@@ -74,7 +74,6 @@ class Graph(object):
             self.L = L
         else:
             self.L = utils.create_laplacian(self)
-
 
         # Plotting default parameters
         self.plotting = {}
@@ -228,8 +227,8 @@ class NNGraph(Graph):
             raise ValueError("Unknown type : allowed values are knn, radius")
 
         # Sanity check
-        """if np.shape(self.W)[0] != np.shape(self.W)[1]:
-                                    raise ValueError("Weight matrix W is not square")"""
+        if np.shape(self.W)[0] != np.shape(self.W)[1]:
+            raise ValueError("Weight matrix W is not square")
 
         self.coords = Xout
 
@@ -241,7 +240,7 @@ class Bunny(NNGraph):
 
     def __init__(self, **kwargs):
 
-        self.NNtype = "radius"
+        self.NNtype = "knn"
         self.rescale = True
         self.center = True
         self.epsilon = 0.2
@@ -518,9 +517,9 @@ class LowStretchTree(Graph):
         start_nodes = np.array([1, 1, 3])
         end_nodes = np.array([2, 3, 4])
 
-        W = csc_matrix((np.ones((1, 3)), (start_nodes, end_nodes)),
+        W = sparse.csc_matrix((np.ones((3)), (start_nodes, end_nodes)),
                        shape=(4, 4))
-        W += W.getH()
+        W = W + W.getH()
 
         XCoords = np.array([1, 2, 1, 2])
         YCoords = np.array([1, 1, 2, 2])
@@ -1009,9 +1008,8 @@ class Logo(Graph):
         self.limits = np.array([0, 640, -400, 0])
         self.gtype = 'LogoGSP'
 
-        self.plotting = {
-                         # "vertex_color": np.array([200, 136./255., 204./255.]),
-                         # "edge_color": np.array([0, 136./255., 204./255.]),
+        self.plotting = {"vertex_color": np.array([200./255., 136./255., 204./255.]),
+                         "edge_color": np.array([0, 136./255., 204./255.]),
                          "vertex_size": 20}
 
         super(Logo, self).__init__(W=self.W, coords=self.coords, gtype=self.gtype, limits=self.limits, plotting=self.plotting)
