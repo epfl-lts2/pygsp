@@ -7,15 +7,15 @@ Test suite for the pygsp package.
 
 import unittest
 from pygsp.tests import test_docstrings, test_tutorials
-from pygsp.tests import test_module1, test_module2
+from pygsp.tests import test_graphs, test_utils
 
 
 suites = []
 
 suites.append(test_docstrings.suite)
 suites.append(test_tutorials.suite)
-suites.append(test_module1.suite)
-suites.append(test_module2.suite)
+suites.append(test_graphs.suite)
+suites.append(test_utils.suite)
 
 suite = unittest.TestSuite(suites)
 
