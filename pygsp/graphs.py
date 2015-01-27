@@ -36,7 +36,7 @@ class Graph(object):
     # or not needed are set to None
     def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
                  gtype='unknown', directed=None, coords=None,
-                 lap_type='combinatorial', L=None, plotting=None, **kwargs):
+                 lap_type='combinatorial', L=None, plotting={}, **kwargs):
 
         self.gtype = gtype
         self.lap_type = lap_type
@@ -69,7 +69,6 @@ class Graph(object):
             self.directed = directed
         else:
             self.directed = utils.is_directed(self.W)
-            pass
         if L is not None:
             self.L = L
         else:
@@ -192,9 +191,9 @@ class NNGraph(Graph):
                 spj[i*k:(i+1)*k] = NN[i, 1:]
                 spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/float(self.sigma))
 
-            self.W = sparse.csc_matrix((spv, (spi, spj)),
-                                       shape=(np.shape(self.Xin)[0],
-                                              np.shape(self.Xin)[0]))
+            W = sparse.csc_matrix((spv, (spi, spj)),
+                                  shape=(np.shape(self.Xin)[0],
+                                         np.shape(self.Xin)[0]))
 
         elif self.NNtype == "radius":
 
@@ -306,7 +305,7 @@ class Cube(NNGraph):
         else:
             raise ValueError("Unknown sampling !")
 
-        self.NNtype = "radius"
+        self.NNtype = 'knn'
         self.gtype = "Cube"
         self.k = 10
 
@@ -1048,22 +1047,24 @@ class RandomRing(Graph):
     def __init__(self, N=64):
         self.N = N
 
-        position = np.sort(np.random.rand(self.N, 1), axis=0)
+        position = np.sort(np.random.rand(self.N), axis=0)
 
-        weight = self.N*np.diff(self.N, axis=0)
+        weight = self.N*np.diff(position)
         weightend = self.N*(1 + position[0] - position[-1])
 
-        inds_j = np.conjugate(np.arange(2, self.N + 1).reshape(self.N-1, 1))
-        inds_i = np.conjugate(np.arange(1, self.N).reshape(self.N-1, 1))
+        inds_j = np.arange(1, self.N)
+        inds_i = np.arange(self.N-1)
 
-        W = sparse.csc_matrix((weight, (inds_i, inds_j)),
-                              shape=(self.N, self.N))
-        W[self.N, 1] = weightend
+        W = sparse.lil_matrix(sparse.csc_matrix((weight, (inds_i, inds_j)),
+                                                shape=(self.N, self.N)))
+        W[self.N-1, 0] = weightend
 
-        self.W += np.conjugate(np.transpose(W))
+        self.W = W + W.getH()
 
-        self.coords = np.concatenate((np.cos(position*2*np.pi),
-                                      np.sin(position*2*np.pi)),
+        self.coords = np.concatenate((np.expand_dims(np.cos(position*2*np.pi),
+                                      axis=1),
+                                      np.expand_dims(np.sin(position*2*np.pi),
+                                      axis=1)),
                                      axis=1)
 
         self.limits = np.array([-1, 1, -1, 1])
