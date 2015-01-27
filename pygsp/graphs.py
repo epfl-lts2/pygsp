@@ -68,7 +68,7 @@ class Graph(object):
         if directed:
             self.directed = directed
         else:
-            self.directed = utils.is_directed(self)
+            self.directed = utils.is_directed(W)
             pass
         if L is not None:
             self.L = L
@@ -192,9 +192,9 @@ class NNGraph(Graph):
                 spj[i*k:(i+1)*k] = NN[i, 1:]
                 spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/float(self.sigma))
 
-            self.W = sparse.csc_matrix((spv, (spi, spj)),
-                                       shape=(np.shape(self.Xin)[0],
-                                              np.shape(self.Xin)[0]))
+            W = sparse.csc_matrix((spv, (spi, spj)),
+                                  shape=(np.shape(self.Xin)[0],
+                                         np.shape(self.Xin)[0]))
 
         elif self.NNtype == "radius":
 
@@ -228,8 +228,8 @@ class NNGraph(Graph):
             raise ValueError("Weight matrix W is not square")
 
         # Symetry checks
-        if utils.is_directed(w):
-            W = utils.symetrize(W, symetrize_type=self.symetrize_type)
+        if utils.is_directed(W=W):
+            W = utils.symetrize(W=W, symetrize_type=self.symetrize_type)
         else:
             print('The matrix W is symmetric')
 
@@ -306,7 +306,7 @@ class Cube(NNGraph):
         else:
             raise ValueError("Unknown sampling !")
 
-        self.NNtype = "radius"
+        self.NNtype = 'knn'
         self.gtype = "Cube"
         self.k = 10
 
