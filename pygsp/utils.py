@@ -23,7 +23,7 @@ def is_directed(W):
 
     >>> import pygsp
     >>> G = pygsp.graph.Bunny()
-    >>> pygsp.utils.is_directed(G.W)
+    >>> pygsp.utils.is_directed(W)
 
     Notes
     -----
@@ -198,7 +198,7 @@ def distanz(x, y=None):
     return np.sqrt(d)
 
 
-def symetrize(W, symetrize_type='avarage'):
+def symetrize(W, symetrize_type='average'):
     r"""
     symetrize a matrix
     Usage:  W = gsp_symetrize(W)
@@ -222,7 +222,11 @@ def symetrize(W, symetrize_type='avarage'):
         return W
 
     elif symetrize_type == 'full':
-        # TODO
+        A = W > 0
+        M = (A - (A.transpose * A))
+        Wt = W.T
+        W *= M.T
+        W = Wt * M.T
         return W
 
     elif symetrize_type == 'none':

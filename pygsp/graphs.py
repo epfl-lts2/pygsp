@@ -68,7 +68,7 @@ class Graph(object):
         if directed:
             self.directed = directed
         else:
-            self.directed = utils.is_directed(self)
+            self.directed = utils.is_directed(self.W)
             pass
         if L is not None:
             self.L = L
@@ -228,10 +228,10 @@ class NNGraph(Graph):
             raise ValueError("Weight matrix W is not square")
 
         # Symetry checks
-        if utils.is_directed(w):
+        if utils.is_directed(W):
             W = utils.symetrize(W, symetrize_type=self.symetrize_type)
         else:
-            print('The matrix W is symmetric')
+            pass
 
         self.N = N
         self.W = W
