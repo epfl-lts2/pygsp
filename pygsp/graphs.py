@@ -227,15 +227,14 @@ class NNGraph(Graph):
         if np.shape(W)[0] != np.shape(W)[1]:
             raise ValueError("Weight matrix W is not square")
 
-        # Symmetry checks
-        self.W = W
-        if utils.is_directed(self):
-            self.W = utils.symetrize(W, symetrize_type=self.symetrize_type)
+        # Symetry checks
+        if utils.is_directed(w):
+            W = utils.symetrize(W, symetrize_type=self.symetrize_type)
         else:
             print('The matrix W is symmetric')
 
         self.N = N
-
+        self.W = W
         self.coords = Xout
 
         super(NNGraph, self).__init__(N=self.N, gtype=self.gtype, W=self.W,
