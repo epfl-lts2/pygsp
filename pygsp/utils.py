@@ -4,14 +4,16 @@ from scipy import sparse
 from scipy.sparse import linalg
 from math import isinf, isnan
 
+import pygsp
 
-def is_directed(W):
+
+def is_directed(M):
     r"""
     Returns a bool:  True if the graph is directed and false if not
 
     Parameters
     ----------
-    W : sparse matrix
+    M : sparse matrix or Graph
 
     Returns
     -------
@@ -30,6 +32,11 @@ def is_directed(W):
     The Weight matrix has to be sparse (For now)
     Can also be used to check if a matrix is symetrical
     """
+    # To pass a graph or a weight matrix as an argument
+    if issubclass(type(M), pygsp.graphs.Graph):
+        W = M.W
+    else:
+        W = M
 
     # Python Bug Can't use this in tests
     if np.shape(W) != (1, 1):
@@ -128,6 +135,10 @@ def create_laplacian(G):
 
 def check_connectivity(G, **kwargs):
     A = G.W
+    try:
+        G.directed
+    except AttributeError:
+        G.directed = is_directed(G)
     # Removing the diagonal
     A -= A.diagonal()
     if G.directed:

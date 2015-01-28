@@ -323,7 +323,7 @@ class Sphere(NNGraph):
 
         if self.sampling == "random":
             pts = np.random.normal(0, 1, (self.nb_pts, self.nb_dim))
-            for i in xrange(self.nb_pts):
+            for i in range(self.nb_pts):
                 pts[i] /= np.linalg.norm(pts[i])
         else:
             raise ValueError("Unknow sampling!")
@@ -408,11 +408,11 @@ class Grid2d(Graph):
         i_inds = np.zeros((K*self.Mv + J*self.Nv), dtype=float)
         j_inds = np.zeros((K*self.Mv + J*self.Nv), dtype=float)
 
-        for i in xrange(self.Mv):
+        for i in range(self.Mv):
             i_inds[i*K + np.arange(K)] = i*self.Nv + np.concatenate((np.arange(self.Nv-1), np.arange(1, self.Nv)))
             j_inds[i*K + np.arange(K)] = i*self.Nv + np.concatenate((np.arange(1, self.Nv), np.arange(self.Nv-1)))
 
-        for i in xrange(self.Mv-1):
+        for i in range(self.Mv-1):
             i_inds[(K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate((i*self.Nv + np.arange(self.Nv), (i+1)*self.Nv + np.arange(self.Nv)))
             j_inds[(K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate(((i+1)*self.Nv + np.arange(self.Nv), i*self.Nv + np.arange(self.Nv)))
 
@@ -446,11 +446,11 @@ class Torus(Graph):
         i_inds = np.zeros((K*self.Mv + J*self.Nv), dtype=float)
         j_inds = np.zeros((K*self.Mv + J*self.Nv), dtype=float)
 
-        for i in xrange(self.Mv):
+        for i in range(self.Mv):
             i_inds[i*K + np.arange(K)] = i*self.Nv + np.concatenate((np.array([self.Nv-1]), np.arange(self.Nv-1), np.arange(self.Nv)))
             j_inds[i*K + np.arange(K)] = i*self.Nv + np.concatenate((np.arange(self.Nv), np.array([self.Nv-1]), np.arange(self.Nv-1)))
 
-        for i in xrange(self.Mv-1):
+        for i in range(self.Mv-1):
             i_inds[K*self.Mv + i*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate((i*self.Nv + np.arange(self.Nv), (i+1)*self.Nv + np.arange(self.Nv)))
             j_inds[K*self.Mv + i*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate(((i+1)*self.Nv + np.arange(self.Nv), i*self.Nv + np.arange(self.Nv)))
 
@@ -529,7 +529,7 @@ class LowStretchTree(Graph):
         XCoords = np.array([1, 2, 1, 2])
         YCoords = np.array([1, 1, 2, 2])
 
-        for p in xrange(2, k+1):
+        for p in range(2, k+1):
             # TODO the ii/jj part
 
             YCoords = np.kron(np.ones((1, 2)), YCoords)
@@ -688,7 +688,7 @@ class Ring(Graph):
         j_inds = np.zeros((2*num_edges))
 
         all_inds = np.arange(self.N)
-        for i in xrange(min(self.k, floor((self.N-1)/2))):
+        for i in range(min(self.k, floor((self.N-1)/2))):
             i_inds[(i*2*self.N):(i*2*self.N + self.N)] = all_inds
             j_inds[(i*2*self.N):(i*2*self.N + self.N)] = np.remainder(all_inds + i +1, self.N)
             i_inds[(i*2*self.N + self.N):((i + 1)*2*self.N)] = np.remainder(all_inds + i +1, self.N)
@@ -766,12 +766,12 @@ class Community(Graph):
         if self.verbose > 2:
                 X = np.zeros((10000, self.Nc + 1))
                 # pick randomly param.Nc-1 points to cut the rows in communtities:
-                for i in xrange(10000):
+                for i in range(10000):
                     com_lims_tmp = np.sort(np.random.choice(self.N - (self.min_com - 1)*self.Nc - 1, self.Nc - 1) + 1)
                     com_lims_tmp += np.cumsum((self.min_com-1)*np.ones(np.shape(com_lims)))
                     X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([self.N])))
                 dX = np.transpose(np.diff(np.transpose(X)))
-                for i in xrange(self.Nc):
+                for i in range(self.Nc):
                     # TODO figure; hist(dX(:,i), 100); title('histogram of row community size'); end
                     pass
                 del X
@@ -785,7 +785,7 @@ class Community(Graph):
         self.coords = np.ones((self.N, 2))
 
         # create uniformly random points in the unit disc
-        for i in xrange(self.N):
+        for i in range(self.N):
             # use rejection sampling to sample from a unit disc (probability = pi/4)
             while np.linalg.norm(self.coords[i], 2) >= 0.5:
                 # sample from the square and reject anything outside the circle
@@ -794,7 +794,7 @@ class Community(Graph):
         info = {"node_com": np.zeros((self.N, 1))}
 
         # add the offset for each node depending on which community it belongs to
-        for i in xrange(self.Nc):
+        for i in range(self.Nc):
             com_size = self.com_sizes[i]
             rad_com = sqrt(com_size)
             node_ind = np.arange(com_lims[i] + 1, com_lims[i+1])
@@ -843,8 +843,8 @@ class Sensor(Graph):
 
             if param_distribute:
                 mdim = int(ceil(sqrt(N)))
-                for i in xrange(mdim):
-                    for j in xrange(mdim):
+                for i in range(mdim):
+                    for j in range(mdim):
                         if i*mdim + j < N:
                             XCoords[i*mdim + j] = np.array(1./float(mdim)*np.random.rand()+i/float(mdim))
                             YCoords[i*mdim + j] = np.array(1./float(mdim)*np.random.rand()+j/float(mdim))
@@ -876,9 +876,9 @@ class Sensor(Graph):
             Wtmp = W
             W = np.zeros(np.shape(W))
 
-            for i in xrange(np.shape(W)[0]):
+            for i in range(np.shape(W)[0]):
                 l = Wtmp[i]
-                for j in xrange(param_nc):
+                for j in range(param_nc):
                     val = np.max(l)
                     ind = np.argmax(l)
                     W[i, ind] = val
@@ -895,7 +895,7 @@ class Sensor(Graph):
         self.directed = False
 
         if self.connected:
-            for x in xrange(self.n_try):
+            for x in range(self.n_try):
                 W, XCoords, YCoords = create_weight_matrix(self.N,
                                                            self.distribute,
                                                            self.regular,
