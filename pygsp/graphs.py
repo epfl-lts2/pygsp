@@ -854,11 +854,13 @@ class Sensor(Graph):
                 XCoords = np.random.rand(N, 1)
                 YCoords = np.random.rand(N, 1)
 
+            Coords = np.concatenate((XCoords, YCoords), axis=1)
+
             # Compute the distanz between all the points
             target_dist_cutoff = 2*N**(-0.5)
             T = 0.6
             s = sqrt(-target_dist_cutoff**2/(2*log(T)))
-            d = utils.distanz(x=XCoords, y=YCoords)
+            d = utils.distanz(x=np.transpose(Coords))
             W = np.exp(-d**2/(2.*s**2))
             W -= np.diag(np.diag(W))
 
@@ -870,7 +872,7 @@ class Sensor(Graph):
                 W = np.where(W < T, 0, W)
                 W = np.where(W2 > 0, W2, W)
 
-            return W, XCoords, YCoords
+            return W, Coords
 
         def get_nc_connection(W, param_nc):
             Wtmp = W
@@ -888,12 +890,6 @@ class Sensor(Graph):
 
             return W
 
-        if self.regular:
-            self.gtype = "regular sensor"
-        else:
-            self.gtype = "sensor"
-        self.directed = False
-
         if self.connected:
             for x in range(self.n_try):
                 W, XCoords, YCoords = create_weight_matrix(self.N,
@@ -909,7 +905,7 @@ class Sensor(Graph):
                 elif x == self.n_try-1:
                     print("Warning! Graph is not connected")
         else:
-            W, XCoords, YCoords = create_weight_matrix(self.N, self.distribute,
+            W, Coords = create_weight_matrix(self.N, self.distribute,
                                                        self.regular, self.nc)
 
         if self.set_to_one:
@@ -917,7 +913,13 @@ class Sensor(Graph):
 
         W = sparse.lil_matrix(W)
         self.W = (W + W.getH())/2
-        self.coords = np.concatenate((XCoords, YCoords), axis=1)
+        self.coords = Coords
+
+        if self.regular:
+            self.gtype = "regular sensor"
+        else:
+            self.gtype = "sensor"
+        self.directed = False
 
         self.plotting = {"limits": np.array([0, 1, 0, 1])}
 
