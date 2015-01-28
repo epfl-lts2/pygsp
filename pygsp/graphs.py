@@ -892,10 +892,10 @@ class Sensor(Graph):
 
         if self.connected:
             for x in range(self.n_try):
-                W, XCoords, YCoords = create_weight_matrix(self.N,
-                                                           self.distribute,
-                                                           self.regular,
-                                                           self.nc)
+                W, Coords = create_weight_matrix(self.N,
+                                                 self.distribute,
+                                                 self.regular,
+                                                 self.nc)
 
                 self.W = W
 
