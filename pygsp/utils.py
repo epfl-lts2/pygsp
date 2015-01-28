@@ -180,8 +180,18 @@ def distanz(x, y=None):
         - x: matrix with col vectors
         - y: matrix with col vectors
     """
+    try:
+        x.shape[1]
+    except IndexError:
+        x = x.reshape(1, x.shape[0])
+
     if y is None:
         y = x
+    else:
+        try:
+            y.shape[1]
+        except IndexError:
+            y = y.reshape(1, y.shape[0])
 
     rx, cx = x.shape
     ry, cy = y.shape
@@ -189,6 +199,7 @@ def distanz(x, y=None):
     # Size verification
     if rx != ry:
         raise("The sizes of x and y do not fit")
+
     xx = (x*x).sum(axis=0)
     yy = (y*y).sum(axis=0)
     xy = np.transpose(x)*y
