@@ -66,3 +66,35 @@ def plot_graph(G):
             ax = fig.gca(projection='3d')
             ax.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
             plt.show()
+
+
+def rescale_center(x):
+    r"""
+    Rescaling the dataset.
+
+    Rescaling the dataset, previously and mainly used in the SwissRoll graph.
+
+    Parameters
+    ----------
+    x : ndarray
+        Dataset to be rescaled.
+
+    Returns
+    -------
+    r : ndarray
+        Rescaled dataset.
+
+    Examples
+    --------
+    >>> import pygsp
+    >>> pygsp.utils.dummy(0, [1, 2, 3], True)
+    array([1, 2, 3])
+
+    """
+    N = x.shape[1]
+    d = x.shape[0]
+    y = x - np.kron(np.ones((1, N)), np.expand_dims(np.mean(x, axis=1), axis=1))
+    c = np.amax(y)
+    r = y / c
+
+    return r
