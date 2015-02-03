@@ -14,7 +14,7 @@ from scipy import sparse
 from scipy import io
 from scipy import spatial
 
-from pygsp import utils
+from pygsp import utils, plotting
 
 
 class Graph(object):
@@ -1125,14 +1125,15 @@ class SwissRoll(Graph):
         self.x = x
 
         self.limits = np.array([-1, 1, -1, 1, -1, 1])
-        coords = pygsp.plotting.rescale_center(x)
-        dist = pygsp.utils.distanz(coords)
-        W = np.exp(np.power(-dist, 2) / 2 * s^2)
+        #x = x.reshape(n, 3)
+        self.coords = plotting.rescale_center(x)
+        dist = utils.distanz(self.coords)
+        W = np.exp(np.power(-dist, 2) / 2 * s**2)
         W -= np.diag(np.diag(W))
         W *= (W > thresh)
         self.W = W
         super(SwissRoll, self).__init__(W=self.W, coords=self.coords,
-                                        limits=self.limits, gtype=self.g)
+                                        limits=self.limits, gtype=self.gtype)
 
 
 class PointsCloud(object):
