@@ -4,14 +4,16 @@ from scipy import sparse
 from scipy.sparse import linalg
 from math import isinf, isnan
 
+import pygsp
 
-def is_directed(W):
+
+def is_directed(M):
     r"""
     Returns a bool:  True if the graph is directed and false if not
 
     Parameters
     ----------
-    W : sparse matrix
+    M : sparse matrix or Graph
 
     Returns
     -------
@@ -23,13 +25,18 @@ def is_directed(W):
 
     >>> import pygsp
     >>> G = pygsp.graph.Bunny()
-    >>> pygsp.utils.is_directed(G.W)
+    >>> pygsp.utils.is_directed(W)
 
     Notes
     -----
     The Weight matrix has to be sparse (For now)
     Can also be used to check if a matrix is symetrical
     """
+    # To pass a graph or a weight matrix as an argument
+    if issubclass(type(M), pygsp.graphs.Graph):
+        W = M.W
+    else:
+        W = M
 
     # Python Bug Can't use this in tests
     if np.shape(W) != (1, 1):
@@ -128,6 +135,10 @@ def create_laplacian(G):
 
 def check_connectivity(G, **kwargs):
     A = G.W
+    try:
+        G.directed
+    except AttributeError:
+        G.directed = is_directed(G)
     # Removing the diagonal
     A -= A.diagonal()
     if G.directed:
@@ -180,8 +191,18 @@ def distanz(x, y=None):
         - x: matrix with col vectors
         - y: matrix with col vectors
     """
+    try:
+        x.shape[1]
+    except IndexError:
+        x = x.reshape(1, x.shape[0])
+
     if y is None:
         y = x
+    else:
+        try:
+            y.shape[1]
+        except IndexError:
+            y = y.reshape(1, y.shape[0])
 
     rx, cx = x.shape
     ry, cy = y.shape
@@ -189,16 +210,17 @@ def distanz(x, y=None):
     # Size verification
     if rx != ry:
         raise("The sizes of x and y do not fit")
+
     xx = (x*x).sum(axis=0)
     yy = (y*y).sum(axis=0)
-    xy = np.transpose(x)*y
+    xy = np.dot(np.transpose(x), y)
     d = abs(sp.kron(sp.ones((cy, 1)), xx).transpose() +
             sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
 
     return np.sqrt(d)
 
 
-def symetrize(W, symetrize_type='avarage'):
+def symetrize(W, symetrize_type='average'):
     r"""
     symetrize a matrix
     Usage:  W = gsp_symetrize(W)
@@ -222,7 +244,10 @@ def symetrize(W, symetrize_type='avarage'):
         return W
 
     elif symetrize_type == 'full':
-        # TODO
+        A = W > 0
+        M = (A - (A.T.multiply(A)))
+        W = sparse.csr_matrix(W)
+        W[M.T] = W.T[M.T]
         return W
 
     elif symetrize_type == 'none':

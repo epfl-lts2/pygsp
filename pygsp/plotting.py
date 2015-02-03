@@ -1,9 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import pygsp
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+
+
+def plot(G):
+    if issubclass(type(G), pygsp.graphs.Graph):
+        plot_graph(G)
+    elif issubclass(type(G), pygsp.graphs.PointsCloud):
+        plot_pointcloud(G)
+    else:
+        raise TypeError('Your object type is incorrect, be sure it is a PointCloud or a graphs')
 
 
 def plot_graph(G):
@@ -12,7 +22,6 @@ def plot_graph(G):
 
     show_edges = G.Ne < 10000
 
-    # TODO Fix this condition
     if show_edges:
         ki, kj = np.nonzero(G.A)
         if G.directed:
@@ -66,3 +75,62 @@ def plot_graph(G):
             ax = fig.gca(projection='3d')
             ax.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
             plt.show()
+
+
+def plot_pointcloud(P):
+    r"""
+    Plot the coordinates of a pointcloud.
+
+    Parameters
+    ----------
+    P : PointsClouds object
+
+    Examples
+    --------
+    >>> import pygsp
+    >>> pygsp.graphs.dummy(0, [1, 2, 3], True)
+    array([1, 2, 3])
+
+    """
+    if P.coords.shape[1] == 2:
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.plot(P.coords[:, 0], P.coords[:, 1], 'bo')
+        plt.show()
+    if P.coords.shape[1] == 3:
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        ax.plot(P.coords[:, 0], P.coords[:, 1], P.coords[:, 2], 'bo')
+        plt.show()
+
+
+def rescale_center(x):
+    r"""
+    Rescaling the dataset.
+
+    Rescaling the dataset, previously and mainly used in the SwissRoll graph.
+
+    Parameters
+    ----------
+    x : ndarray
+        Dataset to be rescaled.
+
+    Returns
+    -------
+    r : ndarray
+        Rescaled dataset.
+
+    Examples
+    --------
+    >>> import pygsp
+    >>> pygsp.utils.dummy(0, [1, 2, 3], True)
+    array([1, 2, 3])
+
+    """
+    N = x.shape[1]
+    d = x.shape[0]
+    y = x - np.kron(np.ones((1, N)), np.expand_dims(np.mean(x, axis=1), axis=1))
+    c = np.amax(y)
+    r = y / c
+
+    return r

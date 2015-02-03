@@ -48,7 +48,7 @@ def dummy(a, b, c):
     Examples
     --------
     >>> import pygsp
-    >>> pygsp.module1.dummy(0, [1, 2, 3], True)
+    >>> pygsp.filters.dummy(0, [1, 2, 3], True)
     array([1, 2, 3])
 
     """
