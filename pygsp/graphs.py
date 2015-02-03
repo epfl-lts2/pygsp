@@ -519,26 +519,41 @@ class LowStretchTree(Graph):
 
     def __init__(self, k=6, **kwargs):
 
-        start_nodes = np.array([1, 1, 3])
-        end_nodes = np.array([2, 3, 4])
+        start_nodes = np.array([0, 0, 2])
+        end_nodes = np.array([1, 2, 3])
 
         W = sparse.csc_matrix((np.ones((3)), (start_nodes, end_nodes)),
-                       shape=(4, 4))
+                              shape=(4, 4))
         W = W + W.getH()
 
         XCoords = np.array([1, 2, 1, 2])
         YCoords = np.array([1, 1, 2, 2])
 
         for p in range(2, k+1):
-            # TODO the ii/jj part
-
-            YCoords = np.kron(np.ones((1, 2)), YCoords)
-            YCoords_new = np.array([YCoords, YCoords+2**(p-1)])
+            ii, jj = W.nonzero()
+            ii_new = np.concatenate((ii, ii + 4**(p-1), ii + 2*4**(p-1),
+                                     ii + 3*4**(p-1), [4**(p-1) - 1],
+                                     [4**(p-1) - 1],
+                                     [4**(p-1) + (4**p+2)/3. - 1],
+                                     [5/3.*4**(p-1) + 1/3. - 1],
+                                     [4**(p-1) + (4**p+2)/3. - 1],
+                                     [3*4**(p-1)]))
+            jj_new = np.concatenate((jj, jj + 4**(p-1), jj + 2*4**(p-1),
+                                     jj + 3*4**(p-1),
+                                     [5./3*4**(p-1) + 1/3. - 1],
+                                     [4**(p-1) + (4**p+2)/3. - 1],
+                                     [3*4**(p-1)], [4**(p-1) - 1],
+                                     [4**(p-1) - 1],
+                                     [4**(p-1) + (4**p+2)/3. - 1]))
+            W = sparse.csc_matrix((np.ones((np.shape(ii_new))), (ii_new, jj_new)),
+                                  shape=(np.shape(ii_new)[0], np.shape(ii_new)[0]))
+            YCoords = np.kron(np.ones((2)), YCoords)
+            YCoords_new = np.concatenate((YCoords, YCoords + 2**(p-1)))
             YCoords = YCoords_new
-            XCoords_new = np.array([XCoords, XCoords+2**(p-1)])
-            XCoords = np.kron(np.ones((1, 2)), XCoords_new)
+            XCoords_new = np.concatenate((XCoords, XCoords + 2**(p-1)))
+            XCoords = np.kron(np.ones((2)), XCoords_new)
 
-        self.coords = np.array([np.transpose(XCoords), np.transpose(YCoords)])
+        self.coords = np.concatenate((np.expand_dims(XCoords, axis=1), np.expand_dims(YCoords, axis=1)), axis=1)
         self.limits = np.array([0, 2**k+1, 0, 2**k+1])
         self.N = (2**k)**2
         self.W = W
