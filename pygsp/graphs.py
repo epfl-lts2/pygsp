@@ -8,7 +8,7 @@ import os
 import os.path
 import numpy as np
 import random as rd
-from math import ceil, sqrt, log, exp, floor
+from math import ceil, sqrt, log, exp, floor, pi
 from copy import deepcopy
 from scipy import sparse
 from scipy import io
@@ -1073,6 +1073,43 @@ class RandomRing(Graph):
         self.gtype = 'random-ring'
 
         super(RandomRing, self).__init__(N=self.N, W=self.W, coords=self.coords, limits=self.limits, gtype=self.gtype)
+
+class SwissRoll(Graph):
+
+    def __init__(self, n=400, a=1, b=4, dim=3, thresh=1e-6, s=None, noise=False, srtype='uniform'):
+        self.dim = dim
+        self.n = n
+        if s is None:
+            s = sqrt(2/n)
+
+        y1 = np.random.rand(n)
+        y2 = np.random.rand(n)
+        if srtype == 'uniform':
+            tt = np.sqrt((b * b - a * a) * y1 + a * a)
+        elif srtype == 'classic':
+            tt = (b - a) * y1 + a
+        self.gtype = 'swiss roll' + srtype
+        tt *= pi
+        h = 21 * y2
+        if dim == 2:
+            x = np.array((tt*np.cos(tt), tt * np.cos(tt)))
+        elif dim == 3:
+            x = np.array((tt*np.cos(tt), h, tt * np.cos(tt)))
+
+        if noise:
+            x += np.random.randn(*x.shape)
+
+        self.x = x
+
+        self.limits = np.array([-1, 1, -1, 1, -1, 1])
+        coords = pygsp.plotting.rescale_center(x)
+        dist = pygsp.utils.distanz(coords)
+        W = np.exp(np.power(-dist, 2) / 2 * s^2)
+        W -= np.diag(np.diag(W))
+        W *= (W > thresh)
+        self.W = W
+        super(SwissRoll, self).__init__(W=self.W, coords=self.coords,
+                                        limits=self.limits, gtype=self.g)
 
 
 class PointsCloud(object):
