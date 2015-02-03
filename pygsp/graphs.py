@@ -557,14 +557,37 @@ class LowStretchTree(Graph):
 class RandomRegular(Graph):
 
     def __init__(self, N=64, k=6, **kwargs):
-        self.N = N
-        self.k = k
 
-        self.gtype = "random_regular"
-        self.W = createRandRegGraph(self.N. self.k)
+        def isRegularGraph(A):
 
-        super(RandomRegular, self).__init__(W=self.W, gtype=self.gtype,
-                                            **kwargs)
+            msg = "The given matrix "
+
+            # check if the sparse matrix is in a good format
+            if A.getformat() == 'lil' or A.getformat() == 'dia' or A.getformat() == 'bok':
+                A = A.tocsc()
+
+            # check symmetry
+            tmp = (A-A.getH())
+            if np.sum((tmp.getH()*tmp).diagonal()) > 0:
+                msg += "is not symetric, "
+
+            # check parallel edged
+            if A.max(axis=None) > 1:
+                msg += "has parallel edges, "
+
+            # check that d is d-regular
+            d_vec = A.sum(axis=0)
+            if np.min(d_vec) < d_vec[:, 0] and np.max(d_vec) > d_vec[:, 0]:
+                msg += "not d-regular, "
+
+            # check that g doesn't contain any loops
+            if A.diagonal().any() > 0:
+                msg += "has self loops, "
+
+            else:
+                msg += "is ok"
+
+            print(msg)
 
         def createRandRegGraph(vertNum, deg):
             r"""
@@ -586,6 +609,7 @@ class RandomRegular(Graph):
               add it to the graph
 
             reference: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.67.7957&rep=rep1&type=pdf
+            This code has been adapted from matlab to pyhton
             """
 
             n = vertNum
@@ -598,10 +622,10 @@ class RandomRegular(Graph):
                                  n*d must be even!")
 
             # a list of open half-edges
-            U = np.kron(np.ones((1, d)), np.arange(n)+1)
+            U = np.kron(np.ones((d)), np.arange(n))
 
             # the graphs adajency matrix
-            A = sparse.csc_matrix(n, n)
+            A = sparse.lil_matrix(np.zeros((n, n)))
 
             edgesTested = 0
             repetition = 1
@@ -615,58 +639,40 @@ class RandomRegular(Graph):
                     print("createRandRegGraph() progress: edges=%d/%d\n" % (edgesTested, n*d))
 
                 # chose at random 2 half edges
-                v1 = ceil(rd.random()*np.shape(U)[0])
-                i2 = ceil(rd.random()*np.shape(U)[0])
+                i1 = floor(rd.random()*np.shape(U)[0])
+                i2 = floor(rd.random()*np.shape(U)[0])
                 v1 = U[i1]
                 v2 = U[i2]
 
                 # check that there are no loops nor parallel edges
-                if vi == v2 or A[v1, v2] == 1:
+                if v1 == v2 or A[v1, v2] == 1:
                     # restart process if needed
                     if edgesTested == n*d:
                         repetition = repetition + 1
                         edgesTested = 0
-                        U = np.kron(np.ones((1, d)), np.arange(n)+1)
-                        A = sparse.csc_matrix(n, n)
+                        U = np.kron(np.ones((d)), np.arange(n))
+                        A = sparse.lil_matrix(np.zeros((n, n)))
                 else:
                     # add edge to graph
                     A[v1, v2] = 1
                     A[v2, v1] = 1
 
                     # remove used half-edges
-                    v = sorted([v1, v2])
+                    v = sorted([i1, i2])
                     U = np.concatenate((U[1:v[0]], U[v[0]+1:v[1]], U[v[1]+1:]))
 
             isRegularGraph(A)
 
             return A
 
-        def isRegularGraph(G):
+        self.N = N
+        self.k = k
 
-            msg = "the grpah G "
+        self.gtype = "random_regular"
+        self.W = createRandRegGraph(self.N, self.k)
 
-            # check symmetry
-            tmp = (G-G.getH())
-            if np.sum((tmp.getH()*tmp).diagonal()) > 0:
-                msg += "is not symetric, "
-
-            # check parallel edged
-            if G.max(axis=None) > 1:
-                msg += "has parallel edges, "
-
-            # check that d is d-regular
-            d_vec = G.sum(axis=0)
-            if np.min(d_vec) < d_vec[:, 0] and np.max(d_vec) > d_vec[:, 0]:
-                msg += "not d-regular, "
-
-            # check that g doesn't contain any loops
-            if G.diagonal().any() > 0:
-                msg += "has self loops, "
-
-            else:
-                msg += "is ok"
-
-            print(msg)
+        super(RandomRegular, self).__init__(W=self.W, gtype=self.gtype,
+                                            **kwargs)
 
 
 class Ring(Graph):
