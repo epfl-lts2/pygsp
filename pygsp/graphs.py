@@ -847,6 +847,44 @@ class Community(Graph):
         super(Community, self).__init__(W=self.W, gtype=self.gtype, coords=self.coords, info=self.info, **kwargs)
 
 
+class Minnesota(Graph):
+
+    def __init__(self, connect=True):
+        minnesota = PointsCloud('minnesota')
+
+        self.N = np.shape(minnesota.A)[0]
+        self.coords = minnesota.coords
+        self.plotting = {"limits": np.array([-98, -89, 43, 50]),
+                         "vertex_size": 30}
+
+        if connect:
+            # Edit adjacency matrix
+            A = minnesota.A.tolil()
+            # clean minnesota graph
+            A.setdiag(0)
+            # missing edge needed to connect graph
+            A[349, 355] = 1
+            A[355, 349] = 1
+            # change a handful of 2 values back to 1
+            A[86, 88] = 1
+            A[86, 88] = 1
+            A[345, 346] = 1
+            A[346, 345] = 1
+            A[1707, 1709] = 1
+            A[1709, 1707] = 1
+            A[2289, 2290] = 1
+            A[2290, 2289] = 1
+            self.W = sparse.lil_matrix(A)
+            self.gtype = 'minnesota'
+        else:
+            self.W = A
+            self.gtype = 'minnesota-disconnected'
+
+        super(Minnesota, self).__init__(W=self.W, gtype=self.gtype,
+                                        coords=self.coords, N=self.N,
+                                        plotting=self.plotting)
+
+
 class Sensor(Graph):
 
     def __init__(self, N=64, nc=2, regular=False, verbose=1, n_try=50, distribute=False, connected=True, set_to_one=False, **kwargs):
@@ -1097,6 +1135,7 @@ class RandomRing(Graph):
 
         super(RandomRing, self).__init__(N=self.N, W=self.W, coords=self.coords, limits=self.limits, gtype=self.gtype)
 
+
 class SwissRoll(Graph):
 
     def __init__(self, n=400, a=1, b=4, dim=3, thresh=1e-6, s=None, noise=False, srtype='uniform'):
@@ -1176,6 +1215,12 @@ class PointsCloud(object):
             self.info = {"idx_g": logomat["idx_g"],
                          "idx_s": logomat["idx_s"],
                          "idx_p": logomat["idx_p"]}
+
+        elif pointcloudname == "minnesota":
+            minnesotamat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/minnesota.mat')
+            self.A = minnesotamat["A"]
+            self.labels = minnesotamat["labels"]
+            self.coords = minnesotamat["xy"]
 
         elif pointcloudname == "two_moons":
             twomoonsmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/two_moons.mat')
