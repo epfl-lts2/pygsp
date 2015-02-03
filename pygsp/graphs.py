@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#w-*- coding: utf-8 -*-
 
 r"""
 Module documentation.
@@ -1125,12 +1125,11 @@ class SwissRoll(Graph):
         self.x = x
 
         self.limits = np.array([-1, 1, -1, 1, -1, 1])
-        #x = x.reshape(n, 3)
         self.coords = plotting.rescale_center(x)
         dist = utils.distanz(self.coords)
         W = np.exp(np.power(-dist, 2) / 2 * s**2)
         W -= np.diag(np.diag(W))
-        W *= (W > thresh)
+        W = np.where(W < thresh, 0, W)
         self.W = W
         super(SwissRoll, self).__init__(W=self.W, coords=self.coords,
                                         limits=self.limits, gtype=self.gtype)
