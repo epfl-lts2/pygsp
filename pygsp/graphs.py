@@ -519,26 +519,41 @@ class LowStretchTree(Graph):
 
     def __init__(self, k=6, **kwargs):
 
-        start_nodes = np.array([1, 1, 3])
-        end_nodes = np.array([2, 3, 4])
+        start_nodes = np.array([0, 0, 2])
+        end_nodes = np.array([1, 2, 3])
 
         W = sparse.csc_matrix((np.ones((3)), (start_nodes, end_nodes)),
-                       shape=(4, 4))
+                              shape=(4, 4))
         W = W + W.getH()
 
         XCoords = np.array([1, 2, 1, 2])
         YCoords = np.array([1, 1, 2, 2])
 
         for p in range(2, k+1):
-            # TODO the ii/jj part
-
-            YCoords = np.kron(np.ones((1, 2)), YCoords)
-            YCoords_new = np.array([YCoords, YCoords+2**(p-1)])
+            ii, jj = W.nonzero()
+            ii_new = np.concatenate((ii, ii + 4**(p-1), ii + 2*4**(p-1),
+                                     ii + 3*4**(p-1), [4**(p-1) - 1],
+                                     [4**(p-1) - 1],
+                                     [4**(p-1) + (4**p+2)/3. - 1],
+                                     [5/3.*4**(p-1) + 1/3. - 1],
+                                     [4**(p-1) + (4**p+2)/3. - 1],
+                                     [3*4**(p-1)]))
+            jj_new = np.concatenate((jj, jj + 4**(p-1), jj + 2*4**(p-1),
+                                     jj + 3*4**(p-1),
+                                     [5./3*4**(p-1) + 1/3. - 1],
+                                     [4**(p-1) + (4**p+2)/3. - 1],
+                                     [3*4**(p-1)], [4**(p-1) - 1],
+                                     [4**(p-1) - 1],
+                                     [4**(p-1) + (4**p+2)/3. - 1]))
+            W = sparse.csc_matrix((np.ones((np.shape(ii_new))), (ii_new, jj_new)),
+                                  shape=(np.shape(ii_new)[0], np.shape(ii_new)[0]))
+            YCoords = np.kron(np.ones((2)), YCoords)
+            YCoords_new = np.concatenate((YCoords, YCoords + 2**(p-1)))
             YCoords = YCoords_new
-            XCoords_new = np.array([XCoords, XCoords+2**(p-1)])
-            XCoords = np.kron(np.ones((1, 2)), XCoords_new)
+            XCoords_new = np.concatenate((XCoords, XCoords + 2**(p-1)))
+            XCoords = np.kron(np.ones((2)), XCoords_new)
 
-        self.coords = np.array([np.transpose(XCoords), np.transpose(YCoords)])
+        self.coords = np.concatenate((np.expand_dims(XCoords, axis=1), np.expand_dims(YCoords, axis=1)), axis=1)
         self.limits = np.array([0, 2**k+1, 0, 2**k+1])
         self.N = (2**k)**2
         self.W = W
@@ -557,14 +572,37 @@ class LowStretchTree(Graph):
 class RandomRegular(Graph):
 
     def __init__(self, N=64, k=6, **kwargs):
-        self.N = N
-        self.k = k
 
-        self.gtype = "random_regular"
-        self.W = createRandRegGraph(self.N. self.k)
+        def isRegularGraph(A):
 
-        super(RandomRegular, self).__init__(W=self.W, gtype=self.gtype,
-                                            **kwargs)
+            msg = "The given matrix "
+
+            # check if the sparse matrix is in a good format
+            if A.getformat() == 'lil' or A.getformat() == 'dia' or A.getformat() == 'bok':
+                A = A.tocsc()
+
+            # check symmetry
+            tmp = (A-A.getH())
+            if np.sum((tmp.getH()*tmp).diagonal()) > 0:
+                msg += "is not symetric, "
+
+            # check parallel edged
+            if A.max(axis=None) > 1:
+                msg += "has parallel edges, "
+
+            # check that d is d-regular
+            d_vec = A.sum(axis=0)
+            if np.min(d_vec) < d_vec[:, 0] and np.max(d_vec) > d_vec[:, 0]:
+                msg += "not d-regular, "
+
+            # check that g doesn't contain any loops
+            if A.diagonal().any() > 0:
+                msg += "has self loops, "
+
+            else:
+                msg += "is ok"
+
+            print(msg)
 
         def createRandRegGraph(vertNum, deg):
             r"""
@@ -586,6 +624,7 @@ class RandomRegular(Graph):
               add it to the graph
 
             reference: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.67.7957&rep=rep1&type=pdf
+            This code has been adapted from matlab to pyhton
             """
 
             n = vertNum
@@ -598,10 +637,10 @@ class RandomRegular(Graph):
                                  n*d must be even!")
 
             # a list of open half-edges
-            U = np.kron(np.ones((1, d)), np.arange(n)+1)
+            U = np.kron(np.ones((d)), np.arange(n))
 
             # the graphs adajency matrix
-            A = sparse.csc_matrix(n, n)
+            A = sparse.lil_matrix(np.zeros((n, n)))
 
             edgesTested = 0
             repetition = 1
@@ -615,58 +654,40 @@ class RandomRegular(Graph):
                     print("createRandRegGraph() progress: edges=%d/%d\n" % (edgesTested, n*d))
 
                 # chose at random 2 half edges
-                v1 = ceil(rd.random()*np.shape(U)[0])
-                i2 = ceil(rd.random()*np.shape(U)[0])
+                i1 = floor(rd.random()*np.shape(U)[0])
+                i2 = floor(rd.random()*np.shape(U)[0])
                 v1 = U[i1]
                 v2 = U[i2]
 
                 # check that there are no loops nor parallel edges
-                if vi == v2 or A[v1, v2] == 1:
+                if v1 == v2 or A[v1, v2] == 1:
                     # restart process if needed
                     if edgesTested == n*d:
                         repetition = repetition + 1
                         edgesTested = 0
-                        U = np.kron(np.ones((1, d)), np.arange(n)+1)
-                        A = sparse.csc_matrix(n, n)
+                        U = np.kron(np.ones((d)), np.arange(n))
+                        A = sparse.lil_matrix(np.zeros((n, n)))
                 else:
                     # add edge to graph
                     A[v1, v2] = 1
                     A[v2, v1] = 1
 
                     # remove used half-edges
-                    v = sorted([v1, v2])
+                    v = sorted([i1, i2])
                     U = np.concatenate((U[1:v[0]], U[v[0]+1:v[1]], U[v[1]+1:]))
 
             isRegularGraph(A)
 
             return A
 
-        def isRegularGraph(G):
+        self.N = N
+        self.k = k
 
-            msg = "the grpah G "
+        self.gtype = "random_regular"
+        self.W = createRandRegGraph(self.N, self.k)
 
-            # check symmetry
-            tmp = (G-G.getH())
-            if np.sum((tmp.getH()*tmp).diagonal()) > 0:
-                msg += "is not symetric, "
-
-            # check parallel edged
-            if G.max(axis=None) > 1:
-                msg += "has parallel edges, "
-
-            # check that d is d-regular
-            d_vec = G.sum(axis=0)
-            if np.min(d_vec) < d_vec[:, 0] and np.max(d_vec) > d_vec[:, 0]:
-                msg += "not d-regular, "
-
-            # check that g doesn't contain any loops
-            if G.diagonal().any() > 0:
-                msg += "has self loops, "
-
-            else:
-                msg += "is ok"
-
-            print(msg)
+        super(RandomRegular, self).__init__(W=self.W, gtype=self.gtype,
+                                            **kwargs)
 
 
 class Ring(Graph):
@@ -719,7 +740,7 @@ class Ring(Graph):
 # Need params
 class Community(Graph):
 
-    def __init__(self, N=256, Nc=None, com_sizes=[], min_com=None,
+    def __init__(self, N=256, Nc=None, com_sizes=np.array([]), min_com=None,
                  min_deg=None, verbose=1, size_ratio=1, world_density=None,
                  **kwargs):
         param = kwargs
@@ -729,19 +750,19 @@ class Community(Graph):
         if Nc:
             self.Nc = Nc
         else:
-            self.Nc = round(sqrt(self.N))
+            self.Nc = round(sqrt(self.N)/2)
 
         if len(com_sizes) != 0:
             if np.sum(com_sizes) != self.N:
                 raise ValueError("GSP_COMMUNITY: The sum of the community \
                                  sizes has to be equal to N")
-            else:
-                self.com_sizes = com_sizes
+        else:
+            self.com_sizes = com_sizes
 
         if min_com:
             self.min_com = min_com
         else:
-            self.min_com = round(self.N / self.Nc / 3.)
+            self.min_com = round(float(self.N) / self.Nc / 3.)
 
         if min_deg:
             self.min_deg = min_deg
@@ -757,8 +778,9 @@ class Community(Graph):
             self.world_density = 1./self.N
 
         # Begining
-        if len(self.com_sizes) == 0:
-            com_lims = np.sort(np.random.choice(self.N - (self.min_com - 1)*self.Nc - 1, self.Nc - 1) + 1)
+        if np.shape(self.com_sizes)[0] == 0:
+            x = self.N - (self.min_com - 1)*self.Nc - 1
+            com_lims = np.sort(np.resize(np.random.permutation(int(x)), (self.Nc-1.))) + 1
             com_lims += np.cumsum((self.min_com-1)*np.ones(np.shape(com_lims)))
             com_lims = np.concatenate((np.array([0]), com_lims, np.array([self.N])))
             self.com_sizes = np.diff(com_lims)
@@ -767,8 +789,8 @@ class Community(Graph):
                 X = np.zeros((10000, self.Nc + 1))
                 # pick randomly param.Nc-1 points to cut the rows in communtities:
                 for i in range(10000):
-                    com_lims_tmp = np.sort(np.random.choice(self.N - (self.min_com - 1)*self.Nc - 1, self.Nc - 1) + 1)
-                    com_lims_tmp += np.cumsum((self.min_com-1)*np.ones(np.shape(com_lims)))
+                    com_lims_tmp = np.sort(np.resize(np.random.permutation(int(x)), (self.Nc-1.))) + 1
+                    com_lims_tmp += np.cumsum((self.min_com-1)*np.ones(np.shape(com_lims_temp)))
                     X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([self.N])))
                 dX = np.transpose(np.diff(np.transpose(X)))
                 for i in range(self.Nc):
@@ -778,8 +800,8 @@ class Community(Graph):
                 del com_lims_tmp
 
         rad_world = self.size_ratio*sqrt(self.N)
-        com_coords = rad_world*np.concatenate((-np.cos(2*np.pi*(np.arange(self.Nc) + 1).reshape(10, 1)/self.Nc),
-                                               np.sin(2*np.pi*(np.arange(self.Nc) + 1).reshape(10, 1)/self.Nc)),
+        com_coords = rad_world*np.concatenate((-np.cos(2*np.pi*(np.arange(self.Nc) + 1).reshape(self.Nc, 1)/self.Nc),
+                                               np.sin(2*np.pi*(np.arange(self.Nc) + 1).reshape(self.Nc, 1)/self.Nc)),
                                               axis=1)
 
         self.coords = np.ones((self.N, 2))
@@ -789,26 +811,27 @@ class Community(Graph):
             # use rejection sampling to sample from a unit disc (probability = pi/4)
             while np.linalg.norm(self.coords[i], 2) >= 0.5:
                 # sample from the square and reject anything outside the circle
-                self.coords[i] = rd.uniform(-0.5, 0.5), rd.uniform(-0.5, 0.5)
+                self.coords[i] = rd.random()-0.5, rd.random()-0.5
 
         info = {"node_com": np.zeros((self.N, 1))}
 
         # add the offset for each node depending on which community it belongs to
-        for i in range(self.Nc):
+        for i in range(int(self.Nc)):
             com_size = self.com_sizes[i]
             rad_com = sqrt(com_size)
-            node_ind = np.arange(com_lims[i] + 1, com_lims[i+1])
+
+            node_ind = np.arange(com_lims[i], com_lims[i+1])
             self.coords[node_ind] = rad_com*self.coords[node_ind] + com_coords[i]
             info["node_com"] = i
 
         D = utils.distanz(np.transpose(self.coords))
-        W = exp(-np.power(D, 2))
+        W = np.exp(-np.power(D, 2))
         W = np.where(W < 1e-3, 0, W)
 
         # When we make W symetric, the density get bigger (because we add a ramdom number of values)
-        density = self.N/(2.-1./self.world_density)
+        self.world_density = self.world_density/float(2-1./self.N)
 
-        W = W + np.abs(sparse.rand(self.N, self.N, density=density))
+        W = W + np.abs(sparse.rand(self.N, self.N, density=self.world_density))
         w = (W + W.getH())/2  # make W symetric
 
         W = np.where(np.abs(W) > 0, 1, W).astype(float)
@@ -820,7 +843,7 @@ class Community(Graph):
         info["com_coords"] = com_coords
         info["com_sizes"] = self.com_sizes
         self.info = info
-
+        print(self.Nc)
         super(Community, self).__init__(W=self.W, gtype=self.gtype, coords=self.coords, info=self.info, **kwargs)
 
 
