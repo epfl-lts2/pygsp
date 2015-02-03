@@ -10,9 +10,7 @@ import numpy as np
 import random as rd
 from math import ceil, sqrt, log, exp, floor, pi
 from copy import deepcopy
-from scipy import sparse
-from scipy import io
-from scipy import spatial
+from scipy import sparse, io, spatial
 
 from pygsp import utils, plotting
 
