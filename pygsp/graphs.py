@@ -1101,7 +1101,7 @@ class SwissRoll(Graph):
         self.dim = dim
         self.n = n
         if s is None:
-            s = sqrt(2/n)
+            s = sqrt(2./n)
 
         y1 = np.random.rand(n)
         y2 = np.random.rand(n)
@@ -1113,9 +1113,9 @@ class SwissRoll(Graph):
         tt *= pi
         h = 21 * y2
         if dim == 2:
-            x = np.array((tt*np.cos(tt), tt * np.cos(tt)))
+            x = np.array((tt*np.cos(tt), tt * np.sin(tt)))
         elif dim == 3:
-            x = np.array((tt*np.cos(tt), h, tt * np.cos(tt)))
+            x = np.array((tt*np.cos(tt), h, tt * np.sin(tt)))
 
         if noise:
             x += np.random.randn(*x.shape)
@@ -1123,12 +1123,13 @@ class SwissRoll(Graph):
         self.x = x
 
         self.limits = np.array([-1, 1, -1, 1, -1, 1])
-        self.coords = plotting.rescale_center(x)
-        dist = utils.distanz(self.coords)
-        W = np.exp(np.power(-dist, 2) / 2 * s**2)
+        coords = plotting.rescale_center(x)
+        dist = utils.distanz(coords)
+        W = np.exp(-np.power(dist, 2) / (2. * s**2))
         W -= np.diag(np.diag(W))
         W = np.where(W < thresh, 0, W)
         self.W = W
+        self.coords = coords.transpose()
         super(SwissRoll, self).__init__(W=self.W, coords=self.coords,
                                         limits=self.limits, gtype=self.gtype)
 
