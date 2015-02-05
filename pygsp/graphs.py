@@ -174,9 +174,9 @@ class NNGraph(Graph):
             Xout *= scale/bounding_radius
 
         if self.NNtype == "knn":
-            spi = np.zeros((N*self.k))
-            spj = np.zeros((N*self.k))
-            spv = np.zeros((N*self.k))
+            spi = np.zeros((N*k))
+            spj = np.zeros((N*k))
+            spv = np.zeros((N*k))
 
             # since we didn't find a good flann python library yet,
             # we wont implement it for now
@@ -399,36 +399,34 @@ class TwoMoons(NNGraph):
 class Grid2d(Graph):
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
-        self.Nv = Nv
-        if Mv:
-            self.Mv = Mv
-        else:
-            self.Mv = Nv
-
-        self.gtype = '2d-grid'
-        self.N = self.Nv * self.Mv
+        if not Mv:
+            Mv = Nv
 
         # Create weighted adjacency matrix
-        K = 2*(self.Nv-1)
-        J = 2*(self.Mv-1)
+        K = 2*(Nv-1)
+        J = 2*(Mv-1)
 
-        i_inds = np.zeros((K*self.Mv + J*self.Nv), dtype=float)
-        j_inds = np.zeros((K*self.Mv + J*self.Nv), dtype=float)
+        i_inds = np.zeros((K*Mv + J*Nv), dtype=float)
+        j_inds = np.zeros((K*Mv + J*Nv), dtype=float)
 
-        for i in range(self.Mv):
-            i_inds[i*K + np.arange(K)] = i*self.Nv + np.concatenate((np.arange(self.Nv-1), np.arange(1, self.Nv)))
-            j_inds[i*K + np.arange(K)] = i*self.Nv + np.concatenate((np.arange(1, self.Nv), np.arange(self.Nv-1)))
+        for i in range(Mv):
+            i_inds[i*K + np.arange(K)] = i*Nv + np.concatenate((np.arange(Nv-1), np.arange(1, Nv)))
+            j_inds[i*K + np.arange(K)] = i*Nv + np.concatenate((np.arange(1, Nv), np.arange(Nv-1)))
 
-        for i in range(self.Mv-1):
-            i_inds[(K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate((i*self.Nv + np.arange(self.Nv), (i+1)*self.Nv + np.arange(self.Nv)))
-            j_inds[(K*self.Mv) + i*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate(((i+1)*self.Nv + np.arange(self.Nv), i*self.Nv + np.arange(self.Nv)))
+        for i in range(Mv-1):
+            i_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = np.concatenate((i*Nv + np.arange(Nv), (i+1)*Nv + np.arange(Nv)))
+            j_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = np.concatenate(((i+1)*Nv + np.arange(Nv), i*Nv + np.arange(Nv)))
 
-        self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv)), (i_inds, j_inds)), shape=(self.Mv*self.Nv, self.Mv*self.Nv))
+        self.W = sparse.csc_matrix((np.ones((K*Mv+J*Nv)), (i_inds, j_inds)), shape=(Mv*Nv, Mv*Nv))
 
-        xtmp = np.kron(np.ones((self.Mv, 1)), (np.arange(self.Nv)/float(self.Nv)).reshape(self.Nv, 1))
-        ytmp = np.sort(np.kron(np.ones((self.Nv, 1)), np.arange(self.Mv)/float(self.Mv)).reshape(self.Mv*self.Nv, 1), axis=0)
+        xtmp = np.kron(np.ones((Mv, 1)), (np.arange(Nv)/float(Nv)).reshape(Nv, 1))
+        ytmp = np.sort(np.kron(np.ones((Nv, 1)), np.arange(Mv)/float(Mv)).reshape(Mv*Nv, 1), axis=0)
         self.coords = np.concatenate((xtmp, ytmp), axis=1)
 
+        self.N = Nv * Mv
+        self.Nv = Nv
+        self.Mv = Mv
+        self.gtype = '2d-grid'
         self.plotting = {"limits": np.array([-1./self.Nv, 1 + 1./self.Nv, 1./self.Mv, 1 + 1./self.Mv]),
                          "vertex_size": 30}
 
@@ -438,50 +436,44 @@ class Grid2d(Graph):
 class Torus(Graph):
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
-        self.Nv = Nv
-        if Mv:
-            self.Mv = Mv
-        else:
-            self.Mv = Nv
 
-        self.gtype = 'Torus'
-        self.directed = False
+        if not Mv:
+            Mv = Nv
 
         # Create weighted adjancency matrix
-        K = 2 * self.Nv
-        J = 2 * self.Mv
-        i_inds = np.zeros((K*self.Mv + J*self.Nv), dtype=float)
-        j_inds = np.zeros((K*self.Mv + J*self.Nv), dtype=float)
+        K = 2 * Nv
+        J = 2 * Mv
+        i_inds = np.zeros((K*Mv + J*Nv), dtype=float)
+        j_inds = np.zeros((K*Mv + J*Nv), dtype=float)
 
-        for i in range(self.Mv):
-            i_inds[i*K + np.arange(K)] = i*self.Nv + np.concatenate((np.array([self.Nv-1]), np.arange(self.Nv-1), np.arange(self.Nv)))
-            j_inds[i*K + np.arange(K)] = i*self.Nv + np.concatenate((np.arange(self.Nv), np.array([self.Nv-1]), np.arange(self.Nv-1)))
+        for i in range(Mv):
+            i_inds[i*K + np.arange(K)] = i*Nv + np.concatenate((np.array([Nv-1]), np.arange(Nv-1), np.arange(Nv)))
+            j_inds[i*K + np.arange(K)] = i*Nv + np.concatenate((np.arange(Nv), np.array([Nv-1]), np.arange(Nv-1)))
 
-        for i in range(self.Mv-1):
-            i_inds[K*self.Mv + i*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate((i*self.Nv + np.arange(self.Nv), (i+1)*self.Nv + np.arange(self.Nv)))
-            j_inds[K*self.Mv + i*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate(((i+1)*self.Nv + np.arange(self.Nv), i*self.Nv + np.arange(self.Nv)))
+        for i in range(Mv-1):
+            i_inds[K*Mv + i*2*Nv + np.arange(2*Nv)] = np.concatenate((i*Nv + np.arange(Nv), (i+1)*Nv + np.arange(Nv)))
+            j_inds[K*Mv + i*2*Nv + np.arange(2*Nv)] = np.concatenate(((i+1)*Nv + np.arange(Nv), i*Nv + np.arange(Nv)))
 
-        i_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate((np.arange(self.Nv), (self.Mv-1)*self.Nv + np.arange(self.Nv)))
-        j_inds[K*self.Mv + (self.Mv-1)*2*self.Nv + np.arange(2*self.Nv)] = np.concatenate(((self.Mv-1)*self.Nv + np.arange(self.Nv), np.arange(self.Nv)))
+        i_inds[K*Mv + (Mv-1)*2*Nv + np.arange(2*Nv)] = np.concatenate((np.arange(Nv), (Mv-1)*Nv + np.arange(Nv)))
+        j_inds[K*Mv + (Mv-1)*2*Nv + np.arange(2*Nv)] = np.concatenate(((Mv-1)*Nv + np.arange(Nv), np.arange(Nv)))
 
-        self.W = sparse.csc_matrix((np.ones((K*self.Mv+J*self.Nv)),
-                                    (i_inds, j_inds)),
-                                   shape=(self.Mv*self.Nv, self.Mv*self.Nv))
+        self.W = sparse.csc_matrix((np.ones((K*Mv+J*Nv)), (i_inds, j_inds)),
+                                   shape=(Mv*Nv, Mv*Nv))
 
         # Create Coordinate
-        T = 1.5 + np.sin(np.arange(self.Mv)*2*np.pi/self.Mv).reshape(1, self.Mv)
-        U = np.cos(np.arange(self.Mv)*2*np.pi/self.Mv).reshape(1, self.Mv)
-        xtmp = np.cos(np.arange(self.Nv).reshape(self.Nv, 1)*2*np.pi/self.Nv)*T
-        ytmp = np.sin(np.arange(self.Nv).reshape(self.Nv, 1)*2*np.pi/self.Nv)*T
-        ztmp = np.kron(np.ones((self.Nv, 1)), U)
-        self.coords = np.concatenate((np.reshape(xtmp, (self.Mv*self.Nv, 1),
-                                      order='F'),
-                                      np.reshape(ytmp, (self.Mv*self.Nv, 1),
-                                      order='F'),
-                                      np.reshape(ztmp, (self.Mv*self.Nv, 1),
-                                      order='F')),
+        T = 1.5 + np.sin(np.arange(Mv)*2*np.pi/Mv).reshape(1, Mv)
+        U = np.cos(np.arange(Mv)*2*np.pi/Mv).reshape(1, Mv)
+        xtmp = np.cos(np.arange(Nv).reshape(Nv, 1)*2*np.pi/Nv)*T
+        ytmp = np.sin(np.arange(Nv).reshape(Nv, 1)*2*np.pi/Nv)*T
+        ztmp = np.kron(np.ones((Nv, 1)), U)
+        self.coords = np.concatenate((np.reshape(xtmp, (Mv*Nv, 1), order='F'),
+                                      np.reshape(ytmp, (Mv*Nv, 1), order='F'),
+                                      np.reshape(ztmp, (Mv*Nv, 1), order='F')),
                                      axis=1)
-
+        self.Nv = Nv
+        self.Mv = Nv
+        self.directed = False
+        self.gtype = 'Torus'
         self.plotting = {"vertex_size": 30,
                          "limits": np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])}
 
@@ -494,29 +486,29 @@ class Torus(Graph):
 class Comet(Graph):
 
     def __init__(self, Nv=32, k=12, **kwargs):
-        self.Nv = Nv
-        self.k = k
-        self.gtype = 'Comet'
 
         # Create weighted adjancency matrix
-        i_inds = np.concatenate((np.zeros((self.k)), np.arange(self.k)+1,
-                                 np.arange(self.k, self.Nv-1),
-                                 np.arange(self.k+1, self.Nv)))
-        j_inds = np.concatenate((np.arange(self.k)+1, np.zeros((self.k)),
-                                 np.arange(self.k+1, self.Nv),
-                                 np.arange(self.k, self.Nv-1)))
+        i_inds = np.concatenate((np.zeros((k)), np.arange(k)+1,
+                                 np.arange(k, Nv-1),
+                                 np.arange(k+1, Nv)))
+        j_inds = np.concatenate((np.arange(k)+1, np.zeros((k)),
+                                 np.arange(k+1, Nv),
+                                 np.arange(k, Nv-1)))
 
         self.W = sparse.csc_matrix((np.ones((np.size(i_inds))),
                                     (i_inds, j_inds)),
-                                   shape=(self.Nv, self.Nv))
+                                   shape=(Nv, Nv))
 
-        tmpcoords = np.zeros((self.Nv, 2))
+        tmpcoords = np.zeros((Nv, 2))
         inds = np.arange(k)+1
         tmpcoords[1:k+1, 0] = np.cos(inds*2*np.pi/k)
         tmpcoords[1:k+1, 1] = np.sin(inds*2*np.pi/k)
-        tmpcoords[k+1:, 0] = np.arange(1, self.Nv-k)+1
-        self.coords = tmpcoords
+        tmpcoords[k+1:, 0] = np.arange(1, Nv-k)+1
 
+        self.coords = tmpcoords
+        self.Nv = Nv
+        self.k = k
+        self.gtype = 'Comet'
         self.plotting = {"limits": np.array([-2, np.max(tmpcoords[:, 0]),
                                              np.min(tmpcoords[:, 1]),
                                              np.max(tmpcoords[:, 1])])}
@@ -760,104 +752,94 @@ class Community(Graph):
                  min_deg=None, verbose=1, size_ratio=1, world_density=None):
 
         # Initialisation of the parameters
-        self.N = N
-        if Nc:
-            self.Nc = Nc
-        else:
-            self.Nc = round(sqrt(self.N)/2.)
+        if not Nc:
+            Nc = round(sqrt(N)/2.)
 
         if len(com_sizes) != 0:
-            if np.sum(com_sizes) != self.N:
+            if np.sum(com_sizes) != N:
                 raise ValueError("GSP_COMMUNITY: The sum of the community \
                                  sizes has to be equal to N")
-        else:
-            self.com_sizes = com_sizes
 
-        if min_com:
-            self.min_com = min_com
-        else:
-            self.min_com = round(float(self.N) / self.Nc / 3.)
+        if not min_com:
+            min_com = round(float(N) / Nc / 3.)
 
-        if min_deg:
-            self.min_deg = min_deg
-        else:
-            self.min_deg = round(self.min_com/2.)
+        if not min_deg:
+            min_deg = round(min_com/2.)
 
-        self.verbose = verbose
-        self.size_ratio = size_ratio
-
-        if world_density:
-            self.world_density = world_density
-        else:
-            self.world_density = 1./self.N
+        if not world_density:
+            world_density = 1./N
 
         # Begining
-        if np.shape(self.com_sizes)[0] == 0:
-            x = self.N - (self.min_com - 1)*self.Nc - 1
-            com_lims = np.sort(np.resize(np.random.permutation(int(x)), (self.Nc-1.))) + 1
-            com_lims += np.cumsum((self.min_com-1)*np.ones(np.shape(com_lims)))
-            com_lims = np.concatenate((np.array([0]), com_lims, np.array([self.N])))
-            self.com_sizes = np.diff(com_lims)
+        if np.shape(com_sizes)[0] == 0:
+            x = N - (min_com - 1)*Nc - 1
+            com_lims = np.sort(np.resize(np.random.permutation(int(x)), (Nc-1.))) + 1
+            com_lims += np.cumsum((min_com-1)*np.ones(np.shape(com_lims)))
+            com_lims = np.concatenate((np.array([0]), com_lims, np.array([N])))
+            com_sizes = np.diff(com_lims)
 
-        if self.verbose > 2:
-                X = np.zeros((10000, self.Nc + 1))
+        if verbose > 2:
+                X = np.zeros((10000, Nc + 1))
                 # pick randomly param.Nc-1 points to cut the rows in communtities:
                 for i in range(10000):
-                    com_lims_tmp = np.sort(np.resize(np.random.permutation(int(x)), (self.Nc-1.))) + 1
-                    com_lims_tmp += np.cumsum((self.min_com-1)*np.ones(np.shape(com_lims_temp)))
-                    X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([self.N])))
+                    com_lims_tmp = np.sort(np.resize(np.random.permutation(int(x)), (Nc-1.))) + 1
+                    com_lims_tmp += np.cumsum((min_com-1)*np.ones(np.shape(com_lims_temp)))
+                    X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([N])))
                 dX = np.transpose(np.diff(np.transpose(X)))
-                for i in range(self.Nc):
+                for i in range(Nc):
                     # TODO figure; hist(dX(:,i), 100); title('histogram of row community size'); end
                     pass
                 del X
                 del com_lims_tmp
 
-        rad_world = self.size_ratio*sqrt(self.N)
-        com_coords = rad_world*np.concatenate((-np.expand_dims(np.cos(2*np.pi*(np.arange(self.Nc) + 1)/self.Nc), axis=1),
-                                               np.expand_dims(np.sin(2*np.pi*(np.arange(self.Nc) + 1)/self.Nc), axis=1)),
+        rad_world = size_ratio*sqrt(N)
+        com_coords = rad_world*np.concatenate((-np.expand_dims(np.cos(2*np.pi*(np.arange(Nc) + 1)/Nc), axis=1),
+                                               np.expand_dims(np.sin(2*np.pi*(np.arange(Nc) + 1)/Nc), axis=1)),
                                               axis=1)
 
-        self.coords = np.ones((self.N, 2))
+        coords = np.ones((N, 2))
 
         # create uniformly random points in the unit disc
-        for i in range(self.N):
+        for i in range(N):
             # use rejection sampling to sample from a unit disc (probability = pi/4)
-            while np.linalg.norm(self.coords[i], 2) >= 0.5:
+            while np.linalg.norm(coords[i], 2) >= 0.5:
                 # sample from the square and reject anything outside the circle
-                self.coords[i] = rd.random()-0.5, rd.random()-0.5
+                coords[i] = rd.random()-0.5, rd.random()-0.5
 
-        info = {"node_com": np.zeros((self.N, 1))}
+        info = {"node_com": np.zeros((N, 1))}
 
         # add the offset for each node depending on which community it belongs to
-        for i in range(int(self.Nc)):
-            com_size = self.com_sizes[i]
+        for i in range(int(Nc)):
+            com_size = com_sizes[i]
             rad_com = sqrt(com_size)
 
             node_ind = np.arange(com_lims[i], com_lims[i+1])
-            self.coords[node_ind] = rad_com*self.coords[node_ind] + com_coords[i]
+            coords[node_ind] = rad_com*coords[node_ind] + com_coords[i]
             info["node_com"] = i
 
-        D = utils.distanz(np.transpose(self.coords))
+        D = utils.distanz(np.transpose(coords))
         W = np.exp(-np.power(D, 2))
         W = np.where(W < 1e-3, 0, W)
 
         # When we make W symetric, the density get bigger (because we add a ramdom number of values)
-        self.world_density = self.world_density/float(2-1./self.N)
+        world_density = world_density/float(2-1./N)
 
-        W = W + np.abs(sparse.rand(self.N, self.N, density=self.world_density))
+        W = W + np.abs(sparse.rand(N, N, density=world_density))
         # W need to be symetric.
         w = (W + W.getH())/2.
-
         W = np.where(np.abs(W) > 0, 1, W).astype(float)
+
         self.W = sparse.coo_matrix(W)
         self.gtype = "Community"
+        self.coords = coords
+        self.N = N
+        self.Nc = Nc
 
         # return additional info about the communities
         info["com_lims"] = com_lims
         info["com_coords"] = com_coords
-        info["com_sizes"] = self.com_sizes
+        info["com_sizes"] = com_sizes
         self.info = info
+
         super(Community, self).__init__(W=self.W, gtype=self.gtype,
                                         coords=self.coords, info=self.info)
 
