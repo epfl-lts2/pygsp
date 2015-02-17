@@ -4,6 +4,7 @@ r"""
 Flters Doc
 """
 
+from math import exp, log
 import numpy as np
 
 
@@ -15,17 +16,17 @@ class Filter(object):
     def __init__(self):
         pass
 
-    def analysis(G, s, **kwargs):
+    def analysis(self, G, s, **kwargs):
         Nf = len(self.fi)
         pass
 
-    def evaluate(x):
+    def evaluate(self, x):
         pass
 
-    def inverse(G, c, **kwargs):
+    def inverse(self, G, c, **kwargs):
         pass
 
-    def synthesis(G, c, **kwargs):
+    def synthesis(self, G, c, **kwargs):
         pass
 
     def approx(G, m, N, **kwargs):
@@ -40,8 +41,19 @@ class Filter(object):
     def bank_matrix(G, **kwargs):
         pass
 
-    def wlog_scales(lim, lmax, Fscales):
-        pass
+    def wlog_scales(lmin, lmax, Nscales):
+        r"""
+        Compute logarithm scales for wavelets
+        """
+        t1 = 1
+        t2 = 2
+
+        smin = t1/lmax
+        smax = t2/lmin
+
+        s = exp(np.linspace(log(smax), log(smin), Nscales))
+
+        return s
 
     def evaluate_can_dual(val):
         pass
@@ -91,8 +103,11 @@ class Itersine(Filter):
 
 class MexicanHat(Filter):
 
-    def __init__(self):
-        pass
+    def __init__(self, G, Nf=6):
+        try:
+            G.lmax
+        except AttributeError:
+            G.lmax = utils.estimate_lmax(G)
 
 
 class Meyer(Filter):
