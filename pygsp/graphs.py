@@ -114,7 +114,7 @@ class Graph(object):
         """
 
         sub_G = self
-        sub_G.W = [c, c]
+        sub_G.W = self.W[c, c]
         try:
             sub_G.N = len(c)
         except TypeError:
@@ -738,10 +738,9 @@ class Community(Graph):
 
     def __init__(self, N=256, Nc=None, com_sizes=np.array([]), min_com=None,
                  min_deg=None, verbose=1, size_ratio=1, world_density=None):
-
         # Initialisation of the parameters
         if not Nc:
-            Nc = round(sqrt(N)/2.)
+            Nc = int(round(sqrt(N)/2.))
 
         if len(com_sizes) != 0:
             if np.sum(com_sizes) != N:
@@ -773,7 +772,7 @@ class Community(Graph):
                     com_lims_tmp += np.cumsum((min_com-1)*np.ones(np.shape(com_lims_temp)))
                     X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([N])))
                 dX = np.transpose(np.diff(np.transpose(X)))
-                for i in range(Nc):
+                for i in range(int(Nc)):
                     # TODO figure; hist(dX(:,i), 100); title('histogram of row community size'); end
                     pass
                 del X
@@ -845,11 +844,14 @@ class Minnesota(Graph):
         if connect:
             # Edit adjacency matrix
             A = minnesota.A.tolil()
+
             # clean minnesota graph
             A.setdiag(0)
+
             # missing edge needed to connect graph
             A[349, 355] = 1
             A[355, 349] = 1
+
             # change a handful of 2 values back to 1
             A[86, 88] = 1
             A[86, 88] = 1
@@ -859,8 +861,10 @@ class Minnesota(Graph):
             A[1709, 1707] = 1
             A[2289, 2290] = 1
             A[2290, 2289] = 1
-            self.W = sparse.lil_matrix(A)
+
+            self.W = A
             self.gtype = 'minnesota'
+
         else:
             self.W = A
             self.gtype = 'minnesota-disconnected'
