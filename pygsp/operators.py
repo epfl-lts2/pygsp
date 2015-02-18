@@ -44,3 +44,7 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
 
 def full_eigen(L):
     eigenvalues, eigenvectors = np.linalg.svd(L)
+
+    # Sort everything
+    EV = np.sort(eigenvalues)
+
