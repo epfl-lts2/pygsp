@@ -74,7 +74,7 @@ def estimate_lmax(G):
     except ValueError:
         print('GSP_ESTIMATE_LMAX: Cannot use default method')
         lmax = max(G.d)
-    return lmax
+    return np.real(lmax)
 
 
 def check_weights(W):
@@ -122,7 +122,7 @@ def create_laplacian(G):
         return sparse.lil_matrix(0)
     else:
         if G.lap_type == 'combinatorial':
-            L = sparse.lil_matrix(G.W.sum(1).diagonal() - G.W)
+            L = sparse.lil_matrix(np.diagflat(G.W.sum(1)) - G.W)
         elif G.lap_type == 'normalized':
             D = sparse.lil_matrix(G.W.sum(1).diagonal() ** (-0.5))
             L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D

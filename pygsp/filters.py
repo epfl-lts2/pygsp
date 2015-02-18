@@ -7,13 +7,15 @@ Flters Doc
 from math import exp, log
 import numpy as np
 
+from pygsp import utils
+
 
 class Filter(object):
     r"""
     TODO doc
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         pass
 
     def analysis(self, G, s, **kwargs):
@@ -41,17 +43,15 @@ class Filter(object):
     def bank_matrix(G, **kwargs):
         pass
 
-    def wlog_scales(lmin, lmax, Nscales):
+    def wlog_scales(self, lmin, lmax, Nscales, t1=1, t2=2):
         r"""
         Compute logarithm scales for wavelets
         """
-        t1 = 1
-        t2 = 2
-
+        print(lmin)
         smin = t1/lmax
         smax = t2/lmin
 
-        s = exp(np.linspace(log(smax), log(smin), Nscales))
+        s = np.exp(np.linspace(log(smax), log(smin), Nscales))
 
         return s
 
@@ -103,11 +103,31 @@ class Itersine(Filter):
 
 class MexicanHat(Filter):
 
-    def __init__(self, G, Nf=6):
+    def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
         try:
             G.lmax
         except AttributeError:
             G.lmax = utils.estimate_lmax(G)
+        print(G.lmax)
+
+        if t is None:
+            G.lmin = G.lmax / lpfactor
+            print(G.lmin)
+            self.t = self.wlog_scales(G.lmin, G.lmax, Nf - 1)
+        else:
+            self.t = t
+
+        gb = lambda x: x * np.exp(-x)
+        gl = lambda x: np.exp(-np.power(x, 4))
+
+        lminfac = .4 * G.lmin
+
+        self.g = []
+        print(self.g)
+        self.g.append(lambda x: 1.2 * exp(-1) * gl(x / lminfac))
+
+        for i in range(1, Nf):
+            self.g.append(lambda x: gb(self.t[i] * x))
 
 
 class Meyer(Filter):
