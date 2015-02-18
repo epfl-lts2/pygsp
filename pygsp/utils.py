@@ -7,6 +7,30 @@ from math import isinf, isnan
 import pygsp
 
 
+def graph_array_handler(func):
+
+    def inner(G, *args, **kwargs):
+        if issubclass(G, pygsp.graphs.Graph):
+            return func(G, *args, **kwargs)
+        elif type(G) is list:
+            output = []
+            for g in G:
+                output.append(func(g, *args, **kwargs))
+            return output
+        else:
+            raise TypeError("This function only accept Graphs or Graphs lists")
+
+    return inner
+
+
+def sparsifier(func):
+
+    def inner(*args, **kwargs):
+        return sparse.lil_matrix(func(*args, **kwargs))
+
+    return inner
+
+
 def is_directed(M):
     r"""
     Returns a bool:  True if the graph is directed and false if not
