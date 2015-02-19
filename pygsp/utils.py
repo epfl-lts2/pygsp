@@ -135,9 +135,7 @@ def create_laplacian(G):
 
 def check_connectivity(G, **kwargs):
     A = G.W
-    try:
-        G.directed
-    except AttributeError:
+    if not hasattr(G, 'directed'):
         G.directed = is_directed(G)
     # Removing the diagonal
     A -= A.diagonal()
