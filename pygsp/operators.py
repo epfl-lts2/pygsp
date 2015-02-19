@@ -26,7 +26,7 @@ def grad_mat(G):
 @utils.graph_array_handler
 def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
 
-    if hasattr(G, e) or hasattr(G, U):
+    if hasattr(G, 'e') or hasattr(G, 'U'):
         print("This graph already has Laplacian eigenvectors or eigenvalues")
 
     if G.N > 3000:
