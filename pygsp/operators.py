@@ -1,4 +1,6 @@
 import numpy as np
+import scipy as sp
+from scipy import linalg
 
 from pygsp import utils
 
@@ -43,8 +45,13 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
 
 
 def full_eigen(L):
-    eigenvalues, eigenvectors = np.linalg.svd(L)
+    eigenvectors, eigenvalues, fo = np.linalg.svd(L.todense())
 
     # Sort everything
+    inds = np.argsort(eigenvalues)
     EV = np.sort(eigenvalues)
 
+    eigenvectors = eigenvectors[inds]
+
+    print(eigenvectors)
+    return EV
