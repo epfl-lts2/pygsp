@@ -41,17 +41,25 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
     else:
         if not hasattr(G, L):
             raise AttributeError("Graph Laplacian is missing")
-        G.U, G.e = full_eigen(G.L)
+        G.e, G.U = full_eigen(G.L)
+
+    G.lmax = np.max(G.e)
+
+    G.mu = np.max(np.abs(G.U))
 
 
 def full_eigen(L):
-    eigenvectors, eigenvalues, fo = np.linalg.svd(L.todense())
+    eigenvectors, eigenvalues, _ = np.linalg.svd(L.todense())
 
     # Sort everything
     inds = np.argsort(eigenvalues)
-    EV = np.sort(eigenvalues)
+    EVa = np.sort(eigenvalues)
 
-    eigenvectors = eigenvectors[inds]
+    # TODO check if axis are good
+    EVe = eigenvectors[:, inds]
 
-    print(eigenvectors)
-    return EV
+    for val in EVe[0, :]:
+        if val < 0:
+            val = -val
+
+    return EVa, EVe
