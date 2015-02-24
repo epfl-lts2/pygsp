@@ -39,13 +39,23 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
         # TODO
         pass
     else:
-        if not hasattr(G, L):
+        if not hasattr(G, 'L'):
             raise AttributeError("Graph Laplacian is missing")
         G.e, G.U = full_eigen(G.L)
 
     G.lmax = np.max(G.e)
 
     G.mu = np.max(np.abs(G.U))
+
+
+def compute_cheby_coeff(G, f, m=30, N=None, *args):
+
+    if not N:
+        N = m + 1
+
+    if isinstance(f, list):
+        Nf = len(f)
+        c = np.zeros(m+1, Nf)
 
 
 def full_eigen(L):
