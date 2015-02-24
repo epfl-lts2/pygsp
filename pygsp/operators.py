@@ -29,6 +29,23 @@ def adj2vec(G):
         G.Diff = grad_mat(G)
 
 
+def div(G, s):
+    if hasattr(G, 'lap_type'):
+        if G.lap_type == 'combinatorial':
+            raise NotImplementedError('Not implemented yet. However ask Nathanael it is very easy')
+
+    if G.Ne != np.shape(s)[0]:
+        raise ValueError('Signal size not equal to number of edges')
+
+    D = grad_mat(G)
+    di = D.getH()*s
+
+    if s.dtype == 'float32':
+        di = np.float32(di)
+
+    return di
+
+
 def grad(G, s):
     r"""
     Graph gradient
@@ -39,7 +56,10 @@ def grad(G, s):
             raise NotImplementedError('Not implemented yet. However ask Nathanael it is very easy')
 
     D = grad_mat(G)
-    gr = D*float(s)
+    gr = D*s
+
+    if s.dtype == 'float32':
+        gr = np.float32(gr)
 
     return gr
 
