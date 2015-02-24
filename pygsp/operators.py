@@ -419,6 +419,11 @@ def translate(G, f, i):
         ft : translate signal
     """
 
+    fhat = gft(G, f)
+    nt = np.shape(f)[1]
+
+    ft = np.sqrt(G.N)*igft(G, fhat, np.kron(np.ones((1, nt)), G.U[i]))
+
     return ft
 
 
