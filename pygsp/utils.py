@@ -23,6 +23,23 @@ def graph_array_handler(func):
     return inner
 
 
+def filterbank_handler(func):
+
+    def inner(f, x, *args, **kwargs):
+        if len(f.g) <= 1:
+            return func(f, x, *args, **kwargs)
+        elif len(f.g) > 1:
+            output = []
+            i = range(len(f.g)-1)
+            for ii in i:
+                output.append(func(f, x, *args, i=ii, **kwargs))
+            return output
+        else:
+            raise TypeError("This function only accepts Filters or\
+                            Filters lists")
+    return inner
+
+
 def sparsifier(func):
 
     def inner(*args, **kwargs):

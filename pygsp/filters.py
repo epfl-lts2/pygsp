@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 r"""
-Flters Doc
+Filters Doc
 """
 
 from math import exp, log
@@ -20,34 +20,35 @@ class Filter(object):
 
     def analysis(self, G, s, **kwargs):
         Nf = len(self.fi)
-        pass
 
-    def evaluate(self, x):
-        pass
+    @utils.filterbank_handler
+    def evaluate(self, x, i=0):
+        fd = np.zeros(x.size)
+        fd = self.g[i](x)
+        return fd
 
     def inverse(self, G, c, **kwargs):
-        pass
+        raise NotImplementedError
 
     def synthesis(self, G, c, **kwargs):
-        pass
+        raise NotImplementedError
 
     def approx(G, m, N, **kwargs):
-        pass
+        raise NotImplementedError
 
     def tighten(G):
-        pass
+        raise NotImplementedError
 
     def bank_bounds(G, **kwargs):
-        pass
+        raise NotImplementedError
 
     def bank_matrix(G, **kwargs):
-        pass
+        raise NotImplementedError
 
     def wlog_scales(self, lmin, lmax, Nscales, t1=1, t2=2):
         r"""
         Compute logarithm scales for wavelets
         """
-        print(lmin)
         smin = t1/lmax
         smax = t2/lmin
 
@@ -56,16 +57,17 @@ class Filter(object):
         return s
 
     def evaluate_can_dual(val):
-        pass
+        raise NotImplementedError
 
     def can_dual():
         pass
+        raise NotImplementedError
 
     def vec2mat(d, Nf):
-        pass
+        raise NotImplementedError
 
     def mat2vec(d):
-        pass
+        raise NotImplementedError
 
 
 class FilterBank(Filter):
@@ -80,25 +82,25 @@ class FilterBank(Filter):
 class Abspline(Filter):
 
     def __init__(self, G, Nf, **kwargs):
-        pass
+        raise NotImplementedError
 
 
 class Expwin(Filter):
 
     def __init__(self, G, bmax, a):
-        pass
+        raise NotImplementedError
 
 
 class HalfCosine(Filter):
 
     def __init__(self, G, Nf, **kwargs):
-        pass
+        raise NotImplementedError
 
 
 class Itersine(Filter):
 
     def __init__(self, G, Nf, **kwargs):
-        pass
+        raise NotImplementedError
 
 
 class MexicanHat(Filter):
@@ -108,11 +110,9 @@ class MexicanHat(Filter):
             G.lmax
         except AttributeError:
             G.lmax = utils.estimate_lmax(G)
-        print(G.lmax)
 
         if t is None:
             G.lmin = G.lmax / lpfactor
-            print(G.lmin)
             self.t = self.wlog_scales(G.lmin, G.lmax, Nf - 1)
         else:
             self.t = t
@@ -123,59 +123,58 @@ class MexicanHat(Filter):
         lminfac = .4 * G.lmin
 
         self.g = []
-        print(self.g)
         self.g.append(lambda x: 1.2 * exp(-1) * gl(x / lminfac))
 
-        for i in range(1, Nf):
+        for i in range(1, Nf-1):
             self.g.append(lambda x: gb(self.t[i] * x))
 
 
 class Meyer(Filter):
 
     def __init__(self, G, Nf, **kwargs):
-        pass
+        raise NotImplementedError
 
 
 class SimpleTf(Filter):
 
     def __init__(self, G, Nf, **kwargs):
-        pass
+        raise NotImplementedError
 
 
 class WarpedTranslat(Filter):
 
     def __init__(self, G, Nf, **kwargs):
-        pass
+        raise NotImplementedError
 
 
 class Papadakis(Filter):
 
     def __init__(self, G, **kwargs):
-        pass
+        raise NotImplementedError
 
 
 class Regular(Filter):
 
     def __init__(self, G, **kwargs):
-        pass
+        raise NotImplementedError
 
 
 class Simoncelli(Filter):
 
     def __init__(self, G, **kwargs):
-        pass
+        raise NotImplementedError
 
 
 class Held(Filter):
 
     def __init__(self, G, **kwargs):
-        pass
+        raise NotImplementedError
 
 
 class Heat(Filter):
 
     def __init__(self, G, tau, **kwargs):
-        pass
+        raise NotImplementedError
 
 
 def dummy(a, b, c):
