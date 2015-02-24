@@ -7,6 +7,26 @@ class operators(object):
     pass
 
 
+def adj2vec(G):
+    r"""
+    Prepare the graph for the gradient computation
+    """
+    if G.directed:
+        raise NotImplementedError("Not implemented yet")
+
+    else:
+        v_i, v_j = (sparse.tril(G.W)).nonzero()
+        weights = G.W[v_i, v_j]
+
+        # TODO G.ind_edges = sub2ind(size(G.W), G.v_in, G.v_out)
+        G.v_in = v_i
+        G.v_out = v_j
+        G.weights = weights
+        G.Ne = np.shape(v_i)[0]
+
+        G.Diff = grad_mat(G)
+
+
 def grad(G, s):
     r"""
     Graph gradient
@@ -14,8 +34,7 @@ def grad(G, s):
     """
     if hasattr(G, 'lap_type'):
         if G.lap_type == 'combinatorial':
-            print('Not implemented yet. However ask Nathanael it is very easy')
-            break
+            raise NotImplementedError('Not implemented yet. However ask Nathanael it is very easy')
 
     D = grad_mat(G)
     gr = D*float(s)
@@ -29,7 +48,7 @@ def grad_mat(G):
 
     """
     if not hasattr(G, 'v_in'):
-        G = gsp_adj2vec(G)
+        G = adj2vec(G)
         print('To be more efficient you should run: G = adj2vec(G); before using this proximal operator.')
 
     if hasattr(G, 'Diff'):
