@@ -1,5 +1,7 @@
 import numpy as np
+import scipy as sp
 from scipy import sparse
+from scipy import linalg
 from pygsp import utils
 
 
@@ -85,11 +87,26 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
     else:
         if not hasattr(G, L):
             raise AttributeError("Graph Laplacian is missing")
-        G.U, G.e = full_eigen(G.L)
+        G.e, G.U = full_eigen(G.L)
+
+    G.lmax = np.max(G.e)
+
+    G.mu = np.max(np.abs(G.U))
 
 
 def full_eigen(L):
-    eigenvalues, eigenvectors = np.linalg.svd(L)
+    eigenvectors, eigenvalues, _ = np.linalg.svd(L.todense())
 
     # Sort everything
-    EV = np.sort(eigenvalues)
+
+    inds = np.argsort(eigenvalues)
+    EVa = np.sort(eigenvalues)
+
+    # TODO check if axis are good
+    EVe = eigenvectors[:, inds]
+
+    for val in EVe[0, :]:
+        if val < 0:
+            val = -val
+
+    return EVa, EVe
