@@ -158,22 +158,6 @@ def check_weights(W):
     return [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero]
 
 
-def create_laplacian(G):
-    if sp.shape(G.W) == (1, 1):
-        return sparse.lil_matrix(0)
-    else:
-        if G.lap_type == 'combinatorial':
-            L = sparse.lil_matrix(np.diagflat(G.W.sum(1)) - G.W)
-        elif G.lap_type == 'normalized':
-            D = sparse.lil_matrix(G.W.sum(1).diagonal() ** (-0.5))
-            L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
-        elif G.lap_type == 'none':
-            L = sparse.lil_matrix(0)
-        else:
-            raise AttributeError('Unknown laplacian type!')
-        return L
-
-
 def check_connectivity(G, **kwargs):
     A = G.W
     try:
