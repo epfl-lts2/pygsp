@@ -12,6 +12,11 @@ class operators(object):
 def adj2vec(G):
     r"""
     Prepare the graph for the gradient computation
+
+    Input parameters:
+        G   : Graph structure
+    Output parameters:
+        G   : Graph structure
     """
     if G.directed:
         raise NotImplementedError("Not implemented yet")
@@ -30,6 +35,8 @@ def adj2vec(G):
 
 
 def div(G, s):
+    r"""
+    """
     if hasattr(G, 'lap_type'):
         if G.lap_type == 'combinatorial':
             raise NotImplementedError('Not implemented yet. However ask Nathanael it is very easy')
@@ -46,9 +53,41 @@ def div(G, s):
     return di
 
 
+def gft(G, f):
+    r"""
+    Graph Fourier transform
+    Usage:  f_hat=gsp_gft(G,f);
+
+    Input parameters:
+          G          : Graph or Fourier basis
+          f          : f (signal)
+    Output parameters:
+          f_hat      : Graph Fourier transform of *f*
+    """
+
+    if isinstance(G, pygsp.graphs.Graph):
+        if hasattr(G, 'U'):
+            raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+
+        else:
+            U = G.U
+
+    else:
+        U = G
+
+    return U.transpose().conjugate()*f
+
+
 def grad(G, s):
     r"""
     Graph gradient
+    Usage: gr = gsp_grad(G,s)
+
+    Input parameters:
+        G   : Graph structure
+       s   : Signal living on the nodes
+    Output parameters:
+        gr  : Gradient living on the edges
 
     """
     if hasattr(G, 'lap_type'):
@@ -66,7 +105,14 @@ def grad(G, s):
 
 def grad_mat(G):
     r"""
-    Gradient sparse matrix of the graph
+    Gradient sparse matrix of the graph G
+    Usage:  D = gsp_gradient_mat(G);
+
+    Input parameters:
+        G   : Graph structure
+
+    Output parameters:
+        D   : Gradient sparse matrix
 
     """
     if not hasattr(G, 'v_in'):
