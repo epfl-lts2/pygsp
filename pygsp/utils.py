@@ -10,7 +10,7 @@ import pygsp
 def graph_array_handler(func):
 
     def inner(G, *args, **kwargs):
-        if issubclass(G, pygsp.graphs.Graph):
+        if isinstance(G, pygsp.graphs.Graph):
             return func(G, *args, **kwargs)
         elif type(G) is list:
             output = []
@@ -74,7 +74,7 @@ def is_directed(M):
     Can also be used to check if a matrix is symetrical
     """
     # To pass a graph or a weight matrix as an argument
-    if issubclass(type(M), pygsp.graphs.Graph):
+    if isinstance(M, pygsp.graphs.Graph):
         W = M.W
     else:
         W = M
