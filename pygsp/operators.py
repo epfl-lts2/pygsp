@@ -53,31 +53,6 @@ def div(G, s):
     return di
 
 
-def gft(G, f):
-    r"""
-    Graph Fourier transform
-    Usage:  f_hat=gsp_gft(G,f);
-
-    Input parameters:
-          G          : Graph or Fourier basis
-          f          : f (signal)
-    Output parameters:
-          f_hat      : Graph Fourier transform of *f*
-    """
-
-    if isinstance(G, pygsp.graphs.Graph):
-        if hasattr(G, 'U'):
-            raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
-
-        else:
-            U = G.U
-
-    else:
-        U = G
-
-    return U.transpose().conjugate()*f
-
-
 def grad(G, s):
     r"""
     Graph gradient
@@ -137,6 +112,56 @@ def grad_mat(G):
     return D
 
 
+def gft(G, f):
+    r"""
+    Graph Fourier transform
+    Usage:  f_hat=gsp_gft(G,f);
+
+    Input parameters:
+          G          : Graph or Fourier basis
+          f          : f (signal)
+    Output parameters:
+          f_hat      : Graph Fourier transform of *f*
+    """
+
+    if isinstance(G, pygsp.graphs.Graph):
+        if not hasattr(G, 'U'):
+            raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+
+        else:
+            U = G.U
+
+    else:
+        U = G
+
+    return U.transpose().conjugate()*f
+
+
+def igth(G, f_hat):
+    r"""
+    Inverse graph Fourier transform
+
+    Input parameters:
+          G          : Graph or Fourier basis
+          f_hat      : Signal
+
+    Output parameters:
+          f          : Inverse graph Fourier transform of *f_hat*
+
+    """
+    if isinstance(G, pygsp.graphs.Graph):
+        if not hasattr(G, 'U'):
+            raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+
+        else:
+            U = G.U
+
+    else:
+        U = G
+
+    return f_hat*U
+
+
 @utils.graph_array_handler
 def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
 
@@ -186,3 +211,19 @@ def full_eigen(L):
             val = -val
 
     return EVa, EVe
+
+
+def create_laplacian(G):
+    if sp.shape(G.W) == (1, 1):
+        return sparse.lil_matrix(0)
+    else:
+        if G.lap_type == 'combinatorial':
+            L = sparse.lil_matrix(np.diagflat(G.W.sum(1)) - G.W)
+        elif G.lap_type == 'normalized':
+            D = sparse.lil_matrix(G.W.sum(1).diagonal() ** (-0.5))
+            L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
+        elif G.lap_type == 'none':
+            L = sparse.lil_matrix(0)
+        else:
+            raise AttributeError('Unknown laplacian type!')
+        return L

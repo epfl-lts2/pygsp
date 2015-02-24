@@ -29,7 +29,7 @@ class FunctionsTestCase(unittest.TestCase):
 
     def test_utils(self):
 
-        W = np.arange(64).reshape((8,8))
+        W = np.arange(64).reshape((8, 8))
         W = sparse.lil_matrix(W)
         G = graphs.Graph(W, directed=False)
         # TODO choose values
@@ -48,6 +48,7 @@ class FunctionsTestCase(unittest.TestCase):
             mat_answser = [False, False, False, True]
             self.assertEqual(utils.check_weights(W), mat_answser)
 
+        # TODO move test_create_laplacian in Operator
         def test_create_laplacian(G):
             mat_answser = None
             self.assertEqual(utils.create_laplacian(G), mat_answser)
@@ -66,9 +67,7 @@ class FunctionsTestCase(unittest.TestCase):
         test_check_weights(W)
         test_create_laplacian(G)
         test_check_connectivity(G, **kwargs)
-        test_distanz(x,y)
-
-
+        test_distanz(x, y)
 
     def test_dummy(self):
         """
