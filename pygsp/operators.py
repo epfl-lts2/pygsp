@@ -1,5 +1,6 @@
 import numpy as np
 import scipy as sp
+from math import pi
 from scipy import sparse
 from scipy import linalg
 from pygsp import utils
@@ -168,6 +169,19 @@ def compute_cheby_coeff(G, f, m=30, N=None, *args):
     if isinstance(f, list):
         Nf = len(f)
         c = np.zeros(m+1, Nf)
+
+    if not hasattr(G, 'lmax'):
+        G.lmax = utils.estimate_lmax(G)
+        print('The variable lmax has not been computed yet, it will be done
+              but if you have to compute multiple times you can precompute
+              it with pygsp.utils.estimate_lmax(G)')
+
+    a1 = (range(2)-range(1))/2
+    a2 = (range(2)+range(1))/2
+    c = np.zeros(m+1, 1)
+
+    for o in m+1:
+        c(o) = np.sum(f.g(a1 * np.cos(pi)))
 
 
 def full_eigen(L):
