@@ -155,7 +155,7 @@ def gwft(G, g, f, param):
     return C
 
 
-def gwft2(G, f, k, param):
+def gwft2(G, f, k, verbose=1):
     r"""
     Graph windowed Fourier transform
 
@@ -168,6 +168,14 @@ def gwft2(G, f, k, param):
     Output parameters:
           C     : Coefficient.
     """
+
+    if not hasattr(G, 'E'):
+        raise ValueError('You need first to compute the Fourier basis .You can do it with the function compute_fourier_basis.')
+
+    g = filters.gabor_filterbank(G, k)
+
+    C = filters.analysis(G, g, f)
+    C = transpose(vec2mat(C, G.N))
 
     return C
 
