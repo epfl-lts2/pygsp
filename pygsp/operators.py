@@ -3,7 +3,7 @@ import scipy as sp
 from math import pi
 from scipy import sparse
 from scipy import linalg
-from pygsp import utils
+from pygsp import utils, graphs
 
 
 class operators(object):
@@ -93,7 +93,8 @@ def grad_mat(G):
     """
     if not hasattr(G, 'v_in'):
         G = adj2vec(G)
-        print('To be more efficient you should run: G = adj2vec(G); before using this proximal operator.')
+        print('To be more efficient you should run: G = adj2vec(G); \
+              before using this proximal operator.')
 
     if hasattr(G, 'Diff'):
         D = G.Diff
@@ -125,9 +126,11 @@ def gft(G, f):
           f_hat      : Graph Fourier transform of *f*
     """
 
-    if isinstance(G, pygsp.graphs.Graph):
+    if isinstance(G, graphs.Graph):
         if not hasattr(G, 'U'):
-            raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+            raise AttributeError('You need first to compute the Fourier basis.\
+                                  You can do it with the function \
+                                 compute_fourier_basis')
 
         else:
             U = G.U
@@ -151,7 +154,7 @@ def gwft(G, g, f, param):
     Output parameters:
           C     : Coefficient.
     """
-
+    raise NotImplementedError
     return C
 
 
@@ -168,7 +171,7 @@ def gwft2(G, f, k, param):
     Output parameters:
           C     : Coefficient.
     """
-
+    raise NotImplementedError
     return C
 
 
@@ -184,7 +187,7 @@ def gwft_frame_matrix(G, g, param):
     Output parameters:
           F     : Frame
     """
-
+    raise NotImplementedError
     return F
 
 
@@ -200,9 +203,11 @@ def igth(G, f_hat):
           f          : Inverse graph Fourier transform of *f_hat*
 
     """
-    if isinstance(G, pygsp.graphs.Graph):
+    if isinstance(G, graphs.Graph):
         if not hasattr(G, 'U'):
-            raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+            raise AttributeError('You need first to compute the Fourier basis.\
+                                  You can do it with the function \
+                                 compute_fourier_basis')
 
         else:
             U = G.U
@@ -226,7 +231,7 @@ def ngwft(G, f, g, param):
     Output parameters:
           C     : Coefficient
     """
-
+    raise NotImplementedError
     return C
 
 
@@ -242,6 +247,7 @@ def ngwft_frame_matrix(G, g, param):
     Output parameters:
           F     : Frame
     """
+    raise NotImplementedError
 
     return F
 
@@ -279,8 +285,8 @@ def compute_cheby_coeff(G, f, m=30, N=None, *args):
 
     if not hasattr(G, 'lmax'):
         G.lmax = utils.estimate_lmax(G)
-        print('The variable lmax has not been computed yet, it will be done
-              but if you have to compute multiple times you can precompute
+        print('The variable lmax has not been computed yet, it will be done \
+              but if you have to compute multiple times you can precompute \
               it with pygsp.utils.estimate_lmax(G)')
 
     a1 = (range(2)-range(1))/2
@@ -288,7 +294,8 @@ def compute_cheby_coeff(G, f, m=30, N=None, *args):
     c = np.zeros(m+1, 1)
 
     for o in m+1:
-        c(o) = np.sum(f.g(a1 * np.cos(pi)))
+        c[o] = np.sum(f.g(a1 * np.cos(pi * (range(1, N)-0.5))/N) + a2 *
+                      np.cos( pi * (o-1) * (range(1, N)-0.5)/N)) * 2/N
 
 
 def full_eigen(L):
@@ -337,6 +344,7 @@ def localize(G, g, i):
     Output parameters
         gt  : translate signal
     """
+    raise NotImplementedError
 
     return gt
 
@@ -353,6 +361,7 @@ def kron_pyramid(G, Nlevels, param):
     Output parameters:
         Gs      : Cell array of graphs
     """
+    raise NotImplementedError
 
     return Gs
 
@@ -368,6 +377,7 @@ def gsp_kron_reduction(G, ind):
     Output parameters:
         Gnew    : New graph structure or weight matrix
     """
+    raise NotImplementedError
 
     return Gnew
 
@@ -383,6 +393,7 @@ def pyramid_cell2coeff(ca, pe):
     Output parameters:
        coeff   : Vector of coefficient
     """
+    raise NotImplementedError
 
     return coeff
 
@@ -399,6 +410,7 @@ def pyramid_synthesis(Gs, coeff, param):
         signal  : The synthesized signal.
         ca      : Cell array with the coarse approximation at each level
     """
+    raise NotImplementedError
 
     return [signal, ca]
 
@@ -414,6 +426,7 @@ def modulate(G, f, k):
     Output parameters
         fm  : Modulated signal
     """
+    raise NotImplementedError
 
     return fm
 
@@ -461,5 +474,6 @@ def tree_multiresolution(G, Nlevel, param):
           param.reduction_method : The graph reduction method (default='resistance_distance')
           param.compute_full_eigen : To also compute the graph Laplacian eigenvalues for every tree in the sequence
     """
+    raise NotImplementedError
 
     return [Gs, subsampled_vertex_indices]
