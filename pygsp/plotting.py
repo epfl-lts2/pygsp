@@ -104,6 +104,43 @@ def plot_pointcloud(P):
         plt.show()
 
 
+def plot_filter(G, filters, plotting={}):
+    r"""
+    Plot a system of graph spectral filters.
+
+    Parameters
+    ----------
+    G : Graph object
+        Description.
+    filters : filter object
+        Description.
+    **kwargs : plotting parameters
+        Description.
+
+    Returns
+    -------
+    d : ndarray
+        Description.
+
+    Examples
+    --------
+    >>> import pygsp
+    >>> pygsp.graphs.dummy(0, [1, 2, 3], True)
+    array([1, 2, 3])
+
+    """
+    lambdas = np.linspace(0, G.lmax, 1000)
+
+    # apply the filter
+    fd = filters.evaluate(lambdas)
+
+    # plot the filter
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(lambdas, fd)
+    plt.show()
+
+
 def rescale_center(x):
     r"""
     Rescaling the dataset.
