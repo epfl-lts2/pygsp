@@ -174,7 +174,7 @@ def gwft2(G, f, k, verbose=1):
 
     g = filters.gabor_filterbank(G, k)
 
-    C = filters.analysis(G, g, f)
+    C = filters.analysis(G, g, f, verbose=verbose)
     C = transpose(vec2mat(C, G.N))
 
     return C
@@ -345,6 +345,11 @@ def localize(G, g, i):
     Output parameters
         gt  : translate signal
     """
+
+    f = np.zeros((G.N))
+    f[i-1] = 1
+
+    gt = sqrt(G.N)*filters.filters_analysis(G, g, f)
 
     return gt
 
