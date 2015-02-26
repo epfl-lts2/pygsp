@@ -10,7 +10,7 @@ import pygsp
 def graph_array_handler(func):
 
     def inner(G, *args, **kwargs):
-        if issubclass(G, pygsp.graphs.Graph):
+        if isinstance(G, pygsp.graphs.Graph):
             return func(G, *args, **kwargs)
         elif type(G) is list:
             output = []
@@ -20,6 +20,23 @@ def graph_array_handler(func):
         else:
             raise TypeError("This function only accept Graphs or Graphs lists")
 
+    return inner
+
+
+def filterbank_handler(func):
+
+    def inner(f, x, *args, **kwargs):
+        if len(f.g) <= 1:
+            return func(f, x, *args, **kwargs)
+        elif len(f.g) > 1:
+            output = []
+            i = range(len(f.g)-1)
+            for ii in i:
+                output.append(func(f, x, *args, i=ii, **kwargs))
+            return output
+        else:
+            raise TypeError("This function only accepts Filters or\
+                            Filters lists")
     return inner
 
 
@@ -57,7 +74,7 @@ def is_directed(M):
     Can also be used to check if a matrix is symetrical
     """
     # To pass a graph or a weight matrix as an argument
-    if issubclass(type(M), pygsp.graphs.Graph):
+    if isinstance(M, pygsp.graphs.Graph):
         W = M.W
     else:
         W = M
@@ -139,22 +156,6 @@ def check_weights(W):
         has_nan_value = True
 
     return [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero]
-
-
-def create_laplacian(G):
-    if sp.shape(G.W) == (1, 1):
-        return sparse.lil_matrix(0)
-    else:
-        if G.lap_type == 'combinatorial':
-            L = sparse.lil_matrix(np.diagflat(G.W.sum(1)) - G.W)
-        elif G.lap_type == 'normalized':
-            D = sparse.lil_matrix(G.W.sum(1).diagonal() ** (-0.5))
-            L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
-        elif G.lap_type == 'none':
-            L = sparse.lil_matrix(0)
-        else:
-            raise AttributeError('Unknown laplacian type!')
-        return L
 
 
 def check_connectivity(G, **kwargs):
