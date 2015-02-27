@@ -3,7 +3,8 @@ import scipy as sp
 from math import pi
 from scipy import sparse
 from scipy import linalg
-from pygsp import utils, graphs
+
+from pygsp import utils
 
 
 class operators(object):
