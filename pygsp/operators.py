@@ -311,7 +311,7 @@ def full_eigen(L):
     # TODO check if axis are good
     EVe = eigenvectors[:, inds]
 
-    for val in EVe[0, :]:
+    for val in EVe[0, :].reshape(EVe.shape[0], 1):
         if val < 0:
             val = -val
 
