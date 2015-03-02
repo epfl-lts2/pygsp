@@ -29,6 +29,8 @@ class FunctionsTestCase(unittest.TestCase):
 
     def test_utils(self):
 
+<<<<<<< HEAD
+=======
         W = np.arange(64).reshape((8,8))
         W = sparse.lil_matrix(W)
         G = graphs.Graph(W, directed=False)
@@ -36,6 +38,7 @@ class FunctionsTestCase(unittest.TestCase):
         x = None
         y = None
 
+>>>>>>> default_graphs
         def test_is_directed(G):
             self.assertFalse(utils.is_directed(G))
 
@@ -45,8 +48,12 @@ class FunctionsTestCase(unittest.TestCase):
             self.assertEqual(utils.estimate_lmax(G), mat_answser)
 
         def test_check_weights(W):
+<<<<<<< HEAD
+            pass
+=======
             mat_answser = [False, False, False, True]
             self.assertEqual(utils.check_weights(W), mat_answser)
+>>>>>>> default_graphs
 
         def test_create_laplacian(G):
             mat_answser = None
@@ -67,8 +74,6 @@ class FunctionsTestCase(unittest.TestCase):
         test_create_laplacian(G)
         test_check_connectivity(G, **kwargs)
         test_distanz(x,y)
-
-
 
     def test_dummy(self):
         """
