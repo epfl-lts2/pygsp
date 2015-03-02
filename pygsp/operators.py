@@ -252,6 +252,7 @@ def ngwft_frame_matrix(G, g, param):
 
     return F
 
+
 @utils.graph_array_handler
 def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
 
@@ -275,28 +276,27 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
     G.mu = np.max(np.abs(G.U))
 
 
-def compute_cheby_coeff(G, f, m=30, N=None, *args):
+@utils.filterbank_handler
+def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
 
     if not N:
         N = m + 1
-
-    if isinstance(f, list):
-        Nf = len(f)
-        c = np.zeros(m+1, Nf)
 
     if not hasattr(G, 'lmax'):
         G.lmax = utils.estimate_lmax(G)
         print('The variable lmax has not been computed yet, it will be done \
               but if you have to compute multiple times you can precompute \
               it with pygsp.utils.estimate_lmax(G)')
+    a_arange = range(0, G.lmax)
 
-    a1 = (range(2)-range(1))/2
-    a2 = (range(2)+range(1))/2
-    c = np.zeros(m+1, 1)
+    a1 = (a_arange[2]-a_arange[1])/2
+    a2 = (a_arange[2]+a_arange[1])/2
+    c = np.zeros(m+1)
 
-    for o in m+1:
-        c[o] = np.sum(f.g(a1 * np.cos(pi * (range(1, N)-0.5))/N) + a2 *
-                      np.cos( pi * (o-1) * (range(1, N)-0.5)/N)) * 2/N
+    for o in range(m+1):
+        c[o] = np.sum(f.g[i](a1 * np.cos(pi * (np.arange(1, N)-0.5))/N) + a2 *
+                      np.cos(pi * (o-1) * (np.arange(1, N)-0.5)/N)) * 2/N
+    return c
 
 
 def full_eigen(L):
