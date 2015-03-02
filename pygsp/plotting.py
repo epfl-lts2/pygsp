@@ -104,7 +104,7 @@ def plot_pointcloud(P):
         plt.show()
 
 
-def plot_filter(G, filters, plotting={}):
+def plot_filter(G, filters, plotting={}, plot_eigenvalues=None):
     r"""
     Plot a system of graph spectral filters.
 
@@ -129,6 +129,9 @@ def plot_filter(G, filters, plotting={}):
     array([1, 2, 3])
 
     """
+    if plot_eigenvalues is None:
+        plot_eigenvalues = hasattr(G, 'e')
+
     lambdas = np.linspace(0, G.lmax, 1000)
 
     # apply the filter
@@ -140,6 +143,7 @@ def plot_filter(G, filters, plotting={}):
     ax = fig.add_subplot(111)
     for i in range(size):
         ax.plot(lambdas, fd[i])
+    ax.plot(lambdas, G.e)
     plt.show()
 
 
