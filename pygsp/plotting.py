@@ -135,9 +135,11 @@ def plot_filter(G, filters, plotting={}):
     fd = filters.evaluate(lambdas)
 
     # plot the filter
+    size = len(fd)
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.plot(lambdas, fd)
+    for i in range(size):
+        ax.plot(lambdas, fd[i])
     plt.show()
 
 
