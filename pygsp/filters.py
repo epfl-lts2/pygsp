@@ -106,9 +106,7 @@ class Itersine(Filter):
 class MexicanHat(Filter):
 
     def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
-        try:
-            G.lmax
-        except AttributeError:
+        if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
 
         if t is None:
