@@ -126,7 +126,7 @@ class MexicanHat(Filter):
         self.g.append(lambda x: 1.2 * exp(-1) * gl(x / lminfac))
 
         for i in range(0, Nf-1):
-            self.g.append(lambda x: gb(self.t[i] * x))
+            self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
 
 class Meyer(Filter):

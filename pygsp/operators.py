@@ -287,7 +287,8 @@ def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
         print('The variable lmax has not been computed yet, it will be done \
               but if you have to compute multiple times you can precompute \
               it with pygsp.utils.estimate_lmax(G)')
-    a_arange = range(0, G.lmax)
+    print(G.lmax)
+    a_arange = range(0, int(G.lmax))
 
     a1 = (a_arange[2]-a_arange[1])/2
     a2 = (a_arange[2]+a_arange[1])/2
