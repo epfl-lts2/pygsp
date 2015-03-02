@@ -16,7 +16,7 @@ from math import ceil, sqrt, log, exp, floor, pi
 from copy import deepcopy
 from scipy import sparse, io, spatial
 
-from pygsp import utils, plotting
+from pygsp import utils, plotting, operators
 
 
 class Graph(object):
@@ -95,7 +95,7 @@ class Graph(object):
             self.L = L
 
         else:
-            self.L = utils.create_laplacian(self)
+            self.L = operators.create_laplacian(self)
 
         # Plotting default parameters
         self.plotting = {}
