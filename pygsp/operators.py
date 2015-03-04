@@ -16,11 +16,11 @@ def adj2vec(G):
 
     Parameters
     ----------
-        G : Graph structure
+    G : Graph structure
 
     Returns
     -------
-        G : Graph structure
+    G : Graph structure
     """
     if G.directed:
         raise NotImplementedError("Not implemented yet")
@@ -42,8 +42,8 @@ def div(G, s):
     r"""
     Parameters
     ----------
-        G : Graph structure
-        s : Signal living on the nodes
+    G : Graph structure
+    s : Signal living on the nodes
 
     Returns
     -------
@@ -71,12 +71,12 @@ def grad(G, s):
 
     Parameters
     ----------
-        G : Graph structure
-        s : Signal living on the nodes
+    G : Graph structure
+    s : Signal living on the nodes
 
     Returns
     -------
-        gr : Gradient living on the edges
+    gr : Gradient living on the edges
 
     """
     if hasattr(G, 'lap_type'):
@@ -99,11 +99,11 @@ def grad_mat(G):
 
     Parameters
     ----------
-        G : Graph structure
+    G : Graph structure
 
     Returns
     -------
-        D : Gradient sparse matrix
+    D : Gradient sparse matrix
 
     """
     if not hasattr(G, 'v_in'):
@@ -135,12 +135,12 @@ def gft(G, f):
 
     Parameters
     ----------
-        G : Graph or Fourier basis
-        f : f (signal)
+    G : Graph or Fourier basis
+    f : f (signal)
 
     Returns
     -------
-        f_hat : Graph Fourier transform of *f*
+    f_hat : Graph Fourier transform of *f*
     """
 
     if isinstance(G, pygsp.graphs.Graph):
@@ -156,21 +156,52 @@ def gft(G, f):
     return U.transpose().conjugate()*f
 
 
-def gwft(G, g, f, param):
+def gwft(G, g, f, verbose=1, lowmemory=True):
     r"""
     Graph windowed Fourier transform
 
     Parameters
     ----------
-          G : Graph
-          g : Window (graph signal or kernel)
-          f : Graph signal (column vector)
-          param : Structure of optional parameter
+    G : Graph
+    g : Window (graph signal or kernel)
+    f : Graph signal (column vector)
+    verbose (int) : 0 no log, 1 print main steps, 2 print all steps
+        Default is 1
+    lowmemory (bool) : use less memory
+        Default is True
 
     Returns
     -------
-          C : Coefficient.
+    C : Coefficient.
     """
+
+    Nf = np.shape(f)[1]
+
+    if not hasattr(G, 'U'):
+        raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+
+    # if iscell(g)
+    #    g = gsp_igft(G,g{1}(G.e))
+
+    if hasattr(g, 'function_handle'):
+        g = gsp_igft(G, g(G.e))
+
+    if not lowmemory:
+        # Compute the Frame into a big matrix
+        Frame = gwft_frame_matrix(G, g, verbose=verbose)
+
+        C = Frame.transpose()*f
+        C = C.reshape(G.N, G.N, Nf)
+
+    else:
+        # Compute the translate of g
+        ghat = G.U.transpose()*g
+        Ftrans = np.sqrt(G.N)*G.U*(np.kron(np.ones((G.N)), ghat)*G.U.transpose())
+        C = zeros((G.N, G.N))
+
+        for jj in range(1, Nf):
+            for ii in range(1, G.N):
+                C[:, ii, jj] = (np.kron(np.ones((G.N)), 1./G.U[:, 1])*G.U*np.kron(np.ones((G.N)), Ftrans[:, ii])).transpose()*f[:, jj]
 
     return C
 
@@ -181,14 +212,14 @@ def gwft2(G, f, k, verbose=1):
 
     Parameters
     ----------
-        G : Graph
-        f : Graph signal
-        k : kernel
-param : Structure of optional parameter
+    G : Graph
+    f : Graph signal
+    k : kernel
+    param : Structure of optional parameter
 
     Returns
     -------
-        C : Coefficient.
+    C : Coefficient.
     """
 
     if not hasattr(G, 'E'):
@@ -208,9 +239,9 @@ def gwft_frame_matrix(G, g, param):
 
     Parameters
     ----------
-        G : Graph
-        g : window
-        param : Structure of optional parameter
+    G : Graph
+    g : window
+    param : Structure of optional parameter
 
     Returns
     -------
@@ -226,12 +257,12 @@ def igth(G, f_hat):
 
     Parameters
     ----------
-        G : Graph or Fourier basis
-        f_hat : Signal
+    G : Graph or Fourier basis
+    f_hat : Signal
 
     Returns
     -------
-        f : Inverse graph Fourier transform of *f_hat*
+    f : Inverse graph Fourier transform of *f_hat*
 
     """
     if isinstance(G, pygsp.graphs.Graph):
@@ -253,14 +284,14 @@ def ngwft(G, f, g, param):
 
     Parameters
     ----------
-        G : Graph
-        f : Graph signal
-        g : window
-        param : Structure of optional parameter
+    G : Graph
+    f : Graph signal
+    g : window
+    param : Structure of optional parameter
 
     Returns
     -------
-        C : Coefficient
+    C : Coefficient
     """
 
     return C
@@ -272,12 +303,12 @@ def ngwft_frame_matrix(G, g, param):
 
     Parameters
     ----------
-        G : Graph
-        g : window
-        param : Structure of optional parameter
+    G : Graph
+    g : window
+    param : Structure of optional parameter
 
     Output parameters:
-        F : Frame
+    F : Frame
     """
 
     return F
@@ -368,13 +399,13 @@ def localize(G, g, i):
 
     Parameters
     ----------
-        G : Graph
-        g : kernel (or filterbank)
-        i : Indices of vertex (int)
+    G : Graph
+    g : kernel (or filterbank)
+    i : Indices of vertex (int)
 
     Returns
     -------
-        gt : translate signal
+    gt : translate signal
     """
 
     f = np.zeros((G.N))
@@ -391,13 +422,13 @@ def kron_pyramid(G, Nlevels, param):
 
     Parameters
     ----------
-        G : Graph structure
-        Nlevels : Number of level of decomposition
-        param : Optional structure of parameters
+    G : Graph structure
+    Nlevels : Number of level of decomposition
+    param : Optional structure of parameters
 
     Returns
     -------
-        Gs : Cell array of graphs
+    Cs : Cell array of graphs
     """
 
     return Gs
@@ -409,12 +440,12 @@ def gsp_kron_reduction(G, ind):
 
     Parameters
     ----------
-        G : Graph structure or weight matrix
-        ind : indices of the nodes to keep
+    G : Graph structure or weight matrix
+    ind : indices of the nodes to keep
 
     Returns
     -------
-        Gnew : New graph structure or weight matrix
+    Gnew : New graph structure or weight matrix
     """
 
     return Gnew
@@ -426,12 +457,12 @@ def pyramid_cell2coeff(ca, pe):
 
     Parameters
     ----------
-        ca : Cell array with the coarse approximation at each level
-        pe : Cell array with the prediction errors at each level
+    ca : Cell array with the coarse approximation at each level
+    pe : Cell array with the prediction errors at each level
 
     Returns
     -------
-       coeff : Vector of coefficient
+    coeff : Vector of coefficient
     """
 
     return coeff
@@ -443,13 +474,13 @@ def pyramid_synthesis(Gs, coeff, param):
 
     Parameters
     ----------
-        Gs : A multiresolution sequence of graph structures.
-        coeff : The coefficients to perform the reconstruction
+    Gs : A multiresolution sequence of graph structures.
+    coeff : The coefficients to perform the reconstruction
 
     Returns
     -------
-        signal : The synthesized signal.
-        ca : Cell array with the coarse approximation at each level
+    signal : The synthesized signal.
+    ca : Cell array with the coarse approximation at each level
     """
 
     return [signal, ca]
@@ -461,13 +492,13 @@ def modulate(G, f, k):
 
     Parameters
     ----------
-        G : Graph
-        f : Signal (column)
-        k : Indices of frequencies (int)
+    G : Graph
+    f : Signal (column)
+    k : Indices of frequencies (int)
 
     Returns
     -------
-        fm : Modulated signal
+    fm : Modulated signal
     """
 
     return fm
@@ -479,13 +510,13 @@ def translate(G, f, i):
 
     Parameters
     ----------
-        G : Graph
-        f : Signal (column)
-        i : Indices of vertex (int)
+    G : Graph
+    f : Signal (column)
+    i : Indices of vertex (int)
 
     Returns
     -------
-        ft : translate signal
+    ft : translate signal
     """
 
     fhat = gft(G, f)
@@ -502,16 +533,16 @@ def tree_multiresolution(G, Nlevel, param):
 
     Parameters
     ----------
-        G : Graph structure of a tree.
-        Nlevel : Number of times to downsample and coarsen the tree
-        root : The index of the root of the tree (default=1)
-        reduction_method : The graph reduction method (default='resistance_distance')
-        compute_full_eigen : To also compute the graph Laplacian eigenvalues for every tree in the sequence
+    G : Graph structure of a tree.
+    Nlevel : Number of times to downsample and coarsen the tree
+    root : The index of the root of the tree (default=1)
+    reduction_method : The graph reduction method (default='resistance_distance')
+    compute_full_eigen : To also compute the graph Laplacian eigenvalues for every tree in the sequence
 
     Returns
     -------
-        Gs : Cell array, with each element containing a graph structure represent a reduced tree.
-        subsampled_vertex_indices : Indices of the vertices of the previous tree that are kept for the subsequent tree.
+    Gs : Cell array, with each element containing a graph structure represent a reduced tree.
+    subsampled_vertex_indices : Indices of the vertices of the previous tree that are kept for the subsequent tree.
     """
 
     return [Gs, subsampled_vertex_indices]
