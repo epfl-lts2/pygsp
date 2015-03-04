@@ -3,6 +3,7 @@ import scipy as sp
 from math import pi
 from scipy import sparse
 from scipy import linalg
+
 from pygsp import utils
 
 
@@ -108,7 +109,8 @@ def grad_mat(G):
     """
     if not hasattr(G, 'v_in'):
         G = adj2vec(G)
-        print('To be more efficient you should run: G = adj2vec(G); before using this proximal operator.')
+        print('To be more efficient you should run: G = adj2vec(G); \
+              before using this proximal operator.')
 
     if hasattr(G, 'Diff'):
         D = G.Diff
@@ -143,9 +145,11 @@ def gft(G, f):
     f_hat : Graph Fourier transform of *f*
     """
 
-    if isinstance(G, pygsp.graphs.Graph):
+    if isinstance(G, graphs.Graph):
         if not hasattr(G, 'U'):
-            raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+            raise AttributeError('You need first to compute the Fourier basis.\
+                                  You can do it with the function \
+                                 compute_fourier_basis')
 
         else:
             U = G.U
@@ -174,7 +178,6 @@ def gwft(G, g, f, verbose=1, lowmemory=True):
     -------
     C : Coefficient.
     """
-
     Nf = np.shape(f)[1]
 
     if not hasattr(G, 'U'):
@@ -221,7 +224,6 @@ def gwft2(G, f, k, verbose=1):
     -------
     C : Coefficient.
     """
-
     if not hasattr(G, 'E'):
         raise ValueError('You need first to compute the Fourier basis .You can do it with the function compute_fourier_basis.')
 
@@ -247,7 +249,7 @@ def gwft_frame_matrix(G, g, param):
     -------
         F : Frame
     """
-
+    raise NotImplementedError
     return F
 
 
@@ -265,9 +267,11 @@ def igth(G, f_hat):
     f : Inverse graph Fourier transform of *f_hat*
 
     """
-    if isinstance(G, pygsp.graphs.Graph):
+    if isinstance(G, graphs.Graph):
         if not hasattr(G, 'U'):
-            raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+            raise AttributeError('You need first to compute the Fourier basis.\
+                                  You can do it with the function \
+                                 compute_fourier_basis')
 
         else:
             U = G.U
@@ -293,7 +297,7 @@ def ngwft(G, f, g, param):
     -------
     C : Coefficient
     """
-
+    raise NotImplementedError
     return C
 
 
@@ -310,8 +314,10 @@ def ngwft_frame_matrix(G, g, param):
     Output parameters:
     F : Frame
     """
+    raise NotImplementedError
 
     return F
+
 
 @utils.graph_array_handler
 def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
@@ -336,27 +342,28 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
     G.mu = np.max(np.abs(G.U))
 
 
-def compute_cheby_coeff(G, f, m=30, N=None, *args):
+@utils.filterbank_handler
+def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
 
     if not N:
         N = m + 1
 
-    if isinstance(f, list):
-        Nf = len(f)
-        c = np.zeros(m+1, Nf)
-
     if not hasattr(G, 'lmax'):
         G.lmax = utils.estimate_lmax(G)
-        print('The variable lmax has not been computed yet, it will be done
-              but if you have to compute multiple times you can precompute
+        print('The variable lmax has not been computed yet, it will be done \
+              but if you have to compute multiple times you can precompute \
               it with pygsp.utils.estimate_lmax(G)')
+    print(G.lmax)
+    a_arange = range(0, int(G.lmax))
 
-    a1 = (range(2)-range(1))/2
-    a2 = (range(2)+range(1))/2
-    c = np.zeros(m+1, 1)
+    a1 = (a_arange[2]-a_arange[1])/2
+    a2 = (a_arange[2]+a_arange[1])/2
+    c = np.zeros(m+1)
 
-    for o in m+1:
-        c(o) = np.sum(f.g(a1 * np.cos(pi)))
+    for o in range(m+1):
+        c[o] = np.sum(f.g[i](a1 * np.cos(pi * (np.arange(1, N)-0.5))/N) + a2 *
+                      np.cos(pi * (o-1) * (np.arange(1, N)-0.5)/N)) * 2/N
+    return c
 
 
 def full_eigen(L):
@@ -370,7 +377,7 @@ def full_eigen(L):
     # TODO check if axis are good
     EVe = eigenvectors[:, inds]
 
-    for val in EVe[0, :]:
+    for val in EVe[0, :].reshape(EVe.shape[0], 1):
         if val < 0:
             val = -val
 
@@ -407,6 +414,7 @@ def localize(G, g, i):
     -------
     gt : translate signal
     """
+    raise NotImplementedError
 
     f = np.zeros((G.N))
     f[i-1] = 1
@@ -430,6 +438,7 @@ def kron_pyramid(G, Nlevels, param):
     -------
     Cs : Cell array of graphs
     """
+    raise NotImplementedError
 
     return Gs
 
@@ -447,6 +456,7 @@ def gsp_kron_reduction(G, ind):
     -------
     Gnew : New graph structure or weight matrix
     """
+    raise NotImplementedError
 
     return Gnew
 
@@ -464,6 +474,7 @@ def pyramid_cell2coeff(ca, pe):
     -------
     coeff : Vector of coefficient
     """
+    raise NotImplementedError
 
     return coeff
 
@@ -482,6 +493,7 @@ def pyramid_synthesis(Gs, coeff, param):
     signal : The synthesized signal.
     ca : Cell array with the coarse approximation at each level
     """
+    raise NotImplementedError
 
     return [signal, ca]
 
@@ -500,6 +512,7 @@ def modulate(G, f, k):
     -------
     fm : Modulated signal
     """
+    raise NotImplementedError
 
     return fm
 
@@ -544,5 +557,6 @@ def tree_multiresolution(G, Nlevel, param):
     Gs : Cell array, with each element containing a graph structure represent a reduced tree.
     subsampled_vertex_indices : Indices of the vertices of the previous tree that are kept for the subsequent tree.
     """
+    raise NotImplementedError
 
     return [Gs, subsampled_vertex_indices]

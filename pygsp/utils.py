@@ -25,14 +25,14 @@ def graph_array_handler(func):
 
 def filterbank_handler(func):
 
-    def inner(f, x, *args, **kwargs):
+    def inner(f, *args, **kwargs):
         if len(f.g) <= 1:
-            return func(f, x, *args, **kwargs)
+            return func(f, *args, **kwargs)
         elif len(f.g) > 1:
             output = []
-            i = range(len(f.g)-1)
+            i = range(len(f.g))
             for ii in i:
-                output.append(func(f, x, *args, i=ii, **kwargs))
+                output.append(func(f, *args, i=ii, **kwargs))
             return output
         else:
             raise TypeError("This function only accepts Filters or\
