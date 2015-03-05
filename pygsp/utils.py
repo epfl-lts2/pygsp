@@ -245,6 +245,42 @@ def distanz(x, y=None):
     return np.sqrt(d)
 
 
+def repmatline(A, ncol=1, nrow=1):
+    r"""
+    This function repeat the matrix A in a specific manner
+
+    Parameters
+    ----------
+    A : ndarray
+    ncol : Integer
+        default is 1
+    nrow : Integer
+        default is 1
+
+    Returns
+    -------
+    Ar : Matrix
+
+    Examples
+    --------
+
+    For ncol=2 and nrow=3, the matix
+
+                1 2
+                3 4
+    becomes
+                1 1 1 2 2 2
+                1 1 1 2 2 2
+                3 3 3 4 4 4
+                3 3 3 4 4 4np.repeat(np.repeat(x, nrow, axis=1), ncol,  axis=0)
+    """
+
+    if ncol < 0 or nrow < 0:
+        raise ValueError("The number of lines and rows must be greater or equal to one, or you will get an empty array.")
+
+    return np.repeat(np.repeat(x, ncol, axis=1), nrow, axis=0)
+
+
 def symetrize(W, symetrize_type='average'):
     r"""
     symetrize a matrix
