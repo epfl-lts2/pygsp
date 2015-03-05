@@ -366,6 +366,46 @@ def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
     return c
 
 
+def cheby_op(G, c, signal, **kwargs):
+    r"""
+    Doc
+    """
+    Nscales = len(c[1])
+
+    M = len(c[0])
+
+    maxM = np.max(M)
+
+    if not hasattr(G, 'lmax'):
+        G.lmax = utils.estimate_lmax(G)
+
+    if signal.dtype == 'float32':
+        signal = np.float64(signal)
+
+    a_arange = range(0, int(G.lmax))
+
+    a1 = (a_arange[2]-a_arange[1])/2
+    a2 = (a_arange[2]+a_arange[1])/2
+
+    twf_old = signal
+    twf_cur = (G.L * signal - a2 * signal)/a1
+
+    Nv = len(signal[1])
+    r = np.zeros(G.N * Nscales, Nv)
+
+    for i in range(Nscales):
+        pass
+
+    for k in range(maxM + 1):
+        twf_new = (2/a1) * (G.L * twf_cur-a2 * twf_cur) - twf_old
+        for i in range(Nscales):
+            if 1+k <= M:
+                r[range(G.N) + G.N * (i-1)] = r[range(G.N)+G.N * (i-1)] + c[k+1, i] * twf_new
+
+        twf_old = twf_cur
+        twf_cur = twf_new
+
+
 def full_eigen(L):
     eigenvectors, eigenvalues, _ = np.linalg.svd(L.todense())
 
