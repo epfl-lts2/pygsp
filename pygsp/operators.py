@@ -353,7 +353,6 @@ def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
         print('The variable lmax has not been computed yet, it will be done \
               but if you have to compute multiple times you can precompute \
               it with pygsp.utils.estimate_lmax(G)')
-    print(G.lmax)
     a_arange = range(0, int(G.lmax))
 
     a1 = (a_arange[2]-a_arange[1])/2
@@ -372,7 +371,7 @@ def cheby_op(G, c, signal, **kwargs):
     """
     Nscales = len(c[1])
 
-    M = len(c[0])
+    M = len(c)
 
     maxM = np.max(M)
 
@@ -391,7 +390,7 @@ def cheby_op(G, c, signal, **kwargs):
     twf_cur = (G.L * signal - a2 * signal)/a1
 
     Nv = len(signal[1])
-    r = np.zeros(G.N * Nscales, Nv)
+    r = np.zeros((G.N * Nscales, Nv))
 
     for i in range(Nscales):
         pass
@@ -399,11 +398,14 @@ def cheby_op(G, c, signal, **kwargs):
     for k in range(maxM + 1):
         twf_new = (2/a1) * (G.L * twf_cur-a2 * twf_cur) - twf_old
         for i in range(Nscales):
-            if 1+k <= M:
-                r[range(G.N) + G.N * (i-1)] = r[range(G.N)+G.N * (i-1)] + c[k+1, i] * twf_new
+            if k < M:
+                r[np.arange(G.N) + G.N * (i-1)] = r[np.arange(G.N)+G.N *
+                                                    (i-1)] + c[k][i] * twf_new
 
         twf_old = twf_cur
         twf_cur = twf_new
+
+    return r
 
 
 def full_eigen(L):
