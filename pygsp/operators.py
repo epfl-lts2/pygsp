@@ -4,7 +4,7 @@ from math import pi
 from scipy import sparse
 from scipy import linalg
 
-from pygsp import utils
+from pygsp import utils, graphs
 
 
 class operators(object):

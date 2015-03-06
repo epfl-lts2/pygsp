@@ -20,7 +20,7 @@ class Filter(object):
         pass
 
     def analysis(self, G, s, exact=True, cheb_order=30, **kwargs):
-        Nf = len(self.fi)
+        Nf = len(self.g)
 
         if exact:
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
@@ -31,8 +31,9 @@ class Filter(object):
             fie = self.evaluate(G.e)
 
             for i in range(Nf):
+                print(G, sp.kron(sp.ones((fie[0][i], 1)), Nv))
                 c[np.arange(G.N) + G.N * (i-1)] =\
-                    operators.igft(G, sp.kron(sp.ones((fie[:, i], 1)), Nv) *
+                    operators.igft(G, sp.kron(sp.ones((fie[0][i], 1)), Nv) *
                                    operators.gft(G, s))
 
         else:  # Chebyshev approx
