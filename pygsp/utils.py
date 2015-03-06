@@ -108,8 +108,8 @@ def estimate_lmax(G):
     >>> lmax = pygsp.utils.estimate_lmax(G)
     """
     try:
-        # MAT: lmax=eigs(G.L,1,'lm',opts)
         lmax = sparse.linalg.eigs(G.L, k=1, tol=5e-3, ncv=10)[0]
+        # MAT: lmax=eigs(G.L,1,'lm',opts)
         # On robustness purposes, increasing the error by 1 percent
         lmax *= 1.01
     except ValueError:
@@ -243,6 +243,42 @@ def distanz(x, y=None):
             sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
 
     return np.sqrt(d)
+
+
+def repmatline(A, ncol=1, nrow=1):
+    r"""
+    This function repeat the matrix A in a specific manner
+
+    Parameters
+    ----------
+    A : ndarray
+    ncol : Integer
+        default is 1
+    nrow : Integer
+        default is 1
+
+    Returns
+    -------
+    Ar : Matrix
+
+    Examples
+    --------
+
+    For ncol=2 and nrow=3, the matix
+
+                1 2
+                3 4
+    becomes
+                1 1 1 2 2 2
+                1 1 1 2 2 2
+                3 3 3 4 4 4
+                3 3 3 4 4 4np.repeat(np.repeat(x, nrow, axis=1), ncol,  axis=0)
+    """
+
+    if ncol < 0 or nrow < 0:
+        raise ValueError("The number of lines and rows must be greater or equal to one, or you will get an empty array.")
+
+    return np.repeat(np.repeat(x, ncol, axis=1), nrow, axis=0)
 
 
 def symetrize(W, symetrize_type='average'):

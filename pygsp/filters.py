@@ -6,8 +6,9 @@ Filters Doc
 
 from math import exp, log
 import numpy as np
+import scipy as sp
 
-from pygsp import utils
+from pygsp import utils, operators
 
 
 class Filter(object):
@@ -18,8 +19,30 @@ class Filter(object):
     def __init__(self, **kwargs):
         pass
 
-    def analysis(self, G, s, **kwargs):
+    def analysis(self, G, s, exact=True, cheb_order=30, **kwargs):
         Nf = len(self.fi)
+
+        if exact:
+            if not hasattr(G, 'e') or not hasattr(G, 'U'):
+                G = operators.compute_fourier_basis(G)
+            Nv = s.shape[1]
+            c = np.zeros((G.N * Nf, Nv))
+
+            fie = self.evaluate(G.e)
+
+            for i in range(Nf):
+                c[np.arange(G.N) + G.N * (i-1)] =\
+                    operators.igft(G, sp.kron(sp.ones((fie[:, i], 1)), Nv) *
+                                   operators.gft(G, s))
+
+        else:  # Chebyshev approx
+            if not hasattr(G, 'lmax'):
+                G = utils.estimate_lmax(G)
+
+            cheb_coef = operators.compute_cheby_coeff(self.fi, G, m=cheb_order)
+            c = operators.cheby_op(G, cheb_coef, s)
+
+        return c
 
     @utils.filterbank_handler
     def evaluate(self, x, i=0):

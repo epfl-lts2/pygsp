@@ -28,7 +28,6 @@ class FunctionsTestCase(unittest.TestCase):
         pass
 
     def test_utils(self):
-
         W = np.arange(64).reshape((8, 8))
         W = sparse.lil_matrix(W)
         G = graphs.Graph(W, directed=False)
@@ -67,6 +66,7 @@ class FunctionsTestCase(unittest.TestCase):
         test_check_weights(W)
         test_create_laplacian(G)
         test_check_connectivity(G, **kwargs)
+
         test_distanz(x, y)
 
     def test_dummy(self):

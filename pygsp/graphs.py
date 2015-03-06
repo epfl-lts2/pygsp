@@ -1,7 +1,11 @@
 #w-*- coding: utf-8 -*-
 
 r"""
-Module documentation.
+This module implements principally grpahs and some PointsClouds
+
+* :class: `Graph` Class countaing all the graphs
+
+* :class: `PointsCloud` Class countaing all the PointsClouds
 """
 
 import os
@@ -17,17 +21,37 @@ from pygsp import utils, plotting, operators
 
 class Graph(object):
     r"""
-    parameters:
-        - W: Weights matrix
-        - A: Adjacency matrix
-        - N: Number of nodes
-        - d: Degree vector
-        - Ne: Edges number
-        - gtype: Graph type
-        - directed: If the graph is directed
-        - lap_type: Laplacian type
-        - L: Laplacian
-        - plotting: dictionnary containing the plotting parameters
+    The main graph object
+
+    It is used to initialize by default every missing field of the subgraphs
+    It can also be used alone to initialize customs graphs
+
+    Parameters
+    ----------
+    W (sparse) : weights matrix
+        default is empty
+    A (sparse) : adjancency matrix
+        default is constructed with W
+    N (int) : number of nodes
+        default is the lenght of the first dimension of W
+    d (float) : degree vector
+        default
+    Ne (int) : edge number
+    gtype (strnig) : graph type
+        default is "unknown"
+    directed (bool) : whether the graph is directed
+        default depending of the previous values
+    lap_type (string) : laplacian type
+        default is 'combinatorial'
+    L (Ndarray): laplacian
+    coords : Coordinates of the vertices
+        default is np.array([0, 0])
+    plotting (Dict): § dictionnary conataining the plotting parameters
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Graph()
     """
 
     # All the parameters that needs calculation to be set
@@ -69,6 +93,7 @@ class Graph(object):
             self.directed = utils.is_directed(self.W)
         if L is not None:
             self.L = L
+
         else:
             self.L = operators.create_laplacian(self)
 
@@ -109,12 +134,28 @@ class Graph(object):
 
     def subgraph(self, c):
         r"""
-        TODO better doc
-        This function create a subgraph from G, keeping only the node(s) in c
+        Create a subgraph from G
+
+        Parameters
+        ----------
+        G (graph) : Original graph
+        c (int) : Node to keep
+
+        Returns
+        -------
+        subG (graph) : Subgraph
+
+        Examples
+        --------
+        >>> from pygsp import graphs
+        >>> G = graphs.Graph()
+        >>> subG = graphs.Graph.subgraph(G, c)
+
+        This function create a subgraph from G taking only the node in c.
         """
 
         sub_G = self
-        sub_G.W = [c, c]
+        sub_G.W = self.W[c, c]
         try:
             sub_G.N = len(c)
         except TypeError:
@@ -128,8 +169,32 @@ class Graph(object):
 class NNGraph(Graph):
     r"""
     Creates a graph from a pointcloud
-    parameters:
-        - Xin : Input Points
+
+    Parameters
+    ----------
+    Xin (nunpy Array) : Input Points
+    use_flann : Whether flann method should be used (knn is otherwise used)
+        default is False
+        (not implemented yet)
+    center (bool) : center the data
+        default is True
+    rescale (bool) : rescale the data (in a 1-ball)
+        default is True
+    k (int) : number of neighbors for knn
+        default is 10
+    sigma (float) : variance of the distance kernel
+        default is 0.1
+    epsilon (float) : radius for the range search
+        default is 0.01
+    gtype (string) : the type of graph
+            default is "knn"
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> import numpy as np
+    >>> Xin = np.arange(16)
+    >>> G = graphs.NNGraph(Xin)
     """
 
     def __init__(self, Xin, NNtype='knn', use_flann=False, center=True,
@@ -241,6 +306,18 @@ class NNGraph(Graph):
 
 
 class Bunny(NNGraph):
+    r"""
+    Create a graph of the stanford bunny
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Bunny()
+
+    References
+    ----------
+    :cite:`turk1994zippered`
+    """
 
     def __init__(self, **kwargs):
 
@@ -262,6 +339,27 @@ class Bunny(NNGraph):
 
 
 class Cube(NNGraph):
+    r"""
+    Creates the graph of an hyper-cube
+
+    Parameters
+    ----------
+    radius (float) : edge lenght
+        default is 1
+    nb_pts (int) : number of vertices
+        default is 300
+    nb_dim (int) : dimension
+        default is 3
+    sampling (string) : variance of the distance kernel
+        default is 'random'
+        (Can now only be 'random')
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> radius = 5
+    >>> G = graphs.Cube(radius=radius)
+    """
 
     def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random",
                  **kwargs):
@@ -313,6 +411,27 @@ class Cube(NNGraph):
 
 
 class Sphere(NNGraph):
+    r"""
+    Creates a spherical-shaped graph
+
+    Parameters
+    ----------
+    radius (flaot) : radius of the sphere
+        default is 1
+    nb_pts (int) : number of vertices
+        default is 300
+    nb_dim (int) : dimension
+        default is 3
+    sampling (sting) : variance of the distance kernel
+        default is 'random'
+        (Can now only be 'random')
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> radius = 5
+    >>> G = graphs.sphere(radius=radius)
+    """
 
     def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random",
                  **kwargs):
@@ -337,6 +456,33 @@ class Sphere(NNGraph):
 
 
 class TwoMoons(NNGraph):
+    r"""
+    Creates a 2 dimensional graph of the Two Moons
+
+    Parameters
+    ----------
+    moontype (string): You have the freedom to chose if you want to create a standard two_moons graph or a synthetised one (default is 'standard').
+        * 'standard' : create a two_moons graph from a based graph.
+            sigmag (flaot) : variance of the distance kernel
+                default is 0.05
+
+        * 'synthetised' : create a synthetised two_moon
+            sigmag (flaot) : variance of the distance kernel
+                default is 0.05
+            N (int) : Number of vertices
+                default is 2000
+            sigmad (flaot) : variance of the data (do not set it to high or you won't see anything)
+                default is 0.05
+            d (flaot) : distance of the two moons
+                default is 0.5
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G1 = graphs.TwoMoons(moontype='standard')
+    >>> 
+    >>> G2 =  graphs.TwoMoons(moontype='synthetised', N=1000, sigmad=0.1, d=1)
+    """
 
     def __init__(self, moontype="standard", sigmag=0.05, N=400, sigmad=0.07,
                  d=0.5):
@@ -373,7 +519,7 @@ class TwoMoons(NNGraph):
                                            labels=self.labels, k=self.k,
                                            gtype=self.gtype)
 
-        else:
+        elif moontype == 'synthetised':
             self.gtype = "Two Moons synthetised"
 
             N1 = floor(N/2.)
@@ -395,6 +541,21 @@ class TwoMoons(NNGraph):
 
 # Need M
 class Grid2d(Graph):
+    r"""
+    Creates a 2 dimensional grid graph
+
+    Parameters
+    ----------
+    Nv (int) : Number of vertices along the first dimension
+        default is 16
+    Mv (int) : Number of vertices along the second dimension
+        default is Nv
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Grid2d(Nv=32)
+    """
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
         if not Mv:
@@ -432,6 +593,23 @@ class Grid2d(Graph):
 
 
 class Torus(Graph):
+    r"""
+    Creates a Torus graph
+
+    Parameters
+    ----------
+    Nv (int) : Number of vertices along the first dimension
+        default is 16
+    Mv (int) : Number of vertices along the second dimension
+        default is Nv
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> Nv = 32
+    >>> G = graphs.Torus(Nv=Nv)
+
+    """
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
 
@@ -482,6 +660,22 @@ class Torus(Graph):
 
 # Need K
 class Comet(Graph):
+    r"""
+    Creates a Comet graph
+
+    Parameters
+    ----------
+    Nv (int) : Number of vertices along the first dimension
+        default is 16
+    Mv (int) : Number of vertices along the second dimension
+        default is Nv
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Comet() (== graphs.Comet(Nv=32, k=12))
+
+    """
 
     def __init__(self, Nv=32, k=12, **kwargs):
 
@@ -517,6 +711,20 @@ class Comet(Graph):
 
 
 class LowStretchTree(Graph):
+    r"""
+    Creates a low stretch tree graph
+
+    Parameters
+    ----------
+    k (int) : 2^k points on each side of the grid of vertices
+        default 6
+
+    Examples
+    --------
+    >>> from pygsp import graphs, plotting
+    >>> G = graphs.LowStretchTree(k=3)
+    >>> plotting.plot_graph(G)
+    """
 
     def __init__(self, k=6, **kwargs):
 
@@ -564,10 +772,34 @@ class LowStretchTree(Graph):
 
 
 class RandomRegular(Graph):
+    r"""
+    Creates a random regular graph
+    The random regular graph has the property that every nodes is connected to 'k' other nodes.
+
+    Parameters
+    ----------
+    N (int) : Number of nodes
+        default is 64
+    k (int) : Number of connections of each nodes
+        default is 6
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.RandomRegular()
+    """
 
     def __init__(self, N=64, k=6, **kwargs):
 
         def isRegularGraph(A):
+            r"""
+            This fonction prints a message describing the problem of a given sparse matrix
+
+            Inputs
+            ------
+            A (Sparse matrix)
+
+            """
 
             msg = "The given matrix "
 
@@ -600,25 +832,30 @@ class RandomRegular(Graph):
 
         def createRandRegGraph(vertNum, deg):
             r"""
-            createRegularGraph - creates a simple d-regular undirected graph
+            creates a simple d-regular undirected graph
             simple = without loops or double edges
             d-reglar = each vertex is adjecent to d edges
 
-            input arguments :
-              vertNum - number of vertices
-              deg - the degree of each vertex
+            Parameters
+            ----------
+            vertNum : number of vertices
+            deg : the degree of each vertex
 
-            output arguments :
-              A - A sparse matrix representation of the graph
+            Returns
+            -------
+            A (sparse) : representation of the graph
 
-            algorithm :
-            "The pairing model" : create n*d 'half edges'.
+            Algorithm
+            ---------
+            "The pairing model": create n*d 'half edges'.
             repeat as long as possible: pick a pair of half edges
-              and if it's legal (doesn't creat a loop nor a double edge)
-              add it to the graph
+            and if it's legal (doesn't creat a loop nor a double edge)
+            add it to the graph
 
-            reference: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.67.7957&rep=rep1&type=pdf
-            This code has been adapted from matlab to pyhton
+            Reference
+            ---------
+            http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.67.7957&rep=rep1&type=pdf
+            (This code has been adapted from matlab to pyhton)
             """
 
             n = vertNum
@@ -685,6 +922,21 @@ class RandomRegular(Graph):
 
 
 class Ring(Graph):
+    r"""
+    Creates a ring graph
+
+    Parameters
+    ----------
+    N (int) : Number of vertices
+        default is 64
+    k (int) : Number of neighbors in each directions
+        default is 1
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Ring()
+    """
 
     def __init__(self, N=64, k=1, **kwargs):
 
@@ -735,13 +987,40 @@ class Ring(Graph):
 
 # Need params
 class Community(Graph):
+    r"""
+    Create a community graph
+
+    Parameters
+    ----------
+    N (int) : Number of nodes
+        default is 256
+    Nc (int) : Number of communities
+        default is round(sqrt(N)/2)
+    com_sizes (int) : Size of the communities
+        default is is random
+    min_comm (int) : Minimum size of the communities
+        default is round(N/Nc/3)
+    min_deg (int) : Minimum degree of each node
+        default is round(min_comm/2) (not implemented yet)
+    verbose (int) : Verbosity output
+        default is 1
+    size_ratio (float) : Ratio between the radius of world and the radius of communities
+        default is 1
+    world_density (float) : Probability of a random edge between any pair of edges
+        default is 1/N
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Community()
+    """
 
     def __init__(self, N=256, Nc=None, com_sizes=np.array([]), min_com=None,
                  min_deg=None, verbose=1, size_ratio=1, world_density=None):
 
         # Initialisation of the parameters
         if not Nc:
-            Nc = round(sqrt(N)/2.)
+            Nc = int(round(sqrt(N)/2.))
 
         if len(com_sizes) != 0:
             if np.sum(com_sizes) != N:
@@ -773,7 +1052,7 @@ class Community(Graph):
                     com_lims_tmp += np.cumsum((min_com-1)*np.ones(np.shape(com_lims_temp)))
                     X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([N])))
                 dX = np.transpose(np.diff(np.transpose(X)))
-                for i in range(Nc):
+                for i in range(int(Nc)):
                     # TODO figure; hist(dX(:,i), 100); title('histogram of row community size'); end
                     pass
                 del X
@@ -833,6 +1112,19 @@ class Community(Graph):
 
 
 class Minnesota(Graph):
+    r"""
+    Create a community graph
+
+    Parameters
+    ----------
+    connect (bool) : change the graph to be connected.
+        default is True (--> default minnesota graph is coneected)
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Minnesota()
+    """
 
     def __init__(self, connect=True):
         minnesota = PointsCloud('minnesota')
@@ -845,11 +1137,14 @@ class Minnesota(Graph):
         if connect:
             # Edit adjacency matrix
             A = minnesota.A.tolil()
+
             # clean minnesota graph
             A.setdiag(0)
+
             # missing edge needed to connect graph
             A[349, 355] = 1
             A[355, 349] = 1
+
             # change a handful of 2 values back to 1
             A[86, 88] = 1
             A[86, 88] = 1
@@ -859,8 +1154,10 @@ class Minnesota(Graph):
             A[1709, 1707] = 1
             A[2289, 2290] = 1
             A[2290, 2289] = 1
-            self.W = sparse.lil_matrix(A)
+
+            self.W = A
             self.gtype = 'minnesota'
+
         else:
             self.W = A
             self.gtype = 'minnesota-disconnected'
@@ -871,20 +1168,45 @@ class Minnesota(Graph):
 
 
 class Sensor(Graph):
+    r"""
+    Creates a random sensor graph
 
-    def __init__(self, N=64, nc=2, regular=False, verbose=1, n_try=50,
-                 distribute=False, connected=True, set_to_one=False, **kwargs):
+    Parameters
+    ----------
+    N (int) : Number of nodes
+        default is 64
+    Nc (int) : Minimum number of connections
+        default is 1
+    regular (bool) : Flag to fix the number of connections to nc
+        default is False
+    verbose (bool) : Verbosity parameter
+        default is True
+    n_try (int) : Number of attempt to create the graph
+        default is 50
+    distribute (bool) : To distribute the points more evenly
+        default is False
+    connected (bool): To force the graph to be connected
+        default is True
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Sensor(N=300)
+    """
+
+    def __init__(self, N=64, Nc=2, regular=False, verbose=1, n_try=50,
+                 distribute=False, connected=True, **kwargs):
+
         param = kwargs
         self.N = N
-        self.nc = nc
+        self.Nc = Nc
         self.regular = regular
         self.verbose = verbose
         self.n_try = n_try
         self.distribute = distribute
         self.connected = connected
-        self.set_to_one = set_to_one
 
-        def create_weight_matrix(N, param_distribute, param_regular, param_nc):
+        def create_weight_matrix(N, param_distribute, param_regular, param_Nc):
             XCoords = np.zeros((N, 1))
             YCoords = np.zeros((N, 1))
 
@@ -912,10 +1234,10 @@ class Sensor(Graph):
             W -= np.diag(np.diag(W))
 
             if param_regular:
-                W = get_nc_connection(W, param_nc)
+                W = get_nc_connection(W, param_Nc)
 
             else:
-                W2 = get_nc_connection(W, param_nc)
+                W2 = get_nc_connection(W, param_Nc)
                 W = np.where(W < T, 0, W)
                 W = np.where(W2 > 0, W2, W)
 
@@ -942,7 +1264,7 @@ class Sensor(Graph):
                 W, Coords = create_weight_matrix(self.N,
                                                  self.distribute,
                                                  self.regular,
-                                                 self.nc)
+                                                 self.Nc)
 
                 self.W = W
 
@@ -954,10 +1276,7 @@ class Sensor(Graph):
 
         else:
             W, Coords = create_weight_matrix(self.N, self.distribute,
-                                             self.regular, self.nc)
-
-        if self.set_to_one:
-            W = np.where(W > 0, 1, W)
+                                             self.regular, self.Nc)
 
         W = sparse.lil_matrix(W)
         self.W = (W + W.getH())/2.
@@ -978,6 +1297,18 @@ class Sensor(Graph):
 
 # Need nothing
 class Airfoil(Graph):
+    r"""
+    Creates the aifoil graph
+
+    Parameters
+    ----------
+    None
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Airfoil()
+    """
 
     def __init__(self):
 
@@ -1004,6 +1335,19 @@ class Airfoil(Graph):
 
 
 class DavidSensorNet(Graph):
+    r"""
+    Creates a sensor network
+
+    Parameters
+    ----------
+    N (int): Number of vertices
+        default is 64
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.DavidSensorNets(N=500)
+    """
 
     def __init__(self, N=64):
         self.N = N
@@ -1041,6 +1385,19 @@ class DavidSensorNet(Graph):
 
 
 class FullConnected(Graph):
+    r"""
+    Creates a fully connected graph
+
+    Parameters
+    ----------
+    N (int) : Number of vertices
+        default 10
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.FullConnected(N=5)
+    """
 
     def __init__(self, N=10):
 
@@ -1060,6 +1417,18 @@ class FullConnected(Graph):
 
 
 class Logo(Graph):
+    r"""
+    Creates a graph with the GSP Logo
+
+    Parameters
+    ----------
+    None
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Logo()
+    """
 
     def __init__(self):
         logo = PointsCloud("logo")
@@ -1081,6 +1450,19 @@ class Logo(Graph):
 
 
 class Path(Graph):
+    r"""
+    Creates a path graph
+
+    Parameters
+    ----------
+    N (int) : Number of vertices
+        default 32
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.Path(N=16)
+    """
 
     def __init__(self, N=16):
 
@@ -1101,6 +1483,19 @@ class Path(Graph):
 
 
 class RandomRing(Graph):
+    r"""
+    Creates a ring graph
+
+    Parameters
+    ----------
+    N (int) : Number of vertices
+        default 64
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.RandomRing(N=16)
+    """
 
     def __init__(self, N=64):
 
@@ -1133,6 +1528,25 @@ class RandomRing(Graph):
 
 
 class SwissRoll(Graph):
+    r"""
+    Creates a a swiss roll graph
+
+    Parameters
+    ----------
+    N (int) : Number of vertices
+        default 400
+    s (float) : sigma
+        default sqrt(2./N)
+    thresh (float) : threshold
+        default 1e-6
+    rand_state : rand seed
+        default 45
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> G = graphs.SwissRoll()
+    """
 
     def __init__(self, N=400, a=1, b=4, dim=3, thresh=1e-6, s=None,
                  noise=False, srtype='uniform'):
@@ -1177,6 +1591,36 @@ class SwissRoll(Graph):
 
 
 class PointsCloud(object):
+    r"""
+    Load the parameters of models and the points
+
+    Parameters
+    ----------
+    name (string) : the name of the point cloud to load
+        possible name: 'airfoil', 'bunny', 'david64', 'david500', 'logo', 'two_moons'
+    max_dim (int) : the maximum dimensionality of the points (only valid for two_moons)
+        default is 2
+
+    Returns
+    -------
+    The differents informations of the PointsCloud Loaded.
+
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> bunny = PointsCloud('bunny')
+    >>> Xin = bunny.Xin
+
+    Note
+    ----
+    The bunny is the model from the Stanford Computer Graphics Laboratory (see reference).
+
+
+    Reference
+    ----------
+    :cite:`turk1994zippered`
+    """
 
     def __init__(self, pointcloudname, max_dim=2):
         if pointcloudname == "airfoil":
@@ -1242,16 +1686,16 @@ def dummy(a, b, c):
 
     Parameters
     ----------
-    a : int
+    a: int
         Description.
-    b : array_like
+    b: array_like
         Description.
-    c : bool
+    c: bool
         Description.
 
     Returns
     -------
-    d : ndarray
+    d: ndarray
         Description.
 
     Examples
