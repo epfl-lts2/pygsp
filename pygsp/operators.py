@@ -261,7 +261,7 @@ def gwft_frame_matrix(G, g, verbose=1):
     return F
 
 
-def igth(G, f_hat):
+def igft(G, f_hat):
     r"""
     Inverse graph Fourier transform
 
