@@ -108,8 +108,8 @@ def estimate_lmax(G):
     >>> lmax = pygsp.utils.estimate_lmax(G)
     """
     try:
-        # MAT: lmax=eigs(G.L,1,'lm',opts)
         lmax = sparse.linalg.eigs(G.L, k=1, tol=5e-3, ncv=10)[0]
+        # MAT: lmax=eigs(G.L,1,'lm',opts)
         # On robustness purposes, increasing the error by 1 percent
         lmax *= 1.01
     except ValueError:
