@@ -318,6 +318,32 @@ def symetrize(W, symetrize_type='average'):
         raise ValueError("Unknown symetrize type")
 
 
+def kernel_abspline3(x, alpha, beta, t1, t2):
+    r = np.zeros(x.shape)
+
+    M = [[1, t1, t1**2, t1**3],
+         [1, t2, t2**2, t2**3],
+         [0, 1, 2*t1, 3*t1],
+         [0, 1, 2*t2, 3*t2]]
+
+    v = [1, 1, t1**(-alpha * alpha * t1**(alpha-1)),
+         -beta*t2**(-(beta+1) * t2**beta)]
+
+    a = M/v
+
+    r1 = np.extract(x.any() >= 0 & x <= t1, x)
+    r2 = np.extract(x.any() >= t1 & x < t2, x)
+    r3 = np.extract(x.any() >= t2)
+
+    x2 = x[r2]
+
+    r[r1] = x[r1] ** alpha * t1 ** (-alpha)
+    r[r2] = a[0] + a[1] * x2 + a[2] * x2 ** 2 + a[3] * x2 ** 3
+    r[r3] = x[r3] ** -beta * t2 ** (beta)
+
+    return r
+
+
 def dummy(a, b, c):
     r"""
     Short description.

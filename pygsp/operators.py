@@ -4,6 +4,7 @@ from math import pi
 from scipy import sparse
 from scipy import linalg
 
+import pygsp
 from pygsp import utils
 
 
@@ -145,7 +146,7 @@ def gft(G, f):
     f_hat : Graph Fourier transform of *f*
     """
 
-    if isinstance(G, graphs.Graph):
+    if isinstance(G, pygsp.graphs.Graph):
         if not hasattr(G, 'U'):
             raise AttributeError('You need first to compute the Fourier basis.\
                                   You can do it with the function \
@@ -202,8 +203,8 @@ def gwft(G, g, f, verbose=1, lowmemory=True):
         Ftrans = np.sqrt(G.N)*G.U*(np.kron(np.ones((G.N)), ghat)*G.U.transpose())
         C = zeros((G.N, G.N))
 
-        for jj in range(1, Nf):
-            for ii in range(1, G.N):
+        for jj in range(Nf):
+            for ii in range(G.N):
                 C[:, ii, jj] = (np.kron(np.ones((G.N)), 1./G.U[:, 1])*G.U*np.kron(np.ones((G.N)), Ftrans[:, ii])).transpose()*f[:, jj]
 
     return C
@@ -256,7 +257,7 @@ def gwft_frame_matrix(G, g, verbose=1):
     ghat = G.U.transpose()*g
     Ftrans = np.sqrt(G.N)*G.U*np.kron(np.ones((1, G.N)), ghat)*G.U.transpose()
 
-    F = utils.repmatline(Ftrans, 1, G.N)*np.kron(np.ones((1, G.N)), np.kron(np.ones((1, G.N)), 1./G.U[:, 0]))
+    F = utils.repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
 
     return F
 
@@ -275,7 +276,7 @@ def igft(G, f_hat):
     f : Inverse graph Fourier transform of *f_hat*
 
     """
-    if isinstance(G, graphs.Graph):
+    if isinstance(G, pygsp.graphs.Graph):
         if not hasattr(G, 'U'):
             raise AttributeError('You need first to compute the Fourier basis.\
                                   You can do it with the function \
@@ -290,7 +291,7 @@ def igft(G, f_hat):
     return f_hat*U
 
 
-def ngwft(G, f, g, param):
+def ngwft(G, f, g, verbose=1, lowmemory=True):
     r"""
     Normalized graph windowed Fourier transform
 
@@ -299,17 +300,43 @@ def ngwft(G, f, g, param):
     G : Graph
     f : Graph signal
     g : window
-    param : Structure of optional parameter
+    verbose : 0 no log, 1 print main steps
+        default is 1
+    lowmemory : use less memory.
+        default is True.
 
     Returns
     -------
     C : Coefficient
     """
-    raise NotImplementedError
+
+    if not hasattr(G, 'U'):
+        raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+
+    if lowmemory:
+        # Compute the Frame into a big matrix
+        Frame = ngwft_frame_matrix(G, g, verbose=verbose)
+        C = Frame.transpose()*f
+        C = C.reshape(G.N, G.N)
+
+    else:
+        # Compute the translate of g
+        ghat = G.U.transpose()*g
+        Ftrans = np.sqrt(G.N)*G.U*np.kron(np.ones((1, G.N)), ghat)*G.U.transpose()
+
+        C = np.zeros((G.N, G.N))
+        for i in range(G.N):
+            atoms = np.kron(np.ones((G.N)), 1./G.U[:, 0])*G.U*np.kron(np.ones((G.N)), Ftrans[:, i]).transpose()
+
+            # normalization
+            atoms /= np.kron((np.ones((G.N))), np.sqrt(np.sum(np.abs(atoms),
+                                                              axis=0)))
+            C[:, i] = atoms*f
+
     return C
 
 
-def ngwft_frame_matrix(G, g, param):
+def ngwft_frame_matrix(G, g, verbose=1):
     r"""
     Create the matrix of the GWFT frame
 
@@ -317,12 +344,23 @@ def ngwft_frame_matrix(G, g, param):
     ----------
     G : Graph
     g : window
-    param : Structure of optional parameter
+    verbose : 0 no log, 1 print main steps
+        default is 1
 
     Output parameters:
     F : Frame
     """
-    raise NotImplementedError
+    if verbose >= 1 and G.N > 256:
+        print('It will create a big matrix, you can use other methods.')
+
+    ghat = G.U.transpose()*g
+    Ftrans = np.sqrt(g.N)*G.U*(np.kron(np.ones((G.N)), ghat)*G.U.transpose())
+
+    F = repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
+
+    # Normalization
+    F /= np.kron((np.ones((G.N)), np.sqrt(np.sum(np.power(np.abs(F), 2),
+                                          axiis=0))))
 
     return F
 

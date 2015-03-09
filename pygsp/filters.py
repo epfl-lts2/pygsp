@@ -21,7 +21,7 @@ class Filter(object):
         pass
 
     def analysis(self, G, s, exact=True, cheb_order=30, **kwargs):
-        Nf = len(self.fi)
+        Nf = len(self.g)
 
         if exact:
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
@@ -33,14 +33,14 @@ class Filter(object):
 
             for i in range(Nf):
                 c[np.arange(G.N) + G.N * (i-1)] =\
-                    operators.igft(G, sp.kron(sp.ones((fie[:, i], 1)), Nv) *
+                    operators.igft(G, sp.kron(sp.ones((fie[0][i], 1)), Nv) *
                                    operators.gft(G, s))
 
         else:  # Chebyshev approx
             if not hasattr(G, 'lmax'):
                 G = utils.estimate_lmax(G)
 
-            cheb_coef = operators.compute_cheby_coeff(self.fi, G, m=cheb_order)
+            cheb_coef = operators.compute_cheby_coeff(self.g, G, m=cheb_order)
             c = operators.cheby_op(G, cheb_coef, s)
 
         return c
@@ -153,7 +153,9 @@ class Itersine(Filter):
 
 class MexicanHat(Filter):
 
-    def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
+    def __init__(self, G, Nf=6, lpfactor=20, t=None, normalize=False,
+                 **kwargs):
+
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
 
@@ -172,7 +174,11 @@ class MexicanHat(Filter):
         self.g.append(lambda x: 1.2 * exp(-1) * gl(x / lminfac))
 
         for i in range(0, Nf-1):
-            self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
+            if normalize:
+                self.g.append(lambda x, ind=i: np.sqrt(t[i]) *
+                              gb(self.t[ind] * x))
+            else:
+                self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
 
 class Meyer(Filter):
