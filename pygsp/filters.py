@@ -7,6 +7,7 @@ Filters Doc
 from math import exp, log
 import numpy as np
 import scipy as sp
+import scipy.optimize
 
 from pygsp import utils, operators
 
@@ -104,9 +105,33 @@ class FilterBank(Filter):
 
 class Abspline(Filter):
 
-    def __init__(self, G, Nf, **kwargs):
-        raise NotImplementedError
+    def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
+        if not hasattr(G, 'lmax'):
+            G.lmax = utils.estimate_lmax(G)
 
+        G.lmin = G.lmax / lpfactor
+
+        if t is None:
+            self.t = self.wlog_scales(G.lmin, G.lmax, Nf - 1)
+        else:
+            self.t = t
+
+        gb = lambda x: utils.kernel_abspline3(x, 2, 2, 1, 2)
+        gl = lambda x: np.exp(-np.power(x, 4))
+
+        lminfac = .4 * G.lmin
+
+        self.g = []
+        self.g.append(lambda x: 1.2 * exp(-1) * gl(x / lminfac))
+
+        for i in range(0, Nf-1):
+            self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
+
+        f = lambda x: -gb(x)
+        xstar = scipy.optimize.fmin(func=f, x0=[1, 2])
+        gamma_l = -f(xstar)
+        lminfac = .6 * G.lmin
+        self.g[0] = lambda x: gamma_l * gl(x / lminfac)
 
 class Expwin(Filter):
 
