@@ -329,13 +329,14 @@ def ngwft(G, f, g, verbose=1, lowmemory=True):
             atoms = np.kron(np.ones((G.N)), 1./G.U[:, 0])*G.U*np.kron(np.ones((G.N)), Ftrans[:, i]).transpose()
 
             # normalization
-            atoms /= np.kron((np.ones((G.N))), np.sqrt(np.sum(np.abs(atoms), axis=0)))
+            atoms /= np.kron((np.ones((G.N))), np.sqrt(np.sum(np.abs(atoms),
+                                                              axis=0)))
             C[:, i] = atoms*f
 
     return C
 
 
-def ngwft_frame_matrix(G, g, param):
+def ngwft_frame_matrix(G, g, verbose=1):
     r"""
     Create the matrix of the GWFT frame
 
@@ -343,12 +344,23 @@ def ngwft_frame_matrix(G, g, param):
     ----------
     G : Graph
     g : window
-    param : Structure of optional parameter
+    verbose : 0 no log, 1 print main steps
+        default is 1
 
     Output parameters:
     F : Frame
     """
-    raise NotImplementedError
+    if verbose >= 1 and G.N > 256:
+        print('It will create a big matrix, you can use other methods.')
+
+    ghat = G.U.transpose()*g
+    Ftrans = np.sqrt(g.N)*G.U*(np.kron(np.ones((G.N)), ghat)*G.U.transpose())
+
+    F = repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
+
+    # Normalization
+    F /= np.kron((np.ones((G.N)), np.sqrt(np.sum(np.power(np.abs(F), 2),
+                                          axiis=0))))
 
     return F
 
