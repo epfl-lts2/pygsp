@@ -1,6 +1,6 @@
 import numpy as np
 import scipy as sp
-from math import pi
+from math import pi, sqrt
 from scipy import sparse
 from scipy import linalg
 
@@ -512,26 +512,77 @@ def localize(G, g, i):
     return gt
 
 
-def kron_pyramid(G, Nlevels, param):
+def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None,
+                 filters=None):
     r"""
     Compute a pyramid of graphs using the kron reduction
 
     Parameters
     ----------
     G : Graph structure
-    Nlevels : Number of level of decomposition
-    param : Optional structure of parameters
+    Nlevels (int) : Number of level of decomposition
+    lambda (float) : Stability parameter. It add self loop to the graph to give the alorithm some stability 
+        default is 0.025.
+    sparsify (bool) : Sparsify the graph after the Kron reduction
+        default is True.
+    epsilon (float) : Sparsification parameter if the sparsification is used
+        default is min(2/sqrt(G.N), 0.1)
+    filters (Ndarray): A Ndarray of filter that will be used for the analysis and sytheis operator. If only one filter is given, it will be used for all levels. You may change that later on.
 
     Returns
     -------
     Cs : Cell array of graphs
     """
-    raise NotImplementedError
+    # TODO @ function
+    if not epsilon:
+        epsilon = min(10/sqrt(G.N), 1)
+
+    if not filters:
+        filters = np.empty(Nlevels)
+        for i in filters:
+            # i =  @(x) .5./(.5+x)
+
+    if isinstance(filters, np.ndarray):
+        if len(filters) == 1:
+            newfilters = np.empty(Nlevels)
+            for i in newfilters:
+                i = filters
+            filters = newfilters
+        elif 1 < len(filters) < Nlevels:
+            raise ValueError('The numbers of filters can must be one or equal to Nlevels')
+    else:
+        raise TypeError('filters must be a numpy array!')
+
+    Gs = [G]
+
+    for i in range(Nlevels):
+        L_reg = Gs[i].L.todense() + lamda*np.eye(Gs[i].N)
+        _, Vtemp = np.linalg.eig(L_reg)
+        V = Vtemp[:, 0]
+
+        # Select the bigger group
+        V = np.where(V >= 0, 1, 0)
+        if np.sum(V) >= Gs[i].N/2.:
+            ind = np.nonzero(V)
+        else:
+            ind = np.nonzero(1-V)
+
+        if sparsify:
+            Gtemp = kron_reduction(Gs[i], ind)
+            Gs.append(utils.graph_sparsify(Gtemp, max(epsilon, 2./sqrt(G[i].N))))
+        else:
+            Gs.append(kron_reduction(G[i], ind))
+
+        Gs[i+1].pyramid = {'ind': ind,
+                           # 'green_kernel': @(x) 1/(lamda + x},
+                           'filter' = filters[i],
+                           'level' = i,
+                           'K_reg' = kron_reduction(L_reg, ind)}
 
     return Gs
 
 
-def gsp_kron_reduction(G, ind):
+def kron_reduction(G, ind):
     r"""
     Compute the kron reduction
 
