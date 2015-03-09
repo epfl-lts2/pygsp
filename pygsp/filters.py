@@ -128,7 +128,9 @@ class Itersine(Filter):
 
 class MexicanHat(Filter):
 
-    def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
+    def __init__(self, G, Nf=6, lpfactor=20, t=None, normalize=False,
+                 **kwargs):
+
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
 
@@ -147,7 +149,11 @@ class MexicanHat(Filter):
         self.g.append(lambda x: 1.2 * exp(-1) * gl(x / lminfac))
 
         for i in range(0, Nf-1):
-            self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
+            if normalize:
+                self.g.append(lambda x, ind=i: np.sqrt(t[i]) *
+                              gb(self.t[ind] * x))
+            else:
+                self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
 
 class Meyer(Filter):
