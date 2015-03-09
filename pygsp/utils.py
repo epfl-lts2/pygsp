@@ -321,19 +321,23 @@ def symetrize(W, symetrize_type='average'):
 def kernel_abspline3(x, alpha, beta, t1, t2):
     r = np.zeros(x.shape)
 
-    M = [[1, t1, t1**2, t1**3],
-         [1, t2, t2**2, t2**3],
-         [0, 1, 2*t1, 3*t1],
-         [0, 1, 2*t2, 3*t2]]
+    M = np.array([[1, t1, t1**2, t1**3],
+                  [1, t2, t2**2, t2**3],
+                  [0, 1, 2*t1, 3*t1],
+                  [0, 1, 2*t2, 3*t2]])
 
-    v = [1, 1, t1**(-alpha * alpha * t1**(alpha-1)),
-         -beta*t2**(-(beta+1) * t2**beta)]
+    v = np.array([1, 1, t1**(-alpha * alpha * t1**(alpha-1)),
+                  -beta*t2**(-(beta+1) * t2**beta)])
 
     a = M/v
 
-    r1 = np.extract(x.any() >= 0 & x <= t1, x)
-    r2 = np.extract(x.any() >= t1 & x < t2, x)
-    r3 = np.extract(x.any() >= t2)
+    r1 = np.extract(x.any() >= 0 and x <= t1, x)
+    r2 = np.extract(x.any() >= t1 and x < t2, x)
+    r3 = np.extract(x.any() >= t2, x)
+
+    r1 = r1.astype(int)
+    r2 = r2.astype(int)
+    r3 = r3.astype(int)
 
     x2 = x[r2]
 
