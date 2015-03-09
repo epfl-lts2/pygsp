@@ -4,7 +4,8 @@ from math import pi
 from scipy import sparse
 from scipy import linalg
 
-from pygsp import utils, graphs
+import pygsp
+from pygsp import utils
 
 
 class operators(object):
@@ -145,7 +146,7 @@ def gft(G, f):
     f_hat : Graph Fourier transform of *f*
     """
 
-    if isinstance(G, graphs.Graph):
+    if isinstance(G, pygsp.graphs.Graph):
         if not hasattr(G, 'U'):
             raise AttributeError('You need first to compute the Fourier basis.\
                                   You can do it with the function \
@@ -275,7 +276,7 @@ def igft(G, f_hat):
     f : Inverse graph Fourier transform of *f_hat*
 
     """
-    if isinstance(G, graphs.Graph):
+    if isinstance(G, pygsp.graphs.Graph):
         if not hasattr(G, 'U'):
             raise AttributeError('You need first to compute the Fourier basis.\
                                   You can do it with the function \

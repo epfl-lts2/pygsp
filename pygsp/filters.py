@@ -40,7 +40,7 @@ class Filter(object):
             if not hasattr(G, 'lmax'):
                 G = utils.estimate_lmax(G)
 
-            cheb_coef = operators.compute_cheby_coeff(self.fi, G, m=cheb_order)
+            cheb_coef = operators.compute_cheby_coeff(self.g, G, m=cheb_order)
             c = operators.cheby_op(G, cheb_coef, s)
 
         return c
