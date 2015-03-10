@@ -284,7 +284,26 @@ class MexicanHat(Filter):
 class Meyer(Filter):
 
     def __init__(self, G, Nf, **kwargs):
-        raise NotImplementedError
+
+        if not hasattr(G, 'lmax'):
+            G.lmax = utils.estimate_lmax(G)
+
+        if not hasattr(G, 't'):
+            G.t = (4/(3 * G.lmax)) * np.power(2., [Nf-2, -1, 0])
+
+        if len(G.t) != Nf-1:
+            print('GSP_KERNEL_MEYER: You have specified more scales than\
+                  the number of scales minus 1')
+
+        t = G.t
+        g = []
+
+        g.append(lambda x: operators.kernel_meyer(t[1] * x, 'sf'))
+        for i in range(Nf-1):
+            g.append(lambda x, ind=i: operators.kernel_meyer(t[ind] * x,
+                                                             'wavelet'))
+
+        self.g = g
 
 
 class SimpleTf(Filter):
