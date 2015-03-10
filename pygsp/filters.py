@@ -14,13 +14,42 @@ from pygsp import utils, operators
 
 class Filter(object):
     r"""
-    TODO doc
+    Parent class for all Filters or Filterbanks, contains the shared
+    methods for those classes.
     """
 
     def __init__(self, **kwargs):
         pass
 
     def analysis(self, G, s, exact=True, cheb_order=30, **kwargs):
+        r"""
+        Operator to analyse a filterbank
+
+        Parameters
+        ----------
+        G : Graph object
+        s : ndarray
+            graph signal to analyse
+        exact : bool
+            wether using an exact method or cheby approx
+        cheb_order : int
+            Order for chebyshev
+
+        Returns
+        -------
+        c : ndarray
+            Transform coefficients
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pygsp import graphs, filters
+        >>> sen = graphs.Sensor()
+        >>> MH = filters.MexicanHat(sen)
+        >>> x = np.random.rand(64, 64)
+        >>> co = MH.analyse(sen, x)
+
+        """
         Nf = len(self.g)
 
         if exact:
@@ -47,9 +76,40 @@ class Filter(object):
 
     @utils.filterbank_handler
     def evaluate(self, x, i=0):
+        r"""
+        Evaluation of the Filterbank
+
+        Parameters
+        ----------
+        x = ndarray
+            Data
+        i = int
+            Indice of the filter to evaluate
+
+        Returns
+        -------
+        fd = ndarray
+            Response of the filter
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pygsp import graphs, filters
+        >>> sen = graphs.Sensor()
+        >>> MH = filters.MexicanHat(sen)
+        >>> x = np.arange(2)
+        >>> MH.evaluate(x)
+        [array([  4.41455329e-01,   6.98096605e-42]),
+         array([ 0.        ,  0.20636635]),
+         array([ 0.        ,  0.36786227]),
+         array([ 0.        ,  0.26561591]),
+         array([ 0.        ,  0.13389365]),
+         array([ 0.        ,  0.05850726])]
+
+        """
         fd = np.zeros(x.size)
         fd = self.g[i](x)
         return fd
+
 
     def inverse(self, G, c, **kwargs):
         raise NotImplementedError
@@ -72,6 +132,21 @@ class Filter(object):
     def wlog_scales(self, lmin, lmax, Nscales, t1=1, t2=2):
         r"""
         Compute logarithm scales for wavelets
+
+        Parameters
+        ----------
+        lmin : int
+            Minimum non-zero eigenvalue
+        lmax : int
+            Maximum eigenvalue
+        Nscales : int
+            Number of scales
+
+        Returns
+        -------
+        s : ndarray
+            Scale
+
         """
         smin = t1/lmax
         smax = t2/lmin
@@ -152,6 +227,31 @@ class Itersine(Filter):
 
 
 class MexicanHat(Filter):
+    r"""
+    Mexican hat Filterbank
+
+    Inherits its methods from Filters
+
+    Parameters
+    ----------
+    G : Graph
+    Nf : int
+        Number of filters from 0 to lmax (default = 6)
+    lpfactor : int
+        Low-pass factor lmin=lmax/lpfactor will be used to determine scales,
+        the scaling function will be created to fill the lowpass gap.
+        (default = 20)
+    t = ndarray
+        Vector of scale to be used (Initialized by default at
+        the value of the log scale)
+    normalize : bool
+        Wether to normalize the wavelet by the factor/sqrt(t) (default = False)
+
+    Returns
+    -------
+    out : MexicanHat
+
+    """
 
     def __init__(self, G, Nf=6, lpfactor=20, t=None, normalize=False,
                  **kwargs):

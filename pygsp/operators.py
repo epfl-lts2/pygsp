@@ -390,6 +390,26 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
 
 @utils.filterbank_handler
 def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
+    r"""
+    Compute Chebyshev coefficients for a Filterbank
+
+    Paramters
+    ---------
+    f : Filter or list of filters
+    G : Graph
+    m : int
+        Maximum order of Chebyshev coeff to compute (default = 30)
+    N : int
+        Grid order used to compute quadrature (default = m + 1)
+    i = int
+        Indice of the Filterbank element to compute
+
+    Returns
+    -------
+    c : ndarray
+        Matrix of Chebyshev coefficients
+
+    """
 
     if not N:
         N = m + 1
@@ -413,7 +433,21 @@ def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
 
 def cheby_op(G, c, signal, **kwargs):
     r"""
-    Doc
+    Chebyshev polylnomial of graph Laplacian apllid to vector
+
+    Parameters
+    ----------
+    G : Graph
+    c : ndarray
+        Chebyshev coefficients
+    signal : ndarray
+        Signal to filter
+
+    Returns
+    -------
+    r : ndarray
+        Result if the filtering
+
     """
     Nscales = len(c[1])
 
@@ -455,6 +489,23 @@ def cheby_op(G, c, signal, **kwargs):
 
 
 def full_eigen(L):
+    r"""
+    Computes full eigen decomposition on a matrix
+
+    Parameters
+    ----------
+    L : ndarray
+        Matrix to decompose
+
+    Returns
+    -------
+    EVa : ndarray
+        Eigenvalues
+    EVe : ndarray
+        Eigenvectors
+
+    """
+
     eigenvectors, eigenvalues, _ = np.linalg.svd(L.todense())
 
     # Sort everything
@@ -473,8 +524,22 @@ def full_eigen(L):
 
 
 def create_laplacian(G):
+    r"""
+    Create the graph laplacian of graph G
+
+    Parameters
+    ----------
+    G : Graph
+    
+    Returns
+    -------
+    L : ndarray
+        Laplacian matrix
+
+    """
     if sp.shape(G.W) == (1, 1):
         return sparse.lil_matrix(0)
+
     else:
         if G.lap_type == 'combinatorial':
             L = sparse.lil_matrix(np.diagflat(G.W.sum(1)) - G.W)
