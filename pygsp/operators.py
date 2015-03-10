@@ -530,7 +530,7 @@ def create_laplacian(G):
     Parameters
     ----------
     G : Graph
-    
+
     Returns
     -------
     L : ndarray
@@ -552,6 +552,45 @@ def create_laplacian(G):
             raise AttributeError('Unknown laplacian type!')
         return L
 
+
+def kernel_meyer(x, kerneltype):
+    r"""
+    Evaluates Meyer function and scaling function
+
+    Parameters
+    ----------
+    x : ndarray
+        Array of independant variables values
+    kerneltype : str
+        Can be either 'sf' or 'wavelet'
+
+    Returns
+    -------
+    r : ndarray
+
+    """
+    l1 = 2./3.
+    l2 = 4./3.
+    l3 = 8./3.
+
+    v = lambda x: x ** 4. * (35-84 * x+70 * x ** 2-20 * x ** 3)
+
+    r1ind = np.extract(x.any() >= 0 and x < l1)
+    r2ind = np.extract(x.any() >= l1 and x < l2)
+    r1ind = np.extract(x.any() >= l2 and x < l3)
+
+    r = np.empty(len(x))
+    switch(kerneltype):
+        case 'sf':
+            r[r1ind] = 1
+            r[r2ind] = np.cos((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
+        case 'wavelet':
+            r[r2ind] = np.sin((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
+            r[r3ind] = np.cos((pi/2) * v[np.abs(x[r3ind])/l2 - 1])
+        else:
+            raise('Unknown kerne type ', kerneltype)
+
+        return r
 
 def localize(G, g, i):
     r"""
