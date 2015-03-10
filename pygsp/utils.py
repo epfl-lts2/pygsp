@@ -342,6 +342,8 @@ def kernel_abspline3(x, alpha, beta, t1, t2):
     x2 = x[r2]
 
     r[r1] = x[r1] ** alpha * t1 ** (-alpha)
+    print(a)
+    print(x2)
     r[r2] = a[0] + a[1] * x2 + a[2] * x2 ** 2 + a[3] * x2 ** 3
     r[r3] = x[r3] ** -beta * t2 ** (beta)
 

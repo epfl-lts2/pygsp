@@ -577,18 +577,17 @@ def kernel_meyer(x, kerneltype):
 
     r1ind = np.extract(x.any() >= 0 and x < l1)
     r2ind = np.extract(x.any() >= l1 and x < l2)
-    r1ind = np.extract(x.any() >= l2 and x < l3)
+    r3ind = np.extract(x.any() >= l2 and x < l3)
 
     r = np.empty(len(x))
-    switch(kerneltype):
-        case 'sf':
-            r[r1ind] = 1
-            r[r2ind] = np.cos((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
-        case 'wavelet':
-            r[r2ind] = np.sin((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
-            r[r3ind] = np.cos((pi/2) * v[np.abs(x[r3ind])/l2 - 1])
-        else:
-            raise('Unknown kerne type ', kerneltype)
+    if kerneltype is 'df':
+        r[r1ind] = 1
+        r[r2ind] = np.cos((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
+    if kerneltype is 'wavelet':
+        r[r2ind] = np.sin((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
+        r[r3ind] = np.cos((pi/2) * v[np.abs(x[r3ind])/l2 - 1])
+    else:
+        raise('Unknown kernel type ', kerneltype)
 
         return r
 
