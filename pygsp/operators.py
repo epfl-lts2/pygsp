@@ -5,7 +5,7 @@ from scipy import sparse
 from scipy import linalg
 
 import pygsp
-from pygsp import utils
+from pygsp import utils, graphs
 
 
 class operators(object):
@@ -591,6 +591,7 @@ def kernel_meyer(x, kerneltype):
 
         return r
 
+
 def localize(G, g, i):
     r"""
     Localize a kernel g to the node i
@@ -698,7 +699,47 @@ def kron_reduction(G, ind):
     -------
     Gnew : New graph structure or weight matrix
     """
-    raise NotImplementedError
+    if isinstance(G, pygsp.graphs.Graph):
+        if hasattr(G, 'lap_type'):
+            if G.lap_type == 'combinatorial':
+                raise ValueError('Not implemented.')
+
+        if G.directed:
+            raise ValueError('This method only work for undirected graphs.')
+        L = G.L
+
+    else:
+        L = G
+
+    N = np.shape(L)[0]
+    ind_comp = np.setdiff1d(np.arange(N), ind)
+
+    L_red = L[ind-1, ind-1]
+    L_in_out = L[ind-1, ind_comp]
+    L_out_in = L[ind_com, ind-1]
+    L_com = L[ind_com, ind_com]
+
+    Lnew = L_red - L_in_out * (L_com/L_out_in)
+
+    # Make the laplacian symetric if it is almost symetric!
+    if np.sum(np.sum(np.abs(Lnew-Lnew.transpose()), axis=0), axis=0) < eps*np.sum(np.sum(np.abs(Lnew), axis=0), axis=0):
+        Lnew = (Lnew + Lnew.transpose())/2.
+
+    if isinstance(G, pygsp.graphs.Graph):
+        # Suppress the diagonal ? This is a good question?
+        Wnew = np.diagonal(np.diagonal(Lnew)) - Lnew
+        Snew = np.diagonal(Lnew) - np.sum(Wnew).transpose()
+        if np.linalg.nomr(Snew, 2) < eps(1000):
+            Snew = 0
+        Wnew = Wnew + np.diagonal(Wnew)
+
+        Gnew = graphs.Graph.copy_graph_attr(G)
+        Gnew.coords = G.coords[ind, :]
+        Gnew.W = Wnew
+        Gnew.type = 'Kron reduction'
+
+    else:
+        Gnew = Lnew
 
     return Gnew
 
