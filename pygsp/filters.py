@@ -7,19 +7,49 @@ Filters Doc
 from math import exp, log
 import numpy as np
 import scipy as sp
+import scipy.optimize
 
 from pygsp import utils, operators
 
 
 class Filter(object):
     r"""
-    TODO doc
+    Parent class for all Filters or Filterbanks, contains the shared
+    methods for those classes.
     """
 
     def __init__(self, **kwargs):
         pass
 
     def analysis(self, G, s, exact=True, cheb_order=30, **kwargs):
+        r"""
+        Operator to analyse a filterbank
+
+        Parameters
+        ----------
+        G : Graph object
+        s : ndarray
+            graph signal to analyse
+        exact : bool
+            wether using an exact method or cheby approx
+        cheb_order : int
+            Order for chebyshev
+
+        Returns
+        -------
+        c : ndarray
+            Transform coefficients
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pygsp import graphs, filters
+        >>> sen = graphs.Sensor()
+        >>> MH = filters.MexicanHat(sen)
+        >>> x = np.random.rand(64, 64)
+        >>> co = MH.analyse(sen, x)
+
+        """
         Nf = len(self.g)
 
         if exact:
@@ -46,9 +76,40 @@ class Filter(object):
 
     @utils.filterbank_handler
     def evaluate(self, x, i=0):
+        r"""
+        Evaluation of the Filterbank
+
+        Parameters
+        ----------
+        x = ndarray
+            Data
+        i = int
+            Indice of the filter to evaluate
+
+        Returns
+        -------
+        fd = ndarray
+            Response of the filter
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pygsp import graphs, filters
+        >>> sen = graphs.Sensor()
+        >>> MH = filters.MexicanHat(sen)
+        >>> x = np.arange(2)
+        >>> MH.evaluate(x)
+        [array([  4.41455329e-01,   6.98096605e-42]),
+         array([ 0.        ,  0.20636635]),
+         array([ 0.        ,  0.36786227]),
+         array([ 0.        ,  0.26561591]),
+         array([ 0.        ,  0.13389365]),
+         array([ 0.        ,  0.05850726])]
+
+        """
         fd = np.zeros(x.size)
         fd = self.g[i](x)
         return fd
+
 
     def inverse(self, G, c, **kwargs):
         raise NotImplementedError
@@ -71,6 +132,21 @@ class Filter(object):
     def wlog_scales(self, lmin, lmax, Nscales, t1=1, t2=2):
         r"""
         Compute logarithm scales for wavelets
+
+        Parameters
+        ----------
+        lmin : int
+            Minimum non-zero eigenvalue
+        lmax : int
+            Maximum eigenvalue
+        Nscales : int
+            Number of scales
+
+        Returns
+        -------
+        s : ndarray
+            Scale
+
         """
         smin = t1/lmax
         smax = t2/lmin
@@ -104,8 +180,34 @@ class FilterBank(Filter):
 
 class Abspline(Filter):
 
-    def __init__(self, G, Nf, **kwargs):
-        raise NotImplementedError
+    def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
+        if not hasattr(G, 'lmax'):
+            G.lmax = utils.estimate_lmax(G)
+
+        G.lmin = G.lmax / lpfactor
+
+        if t is None:
+            self.t = self.wlog_scales(G.lmin, G.lmax, Nf - 1)
+        else:
+            self.t = t
+
+        gb = lambda x: utils.kernel_abspline3(x, 2, 2, 1, 2)
+        gl = lambda x: np.exp(-np.power(x, 4))
+
+        lminfac = .4 * G.lmin
+
+        self.g = []
+        self.g.append(lambda x: 1.2 * exp(-1) * gl(x / lminfac))
+
+        for i in range(0, Nf-1):
+            self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
+
+        f = lambda x: -gb(x)
+        x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
+        xstar = scipy.optimize.minimize(fun=f, x0=x0, method='nelder-mead')
+        gamma_l = -f(xstar)
+        lminfac = .6 * G.lmin
+        self.g[0] = lambda x: gamma_l * gl(x / lminfac)
 
 
 class Expwin(Filter):
@@ -127,8 +229,35 @@ class Itersine(Filter):
 
 
 class MexicanHat(Filter):
+    r"""
+    Mexican hat Filterbank
 
-    def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
+    Inherits its methods from Filters
+
+    Parameters
+    ----------
+    G : Graph
+    Nf : int
+        Number of filters from 0 to lmax (default = 6)
+    lpfactor : int
+        Low-pass factor lmin=lmax/lpfactor will be used to determine scales,
+        the scaling function will be created to fill the lowpass gap.
+        (default = 20)
+    t = ndarray
+        Vector of scale to be used (Initialized by default at
+        the value of the log scale)
+    normalize : bool
+        Wether to normalize the wavelet by the factor/sqrt(t) (default = False)
+
+    Returns
+    -------
+    out : MexicanHat
+
+    """
+
+    def __init__(self, G, Nf=6, lpfactor=20, t=None, normalize=False,
+                 **kwargs):
+
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
 
@@ -147,13 +276,36 @@ class MexicanHat(Filter):
         self.g.append(lambda x: 1.2 * exp(-1) * gl(x / lminfac))
 
         for i in range(0, Nf-1):
-            self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
+            if normalize:
+                self.g.append(lambda x, ind=i: np.sqrt(t[i]) *
+                              gb(self.t[ind] * x))
+            else:
+                self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
 
 class Meyer(Filter):
 
     def __init__(self, G, Nf, **kwargs):
-        raise NotImplementedError
+
+        if not hasattr(G, 'lmax'):
+            G.lmax = utils.estimate_lmax(G)
+
+        if not hasattr(G, 't'):
+            G.t = (4/(3 * G.lmax)) * np.power(2., [Nf-2, -1, 0])
+
+        if len(G.t) != Nf-1:
+            print('GSP_KERNEL_MEYER: You have specified more scales than\
+                  the number of scales minus 1')
+
+        t = G.t
+        g = []
+
+        g.append(lambda x: operators.kernel_meyer(t[1] * x, 'sf'))
+        for i in range(Nf-1):
+            g.append(lambda x, ind=i: operators.kernel_meyer(t[ind] * x,
+                                                             'wavelet'))
+
+        self.g = g
 
 
 class SimpleTf(Filter):

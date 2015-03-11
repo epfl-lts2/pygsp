@@ -390,6 +390,26 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
 
 @utils.filterbank_handler
 def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
+    r"""
+    Compute Chebyshev coefficients for a Filterbank
+
+    Paramters
+    ---------
+    f : Filter or list of filters
+    G : Graph
+    m : int
+        Maximum order of Chebyshev coeff to compute (default = 30)
+    N : int
+        Grid order used to compute quadrature (default = m + 1)
+    i = int
+        Indice of the Filterbank element to compute
+
+    Returns
+    -------
+    c : ndarray
+        Matrix of Chebyshev coefficients
+
+    """
 
     if not N:
         N = m + 1
@@ -413,7 +433,21 @@ def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
 
 def cheby_op(G, c, signal, **kwargs):
     r"""
-    Doc
+    Chebyshev polylnomial of graph Laplacian apllid to vector
+
+    Parameters
+    ----------
+    G : Graph
+    c : ndarray
+        Chebyshev coefficients
+    signal : ndarray
+        Signal to filter
+
+    Returns
+    -------
+    r : ndarray
+        Result if the filtering
+
     """
     Nscales = len(c[1])
 
@@ -455,6 +489,23 @@ def cheby_op(G, c, signal, **kwargs):
 
 
 def full_eigen(L):
+    r"""
+    Computes full eigen decomposition on a matrix
+
+    Parameters
+    ----------
+    L : ndarray
+        Matrix to decompose
+
+    Returns
+    -------
+    EVa : ndarray
+        Eigenvalues
+    EVe : ndarray
+        Eigenvectors
+
+    """
+
     eigenvectors, eigenvalues, _ = np.linalg.svd(L.todense())
 
     # Sort everything
@@ -473,8 +524,22 @@ def full_eigen(L):
 
 
 def create_laplacian(G):
+    r"""
+    Create the graph laplacian of graph G
+
+    Parameters
+    ----------
+    G : Graph
+
+    Returns
+    -------
+    L : ndarray
+        Laplacian matrix
+
+    """
     if sp.shape(G.W) == (1, 1):
         return sparse.lil_matrix(0)
+
     else:
         if G.lap_type == 'combinatorial':
             L = sparse.lil_matrix(np.diagflat(G.W.sum(1)) - G.W)
@@ -487,6 +552,44 @@ def create_laplacian(G):
             raise AttributeError('Unknown laplacian type!')
         return L
 
+
+def kernel_meyer(x, kerneltype):
+    r"""
+    Evaluates Meyer function and scaling function
+
+    Parameters
+    ----------
+    x : ndarray
+        Array of independant variables values
+    kerneltype : str
+        Can be either 'sf' or 'wavelet'
+
+    Returns
+    -------
+    r : ndarray
+
+    """
+    l1 = 2./3.
+    l2 = 4./3.
+    l3 = 8./3.
+
+    v = lambda x: x ** 4. * (35-84 * x+70 * x ** 2-20 * x ** 3)
+
+    r1ind = np.extract(x.any() >= 0 and x < l1)
+    r2ind = np.extract(x.any() >= l1 and x < l2)
+    r3ind = np.extract(x.any() >= l2 and x < l3)
+
+    r = np.empty(len(x))
+    if kerneltype is 'df':
+        r[r1ind] = 1
+        r[r2ind] = np.cos((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
+    if kerneltype is 'wavelet':
+        r[r2ind] = np.sin((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
+        r[r3ind] = np.cos((pi/2) * v[np.abs(x[r3ind])/l2 - 1])
+    else:
+        raise('Unknown kernel type ', kerneltype)
+
+        return r
 
 def localize(G, g, i):
     r"""
