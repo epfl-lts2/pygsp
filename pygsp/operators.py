@@ -757,7 +757,24 @@ def pyramid_cell2coeff(ca, pe):
     -------
     coeff : Vector of coefficient
     """
-    raise NotImplementedError
+    Nl = len(ca)
+    N = 0
+
+    for i in range(Nl+1):
+        N = N + len(ca[i])
+
+    coeff = np.zeroes((N))
+    Nt = len(ca[Nl])
+    coff[:Nt] = ca[Nl]
+
+    ind = Nt
+    for i in range(Nl):
+        Nt = len(ca[Nl-ii+1])
+        coeff[ind:ind+Nt+1] = pe[Nl+1-ii]
+        ind += Nt
+
+    if ind - 1 != N:
+        raise ValueError('Something is wrong here: contact the gspbox team.')
 
     return coeff
 
