@@ -203,8 +203,8 @@ class Abspline(Filter):
             self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
         f = lambda x: -gb(x)
-        x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
-        xstar = scipy.optimize.minimize(fun=f, x0=x0, method='nelder-mead')
+        x0 = np.array([1, 2])
+        xstar = scipy.optimize.minimize_scalar(fun=f, bounds=x0)
         gamma_l = -f(xstar)
         lminfac = .6 * G.lmin
         self.g[0] = lambda x: gamma_l * gl(x / lminfac)
