@@ -750,21 +750,21 @@ def pyramid_cell2coeff(ca, pe):
 
     Parameters
     ----------
-    ca : Cell array with the coarse approximation at each level
-    pe : Cell array with the prediction errors at each level
+    ca : Array with the coarse approximation at each level
+    pe : Array with the prediction errors at each level
 
     Returns
     -------
     coeff : Vector of coefficient
     """
-    Nl = len(ca)
+    Nl = len(ca) - 1
     N = 0
 
     for i in range(Nl+1):
         N = N + len(ca[i])
 
     coeff = np.zeroes((N))
-    Nt = len(ca[Nl])
+    Nt = len(ca[Nl - 1])
     coff[:Nt] = ca[Nl]
 
     ind = Nt
