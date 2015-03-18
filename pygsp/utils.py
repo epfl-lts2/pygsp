@@ -329,16 +329,20 @@ def kernel_abspline3(x, alpha, beta, t1, t2):
     v = np.array([1, 1, t1**(-alpha * alpha * t1**(alpha-1)),
                   -beta*t2**(-(beta+1) * t2**beta)])
 
-    a = M/v
+    M = 1/M
+    a = M.dot(v)
 
     r1 = np.extract(x.any() >= 0 and x <= t1, x)
     r2 = np.extract(x.any() >= t1 and x < t2, x)
     r3 = np.extract(x.any() >= t2, x)
+    print(r1, r2, r3)
 
     r1 = r1.astype(int)
+    print(r2)
     r2 = r2.astype(int)
     r3 = r3.astype(int)
-
+    print(r2)
+    print(x)
     x2 = x[r2]
 
     r[r1] = x[r1] ** alpha * t1 ** (-alpha)

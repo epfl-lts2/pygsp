@@ -4,8 +4,9 @@ r"""
 Filters Doc
 """
 
-from math import exp, log
+from math import exp, log, pi
 import numpy as np
+from numpy import linalg
 import scipy as sp
 import scipy.optimize
 
@@ -203,9 +204,9 @@ class Abspline(Filter):
             self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
         f = lambda x: -gb(x)
-        x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
-        xstar = scipy.optimize.minimize(fun=f, x0=x0, method='nelder-mead')
-        gamma_l = -f(xstar)
+        # x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
+        xstar = scipy.optimize.minimize_scalar(f, method='Bounded', bounds=(1, 2))
+        gamma_l = -f(xstar.x)
         lminfac = .6 * G.lmin
         self.g[0] = lambda x: gamma_l * gl(x / lminfac)
 
@@ -285,7 +286,7 @@ class MexicanHat(Filter):
 
 class Meyer(Filter):
 
-    def __init__(self, G, Nf, **kwargs):
+    def __init__(self, G, Nf=6, **kwargs):
 
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
@@ -293,7 +294,7 @@ class Meyer(Filter):
         if not hasattr(G, 't'):
             G.t = (4/(3 * G.lmax)) * np.power(2., [Nf-2, -1, 0])
 
-        if len(G.t) != Nf-1:
+        if len(G.t) >= Nf-1:
             print('GSP_KERNEL_MEYER: You have specified more scales than\
                   the number of scales minus 1')
 
@@ -334,20 +335,87 @@ class Regular(Filter):
 
 class Simoncelli(Filter):
 
-    def __init__(self, G, **kwargs):
-        raise NotImplementedError
+    def __init__(self, G, a=2/3, verbose=False, **kwargs):
+
+        if not hasattr(G, 'lmax'):
+            if verbose:
+                print('GSP_HEAT: has to compute lmax')
+            G = utils.estimate_lmax(G)
+
+        g = []
+        g.append(lambda x: self.simoncelli(x * (2/G.lmax), a))
+        g.append(lambda x: np.real(np.sqrt(1 -
+                                           (self.simoncelli(x * (2/G.lmax), a))
+                                           ** 2)))
+
+        self.g = g
+
+    def simoncelli(val, a):
+        y = []
+        l1 = a
+        l2 = 2 * a
+
+        r1ind = np.extract(val >= 0 and val < l1)
+        r2ind = np.extract(val >= l1 and val < l2)
+        r3ind = np.extract(val >= l2)
+
+        y[r1ind] = 1
+        y[r2ind] = np.cos(pi/2 * np.log(val[r2ind] / a) / np.log(2))
+        y[r3ind] = 0
+
+        return y
 
 
 class Held(Filter):
 
-    def __init__(self, G, **kwargs):
-        raise NotImplementedError
+    def __init__(self, G, a=2/3, verbose=False, **kwargs):
+
+        if not hasattr(G, 'lmax'):
+            if verbose:
+                print('GSP_HEAT: has to compute lmax')
+            G = utils.estimate_lmax(G)
+
+        g = []
+        g.append(lambda x: self.held(x * (2/G.lmax), a))
+        g.append(lambda x: np.real(np.sqrt(1-(self.held(x * (2/G.lmax), a))
+                                           ** 2)))
+
+    def held(val, a):
+        y = []
+
+        l1 = a
+        l2 = 2 * a
+        mu = lambda x: -1. + 24. * x - 144. * x ** 2 + 256 * x ** 3
+
+        r1ind = np.extract(val >= 0 and val < l1)
+        r2ind = np.extract(val >= l1 and val < l2)
+        r3ind = np.extract(val >= l2)
+
+        y[r1ind] = 1
+        y[r2ind] = np.sin(2 * pi * mu(val[r2ind] / (8 * a)))
+        y[r3ind] = 0
+
+        return y
 
 
 class Heat(Filter):
 
-    def __init__(self, G, tau, **kwargs):
-        raise NotImplementedError
+    def __init__(self, G, tau=10, verbose=False, normalize=False, **kwargs):
+
+        if not hasattr(G, 'lmax'):
+            if verbose:
+                print('GSP_HEAT: has to compute lmax')
+            G = utils.estimate_lmax(G)
+
+        if normalize:
+            gu = lambda x: np.exp(-tau * x/G.lmax)
+            ng = linalg.norm(gu(G.E))
+            g = lambda x: np.exp(-tau * x/G.lmax / ng)
+
+        else:
+            g = lambda x: np.exp(-tau * x/G.lmax)
+
+        self.g = g
 
 
 def dummy(a, b, c):
