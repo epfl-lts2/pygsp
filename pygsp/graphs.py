@@ -1,4 +1,4 @@
-#w-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 r"""
 This module implements principally grpahs and some PointsClouds

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import scipy as sp
 from math import pi, sqrt
@@ -5,7 +7,7 @@ from scipy import sparse
 from scipy import linalg
 
 import pygsp
-from pygsp import utils, graphs
+from pygsp import utils
 
 
 class operators(object):
@@ -645,6 +647,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None,
         filters = np.empty(Nlevels)
         for i in filters:
             # i =  @(x) .5./(.5+x)
+            pass
 
     if isinstance(filters, np.ndarray):
         if len(filters) == 1:
@@ -679,9 +682,9 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None,
 
         Gs[i+1].pyramid = {'ind': ind,
                            # 'green_kernel': @(x) 1/(lamda + x},
-                           'filter' = filters[i],
-                           'level' = i,
-                           'K_reg' = kron_reduction(L_reg, ind)}
+                           'filter': filters[i],
+                           'level': i,
+                           'K_reg': kron_reduction(L_reg, ind)}
 
     return Gs
 
@@ -733,7 +736,7 @@ def kron_reduction(G, ind):
             Snew = 0
         Wnew = Wnew + np.diagonal(Wnew)
 
-        Gnew = graphs.Graph.copy_graph_attr(G)
+        Gnew = pygsp.graphs.Graph.copy_graph_attr(G)
         Gnew.coords = G.coords[ind, :]
         Gnew.W = Wnew
         Gnew.type = 'Kron reduction'
