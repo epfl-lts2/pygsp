@@ -956,8 +956,8 @@ class Ring(Graph):
         for i in range(min(k, floor((N-1)/2.))):
             i_inds[i*2*N + np.arange(N)] = all_inds
             j_inds[i*2*N + np.arange(N)] = np.remainder(all_inds + i + 1, N)
-            i_inds[i*2*(N+1):(i+1)*2*N] = np.remainder(all_inds + i + 1, N)
-            j_inds[i*2*(N+1):(i+1)*2*N] = all_inds
+            i_inds[(i*2+1)*N + np.arange(N)] = np.remainder(all_inds + i + 1, N)
+            j_inds[(i*2+1)*N + np.arange(N)] = all_inds
 
         if k == N/2.:
             i_inds[2*N*(k-1) + np.arange(N)] = all_inds
