@@ -19,7 +19,7 @@ class Filter(object):
     methods for those classes.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, verbose=False, **kwargs):
         pass
 
     def analysis(self, G, s, exact=True, cheb_order=30, **kwargs):
@@ -205,7 +205,8 @@ class Abspline(Filter):
 
         f = lambda x: -gb(x)
         # x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
-        xstar = scipy.optimize.minimize_scalar(f, method='Bounded', bounds=(1, 2))
+        xstar = scipy.optimize.minimize_scalar(f, method='Bounded',
+                                               bounds=(1, 2))
         gamma_l = -f(xstar.x)
         lminfac = .6 * G.lmin
         self.g[0] = lambda x: gamma_l * gl(x / lminfac)
@@ -213,14 +214,45 @@ class Abspline(Filter):
 
 class Expwin(Filter):
 
-    def __init__(self, G, bmax, a):
-        raise NotImplementedError
+    def __init__(self, G, bmax=0.2, a=1):
+
+        if not hasattr(G, 'lmax'):
+            G.lmax = utils.estimate_lmax(G)
+
+        def fx(x, a):
+            y = np.exp(-a / x)
+            for val, ind in y:
+                if val < 0:
+                    y[ind] = 0
+            return y
+
+        def gx(x, a):
+            y = fx(x, a)
+            return y / (y + fx(1 - x, a))
+
+        ffin = lambda x, a: gx(1 - x, a)
+
+        g = lambda x: ffin(x/bmax/G.lmax, a)
+
+        self.g = g
 
 
 class HalfCosine(Filter):
 
-    def __init__(self, G, Nf, **kwargs):
-        raise NotImplementedError
+    def __init__(self, G, Nf, verbose=False, **kwargs):
+
+        if not hasattr(G, 'lmax'):
+            G.lmax = utils.estimate_lmax(G)
+
+        dila_fact = G.lmax * (3/(Nf - 2))
+
+        main_window = lambda x: (.5 + .5 * np.cos(2. * pi * (x/dila_fact - 1/2))) *\
+                                (x >= 0) * (x <= dila_fact)
+
+        g = []
+
+        for i in range(Nf):
+            g.append(lambda x, ind=i: main_window(x - dila_fact/3 * (ind-3)))
 
 
 class Itersine(Filter):
@@ -311,8 +343,24 @@ class Meyer(Filter):
 
 class SimpleTf(Filter):
 
-    def __init__(self, G, Nf, **kwargs):
-        raise NotImplementedError
+    def __init__(self, G, Nf, t=None, **kwargs):
+
+        if not hasattr(G, 'lmax'):
+            G.lmax = utils.estimate_lmax(G)
+
+        if not t:
+            t = (1./(2. * G.lmax) * 2. ** (range(0, Nf-2, -1)))
+
+        if verbose:
+            if len(t) >= Nf - 1:
+                print('GSP_SIMPLETF: You have specified more scales than Number\
+                      if filters minus 1')
+
+        g = []
+
+        g.append(lambda x: kernel_simple_tf(t(1) * x, 'sf'))
+        for i in range(Nf-1):
+            g.append(lambda x, ind=i: kernel_simple_tf(t[i] * x, 'wavelet'))
 
 
 class WarpedTranslat(Filter):
@@ -339,7 +387,7 @@ class Simoncelli(Filter):
 
         if not hasattr(G, 'lmax'):
             if verbose:
-                print('GSP_HEAT: has to compute lmax')
+                print('GSP_SIMONCELLI: has to compute lmax')
             G = utils.estimate_lmax(G)
 
         g = []
@@ -372,7 +420,7 @@ class Held(Filter):
 
         if not hasattr(G, 'lmax'):
             if verbose:
-                print('GSP_HEAT: has to compute lmax')
+                print('GSP_HELD: has to compute lmax')
             G = utils.estimate_lmax(G)
 
         g = []
