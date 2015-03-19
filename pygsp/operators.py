@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import scipy as sp
-from math import pi
+from math import pi, sqrt
 from scipy import sparse
 from scipy import linalg
 
@@ -574,22 +576,25 @@ def kernel_meyer(x, kerneltype):
     l3 = 8./3.
 
     v = lambda x: x ** 4. * (35-84 * x+70 * x ** 2-20 * x ** 3)
+    print(x)
 
-    r1ind = np.extract(x.any() >= 0 and x < l1)
-    r2ind = np.extract(x.any() >= l1 and x < l2)
-    r3ind = np.extract(x.any() >= l2 and x < l3)
+    r1ind = np.extract(x.any() >= 0 and x < l1, x)
+    r2ind = np.extract(x.any() >= l1 and x < l2, x)
+    r3ind = np.extract(x.any() >= l2 and x < l3, x)
 
-    r = np.empty(len(x))
+    r = np.empty(x.shape)
     if kerneltype is 'df':
         r[r1ind] = 1
         r[r2ind] = np.cos((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
     if kerneltype is 'wavelet':
+        print(r2ind)
         r[r2ind] = np.sin((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
         r[r3ind] = np.cos((pi/2) * v[np.abs(x[r3ind])/l2 - 1])
     else:
         raise('Unknown kernel type ', kerneltype)
 
         return r
+
 
 def localize(G, g, i):
     r"""
@@ -615,26 +620,78 @@ def localize(G, g, i):
     return gt
 
 
-def kron_pyramid(G, Nlevels, param):
+def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None,
+                 filters=None):
     r"""
     Compute a pyramid of graphs using the kron reduction
 
     Parameters
     ----------
     G : Graph structure
-    Nlevels : Number of level of decomposition
-    param : Optional structure of parameters
+    Nlevels (int) : Number of level of decomposition
+    lambda (float) : Stability parameter. It add self loop to the graph to give the alorithm some stability 
+        default is 0.025.
+    sparsify (bool) : Sparsify the graph after the Kron reduction
+        default is True.
+    epsilon (float) : Sparsification parameter if the sparsification is used
+        default is min(2/sqrt(G.N), 0.1)
+    filters (Ndarray): A Ndarray of filter that will be used for the analysis and sytheis operator. If only one filter is given, it will be used for all levels. You may change that later on.
 
     Returns
     -------
     Cs : Cell array of graphs
     """
-    raise NotImplementedError
+    # TODO @ function
+    if not epsilon:
+        epsilon = min(10/sqrt(G.N), 1)
+
+    if not filters:
+        filters = np.empty(Nlevels)
+        for i in filters:
+            # i =  @(x) .5./(.5+x)
+            pass
+
+    if isinstance(filters, np.ndarray):
+        if len(filters) == 1:
+            newfilters = np.empty(Nlevels)
+            for i in newfilters:
+                i = filters
+            filters = newfilters
+        elif 1 < len(filters) < Nlevels:
+            raise ValueError('The numbers of filters can must be one or equal to Nlevels')
+    else:
+        raise TypeError('filters must be a numpy array!')
+
+    Gs = [G]
+
+    for i in range(Nlevels):
+        L_reg = Gs[i].L.todense() + lamda*np.eye(Gs[i].N)
+        _, Vtemp = np.linalg.eig(L_reg)
+        V = Vtemp[:, 0]
+
+        # Select the bigger group
+        V = np.where(V >= 0, 1, 0)
+        if np.sum(V) >= Gs[i].N/2.:
+            ind = np.nonzero(V)
+        else:
+            ind = np.nonzero(1-V)
+
+        if sparsify:
+            Gtemp = kron_reduction(Gs[i], ind)
+            Gs.append(utils.graph_sparsify(Gtemp, max(epsilon, 2./sqrt(G[i].N))))
+        else:
+            Gs.append(kron_reduction(G[i], ind))
+
+        Gs[i+1].pyramid = {'ind': ind,
+                           # 'green_kernel': @(x) 1/(lamda + x},
+                           'filter': filters[i],
+                           'level': i,
+                           'K_reg': kron_reduction(L_reg, ind)}
 
     return Gs
 
 
-def gsp_kron_reduction(G, ind):
+def kron_reduction(G, ind):
     r"""
     Compute the kron reduction
 
@@ -647,7 +704,47 @@ def gsp_kron_reduction(G, ind):
     -------
     Gnew : New graph structure or weight matrix
     """
-    raise NotImplementedError
+    if isinstance(G, pygsp.graphs.Graph):
+        if hasattr(G, 'lap_type'):
+            if G.lap_type == 'combinatorial':
+                raise ValueError('Not implemented.')
+
+        if G.directed:
+            raise ValueError('This method only work for undirected graphs.')
+        L = G.L
+
+    else:
+        L = G
+
+    N = np.shape(L)[0]
+    ind_comp = np.setdiff1d(np.arange(N), ind)
+
+    L_red = L[ind-1, ind-1]
+    L_in_out = L[ind-1, ind_comp]
+    L_out_in = L[ind_com, ind-1]
+    L_com = L[ind_com, ind_com]
+
+    Lnew = L_red - L_in_out * (L_com/L_out_in)
+
+    # Make the laplacian symetric if it is almost symetric!
+    if np.sum(np.sum(np.abs(Lnew-Lnew.transpose()), axis=0), axis=0) < eps*np.sum(np.sum(np.abs(Lnew), axis=0), axis=0):
+        Lnew = (Lnew + Lnew.transpose())/2.
+
+    if isinstance(G, pygsp.graphs.Graph):
+        # Suppress the diagonal ? This is a good question?
+        Wnew = np.diagonal(np.diagonal(Lnew)) - Lnew
+        Snew = np.diagonal(Lnew) - np.sum(Wnew).transpose()
+        if np.linalg.nomr(Snew, 2) < eps(1000):
+            Snew = 0
+        Wnew = Wnew + np.diagonal(Wnew)
+
+        Gnew = pygsp.graphs.Graph.copy_graph_attr(G)
+        Gnew.coords = G.coords[ind, :]
+        Gnew.W = Wnew
+        Gnew.type = 'Kron reduction'
+
+    else:
+        Gnew = Lnew
 
     return Gnew
 
@@ -658,14 +755,31 @@ def pyramid_cell2coeff(ca, pe):
 
     Parameters
     ----------
-    ca : Cell array with the coarse approximation at each level
-    pe : Cell array with the prediction errors at each level
+    ca : Array with the coarse approximation at each level
+    pe : Array with the prediction errors at each level
 
     Returns
     -------
     coeff : Vector of coefficient
     """
-    raise NotImplementedError
+    Nl = len(ca) - 1
+    N = 0
+
+    for i in range(Nl+1):
+        N = N + len(ca[i])
+
+    coeff = np.zeroes((N))
+    Nt = len(ca[Nl - 1])
+    coff[:Nt] = ca[Nl]
+
+    ind = Nt
+    for i in range(Nl):
+        Nt = len(ca[Nl-ii+1])
+        coeff[ind:ind+Nt+1] = pe[Nl+1-ii]
+        ind += Nt
+
+    if ind - 1 != N:
+        raise ValueError('Something is wrong here: contact the gspbox team.')
 
     return coeff
 
