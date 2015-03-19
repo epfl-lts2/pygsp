@@ -8,6 +8,7 @@ from math import exp, log
 import numpy as np
 import scipy as sp
 import scipy.optimize
+import math
 
 from pygsp import utils, operators
 
@@ -204,7 +205,7 @@ class Abspline(Filter):
 
         f = lambda x: -gb(x)
         x0 = np.array([1, 2])
-        xstar = scipy.optimize.minimize_scalar(fun=f, bounds=x0)
+        xstar = scipy.optimize.minimize(fun=f, x0=x0)
         gamma_l = -f(xstar)
         lminfac = .6 * G.lmin
         self.g[0] = lambda x: gamma_l * gl(x / lminfac)
@@ -328,8 +329,24 @@ class Papadakis(Filter):
 
 class Regular(Filter):
 
-    def __init__(self, G, **kwargs):
-        raise NotImplementedError
+    def __init__(self, G, verbose=1, d=3, **kwargs):
+        if not hasattr(G, 'lmax'):
+            G.lmax = utils.estimate_lmax(G)
+
+        g = []
+        g.append(lambda x: self.regular(x*(2/G.lmax), d))
+        g.append(lambda x: (math.sqrt(1 - self.regular(x * (2/G.lmax), d)) ** 2).real)
+
+        self.g = g
+
+    def regular(self, val, d):
+        if d == 0:
+            return np.sin(np.pi/4*val)
+        else:
+            output = np.sin(np.pi * (val - 1) / 2)
+            for i in range(2, d + 1):
+                output = np.sin(np.pi * output / 2)
+            return np.sin(np.pi/4*(1+output))
 
 
 class Simoncelli(Filter):
