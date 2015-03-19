@@ -9,6 +9,7 @@ import numpy as np
 from numpy import linalg
 import scipy as sp
 import scipy.optimize
+import math
 
 from pygsp import utils, operators
 
@@ -229,7 +230,6 @@ class Abspline(Filter):
             self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
         f = lambda x: -gb(x)
-        # x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
         xstar = scipy.optimize.minimize_scalar(f, method='Bounded',
                                                bounds=(1, 2))
         gamma_l = -f(xstar.x)
