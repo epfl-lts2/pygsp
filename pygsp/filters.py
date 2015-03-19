@@ -9,7 +9,6 @@ import numpy as np
 from numpy import linalg
 import scipy as sp
 import scipy.optimize
-import math
 
 from pygsp import utils, operators
 
@@ -111,7 +110,6 @@ class Filter(object):
         fd = np.zeros(x.size)
         fd = self.g[i](x)
         return fd
-
 
     def inverse(self, G, c, **kwargs):
         raise NotImplementedError
@@ -264,7 +262,7 @@ class Expwin(Filter):
 
         def fx(x, a):
             y = np.exp(-a / x)
-            for val, ind in y:
+            for val, ind in enumerate(y):
                 if val < 0:
                     y[ind] = 0
             return y
@@ -290,7 +288,7 @@ class HalfCosine(Filter):
     ----------
     G : Graph
     Nf = int
-        Number of filters from 0 to lmax
+        Number of filters from 0 to lmax (default = 6)
 
     Returns
     -------
@@ -298,7 +296,7 @@ class HalfCosine(Filter):
 
     """
 
-    def __init__(self, G, Nf, **kwargs):
+    def __init__(self, G, Nf=6, **kwargs):
         super(HalfCosine, self).__init__(**kwargs)
 
         if not hasattr(G, 'lmax'):
@@ -313,6 +311,8 @@ class HalfCosine(Filter):
 
         for i in range(Nf):
             g.append(lambda x, ind=i: main_window(x - dila_fact/3 * (ind-3)))
+
+        self.g = g
 
 
 class Itersine(Filter):
@@ -494,12 +494,14 @@ class Papadakis(Filter):
         if not hasattr(G, 'lmax'):
             if self.verbose:
                 print('GSP_PAPADAKIS: has to compute lmax')
-            G = utils.estimate_lmax(G)
+            utils.estimate_lmax(G)
 
         g = []
         g.append(lambda x: papadakis(x * (2/G.lmax), a))
-        g.append(lambda x: np.real(np.sqrt(1-(papadakis(x * 2/G.lmax), a)) **
-                                   2))
+        g.append(lambda x: np.real(np.sqrt(1-(papadakis(x * (2/G.lmax), a)) **
+                                   2)))
+
+        self.g = g
 
         def papadakis(val, a):
             y = []
@@ -547,6 +549,8 @@ class Regular(Filter):
         g.append(lambda x: regular(x * (2/G.lmax), d))
         g.append(lambda x: np.real(np.sqrt(1-(regular(x * (2/G.lmax), d))
                                            ** 2)))
+
+        self.g = g
 
         def regular(val, d):
             if d == 0:
@@ -634,29 +638,32 @@ class Held(Filter):
         if not hasattr(G, 'lmax'):
             if self.verbose:
                 print('GSP_HELD: has to compute lmax')
-            G = utils.estimate_lmax(G)
+            utils.estimate_lmax(G)
 
         g = []
-        g.append(lambda x: self.held(x * (2/G.lmax), a))
-        g.append(lambda x: np.real(np.sqrt(1-(self.held(x * (2/G.lmax), a))
+        print(a)
+        g.append(lambda x: held(x * (2/G.lmax), a))
+        g.append(lambda x: np.real(np.sqrt(1-(held(x * (2/G.lmax), a))
                                            ** 2)))
 
-    def held(val, a):
-        y = []
+        self.g = g
 
-        l1 = a
-        l2 = 2 * a
-        mu = lambda x: -1. + 24. * x - 144. * x ** 2 + 256 * x ** 3
+        def held(val, a):
+            y = []
 
-        r1ind = np.extract(val >= 0 and val < l1)
-        r2ind = np.extract(val >= l1 and val < l2)
-        r3ind = np.extract(val >= l2)
+            l1 = a
+            l2 = 2 * a
+            mu = lambda x: -1. + 24. * x - 144. * x ** 2 + 256 * x ** 3
 
-        y[r1ind] = 1
-        y[r2ind] = np.sin(2 * pi * mu(val[r2ind] / (8 * a)))
-        y[r3ind] = 0
+            r1ind = np.extract(val >= 0 and val < l1)
+            r2ind = np.extract(val >= l1 and val < l2)
+            r3ind = np.extract(val >= l2)
 
-        return y
+            y[r1ind] = 1
+            y[r2ind] = np.sin(2 * pi * mu(val[r2ind] / (8 * a)))
+            y[r3ind] = 0
+
+            return y
 
 
 class Heat(Filter):
