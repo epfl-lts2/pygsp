@@ -360,25 +360,23 @@ def tree_depths(A, root):
         raise ValueError('Graph is not connected')
 
     N = np.shape(A)[0]
-    assigned = root
+    assigned = root-1
     depths = np.zeros((N))
     parents = np.zeros((N))
 
-    next_to_expand = root
+    next_to_expand = np.array([root])
     current_depth = 1
 
     while len(assigned) < N:
         new_entries_whole_round = []
         for i in range(len(next_to_expand)):
-            pass
-            """
-            neighbors = find(A[next_to_expand[i]] > 1e-7)
-            new_entries = setdiff(neighbors, assigned)
-            parents(new_entries) = next_to_expand[i]
-            depths(new_entries) = current_depth
-            assigned = np.array([[assigned], [new_entries.transpose()]])
-            new_entries_whole_round = np.array([new_entries_whole_round, new_entries.transpose()])
-            """
+            neighbors = np.where(A[next_to_expand[i]] > 1e-7)[0]
+            new_entries = np.setdiff1d(neighbors, assigned)
+            parents[new_entries] = next_to_expand[i]
+            depths[new_entries] = current_depth
+            assigned = np.concatenate((assigned, new_entries))
+            new_entries_whole_round = np.concatenate((new_entries_whole_round,
+                                                      new_entries))
 
         current_depth = current_depth+1
         next_to_expand = new_entries_whole_round
