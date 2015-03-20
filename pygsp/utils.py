@@ -91,7 +91,7 @@ def is_directed(M):
 
 def estimate_lmax(G):
     r"""
-    This function estimates lmax from a Graph object
+    This function estimates lmax from a Graph object and stores it into the graph
 
     Parameters
     ----------
@@ -117,6 +117,7 @@ def estimate_lmax(G):
     except ValueError:
         print('GSP_ESTIMATE_LMAX: Cannot use default method')
         lmax = max(G.d)
+    G.lmax = np.real(lmax)
     return np.real(lmax)
 
 

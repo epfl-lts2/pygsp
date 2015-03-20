@@ -20,7 +20,7 @@ class Filter(object):
     """
 
     def __init__(self, verbose=False, **kwargs):
-        pass
+        self.verbose = verbose
 
     def analysis(self, G, s, exact=True, cheb_order=30, **kwargs):
         r"""
@@ -111,7 +111,6 @@ class Filter(object):
         fd = self.g[i](x)
         return fd
 
-
     def inverse(self, G, c, **kwargs):
         raise NotImplementedError
 
@@ -180,8 +179,33 @@ class FilterBank(Filter):
 
 
 class Abspline(Filter):
+    r"""
+    Abspline Filterbank
+
+    Inherits its methods from Filters
+
+    Parameters
+    ----------
+    G : Graph
+    Nf : int
+        Number of filters from 0 to lmax (default = 6)
+    lpfactor : int
+        Low-pass factor lmin=lmax/lpfactor will be used to determine scales,
+        the scaling function will be created to fill the lowpass gap.
+        (default = 20)
+    t = ndarray
+        Vector of scale to be used (Initialized by default at
+        the value of the log scale)
+
+    Returns
+    -------
+    out : Abspline
+
+    """
 
     def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
+        super(Abspline, self).__init__(**kwargs)
+
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
 
@@ -204,7 +228,6 @@ class Abspline(Filter):
             self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
         f = lambda x: -gb(x)
-        # x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
         xstar = scipy.optimize.minimize_scalar(f, method='Bounded',
                                                bounds=(1, 2))
         gamma_l = -f(xstar.x)
@@ -213,15 +236,33 @@ class Abspline(Filter):
 
 
 class Expwin(Filter):
+    r"""
+    Expwin Filterbank
 
-    def __init__(self, G, bmax=0.2, a=1):
+    Inherits its methods from Filters
+
+    Parameters
+    ----------
+    G : Graph
+    bmax = float
+        Maximum relative band (default = 0.2)
+    a = int
+        Slope parameter (default = 1)
+
+    Returns
+    -------
+    out : Expwin
+
+    """
+    def __init__(self, G, bmax=0.2, a=1, **kwargs):
+        super(Expwin, self).__init__(**kwargs)
 
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
 
         def fx(x, a):
             y = np.exp(-a / x)
-            for val, ind in y:
+            for val, ind in enumerate(y):
                 if val < 0:
                     y[ind] = 0
             return y
@@ -238,8 +279,25 @@ class Expwin(Filter):
 
 
 class HalfCosine(Filter):
+    r"""
+    HalfCosine Filterbank
 
-    def __init__(self, G, Nf, verbose=False, **kwargs):
+    Inherits its methods from Filters
+
+    Parameters
+    ----------
+    G : Graph
+    Nf = int
+        Number of filters from 0 to lmax (default = 6)
+
+    Returns
+    -------
+    out : HalfCosine
+
+    """
+
+    def __init__(self, G, Nf=6, **kwargs):
+        super(HalfCosine, self).__init__(**kwargs)
 
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
@@ -254,10 +312,13 @@ class HalfCosine(Filter):
         for i in range(Nf):
             g.append(lambda x, ind=i: main_window(x - dila_fact/3 * (ind-3)))
 
+        self.g = g
+
 
 class Itersine(Filter):
 
     def __init__(self, G, Nf, **kwargs):
+        super(Itersine, self).__init__(**kwargs)
         raise NotImplementedError
 
 
@@ -290,6 +351,7 @@ class MexicanHat(Filter):
 
     def __init__(self, G, Nf=6, lpfactor=20, t=None, normalize=False,
                  **kwargs):
+        super(MexicanHat, self).__init__(**kwargs)
 
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
@@ -317,8 +379,25 @@ class MexicanHat(Filter):
 
 
 class Meyer(Filter):
+    r"""
+    Meyer Filterbank
+
+    Inherits its methods from Filters
+
+    Parameters
+    ----------
+    G : Graph
+    Nf = int
+        Number of filters from 0 to lmax (default = 6)
+
+    Returns
+    -------
+    out : Meyer
+
+    """
 
     def __init__(self, G, Nf=6, **kwargs):
+        super(Meyer, self).__init__(**kwargs)
 
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
@@ -342,8 +421,28 @@ class Meyer(Filter):
 
 
 class SimpleTf(Filter):
+    r"""
+    SimpleTf Filterbank
+
+    Inherits its methods from Filters
+
+    Parameters
+    ----------
+    G : Graph
+    Nf = int
+        Number of filters from 0 to lmax
+    t = ndarray
+        Vector of scale to be used (Initialized by default at
+        the value of the log scale)
+
+    Returns
+    -------
+    out : SimpleTf
+
+    """
 
     def __init__(self, G, Nf, t=None, **kwargs):
+        super(SimpleTf, self).__init__(**kwargs)
 
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
@@ -351,7 +450,7 @@ class SimpleTf(Filter):
         if not t:
             t = (1./(2. * G.lmax) * 2. ** (range(0, Nf-2, -1)))
 
-        if verbose:
+        if self.verbose:
             if len(t) >= Nf - 1:
                 print('GSP_SIMPLETF: You have specified more scales than Number\
                       if filters minus 1')
@@ -366,24 +465,124 @@ class SimpleTf(Filter):
 class WarpedTranslat(Filter):
 
     def __init__(self, G, Nf, **kwargs):
+        super(WarpedTranslat, self).__init__(**kwargs)
         raise NotImplementedError
 
 
 class Papadakis(Filter):
+    r"""
+    Papadakis Filterbank
 
-    def __init__(self, G, **kwargs):
-        raise NotImplementedError
+    Inherits its methods from Filters
+
+    Parameters
+    ----------
+    G : Graph
+    a : float
+        See equation above TODO for this parameter
+        The spectrum is scaled between 0 and 2 (default = 3/4)
+
+    Returns
+    -------
+    out : Papadakis
+
+    """
+
+    def __init__(self, G, a=3/4, **kwargs):
+        super(Papadakis, self).__init__(**kwargs)
+
+        if not hasattr(G, 'lmax'):
+            if self.verbose:
+                print('GSP_PAPADAKIS: has to compute lmax')
+            utils.estimate_lmax(G)
+
+        g = []
+        g.append(lambda x: papadakis(x * (2/G.lmax), a))
+        g.append(lambda x: np.real(np.sqrt(1-(papadakis(x * (2/G.lmax), a)) **
+                                   2)))
+
+        self.g = g
+
+        def papadakis(val, a):
+            y = []
+            l1 = a
+            l2 = 2 * a/3
+
+            r1ind = np.extract(val >= 0 and val < l1)
+            r2ind = np.extract(val >= l1 and val < l2)
+            r3ind = np.extract(val >= l2)
+
+            y[r1ind] = 1
+            y[r2ind] = np.sqrt((1 - np.sin(3 * pi/(2 * a) * val[r2ind]))/2)
+            y[r3ind] = 0
+
+            return y
 
 
 class Regular(Filter):
+    r"""
+    Regular Filterbank
 
-    def __init__(self, G, **kwargs):
-        raise NotImplementedError
+    Inherits its methods from Filters
+
+    Parameters
+    ----------
+    G : Graph
+    d : float
+        See equation above TODO for this parameter
+        Degree (default = 3)
+
+    Returns
+    -------
+    out : Regular
+
+    """
+    def __init__(self, G, d=3, **kwargs):
+        super(Regular, self).__init__(**kwargs)
+
+        if not hasattr(G, 'lmax'):
+            if self.verbose:
+                print('GSP_REGULAR: has to compute lmax')
+            G = utils.estimate_lmax(G)
+
+        g = []
+        g.append(lambda x: regular(x * (2/G.lmax), d))
+        g.append(lambda x: np.real(np.sqrt(1-(regular(x * (2/G.lmax), d))
+                                           ** 2)))
+
+        self.g = g
+
+        def regular(val, d):
+            if d == 0:
+                return np.sin(pi / 4 * val)
+            else:
+                output = np.sin(pi * (val - 1) / 2)
+                for i in range(2, d):
+                    output = np.sin(pi * output / 2)
+                return np.sin(pi / 4 * (1 + output))
 
 
 class Simoncelli(Filter):
+    r"""
+    Simoncelli Filterbank
+
+    Inherits its methods from Filters
+
+    Parameters
+    ----------
+    G : Graph
+    a : float
+        See equation above TODO for this parameter
+        The spectrum is scaled between 0 and 2 (default = 2/3)
+
+    Returns
+    -------
+    out : Simoncelli
+
+    """
 
     def __init__(self, G, a=2/3, verbose=False, **kwargs):
+        super(Simoncelli, self).__init__(**kwargs)
 
         if not hasattr(G, 'lmax'):
             if verbose:
@@ -391,67 +590,109 @@ class Simoncelli(Filter):
             G = utils.estimate_lmax(G)
 
         g = []
-        g.append(lambda x: self.simoncelli(x * (2/G.lmax), a))
+        g.append(lambda x: simoncelli(x * (2/G.lmax), a))
         g.append(lambda x: np.real(np.sqrt(1 -
-                                           (self.simoncelli(x * (2/G.lmax), a))
+                                           (simoncelli(x * (2/G.lmax), a))
                                            ** 2)))
 
         self.g = g
 
-    def simoncelli(val, a):
-        y = []
-        l1 = a
-        l2 = 2 * a
+        def simoncelli(val, a):
+            y = []
+            l1 = a
+            l2 = 2 * a
 
-        r1ind = np.extract(val >= 0 and val < l1)
-        r2ind = np.extract(val >= l1 and val < l2)
-        r3ind = np.extract(val >= l2)
+            r1ind = np.extract(val >= 0 and val < l1)
+            r2ind = np.extract(val >= l1 and val < l2)
+            r3ind = np.extract(val >= l2)
 
-        y[r1ind] = 1
-        y[r2ind] = np.cos(pi/2 * np.log(val[r2ind] / a) / np.log(2))
-        y[r3ind] = 0
+            y[r1ind] = 1
+            y[r2ind] = np.cos(pi/2 * np.log(val[r2ind] / a) / np.log(2))
+            y[r3ind] = 0
 
-        return y
+            return y
 
 
 class Held(Filter):
+    r"""
+    Held Filterbank
 
-    def __init__(self, G, a=2/3, verbose=False, **kwargs):
+    Inherits its methods from Filters
+
+    Parameters
+    ----------
+    G : Graph
+    a : float
+        See equation above TODO for this parameter
+        The spectrum is scaled between 0 and 2 (default = 2/3)
+
+    Returns
+    -------
+    out : Held
+
+    """
+
+    def __init__(self, G, a=2/3, **kwargs):
+        super(Held, self).__init__(**kwargs)
 
         if not hasattr(G, 'lmax'):
-            if verbose:
+            if self.verbose:
                 print('GSP_HELD: has to compute lmax')
-            G = utils.estimate_lmax(G)
+            utils.estimate_lmax(G)
 
         g = []
-        g.append(lambda x: self.held(x * (2/G.lmax), a))
-        g.append(lambda x: np.real(np.sqrt(1-(self.held(x * (2/G.lmax), a))
+        print(a)
+        g.append(lambda x: held(x * (2/G.lmax), a))
+        g.append(lambda x: np.real(np.sqrt(1-(held(x * (2/G.lmax), a))
                                            ** 2)))
 
-    def held(val, a):
-        y = []
+        self.g = g
 
-        l1 = a
-        l2 = 2 * a
-        mu = lambda x: -1. + 24. * x - 144. * x ** 2 + 256 * x ** 3
+        def held(val, a):
+            y = []
 
-        r1ind = np.extract(val >= 0 and val < l1)
-        r2ind = np.extract(val >= l1 and val < l2)
-        r3ind = np.extract(val >= l2)
+            l1 = a
+            l2 = 2 * a
+            mu = lambda x: -1. + 24. * x - 144. * x ** 2 + 256 * x ** 3
 
-        y[r1ind] = 1
-        y[r2ind] = np.sin(2 * pi * mu(val[r2ind] / (8 * a)))
-        y[r3ind] = 0
+            r1ind = np.extract(val >= 0 and val < l1)
+            r2ind = np.extract(val >= l1 and val < l2)
+            r3ind = np.extract(val >= l2)
 
-        return y
+            y[r1ind] = 1
+            y[r2ind] = np.sin(2 * pi * mu(val[r2ind] / (8 * a)))
+            y[r3ind] = 0
+
+            return y
 
 
 class Heat(Filter):
+    r"""
+    Heat Filterbank
 
-    def __init__(self, G, tau=10, verbose=False, normalize=False, **kwargs):
+    Inherits its methods from Filters
+
+    Parameters
+    ----------
+    G : Graph
+    tau : int
+        Scaling parameter (default = 10)
+    normalize : bool
+        Normalize the kernel (works only if the eigenvalues are
+        present in the graph)
+        (default = 0)
+
+    Returns
+    -------
+    out : Heat
+
+    """
+
+    def __init__(self, G, tau=10, normalize=False, **kwargs):
+        super(Heat, self).__init__(**kwargs)
 
         if not hasattr(G, 'lmax'):
-            if verbose:
+            if self.verbose:
                 print('GSP_HEAT: has to compute lmax')
             G = utils.estimate_lmax(G)
 

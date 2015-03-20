@@ -93,7 +93,6 @@ class Graph(object):
             self.directed = utils.is_directed(self.W)
         if L is not None:
             self.L = L
-
         else:
             self.L = operators.create_laplacian(self)
 
