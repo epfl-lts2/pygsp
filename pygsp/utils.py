@@ -354,6 +354,38 @@ def kernel_abspline3(x, alpha, beta, t1, t2):
     return r
 
 
+def tree_depths(A, root):
+
+    if check_connectivity(A) == 0:
+        raise ValueError('Graph is not connected')
+
+    N = np.shape(A)[0]
+    assigned = root
+    depths = np.zeros((N))
+    parents = np.zeros((N))
+
+    next_to_expand = root
+    current_depth = 1
+
+    while len(assigned) < N:
+        new_entries_whole_round = []
+        for i in range(len(next_to_expand)):
+            pass
+            """
+            neighbors = find(A[next_to_expand[i]] > 1e-7)
+            new_entries = setdiff(neighbors, assigned)
+            parents(new_entries) = next_to_expand[i]
+            depths(new_entries) = current_depth
+            assigned = np.array([[assigned], [new_entries.transpose()]])
+            new_entries_whole_round = np.array([new_entries_whole_round, new_entries.transpose()])
+            """
+
+        current_depth = current_depth+1
+        next_to_expand = new_entries_whole_round
+
+    return depths, parents
+
+
 def dummy(a, b, c):
     r"""
     Short description.
