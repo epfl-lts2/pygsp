@@ -91,7 +91,7 @@ def is_directed(M):
 
 def estimate_lmax(G):
     r"""
-    This function estimates lmax from a Graph object
+    This function estimates lmax from a Graph object and stores it into the graph
 
     Parameters
     ----------
@@ -117,6 +117,7 @@ def estimate_lmax(G):
     except ValueError:
         print('GSP_ESTIMATE_LMAX: Cannot use default method')
         lmax = max(G.d)
+    G.lmax = np.real(lmax)
     return np.real(lmax)
 
 
@@ -351,6 +352,36 @@ def kernel_abspline3(x, alpha, beta, t1, t2):
     r[r3] = x[r3] ** -beta * t2 ** (beta)
 
     return r
+
+
+def tree_depths(A, root):
+
+    if check_connectivity(A) == 0:
+        raise ValueError('Graph is not connected')
+
+    N = np.shape(A)[0]
+    assigned = root-1
+    depths = np.zeros((N))
+    parents = np.zeros((N))
+
+    next_to_expand = np.array([root])
+    current_depth = 1
+
+    while len(assigned) < N:
+        new_entries_whole_round = []
+        for i in range(len(next_to_expand)):
+            neighbors = np.where(A[next_to_expand[i]] > 1e-7)[0]
+            new_entries = np.setdiff1d(neighbors, assigned)
+            parents[new_entries] = next_to_expand[i]
+            depths[new_entries] = current_depth
+            assigned = np.concatenate((assigned, new_entries))
+            new_entries_whole_round = np.concatenate((new_entries_whole_round,
+                                                      new_entries))
+
+        current_depth = current_depth+1
+        next_to_expand = new_entries_whole_round
+
+    return depths, parents
 
 
 def dummy(a, b, c):
