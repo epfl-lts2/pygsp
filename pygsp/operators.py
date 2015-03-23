@@ -784,7 +784,7 @@ def pyramid_cell2coeff(ca, pe):
     return coeff
 
 
-def pyramid_synthesis(Gs, coeff, param):
+def pyramid_synthesis(Gs, coeff, order=100, **kwargs):
     r"""
     Synthesizes a signal from its graph pyramid transform coefficients
 
@@ -792,15 +792,59 @@ def pyramid_synthesis(Gs, coeff, param):
     ----------
     Gs : A multiresolution sequence of graph structures.
     coeff : The coefficients to perform the reconstruction
+    order : Degree of the Chebyshev approximation
+        Default is 100
 
     Returns
     -------
     signal : The synthesized signal.
     ca : Cell array with the coarse approximation at each level
     """
-    raise NotImplementedError
+    Nl = len(Gs) - 1
 
-    return [signal, ca]
+    # Initisalization
+    Nt = Gs[Nl].N
+    ca[Nl] = coeff[:Nt]
+
+    ind = Nt
+    # Reconstruct each level
+    for i in range(Nl):
+        # Compute prediction
+        Nt = Gs[Nl + 1 - i].N
+        # Compute the ca coeff
+        s_pred = interpolate(Gs[Nl + 1 - i], Gs[Nl + 2 - i], ca[Nl + 2 - i],
+                             order=order, **kwargs)
+
+        ca[Nl+1-i] = s_pred + coeff[ind + np.arange(Nt)]
+        ind = ind + Nt
+
+    signal = ca[0]
+
+    return signal, ca
+
+
+def interpolate(Gh, Gl, coeff, order=100, **kwargs):
+    r"""
+    Interpolate lower coefficient
+
+    Parameters
+    ----------
+    Gh : Upper graph
+    Gl : Lower graph
+    coeff : Coefficients
+    order : Degree of the Chebyshev approximation
+        Default is 100
+
+    Returns
+    -------
+    s_pred : Predicted signal
+    """
+    alpha = Gl.pyramid['k_reg']
+    s_pred = np.zeros((Gh.N))
+    s_pred[Gl.pyramid['ind']-1] = alpha
+    s_pred = pygsp.filters.analysis(Gh, Gl.pyramid['green_kernel'], s_pred, order=order, **kwargs)
+
+    return s_pred
 
 
 def modulate(G, f, k):
@@ -846,7 +890,8 @@ def translate(G, f, i):
     return ft
 
 
-def tree_multiresolution(G, Nlevel, param):
+def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
+                         compute_full_eigen=False, root=None):
     r"""
     Compute a multiresolution of trees
 
@@ -863,6 +908,34 @@ def tree_multiresolution(G, Nlevel, param):
     Gs : Cell array, with each element containing a graph structure represent a reduced tree.
     subsampled_vertex_indices : Indices of the vertices of the previous tree that are kept for the subsequent tree.
     """
-    raise NotImplementedError
+    if not root:
+        if hasattr(G, 'root'):
+            root = G.root
+        else:
+            root = 1
 
-    return [Gs, subsampled_vertex_indices]
+    Gs = [G]
+
+    if compute_full_eigen:
+        Gs[0] = compute_fourier_basis(G)
+
+    subsampled_vertex_indices = []
+    depths, parents = utils.tree_depths(G.A, root)
+    old_W = G.W
+
+    for lev in range(1, Nlevel + 1):
+        # Identify the vertices in the even depths of the current tree
+        down_odd = round(depths) % 2
+        down_even = np.ones((Gs[lev].N)) - down_odd
+        keep_inds = np.where(down_even == 1)[0]
+        subsampled_vertex_indices.append(keep_inds)
+
+        # There will be one undirected edge in the new graph connecting each
+        # non-root subsampled vertex to its new parent. Here, we find the new
+        # indices of the new parents
+        non_root_keep_inds, new_non_root_inds = np.setdiff1d(keep_inds, root)
+        old_parents_of_non_root_keep_inds = parents[non_root_keep_inds]
+        old_grandparents_of_non_root_keep_inds = parents[old_parents_of_non_root_keep_inds]
+        # new_non_root_parents = dsearchn(keep_inds, old_grandparents_of_non_root_keep_inds)
+
+    return Gs, subsampled_vertex_indices
