@@ -273,7 +273,8 @@ class Expwin(Filter):
 
         ffin = lambda x, a: gx(1 - x, a)
 
-        g = lambda x: ffin(x/bmax/G.lmax, a)
+        g = []
+        g.append(lambda x: ffin(x/bmax/G.lmax, a))
 
         self.g = g
 
@@ -696,13 +697,15 @@ class Heat(Filter):
                 print('GSP_HEAT: has to compute lmax')
             G = utils.estimate_lmax(G)
 
+        g = []
+
         if normalize:
             gu = lambda x: np.exp(-tau * x/G.lmax)
             ng = linalg.norm(gu(G.E))
-            g = lambda x: np.exp(-tau * x/G.lmax / ng)
+            g.append(lambda x: np.exp(-tau * x/G.lmax / ng))
 
         else:
-            g = lambda x: np.exp(-tau * x/G.lmax)
+            g.append(lambda x: np.exp(-tau * x/G.lmax))
 
         self.g = g
 
