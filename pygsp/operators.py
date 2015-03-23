@@ -842,7 +842,8 @@ def interpolate(Gh, Gl, coeff, order=100, **kwargs):
     alpha = Gl.pyramid['k_reg']
     s_pred = np.zeros((Gh.N))
     s_pred[Gl.pyramid['ind']-1] = alpha
-    s_pred = pygsp.filters.analysis(Gh, Gl.pyramid['green_kernel'], s_pred, order=order, **kwargs)
+    s_pred = pygsp.filters.analysis(Gh, Gl.pyramid['green_kernel'], s_pred,
+                                    order=order, **kwargs)
 
     return s_pred
 
@@ -898,7 +899,8 @@ def tree_multiresolution(G, Nlevel, param):
     ----------
     G : Graph structure of a tree.
     Nlevel : Number of times to downsample and coarsen the tree
-    root : The index of the root of the tree (default=1)
+    root : The index of the root of the tree (
+        default = 1
     reduction_method : The graph reduction method (default='resistance_distance')
     compute_full_eigen : To also compute the graph Laplacian eigenvalues for every tree in the sequence
 
