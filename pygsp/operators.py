@@ -770,12 +770,12 @@ def pyramid_cell2coeff(ca, pe):
 
     coeff = np.zeroes((N))
     Nt = len(ca[Nl - 1])
-    coff[:Nt] = ca[Nl]
+    coeff[:Nt] = ca[Nl]
 
     ind = Nt
     for i in range(Nl):
-        Nt = len(ca[Nl-ii+1])
-        coeff[ind:ind+Nt+1] = pe[Nl+1-ii]
+        Nt = len(ca[Nl-i+1])
+        coeff[ind:ind+Nt+1] = pe[Nl+1-i]
         ind += Nt
 
     if ind - 1 != N:
