@@ -206,6 +206,31 @@ class Abspline(Filter):
     def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
         super(Abspline, self).__init__(**kwargs)
 
+        def kernel_abspline3(x, alpha, beta, t1, t2):
+            r = np.zeros(x.shape)
+
+            M = np.array([[1, t1, t1**2, t1**3],
+                          [1, t2, t2**2, t2**3],
+                          [0, 1, 2*t1, 3*t1],
+                          [0, 1, 2*t2, 3*t2]])
+
+            v = np.array([1, 1, t1**(-alpha * alpha * t1**(alpha-1)),
+                          -beta*t2**(-(beta+1) * t2**beta)])
+            M = 1/M
+            a = M.dot(v)
+
+            r1 = x >= 0 and x <= t1
+            r2 = x >= t1 and x < t2
+            r3 = x >= t2
+
+            x2 = x[r2]
+
+            r[r1] = x[r1] ** alpha * t1 ** (-alpha)
+            r[r2] = a[0] + a[1] * x2 + a[2] * x2 ** 2 + a[3] * x2 ** 3
+            r[r3] = x[r3] ** -beta * t2 ** (beta)
+
+            return r
+
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
 
@@ -233,38 +258,6 @@ class Abspline(Filter):
         gamma_l = -f(xstar.x)
         lminfac = .6 * G.lmin
         self.g[0] = lambda x: gamma_l * gl(x / lminfac)
-
-        def kernel_abspline3(x, alpha, beta, t1, t2):
-            r = np.zeros(x.shape)
-
-            M = np.array([[1, t1, t1**2, t1**3],
-                          [1, t2, t2**2, t2**3],
-                          [0, 1, 2*t1, 3*t1],
-                          [0, 1, 2*t2, 3*t2]])
-
-            v = np.array([1, 1, t1**(-alpha * alpha * t1**(alpha-1)),
-                          -beta*t2**(-(beta+1) * t2**beta)])
-            M = 1/M
-            a = M.dot(v)
-
-            r1 = np.extract(x.any() >= 0 and x <= t1, x)
-            r2 = np.extract(x.any() >= t1 and x < t2, x)
-            r3 = np.extract(x.any() >= t2, x)
-            print(r1, r2, r3)
-
-            r1 = r1.astype(int)
-            print(r2)
-            r2 = r2.astype(int)
-            r3 = r3.astype(int)
-            print(r2)
-            print(x)
-            x2 = x[r2]
-
-            r[r1] = x[r1] ** alpha * t1 ** (-alpha)
-            r[r2] = a[0] + a[1] * x2 + a[2] * x2 ** 2 + a[3] * x2 ** 3
-            r[r3] = x[r3] ** -beta * t2 ** (beta)
-
-            return r
 
 
 class Expwin(Filter):
@@ -448,6 +441,7 @@ class Meyer(Filter):
                   the number of scales minus 1')
 
         t = G.t
+        print(t)
         g = []
 
         g.append(lambda x: kernel_meyer(t[1] * x, 'sf'))
@@ -474,25 +468,27 @@ class Meyer(Filter):
 
             """
 
+            x = np.array(x)
+
             l1 = 2./3.
             l2 = 4./3.
             l3 = 8./3.
 
             v = lambda x: x ** 4. * (35-84 * x+70 * x ** 2-20 * x ** 3)
 
-            r1ind = x.any() >= 0 and x < l1
-            r2ind = x.any() >= l1 and x < l2
-            r3ind = x.any() >= l2 and x < l3
+            r1ind = x >= 0 and x < l1
+            r2ind = x >= l1 and x < l2
+            r3ind = x >= l2 and x < l3
 
             r = np.empty(x.shape)
             if kerneltype is 'sf':
                 r[r1ind] = 1
-                r[r2ind] = np.cos((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
-            if kerneltype is 'wavelet':
-                r[r2ind] = np.sin((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
-                r[r3ind] = np.cos((pi/2) * v[np.abs(x[r3ind])/l2 - 1])
+                r[r2ind] = np.cos((pi/2) * v(np.abs(x * r2ind)/l1 - 1))
+            elif kerneltype is 'wavelet':
+                r[r2ind] = np.sin((pi/2) * v(np.abs(x * r2ind)/l1 - 1))
+                r[r3ind] = np.cos((pi/2) * v(np.abs(x * r3ind)/l2 - 1))
             else:
-                raise('Unknown kernel type ', kerneltype)
+                raise TypeError('Unknown kernel type ', kerneltype)
 
                 return r
 
@@ -581,13 +577,13 @@ class Papadakis(Filter):
         self.g = g
 
         def papadakis(val, a):
-            y = []
+            y = np.empty(np.shape(val))
             l1 = a
             l2 = 2 * a/3
 
-            r1ind = np.extract(val >= 0 and val < l1)
-            r2ind = np.extract(val >= l1 and val < l2)
-            r3ind = np.extract(val >= l2)
+            r1ind = val >= 0 and val < l1
+            r2ind = val >= l1 and val < l2
+            r3ind = val >= l2
 
             y[r1ind] = 1
             y[r2ind] = np.sqrt((1 - np.sin(3 * pi/(2 * a) * val[r2ind]))/2)
@@ -675,13 +671,13 @@ class Simoncelli(Filter):
         self.g = g
 
         def simoncelli(val, a):
-            y = []
+            y = np.empty(np.shape(val))
             l1 = a
             l2 = 2 * a
 
-            r1ind = np.extract(val >= 0 and val < l1)
-            r2ind = np.extract(val >= l1 and val < l2)
-            r3ind = np.extract(val >= l2)
+            r1ind = val >= 0 and val < l1
+            r2ind = val >= l1 and val < l2
+            r3ind = val >= l2
 
             y[r1ind] = 1
             y[r2ind] = np.cos(pi/2 * np.log(val[r2ind] / a) / np.log(2))
@@ -726,15 +722,14 @@ class Held(Filter):
         self.g = g
 
         def held(val, a):
-            y = []
-
+            y = np.empty(np.shape(val))
             l1 = a
             l2 = 2 * a
             mu = lambda x: -1. + 24. * x - 144. * x ** 2 + 256 * x ** 3
 
-            r1ind = np.extract(val >= 0 and val < l1)
-            r2ind = np.extract(val >= l1 and val < l2)
-            r3ind = np.extract(val >= l2)
+            r1ind = val >= 0 and val < l1
+            r2ind = val >= l1 and val < l2
+            r3ind = val >= l2
 
             y[r1ind] = 1
             y[r2ind] = np.sin(2 * pi * mu(val[r2ind] / (8 * a)))
