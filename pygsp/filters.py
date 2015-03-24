@@ -341,8 +341,9 @@ class HalfCosine(Filter):
 
         dila_fact = G.lmax * (3/(Nf - 2))
 
-        main_window = lambda x: (.5 + .5 * np.cos(2. * pi * (x/dila_fact - 1/2))) *\
-                                (x >= 0) * (x <= dila_fact)
+        main_window = lambda x: np.multiply(np.multiply((.5 + .5 * np.cos(2. * pi * (x/dila_fact - 1/2))),
+                                                        (x >= 0)),
+                                            (x <= dila_fact))
 
         g = []
 
