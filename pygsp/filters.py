@@ -216,12 +216,12 @@ class Abspline(Filter):
 
             v = np.array([1, 1, t1**(-alpha * alpha * t1**(alpha-1)),
                           -beta*t2**(-(beta+1) * t2**beta)])
-            M = 1/M
+            M = np.invert(M)
             a = M.dot(v)
 
-            r1 = x >= 0 and x <= t1
-            r2 = x >= t1 and x < t2
-            r3 = x >= t2
+            r1 = x.any() >= 0 and x <= t1
+            r2 = x.any() >= t1 and x < t2
+            r3 = x.any() >= t2
 
             x2 = x[r2]
 
@@ -286,7 +286,7 @@ class Expwin(Filter):
             G.lmax = utils.estimate_lmax(G)
 
         def fx(x, a):
-            y = np.exp(-a / x)
+            y = np.exp(np.divide(-a, x))
             if isinstance(y, np.ndarray):
                 for val, ind in enumerate(y):
                     if val < 0:
@@ -303,7 +303,7 @@ class Expwin(Filter):
         ffin = lambda x, a: gx(1 - x, a)
 
         g = []
-        g.append(lambda x: ffin(x/bmax/G.lmax, a))
+        g.append(lambda x: ffin(np.divide(np.divide(x, bmax), G.lmax), a))
 
         self.g = g
 
