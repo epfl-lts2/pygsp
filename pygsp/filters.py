@@ -453,7 +453,7 @@ class Meyer(Filter):
         g.append(lambda x: kernel_meyer(t[1] * x, 'sf'))
         for i in range(Nf-1):
             g.append(lambda x, ind=i: kernel_meyer(t[ind] * x,
-                                                             'wavelet'))
+                                                   'wavelet'))
 
         self.g = g
 
@@ -473,23 +473,22 @@ class Meyer(Filter):
             r : ndarray
 
             """
+
             l1 = 2./3.
             l2 = 4./3.
             l3 = 8./3.
 
             v = lambda x: x ** 4. * (35-84 * x+70 * x ** 2-20 * x ** 3)
-            print(x)
 
-            r1ind = np.extract(x.any() >= 0 and x < l1, x)
-            r2ind = np.extract(x.any() >= l1 and x < l2, x)
-            r3ind = np.extract(x.any() >= l2 and x < l3, x)
+            r1ind = x.any() >= 0 and x < l1
+            r2ind = x.any() >= l1 and x < l2
+            r3ind = x.any() >= l2 and x < l3
 
             r = np.empty(x.shape)
-            if kerneltype is 'df':
+            if kerneltype is 'sf':
                 r[r1ind] = 1
                 r[r2ind] = np.cos((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
             if kerneltype is 'wavelet':
-                print(r2ind)
                 r[r2ind] = np.sin((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
                 r[r3ind] = np.cos((pi/2) * v[np.abs(x[r3ind])/l2 - 1])
             else:
