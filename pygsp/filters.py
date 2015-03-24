@@ -216,7 +216,7 @@ class Abspline(Filter):
         else:
             self.t = t
 
-        gb = lambda x: utils.kernel_abspline3(x, 2, 2, 1, 2)
+        gb = lambda x: kernel_abspline3(x, 2, 2, 1, 2)
         gl = lambda x: np.exp(-np.power(x, 4))
 
         lminfac = .4 * G.lmin
@@ -233,6 +233,38 @@ class Abspline(Filter):
         gamma_l = -f(xstar.x)
         lminfac = .6 * G.lmin
         self.g[0] = lambda x: gamma_l * gl(x / lminfac)
+
+        def kernel_abspline3(x, alpha, beta, t1, t2):
+            r = np.zeros(x.shape)
+
+            M = np.array([[1, t1, t1**2, t1**3],
+                          [1, t2, t2**2, t2**3],
+                          [0, 1, 2*t1, 3*t1],
+                          [0, 1, 2*t2, 3*t2]])
+
+            v = np.array([1, 1, t1**(-alpha * alpha * t1**(alpha-1)),
+                          -beta*t2**(-(beta+1) * t2**beta)])
+            M = 1/M
+            a = M.dot(v)
+
+            r1 = np.extract(x.any() >= 0 and x <= t1, x)
+            r2 = np.extract(x.any() >= t1 and x < t2, x)
+            r3 = np.extract(x.any() >= t2, x)
+            print(r1, r2, r3)
+
+            r1 = r1.astype(int)
+            print(r2)
+            r2 = r2.astype(int)
+            r3 = r3.astype(int)
+            print(r2)
+            print(x)
+            x2 = x[r2]
+
+            r[r1] = x[r1] ** alpha * t1 ** (-alpha)
+            r[r2] = a[0] + a[1] * x2 + a[2] * x2 ** 2 + a[3] * x2 ** 3
+            r[r3] = x[r3] ** -beta * t2 ** (beta)
+
+            return r
 
 
 class Expwin(Filter):
@@ -262,14 +294,18 @@ class Expwin(Filter):
 
         def fx(x, a):
             y = np.exp(-a / x)
-            for val, ind in enumerate(y):
-                if val < 0:
-                    y[ind] = 0
+            if isinstance(y, np.ndarray):
+                for val, ind in enumerate(y):
+                    if val < 0:
+                        y[ind] = 0
+            else:
+                if y < 0:
+                    y = 0
             return y
 
         def gx(x, a):
             y = fx(x, a)
-            return y / (y + fx(1 - x, a))
+            return np.divide(y, (y + fx(1 - x, a)))
 
         ffin = lambda x, a: gx(1 - x, a)
 
@@ -413,12 +449,52 @@ class Meyer(Filter):
         t = G.t
         g = []
 
-        g.append(lambda x: operators.kernel_meyer(t[1] * x, 'sf'))
+        g.append(lambda x: kernel_meyer(t[1] * x, 'sf'))
         for i in range(Nf-1):
-            g.append(lambda x, ind=i: operators.kernel_meyer(t[ind] * x,
+            g.append(lambda x, ind=i: kernel_meyer(t[ind] * x,
                                                              'wavelet'))
 
         self.g = g
+
+        def kernel_meyer(x, kerneltype):
+            r"""
+            Evaluates Meyer function and scaling function
+
+            Parameters
+            ----------
+            x : ndarray
+                Array of independant variables values
+            kerneltype : str
+                Can be either 'sf' or 'wavelet'
+
+            Returns
+            -------
+            r : ndarray
+
+            """
+            l1 = 2./3.
+            l2 = 4./3.
+            l3 = 8./3.
+
+            v = lambda x: x ** 4. * (35-84 * x+70 * x ** 2-20 * x ** 3)
+            print(x)
+
+            r1ind = np.extract(x.any() >= 0 and x < l1, x)
+            r2ind = np.extract(x.any() >= l1 and x < l2, x)
+            r3ind = np.extract(x.any() >= l2 and x < l3, x)
+
+            r = np.empty(x.shape)
+            if kerneltype is 'df':
+                r[r1ind] = 1
+                r[r2ind] = np.cos((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
+            if kerneltype is 'wavelet':
+                print(r2ind)
+                r[r2ind] = np.sin((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
+                r[r3ind] = np.cos((pi/2) * v[np.abs(x[r3ind])/l2 - 1])
+            else:
+                raise('Unknown kernel type ', kerneltype)
+
+                return r
 
 
 class SimpleTf(Filter):

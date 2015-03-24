@@ -321,39 +321,6 @@ def symetrize(W, symetrize_type='average'):
         raise ValueError("Unknown symetrize type")
 
 
-def kernel_abspline3(x, alpha, beta, t1, t2):
-    r = np.zeros(x.shape)
-
-    M = np.array([[1, t1, t1**2, t1**3],
-                  [1, t2, t2**2, t2**3],
-                  [0, 1, 2*t1, 3*t1],
-                  [0, 1, 2*t2, 3*t2]])
-
-    v = np.array([1, 1, t1**(-alpha * alpha * t1**(alpha-1)),
-                  -beta*t2**(-(beta+1) * t2**beta)])
-    M = 1/M
-    a = M.dot(v)
-
-    r1 = np.extract(x.any() >= 0 and x <= t1, x)
-    r2 = np.extract(x.any() >= t1 and x < t2, x)
-    r3 = np.extract(x.any() >= t2, x)
-    print(r1, r2, r3)
-
-    r1 = r1.astype(int)
-    print(r2)
-    r2 = r2.astype(int)
-    r3 = r3.astype(int)
-    print(r2)
-    print(x)
-    x2 = x[r2]
-
-    r[r1] = x[r1] ** alpha * t1 ** (-alpha)
-    r[r2] = a[0] + a[1] * x2 + a[2] * x2 ** 2 + a[3] * x2 ** 3
-    r[r3] = x[r3] ** -beta * t2 ** (beta)
-
-    return r
-
-
 def tree_depths(A, root):
 
     if check_connectivity(A) == 0:
