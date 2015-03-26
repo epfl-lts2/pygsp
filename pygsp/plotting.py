@@ -104,7 +104,7 @@ def plot_pointcloud(P):
         plt.show()
 
 
-def plot_filter(G, filters, npoints=1000, line_width=4, x_width=3, x_size=10,\
+def plot_filter(G, filters, npoints=1000, line_width=4, x_width=3, x_size=10,
                 plot_eigenvalues=None, show_sum=None):
     r"""
     Plot a system of graph spectral filters.
@@ -129,13 +129,7 @@ def plot_filter(G, filters, npoints=1000, line_width=4, x_width=3, x_size=10,\
             eigenvalues are plot if they are contained in the Graph.
     show_sum : boolean
         To plot an extra line showing the sum of the squared magnitudes\
-         of the filters (default 1 if there is multiple filters).
-    filters : filter object
-        Description.
-    **kwargs : plotting parameters
-        Description.
-    **kwargs : plotting parameters
-        Description.
+         of the filters (default True if there is multiple filters).
 
     Returns
     -------
