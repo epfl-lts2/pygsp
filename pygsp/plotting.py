@@ -104,7 +104,8 @@ def plot_pointcloud(P):
         plt.show()
 
 
-def plot_filter(G, filters, plotting={}, line_width=4, x_width=3, x_size=10, npoints=1000, plot_eigenvalues=None, show_sum=None):
+def plot_filter(G, filters, npoints=1000, line_width=4, x_width=3, x_size=10,\
+                plot_eigenvalues=None, show_sum=None):
     r"""
     Plot a system of graph spectral filters.
 
@@ -113,6 +114,25 @@ def plot_filter(G, filters, plotting={}, line_width=4, x_width=3, x_size=10, npo
     G : Graph object
         Description.
     filters : filter object
+        Description.
+    npoints : int
+        Number of point where the filters are evaluated.
+    line_width : int
+        Width of the filters plots.
+    x_width : int
+        Width of the X marks representing the eigenvalues.
+    x_size : int
+        Size of the X marks representing the eigenvalues.
+    plot_eigenvalues : boolean
+        To plot black X marks at all eigenvalues of the graph (You need to \
+            compute the Fourier basis to use this option). By default the \
+            eigenvalues are plot if they are contained in the Graph.
+    show_sum : boolean
+        To plot an extra line showing the sum of the squared magnitudes\
+         of the filters (default 1 if there is multiple filters).
+    filters : filter object
+        Description.
+    **kwargs : plotting parameters
         Description.
     **kwargs : plotting parameters
         Description.
