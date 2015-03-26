@@ -900,9 +900,10 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
     ----------
     G : Graph structure of a tree.
     Nlevel : Number of times to downsample and coarsen the tree
-    root : The index of the root of the tree (
-        default = 1
-    reduction_method : The graph reduction method (default='resistance_distance')
+    root : The index of the root of the tree
+        default id 1
+    reduction_method : The graph reduction method 
+        default is 'resistance_distance'
     compute_full_eigen : To also compute the graph Laplacian eigenvalues for every tree in the sequence
 
     Returns
@@ -910,6 +911,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
     Gs : Cell array, with each element containing a graph structure represent a reduced tree.
     subsampled_vertex_indices : Indices of the vertices of the previous tree that are kept for the subsequent tree.
     """
+
     if not root:
         if hasattr(G, 'root'):
             root = G.root
