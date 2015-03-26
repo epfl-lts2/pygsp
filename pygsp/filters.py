@@ -559,7 +559,7 @@ class Papadakis(Filter):
 
     """
 
-    def __init__(self, G, a=3/4, **kwargs):
+    def __init__(self, G, a=0.75, **kwargs):
         super(Papadakis, self).__init__(**kwargs)
 
         if not hasattr(G, 'lmax'):
@@ -568,8 +568,8 @@ class Papadakis(Filter):
             utils.estimate_lmax(G)
 
         g = []
-        g.append(lambda x: papadakis(x * (2/G.lmax), a))
-        g.append(lambda x: np.real(np.sqrt(1-(papadakis(x * (2/G.lmax), a)) **
+        g.append(lambda x: papadakis(x * (2./G.lmax), a))
+        g.append(lambda x: np.real(np.sqrt(1 - (papadakis(x*(2./G.lmax), a)) **
                                    2)))
 
         self.g = g
@@ -577,14 +577,14 @@ class Papadakis(Filter):
         def papadakis(val, a):
             y = np.empty(np.shape(val))
             l1 = a
-            l2 = 2 * a/3
+            l2 = a*5./3
 
-            r1ind = val >= 0 and val < l1
-            r2ind = val >= l1 and val < l2
+            r1ind = (val >= 0) * (val < l1)
+            r2ind = (val >= l1) * (val < l2)
             r3ind = val >= l2
 
             y[r1ind] = 1
-            y[r2ind] = np.sqrt((1 - np.sin(3 * pi/(2 * a) * val[r2ind]))/2)
+            y[r2ind] = np.sqrt((1 - np.sin(3 * pi/(2 * a) * val[r2ind]))/2.)
             y[r3ind] = 0
 
             return y
