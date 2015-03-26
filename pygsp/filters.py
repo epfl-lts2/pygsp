@@ -279,29 +279,29 @@ class Expwin(Filter):
     out : Expwin
 
     """
-    def __init__(self, G, bmax=0.2, a=1, **kwargs):
+    def __init__(self, G, bmax=0.2, a=1., **kwargs):
         super(Expwin, self).__init__(**kwargs)
 
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
 
         def fx(x, a):
-            y = np.exp(np.divide(-float(a), x))
+            y = np.exp(-float(a)/x)
             if isinstance(x, np.ndarray):
-                y = np.where(x < 0, 0, y)
+                y = np.where(x < 0, 0., y)
             else:
                 if x < 0:
-                    y[0] = 0
+                    y = 0.
             return y
 
         def gx(x, a):
             y = fx(x, a)
-            return np.divide(y, (y + fx(1 - x, a)))
+            return y/(y + fx(1 - x, a))
 
         ffin = lambda x, a: gx(1 - x, a)
 
         g = []
-        g.append(lambda x: ffin(np.divide(np.divide(x, bmax), G.lmax), a))
+        g.append(lambda x: ffin(np.float64(x)/bmax/G.lmax, a))
 
         self.g = g
 
@@ -330,16 +330,16 @@ class HalfCosine(Filter):
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
 
-        dila_fact = G.lmax * (3/(Nf - 2))
+        dila_fact = G.lmax * (3./(Nf - 2))
 
-        main_window = lambda x: np.multiply(np.multiply((.5 + .5 * np.cos(2. * pi * (x/dila_fact - 1/2))),
+        main_window = lambda x: np.multiply(np.multiply((.5 + .5*np.cos(2.*p*(x/dila_fact - 1./2))),
                                                         (x >= 0)),
                                             (x <= dila_fact))
 
         g = []
 
-        for i in range(Nf):
-            g.append(lambda x, ind=i: main_window(x - dila_fact/3 * (ind-3)))
+        for i in range(1, Nf+1):
+            g.append(lambda x, ind=i: main_window(x - dila_fact/3. * (ind-3)))
 
         self.g = g
 
