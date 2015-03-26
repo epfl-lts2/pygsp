@@ -143,8 +143,12 @@ def plot_filter(G, filters, plotting={}, line_width=4, x_width=3, x_size=10, npo
     size = len(fd)
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    for i in range(size):
-        ax.plot(lambdas, fd[i], linewidth=line_width)
+    if len(filters.g) == 1:
+        ax.plot(lambdas, fd, linewidth=line_width)
+    elif len(filters.g) > 1:
+        for i in range(size):
+            ax.plot(lambdas, fd[i], linewidth=line_width)
+
     # plot eigenvalues
     if plot_eigenvalues:
         ax.plot(G.e, np.zeros(G.N), 'xk', markeredgewidth=x_width, markersize=x_size)

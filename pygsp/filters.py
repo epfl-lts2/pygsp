@@ -206,6 +206,31 @@ class Abspline(Filter):
     def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
         super(Abspline, self).__init__(**kwargs)
 
+        def kernel_abspline3(x, alpha, beta, t1, t2):
+            r = np.zeros(x.shape)
+
+            M = np.array([[1, t1, t1**2, t1**3],
+                          [1, t2, t2**2, t2**3],
+                          [0, 1, 2*t1, 3*t1],
+                          [0, 1, 2*t2, 3*t2]])
+
+            v = np.array([1, 1, t1**(-alpha * alpha * t1**(alpha-1)),
+                          -beta*t2**(-(beta+1) * t2**beta)])
+            M = np.invert(M)
+            a = M.dot(v)
+
+            r1 = x.any() >= 0 and x <= t1
+            r2 = x.any() >= t1 and x < t2
+            r3 = x.any() >= t2
+
+            x2 = x[r2]
+
+            r[r1] = x[r1] ** alpha * t1 ** (-alpha)
+            r[r2] = a[0] + a[1] * x2 + a[2] * x2 ** 2 + a[3] * x2 ** 3
+            r[r3] = x[r3] ** -beta * t2 ** (beta)
+
+            return r
+
         if not hasattr(G, 'lmax'):
             G.lmax = utils.estimate_lmax(G)
 
@@ -216,7 +241,7 @@ class Abspline(Filter):
         else:
             self.t = t
 
-        gb = lambda x: utils.kernel_abspline3(x, 2, 2, 1, 2)
+        gb = lambda x: kernel_abspline3(x, 2, 2, 1, 2)
         gl = lambda x: np.exp(-np.power(x, 4))
 
         lminfac = .4 * G.lmin
@@ -261,19 +286,24 @@ class Expwin(Filter):
             G.lmax = utils.estimate_lmax(G)
 
         def fx(x, a):
-            y = np.exp(-a / x)
-            for val, ind in enumerate(y):
-                if val < 0:
-                    y[ind] = 0
+            y = np.exp(np.divide(-a, x))
+            if isinstance(y, np.ndarray):
+                for val, ind in enumerate(y):
+                    if val < 0:
+                        y[ind] = 0
+            else:
+                if y < 0:
+                    y = 0
             return y
 
         def gx(x, a):
             y = fx(x, a)
-            return y / (y + fx(1 - x, a))
+            return np.divide(y, (y + fx(1 - x, a)))
 
         ffin = lambda x, a: gx(1 - x, a)
 
-        g = lambda x: ffin(x/bmax/G.lmax, a)
+        g = []
+        g.append(lambda x: ffin(np.divide(np.divide(x, bmax), G.lmax), a))
 
         self.g = g
 
@@ -304,8 +334,9 @@ class HalfCosine(Filter):
 
         dila_fact = G.lmax * (3/(Nf - 2))
 
-        main_window = lambda x: (.5 + .5 * np.cos(2. * pi * (x/dila_fact - 1/2))) *\
-                                (x >= 0) * (x <= dila_fact)
+        main_window = lambda x: np.multiply(np.multiply((.5 + .5 * np.cos(2. * pi * (x/dila_fact - 1/2))),
+                                                        (x >= 0)),
+                                            (x <= dila_fact))
 
         g = []
 
@@ -410,14 +441,56 @@ class Meyer(Filter):
                   the number of scales minus 1')
 
         t = G.t
+        print(t)
         g = []
 
-        g.append(lambda x: operators.kernel_meyer(t[1] * x, 'sf'))
+        g.append(lambda x: kernel_meyer(t[1] * x, 'sf'))
         for i in range(Nf-1):
-            g.append(lambda x, ind=i: operators.kernel_meyer(t[ind] * x,
-                                                             'wavelet'))
+            g.append(lambda x, ind=i: kernel_meyer(t[ind] * x,
+                                                   'wavelet'))
 
         self.g = g
+
+        def kernel_meyer(x, kerneltype):
+            r"""
+            Evaluates Meyer function and scaling function
+
+            Parameters
+            ----------
+            x : ndarray
+                Array of independant variables values
+            kerneltype : str
+                Can be either 'sf' or 'wavelet'
+
+            Returns
+            -------
+            r : ndarray
+
+            """
+
+            x = np.array(x)
+
+            l1 = 2./3.
+            l2 = 4./3.
+            l3 = 8./3.
+
+            v = lambda x: x ** 4. * (35-84 * x+70 * x ** 2-20 * x ** 3)
+
+            r1ind = x >= 0 and x < l1
+            r2ind = x >= l1 and x < l2
+            r3ind = x >= l2 and x < l3
+
+            r = np.empty(x.shape)
+            if kerneltype is 'sf':
+                r[r1ind] = 1
+                r[r2ind] = np.cos((pi/2) * v(np.abs(x * r2ind)/l1 - 1))
+            elif kerneltype is 'wavelet':
+                r[r2ind] = np.sin((pi/2) * v(np.abs(x * r2ind)/l1 - 1))
+                r[r3ind] = np.cos((pi/2) * v(np.abs(x * r3ind)/l2 - 1))
+            else:
+                raise TypeError('Unknown kernel type ', kerneltype)
+
+                return r
 
 
 class SimpleTf(Filter):
@@ -504,13 +577,13 @@ class Papadakis(Filter):
         self.g = g
 
         def papadakis(val, a):
-            y = []
+            y = np.empty(np.shape(val))
             l1 = a
             l2 = 2 * a/3
 
-            r1ind = np.extract(val >= 0 and val < l1)
-            r2ind = np.extract(val >= l1 and val < l2)
-            r3ind = np.extract(val >= l2)
+            r1ind = val >= 0 and val < l1
+            r2ind = val >= l1 and val < l2
+            r3ind = val >= l2
 
             y[r1ind] = 1
             y[r2ind] = np.sqrt((1 - np.sin(3 * pi/(2 * a) * val[r2ind]))/2)
@@ -598,13 +671,13 @@ class Simoncelli(Filter):
         self.g = g
 
         def simoncelli(val, a):
-            y = []
+            y = np.empty(np.shape(val))
             l1 = a
             l2 = 2 * a
 
-            r1ind = np.extract(val >= 0 and val < l1)
-            r2ind = np.extract(val >= l1 and val < l2)
-            r3ind = np.extract(val >= l2)
+            r1ind = val >= 0 and val < l1
+            r2ind = val >= l1 and val < l2
+            r3ind = val >= l2
 
             y[r1ind] = 1
             y[r2ind] = np.cos(pi/2 * np.log(val[r2ind] / a) / np.log(2))
@@ -649,15 +722,14 @@ class Held(Filter):
         self.g = g
 
         def held(val, a):
-            y = []
-
+            y = np.empty(np.shape(val))
             l1 = a
             l2 = 2 * a
             mu = lambda x: -1. + 24. * x - 144. * x ** 2 + 256 * x ** 3
 
-            r1ind = np.extract(val >= 0 and val < l1)
-            r2ind = np.extract(val >= l1 and val < l2)
-            r3ind = np.extract(val >= l2)
+            r1ind = val >= 0 and val < l1
+            r2ind = val >= l1 and val < l2
+            r3ind = val >= l2
 
             y[r1ind] = 1
             y[r2ind] = np.sin(2 * pi * mu(val[r2ind] / (8 * a)))
@@ -696,13 +768,14 @@ class Heat(Filter):
                 print('GSP_HEAT: has to compute lmax')
             G = utils.estimate_lmax(G)
 
+        g = []
         if normalize:
             gu = lambda x: np.exp(-tau * x/G.lmax)
             ng = linalg.norm(gu(G.E))
-            g = lambda x: np.exp(-tau * x/G.lmax / ng)
+            g.append(lambda x: np.exp(-tau * x/G.lmax / ng))
 
         else:
-            g = lambda x: np.exp(-tau * x/G.lmax)
+            g.append(lambda x: np.exp(-tau * x/G.lmax))
 
         self.g = g
 
