@@ -286,14 +286,12 @@ class Expwin(Filter):
             G.lmax = utils.estimate_lmax(G)
 
         def fx(x, a):
-            y = np.exp(np.divide(-a, x))
-            if isinstance(y, np.ndarray):
-                for val, ind in enumerate(y):
-                    if val < 0:
-                        y[ind] = 0
+            y = np.exp(np.divide(-float(a), x))
+            if isinstance(x, np.ndarray):
+                y = np.where(x < 0, 0, y)
             else:
-                if y < 0:
-                    y = 0
+                if x < 0:
+                    y[0] = 0
             return y
 
         def gx(x, a):
