@@ -19,8 +19,12 @@ class Filter(object):
     methods for those classes.
     """
 
-    def __init__(self, verbose=False, **kwargs):
+    def __init__(self, G, verbose=False, **kwargs):
         self.verbose = verbose
+        if not hasattr(G, 'lmax'):
+            if self.verbose:
+                print(type(self), ': has to compute lmax')
+            G = utils.estimate_lmax(G)
 
     def analysis(self, G, s, exact=True, cheb_order=30, **kwargs):
         r"""
@@ -204,7 +208,7 @@ class Abspline(Filter):
     """
 
     def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
-        super(Abspline, self).__init__(**kwargs)
+        super(Abspline, self).__init__(G, **kwargs)
 
         def kernel_abspline3(x, alpha, beta, t1, t2):
             r = np.zeros(x.shape)
@@ -230,9 +234,6 @@ class Abspline(Filter):
             r[r3] = x[r3] ** -beta * t2 ** (beta)
 
             return r
-
-        if not hasattr(G, 'lmax'):
-            G.lmax = utils.estimate_lmax(G)
 
         G.lmin = G.lmax / lpfactor
 
@@ -277,13 +278,9 @@ class Expwin(Filter):
     Returns
     -------
     out : Expwin
-
     """
     def __init__(self, G, bmax=0.2, a=1., **kwargs):
         super(Expwin, self).__init__(**kwargs)
-
-        if not hasattr(G, 'lmax'):
-            G.lmax = utils.estimate_lmax(G)
 
         def fx(x, a):
             y = np.exp(-float(a)/x)
@@ -325,10 +322,7 @@ class HalfCosine(Filter):
     """
 
     def __init__(self, G, Nf=6, **kwargs):
-        super(HalfCosine, self).__init__(**kwargs)
-
-        if not hasattr(G, 'lmax'):
-            G.lmax = utils.estimate_lmax(G)
+        super(HalfCosine, self).__init__(G, **kwargs)
 
         dila_fact = G.lmax * (3./(Nf - 2))
 
@@ -347,7 +341,7 @@ class HalfCosine(Filter):
 class Itersine(Filter):
 
     def __init__(self, G, Nf, **kwargs):
-        super(Itersine, self).__init__(**kwargs)
+        super(Itersine, self).__init__(G, **kwargs)
         raise NotImplementedError
 
 
@@ -380,10 +374,7 @@ class MexicanHat(Filter):
 
     def __init__(self, G, Nf=6, lpfactor=20, t=None, normalize=False,
                  **kwargs):
-        super(MexicanHat, self).__init__(**kwargs)
-
-        if not hasattr(G, 'lmax'):
-            G.lmax = utils.estimate_lmax(G)
+        super(MexicanHat, self).__init__(G, **kwargs)
 
         if t is None:
             G.lmin = G.lmax / lpfactor
@@ -426,10 +417,7 @@ class Meyer(Filter):
     """
 
     def __init__(self, G, Nf=6, **kwargs):
-        super(Meyer, self).__init__(**kwargs)
-
-        if not hasattr(G, 'lmax'):
-            G.lmax = utils.estimate_lmax(G)
+        super(Meyer, self).__init__(G, **kwargs)
 
         if not hasattr(G, 't'):
             G.t = (4/(3 * G.lmax)) * np.power(2., [Nf-2, -1, 0])
@@ -513,10 +501,7 @@ class SimpleTf(Filter):
     """
 
     def __init__(self, G, Nf, t=None, **kwargs):
-        super(SimpleTf, self).__init__(**kwargs)
-
-        if not hasattr(G, 'lmax'):
-            G.lmax = utils.estimate_lmax(G)
+        super(SimpleTf, self).__init__(G, **kwargs)
 
         if not t:
             t = (1./(2. * G.lmax) * 2. ** (range(0, Nf-2, -1)))
@@ -536,7 +521,7 @@ class SimpleTf(Filter):
 class WarpedTranslat(Filter):
 
     def __init__(self, G, Nf, **kwargs):
-        super(WarpedTranslat, self).__init__(**kwargs)
+        super(WarpedTranslat, self).__init__(G, **kwargs)
         raise NotImplementedError
 
 
@@ -558,14 +543,8 @@ class Papadakis(Filter):
     out : Papadakis
 
     """
-
     def __init__(self, G, a=0.75, **kwargs):
         super(Papadakis, self).__init__(**kwargs)
-
-        if not hasattr(G, 'lmax'):
-            if self.verbose:
-                print('GSP_PAPADAKIS: has to compute lmax')
-            utils.estimate_lmax(G)
 
         g = []
         g.append(lambda x: papadakis(x * (2./G.lmax), a))
@@ -609,12 +588,7 @@ class Regular(Filter):
 
     """
     def __init__(self, G, d=3, **kwargs):
-        super(Regular, self).__init__(**kwargs)
-
-        if not hasattr(G, 'lmax'):
-            if self.verbose:
-                print('GSP_REGULAR: has to compute lmax')
-            G = utils.estimate_lmax(G)
+        super(Regular, self).__init__(G, **kwargs)
 
         g = []
         g.append(lambda x: regular(x * (2/G.lmax), d))
@@ -653,12 +627,7 @@ class Simoncelli(Filter):
     """
 
     def __init__(self, G, a=2/3, verbose=False, **kwargs):
-        super(Simoncelli, self).__init__(**kwargs)
-
-        if not hasattr(G, 'lmax'):
-            if verbose:
-                print('GSP_SIMONCELLI: has to compute lmax')
-            G = utils.estimate_lmax(G)
+        super(Simoncelli, self).__init__(G, **kwargs)
 
         g = []
         g.append(lambda x: simoncelli(x * (2/G.lmax), a))
@@ -704,12 +673,7 @@ class Held(Filter):
     """
 
     def __init__(self, G, a=2/3, **kwargs):
-        super(Held, self).__init__(**kwargs)
-
-        if not hasattr(G, 'lmax'):
-            if self.verbose:
-                print('GSP_HELD: has to compute lmax')
-            utils.estimate_lmax(G)
+        super(Held, self).__init__(G, **kwargs)
 
         g = []
         print(a)
@@ -759,12 +723,7 @@ class Heat(Filter):
     """
 
     def __init__(self, G, tau=10, normalize=False, **kwargs):
-        super(Heat, self).__init__(**kwargs)
-
-        if not hasattr(G, 'lmax'):
-            if self.verbose:
-                print('GSP_HEAT: has to compute lmax')
-            G = utils.estimate_lmax(G)
+        super(Heat, self).__init__(G, **kwargs)
 
         g = []
         if normalize:
