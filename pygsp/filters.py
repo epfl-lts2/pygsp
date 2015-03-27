@@ -423,8 +423,7 @@ class Meyer(Filter):
             G.t = (4/(3 * G.lmax)) * np.power(2., [Nf-2, -1, 0])
 
         if len(G.t) >= Nf-1:
-            print('GSP_KERNEL_MEYER: You have specified more scales than\
-                  the number of scales minus 1')
+            print('You have specified more scales than  the number of scales minus 1')
 
         t = G.t
         print(t)
@@ -488,11 +487,8 @@ class SimpleTf(Filter):
     Parameters
     ----------
     G : Graph
-    Nf = int
-        Number of filters from 0 to lmax
-    t = ndarray
-        Vector of scale to be used (Initialized by default at
-        the value of the log scale)
+    Nf (int) : Number of filters from 0 to lmax
+    t (ndarray) : Vector of scale to be used (Initialized by default at the value of the log scale)
 
     Returns
     -------
@@ -504,16 +500,15 @@ class SimpleTf(Filter):
         super(SimpleTf, self).__init__(G, **kwargs)
 
         if not t:
-            t = (1./(2. * G.lmax) * 2. ** (range(0, Nf-2, -1)))
+            t = (1./(2. * G.lmax) * 2.**(range(Nf-2, 0, -1)))
 
         if self.verbose:
             if len(t) >= Nf - 1:
-                print('GSP_SIMPLETF: You have specified more scales than Number\
-                      if filters minus 1')
+                print('You have specified more scales than Number if filters minus 1.')
 
         g = []
 
-        g.append(lambda x: kernel_simple_tf(t(1) * x, 'sf'))
+        g.append(lambda x: kernel_simple_tf(t[0] * x, 'sf'))
         for i in range(Nf-1):
             g.append(lambda x, ind=i: kernel_simple_tf(t[i] * x, 'wavelet'))
 
@@ -708,12 +703,10 @@ class Heat(Filter):
     Parameters
     ----------
     G : Graph
-    tau : int
-        Scaling parameter (default = 10)
-    normalize : bool
-        Normalize the kernel (works only if the eigenvalues are
-        present in the graph)
-        (default = 0)
+    tau (int) : Scaling parameter
+        Default is 10
+    normalize (bool) : Normalize the kernel (works only if the eigenvalues are present in the graph)
+        Default is 0
 
     Returns
     -------
@@ -724,8 +717,13 @@ class Heat(Filter):
     def __init__(self, G, tau=10, normalize=False, **kwargs):
         super(Heat, self).__init__(G, **kwargs)
 
+        # TODO: ferme le machinqui manque --
+
         g = []
         if normalize:
+            if not hasattr(G, 'E'):
+                raise ValueError('You need the eigenvalues to normalize the kernel')
+
             gu = lambda x: np.exp(-tau * x/G.lmax)
             ng = linalg.norm(gu(G.E))
             g.append(lambda x: np.exp(-tau * x/G.lmax / ng))
