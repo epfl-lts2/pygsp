@@ -672,13 +672,12 @@ class Held(Filter):
 
     """
 
-    def __init__(self, G, a=2/3, **kwargs):
+    def __init__(self, G, a=2./3, **kwargs):
         super(Held, self).__init__(G, **kwargs)
 
         g = []
-        print(a)
-        g.append(lambda x: held(x * (2/G.lmax), a))
-        g.append(lambda x: np.real(np.sqrt(1-(held(x * (2/G.lmax), a))
+        g.append(lambda x: held(x * (2./G.lmax), a))
+        g.append(lambda x: np.real(np.sqrt(1-(held(x * (2./G.lmax), a))
                                            ** 2)))
 
         self.g = g
@@ -687,14 +686,14 @@ class Held(Filter):
             y = np.empty(np.shape(val))
             l1 = a
             l2 = 2 * a
-            mu = lambda x: -1. + 24. * x - 144. * x ** 2 + 256 * x ** 3
+            mu = lambda x: -1. + 24.*x - 144.*x**2 + 256*x**3
 
-            r1ind = val >= 0 and val < l1
-            r2ind = val >= l1 and val < l2
-            r3ind = val >= l2
+            r1ind = (val >= 0) * (val < l1)
+            r2ind = (val >= l1) * (val < l2)
+            r3ind = (val >= l2)
 
             y[r1ind] = 1
-            y[r2ind] = np.sin(2 * pi * mu(val[r2ind] / (8 * a)))
+            y[r2ind] = np.sin(2*pi*mu(val[r2ind]/(8.*a)))
             y[r3ind] = 0
 
             return y
