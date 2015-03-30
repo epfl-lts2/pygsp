@@ -67,8 +67,9 @@ def is_directed(M):
     Just define a Graph and look if it is directed
 
     >>> import pygsp
-    >>> G = pygsp.graph.Bunny()
-    >>> pygsp.utils.is_directed(W)
+    >>> G = pygsp.graphs.Bunny()
+    >>> pygsp.utils.is_directed(G)
+    False
 
     Notes
     -----
@@ -91,7 +92,8 @@ def is_directed(M):
 
 def estimate_lmax(G):
     r"""
-    This function estimates lmax from a Graph object and stores it into the graph
+    This function estimates lmax from a Graph object and stores it into the
+    graph.
 
     Parameters
     ----------
@@ -106,8 +108,9 @@ def estimate_lmax(G):
     Just define a graph an apply the estimation on it
 
     >>> import pygsp
-    >>> G = pygsp.graph.Graph()
+    >>> G = pygsp.graphs.Graph()
     >>> lmax = pygsp.utils.estimate_lmax(G)
+
     """
     try:
         lmax = sparse.linalg.eigs(G.L, k=1, tol=5e-3, ncv=10)[0]
@@ -115,8 +118,9 @@ def estimate_lmax(G):
         # On robustness purposes, increasing the error by 1 percent
         lmax *= 1.01
     except ValueError:
-        print('GSP_ESTIMATE_LMAX: Cannot use default method')
-        lmax = max(G.d)
+        if G.verbose:
+            print('GSP_ESTIMATE_LMAX: Cannot use default method')
+        lmax = np.max(G.d)
     G.lmax = np.real(lmax)
     return np.real(lmax)
 
@@ -275,11 +279,13 @@ def repmatline(A, ncol=1, nrow=1):
                 1 1 1 2 2 2
                 1 1 1 2 2 2
                 3 3 3 4 4 4
-                3 3 3 4 4 4np.repeat(np.repeat(x, nrow, axis=1), ncol,  axis=0)
+                3 3 3 4 4 4
+    np.repeat(np.repeat(x, nrow, axis=1), ncol,  axis=0)
     """
 
     if ncol < 0 or nrow < 0:
-        raise ValueError("The number of lines and rows must be greater or equal to one, or you will get an empty array.")
+        raise ValueError("The number of lines and rows must be greater or\
+                         equal to one, or you will get an empty array.")
 
     return np.repeat(np.repeat(x, ncol, axis=1), nrow, axis=0)
 
