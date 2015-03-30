@@ -496,11 +496,49 @@ class SimpleTf(Filter):
 
     """
 
-    def __init__(self, G, Nf, t=None, **kwargs):
+    def __init__(self, G, Nf=6, t=None, **kwargs):
         super(SimpleTf, self).__init__(G, **kwargs)
 
+        def kernel_simple_tf(x, kerneltype):
+            r"""
+            Evaluates 'simple' tight-frame kernel
+
+            Parameters
+            ----------
+            x : ndarray
+                Array if independant variable values
+            kerneltype : str
+                Can be either 'sf' or 'wavelet'
+
+            Returns:
+            r : ndarray
+
+            """
+
+            l1 = 1./4.
+            l2 = 1./2.
+            l3 = 1
+
+            h = lambda x: np.sin(pi * x / 2) ** 2
+
+            r1ind = x.any() >= 0 and x < l1
+            r2ind = x.any() >= l1 and x < l2
+            r3ind = x.any() >= l2 and x < l3
+
+            r = np.empty(x.shape)
+            if kerneltype is 'sf':
+                r[r1ind] = 1
+                r[r2ind] = np.sqrt(1 - h(4 * (x * r2ind) - 1) ** 2)
+            elif kerneltype is 'wavelet':
+                r[r2ind] = h(4 * (x * r2ind) - 1./4.)
+                r[r3ind] = np.sqrt(1 - h(2 * (x * r3ind) - 1) ** 2)
+            else:
+                raise TypeError('Unknown kernel type', kerneltype)
+
+            return r
+
         if not t:
-            t = (1./(2. * G.lmax) * 2.**(range(Nf-2, 0, -1)))
+            t = (1./(2. * G.lmax) * np.power(2., (range(Nf-2, 0, -1))))
 
         if self.verbose:
             if len(t) >= Nf - 1:
@@ -510,7 +548,8 @@ class SimpleTf(Filter):
 
         g.append(lambda x: kernel_simple_tf(t[0] * x, 'sf'))
         for i in range(Nf-1):
-            g.append(lambda x, ind=i: kernel_simple_tf(t[i] * x, 'wavelet'))
+            g.append(lambda x, ind=i: kernel_simple_tf(t[ind] * x, 'wavelet'))
+            self.g = g
 
 
 class WarpedTranslat(Filter):
