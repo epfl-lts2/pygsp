@@ -52,7 +52,7 @@ class Filter(object):
         >>> sen = graphs.Sensor()
         >>> MH = filters.MexicanHat(sen)
         >>> x = np.random.rand(64, 64)
-        >>> co = MH.analyse(sen, x)
+        >>> co = MH.analysis(sen, x)
 
         """
         Nf = len(self.g)

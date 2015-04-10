@@ -140,13 +140,15 @@ class Graph(object):
     Examples
     --------
     >>> from pygsp import graphs
+    >>> import numpy as np
+    >>> W = np.arange(4).reshape(2, 2)
     >>> G = graphs.Graph()
 
     """
 
     # All the parameters that needs calculation to be set
     # or not needed are set to None
-    def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
+    def __init__(self, W, A=None, N=None, d=None, Ne=None,
                  gtype='unknown', directed=None, coords=None,
                  lap_type='combinatorial', L=None, verbose=False,
                  plotting={}, **kwargs):
