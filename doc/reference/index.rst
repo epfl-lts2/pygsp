@@ -5,32 +5,52 @@ Reference guide
 Toolbox overview
 ----------------
 
-.. automodule:: packagename
+.. automodule:: pygsp
 
-Module 1
---------
+Graphs
+------
 
 .. toctree::
     :maxdepth: 2
     :hidden:
 
-    module1
+    graphs
 
-.. automodule:: packagename.module1
+.. toctree::
+    :maxdepth: 2
+    :hidden:
 
-.. inheritance-diagram:: packagename.module1
+    nngraphs
+
+.. automodule:: pygsp.graphs
+
+.. inheritance-diagram:: pygsp.graphs
     :parts: 2
 
-Module 2
---------
+Filters
+-------
 
 .. toctree::
     :maxdepth: 2
     :hidden:
 
-    module2
+    filters
 
-.. automodule:: packagename.module2
+.. automodule:: pygsp.filters
 
-.. inheritance-diagram:: packagename.module2
+.. inheritance-diagram:: pygsp.filters
+    :parts: 2
+
+Operators
+---------
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+
+    operators
+
+.. automodule:: pygsp.operators
+
+.. inheritance-diagram:: pygsp.operators
     :parts: 2

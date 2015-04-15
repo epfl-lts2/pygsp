@@ -1,13 +1,13 @@
 To be modified upon project creation
 ------------------------------------
 
-packagename   Rename the directory with the package name
+pygsp         Rename the directory with the package name
 setup.py      Insert project name, description, authors, version, dependencies
 doc/conf.py   Change package name
-packagename/__init__.py     Change version and release date
+pygsp/__init__.py     Change version and release date
 
-Implement code in packagename/
-Implement tests in packagename/tests/
+Implement code in pygsp/
+Implement tests in pygsp/tests/
 Implement documentation in doc/
 (note that reference documentation goes alongside the code)
 
@@ -26,11 +26,11 @@ tox.ini             Defines local testing on multiple Python versions
 .gitignore          Files ignored by the git revision control system
 .travis.yml         Defines testing on Travis continuous integration
 
-packagename/        Contains the modules (the actual toolbox implementation)
+pygsp/              Contains the modules (the actual toolbox implementation)
  __init.py__        Load modules at package import
  *.py               One file per module
 
-packagename/tests/  Contains the test suites (will be distributed to end user)
+pygsp/tests/        Contains the test suites (will be distributed to end user)
  __init.py__        Load modules at package import
  test_*.py          One test suite per module
  test_docstrings.py Test the examples in the docstrings (reference doc)

@@ -54,6 +54,12 @@ class Filter(object):
         >>> x = np.random.rand(64, 64)
         >>> co = MH.analysis(sen, x)
 
+        Matlab Authors
+        --------------
+        David I Shuman, Nathanael Perraudin
+
+        :cite:`hammond2011wavelets`
+        .. bibliography:: project.bib
         """
         Nf = len(self.g)
 

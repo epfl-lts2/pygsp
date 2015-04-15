@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 r"""
-This module implements principally grpahs and some PointsClouds
+This module implements principally graphs and some PointsClouds
 
-* :class: `Graph` Class countaing all the graphs
+* :class: `Graph` Class countaining all the graphs
 
-* :class: `PointsCloud` Class countaing all the PointsClouds
+* :class: `PointsCloud` Class countaining all the PointsClouds
 """
 
 import os
