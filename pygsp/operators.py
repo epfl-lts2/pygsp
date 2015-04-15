@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+r"""
+This module implements the main operators for the pygsp box
+"""
 
 import numpy as np
 import scipy as sp

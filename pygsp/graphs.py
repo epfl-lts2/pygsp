@@ -3,7 +3,7 @@
 r"""
 This module implements principally graphs and some PointsClouds
 
-* :class: `Graph` Class countaining all the graphs
+* :class: `Graph` Main graph class
 
 * :class: `PointsCloud` Class countaining all the PointsClouds
 """

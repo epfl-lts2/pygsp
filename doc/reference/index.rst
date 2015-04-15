@@ -15,11 +15,6 @@ Graphs
     :hidden:
 
     graphs
-
-.. toctree::
-    :maxdepth: 2
-    :hidden:
-
     nngraphs
 
 .. automodule:: pygsp.graphs

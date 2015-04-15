@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 r"""
-Filters Doc
+This module implements the main filter class and all the filters subclasses
+
+* :class: `Filter` Main filter class
 """
 
 from math import exp, log, pi
@@ -177,15 +179,6 @@ class Filter(object):
 
     def mat2vec(d):
         raise NotImplementedError
-
-
-class FilterBank(Filter):
-    r"""
-    A filterbank should just be a list of filter to apply
-    """
-
-    def __init__(self, F):
-        self.F = F
 
 
 class Abspline(Filter):
