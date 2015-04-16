@@ -1002,7 +1002,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         # Update parents
         new_root = np.where(keep_inds == root)[0]
         parents = np.zeros(np.shape(keep_inds)[0], np.shape(keep_inds)[0])
-        parents([:new_root - 1, new_root:]) = new_non_root_parents
+        parents[:new_root - 1, new_root:] = new_non_root_parents
 
         # Update depths
         depths = depths[keep_inds]
@@ -1012,7 +1012,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         Gtemp = pygsp.graphs.Graph(new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, gtype='tree',)
         Gtemp.L = create_laplacian(Gs[lev + 1], G.lap_type)
         Gtemp.root = new_root
-        Gtemp = gsp_copy_graph_attributes(Gs{lev}, 0, Gs{lev + 1})
+        Gtemp = gsp_copy_graph_attributes(Gs[lev], False, Gs[lev + 1])
 
         if compute_full_eigen:
             Gs[lev + 1] = gsp_compute_fourier_basis(Gs[lev + 1])
