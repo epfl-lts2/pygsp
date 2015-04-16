@@ -108,6 +108,7 @@ class PointsCloud(object):
         else:
             raise ValueError("This PointsCloud does not exist. Please verify you wrote the right name in lower case.")
 
+
 class Graph(object):
     r"""
     The main graph object
@@ -213,11 +214,56 @@ class Graph(object):
         else:
             self.plotting['vertex_color'] = 'b'
 
-    def copy_graph_attr(self, gtype, Gn):
+    def deep_copy_graph(self):
         r"""
         TODO write doc
         """
         return deepcopy(self)
+
+    def copy_graph_attributes(self, ctype=True, Gn=None):
+        r"""
+        copy graph attributes copy the parameter of the graph
+
+        Parameters
+        ----------:
+        G : Graph structure
+        ctype (bool): flag to select what to copy
+            Default is True
+        Gn : Graph structure (optional)
+
+        Returns
+        -------
+        Gn : Partial graph structure
+
+        Examples
+        --------
+        >>> from pygsp import graphs
+        >>> Torus = graphs.Torus()
+        >>> G = graphs.TwoMoons()
+        >>> G.copy_graph_attributes(type=0, Gn=Torus);
+        """
+        # if no Gn given
+        if not Gn:
+            if ctype:
+                Gn = Graph(lap_type=G.lap_type, plotting=G.plotting, limits=G.limits)
+            else:
+                Gn = Graph(lap_type=G.lap_type, plotting=G.plotting)
+
+            return Gn
+
+        # if Gn given.
+        if hasattr(G, 'lap_type'):
+            Gn.lap_type = G.lap_type
+
+        if hasattr(G, 'plotting'):
+            Gn.plotting = G.plotting
+
+        if ctype:
+            if hasattr(G, 'coords'):
+                Gn.coords = G.coords
+        else:
+            if hasattr(Gn.plotting, 'limits'):
+                del GN.plotting['limits']
 
     def separate_graph(self):
         r"""

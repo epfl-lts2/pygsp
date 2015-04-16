@@ -525,13 +525,17 @@ def full_eigen(L):
     return EVa, EVe
 
 
-def create_laplacian(G):
+@utils.graph_array_handler
+def create_laplacian(G, lap_type=None):
     r"""
     Create the graph laplacian of graph G
 
     Parameters
     ----------
-    G : Graph
+    G (Graph) : Graph
+    lap_type (string) : the laplacian type to use.
+        Defalut is the lap_type of the G struct.
+        If G does not have one, it will be "combinatorial"
 
     Returns
     -------
@@ -542,13 +546,32 @@ def create_laplacian(G):
     if sp.shape(G.W) == (1, 1):
         return sparse.lil_matrix(0)
 
+    if not lap_type:
+        if not hasattr(G, 'lap_type'):
+            lap_type = 'combinatorial'
+            G.lap_type = lap_type
+        else:
+            lap_type = G.lap_type
+
+    G.lap_type = lap_type
+
+    if G.directed:
+        if lap_type == 'combinatorial':
+            L = 0.5*sparse.lil_matrix(np.diagflat(G.W.sum(0)) + np.flatdiag(G.W.sum(1)) - G.W - G.W.getH())
+        elif lap_type == 'normalized':
+            raise NotImplementedError('Yet. Ask Nathanael.')
+        elif lap_type == 'none':
+            L = sparse.lil_matrix(0)
+        else:
+            raise AttributeError('Unknown laplacian type!')
+
     else:
-        if G.lap_type == 'combinatorial':
+        if lap_type == 'combinatorial':
             L = sparse.lil_matrix(np.diagflat(G.W.sum(1)) - G.W)
-        elif G.lap_type == 'normalized':
+        elif lap_type == 'normalized':
             D = sparse.lil_matrix(G.W.sum(1).diagonal() ** (-0.5))
             L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
-        elif G.lap_type == 'none':
+        elif lap_type == 'none':
             L = sparse.lil_matrix(0)
         else:
             raise AttributeError('Unknown laplacian type!')
@@ -561,10 +584,8 @@ def kernel_meyer(x, kerneltype):
 
     Parameters
     ----------
-    x : ndarray
-        Array of independant variables values
-    kerneltype : str
-        Can be either 'sf' or 'wavelet'
+    x (ndarray) : Array of independant variables values
+    kerneltype (str) : Can be either 'sf' or 'wavelet'
 
     Returns
     -------
@@ -927,7 +948,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
     depths, parents = utils.tree_depths(G.A, root)
     old_W = G.W
 
-    for lev in range(1, Nlevel + 1):
+    for lev in range(Nlevel):
         # Identify the vertices in the even depths of the current tree
         down_odd = round(depths) % 2
         down_even = np.ones((Gs[lev].N)) - down_odd
@@ -940,6 +961,63 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         non_root_keep_inds, new_non_root_inds = np.setdiff1d(keep_inds, root)
         old_parents_of_non_root_keep_inds = parents[non_root_keep_inds]
         old_grandparents_of_non_root_keep_inds = parents[old_parents_of_non_root_keep_inds]
-        # new_non_root_parents = dsearchn(keep_inds, old_grandparents_of_non_root_keep_inds)
+        # TODO new_non_root_parents = dsearchn(keep_inds, old_grandparents_of_non_root_keep_inds)
+
+        old_W_i_inds, old_W_j_inds, old_W_weights = sparse.find(old_W)
+        i_inds = np.concatenate((new_non_root_inds, new_non_root_parents))
+        j_inds = np.concatenate((new_non_root_parents, new_non_root_inds))
+        new_N = np.sum(down_even)
+
+        if reduction_method == "unweighted":
+            new_weights = np.ones(np.shape(i_inds))
+
+        elif reduction_method == "sum":
+            # TODO old_weights_to_parents_inds = dsearchn([old_W_i_inds,old_W_j_inds], [non_root_keep_inds, old_parents_of_non_root_keep_inds]);
+            old_weights_to_parents = old_W_weights[old_weights_to_parents_inds]
+            # old_W(non_root_keep_inds,old_parents_of_non_root_keep_inds);
+            # TODO old_weights_parents_to_grandparents_inds = dsearchn([old_W_i_inds, old_W_j_inds], [old_parents_of_non_root_keep_inds, old_grandparents_of_non_root_keep_inds])
+            old_weights_parents_to_grandparents = old_W_weights[old_weights_parents_to_grandparents_inds]
+            # old_W(old_parents_of_non_root_keep_inds,old_grandparents_of_non_root_keep_inds);
+            new_weights = old_weights_to_parents + old_weights_parents_to_grandparents
+            new_weights = np.concatenate((new_weights. new_weights))
+
+        elif reduction_method == "resistance_distance":
+            # TODO old_weights_to_parents_inds = dsearchn([old_W_i_inds, old_W_j_inds], [non_root_keep_inds, old_parents_of_non_root_keep_inds])
+            old_weights_to_parents = old_W_weight[sold_weights_to_parents_inds]
+            # old_W(non_root_keep_inds,old_parents_of_non_root_keep_inds);
+            # TODO old_weights_parents_to_grandparents_inds = dsearchn([old_W_i_inds, old_W_j_inds], [old_parents_of_non_root_keep_inds, old_grandparents_of_non_root_keep_inds])
+            old_weights_parents_to_grandparents = old_W_weights[old_weights_parents_to_grandparents_inds]
+            # old_W(old_parents_of_non_root_keep_inds,old_grandparents_of_non_root_keep_inds);
+            new_weights = 1./(1./old_weights_to_parents + 1./old_weights_parents_to_grandparents)
+            new_weights = np.concatenate(([new_weights, new_weights]))
+
+        else:
+            raise ValueError('Unknown graph reduction method.')
+
+        new_W = sparse.csc_matrix((new_weights, (i_inds, j_inds)),
+                                  shape=(new_N, new_N))
+        # Update parents
+        new_root = np.where(keep_inds == root)[0]
+        parents = np.zeros(np.shape(keep_inds)[0], np.shape(keep_inds)[0])
+        parents([:new_root - 1, new_root:]) = new_non_root_parents
+
+        # Update depths
+        depths = depths[keep_inds]
+        depths = depths/2.
+
+        # Store new tree
+        Gtemp = pygsp.graphs.Graph(new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, gtype='tree',)
+        Gtemp.L = create_laplacian(Gs[lev + 1], G.lap_type)
+        Gtemp.root = new_root
+        Gtemp = gsp_copy_graph_attributes(Gs{lev}, 0, Gs{lev + 1})
+
+        if compute_full_eigen:
+            Gs[lev + 1] = gsp_compute_fourier_basis(Gs[lev + 1])
+
+        # Replace current adjacency matrix and root
+        Gs.append(Gtemp)
+
+        old_W = new_W
+        root = new_root
 
     return Gs, subsampled_vertex_indices
