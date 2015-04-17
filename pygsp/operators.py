@@ -572,8 +572,8 @@ def create_laplacian(G, lap_type=None):
         if lap_type == 'combinatorial':
             L = sparse.lil_matrix(np.diagflat(G.W.sum(1)) - G.W)
         elif lap_type == 'normalized':
-            D = sparse.lil_matrix(G.W.sum(1).diagonal() ** (-0.5))
-            L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
+            D = sparse.lil_matrix(np.diaflat(np.power(G.W.sum(1), -0.5)))
+            L = sparse.identity(G.N) - D * G.W * D
         elif lap_type == 'none':
             L = sparse.lil_matrix(0)
         else:
