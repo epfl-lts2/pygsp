@@ -7,11 +7,31 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def plot(G):
-    if issubclass(type(G), pygsp.graphs.Graph):
-        plot_graph(G)
-    elif issubclass(type(G), pygsp.graphs.PointsCloud):
-        plot_pointcloud(G)
+def plot(O, **kwargs):
+    r"""
+    Main plotting function
+
+    This function should be able to determine the appropriated plot for the object
+    Additionnal kwargs may be given in case of filter plotting
+
+    Parameters
+    ----------
+    O : object
+        Should be either a Graph, Filter or PointCloud
+
+    Example
+    -------
+    >>> from pygsp import graphs, plotting
+    >>> sen = pygsp.graphs.Sensor()
+    >>> plotting.plot(sen)
+
+    """
+    if issubclass(type(O), pygsp.graphs.Graph):
+        plot_graph(O)
+    elif issubclass(type(O), pygsp.graphs.PointsCloud):
+        plot_pointcloud(O)
+    elif issubclass(type(O), pygsp.graphs.Filters):
+        plot_filter(O, **kwargs)
     else:
         raise TypeError('Your object type is incorrect, be sure it is a PointCloud or a graphs')
 
