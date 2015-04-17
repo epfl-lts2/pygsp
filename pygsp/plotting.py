@@ -34,7 +34,7 @@ def plot(O, **kwargs):
         plot_graph(O)
     elif issubclass(type(O), pygsp.graphs.PointsCloud):
         plot_pointcloud(O)
-    elif issubclass(type(O), pygsp.graphs.Filters):
+    elif issubclass(type(O), pygsp.filters.Filter):
         plot_filter(O, **kwargs)
     else:
         raise TypeError('Your object type is incorrect, be sure it is a PointCloud, a Filter or a Graph')
@@ -144,17 +144,16 @@ def plot_pointcloud(P):
         plt.show()
 
 
-def plot_filter(G, filters, npoints=1000, line_width=4, x_width=3, x_size=10,
+def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=10,
                 plot_eigenvalues=None, show_sum=None):
     r"""
     Plot a system of graph spectral filters.
 
     Parameters
     ----------
-    G : Graph object
-        Description.
     filters : filter object
-        Description.
+    G : Graph object
+        If not specified it will take the one used to create the filter
     npoints : int
         Number of point where the filters are evaluated.
     line_width : int
@@ -183,6 +182,8 @@ def plot_filter(G, filters, npoints=1000, line_width=4, x_width=3, x_size=10,
         plot_eigenvalues = hasattr(G, 'e')
     if show_sum is None:
         show_sum = len(filters.g) > 1
+    if G is None:
+        G = filters.G
 
     lambdas = np.linspace(0, G.lmax, npoints)
 

@@ -26,7 +26,8 @@ class Filter(object):
         if not hasattr(G, 'lmax'):
             if self.verbose:
                 print(type(self), ': has to compute lmax')
-            G = utils.estimate_lmax(G)
+            G.lmax = utils.estimate_lmax(G)
+            self.G = G
 
     def analysis(self, G, s, exact=True, cheb_order=30, **kwargs):
         r"""
