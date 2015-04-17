@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+r"""
+This module implements plotting functions for the pygsp main objects
+"""
 
 import numpy as np
 import pygsp

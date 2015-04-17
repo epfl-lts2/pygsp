@@ -39,13 +39,19 @@ Filters
 Operators
 ---------
 
+.. automodule:: pygsp.operators
+
 .. toctree::
     :maxdepth: 2
-    :hidden:
 
     operators
 
-.. automodule:: pygsp.operators
+Plotting
+--------
 
-.. inheritance-diagram:: pygsp.operators
-    :parts: 2
+.. automodule:: pygsp.plotting
+
+.. toctree::
+    :maxdepth: 2
+
+    plotting
