@@ -19,13 +19,14 @@ def plot(O, **kwargs):
     O : object
         Should be either a Graph, Filter or PointCloud
 
-    Example
-    -------
+    Examples
+    --------
     >>> from pygsp import graphs, plotting
     >>> sen = pygsp.graphs.Sensor()
     >>> plotting.plot(sen)
 
     """
+
     if issubclass(type(O), pygsp.graphs.Graph):
         plot_graph(O)
     elif issubclass(type(O), pygsp.graphs.PointsCloud):
@@ -33,10 +34,26 @@ def plot(O, **kwargs):
     elif issubclass(type(O), pygsp.graphs.Filters):
         plot_filter(O, **kwargs)
     else:
-        raise TypeError('Your object type is incorrect, be sure it is a PointCloud or a graphs')
+        raise TypeError('Your object type is incorrect, be sure it is a PointCloud, a Filter or a Graph')
 
 
 def plot_graph(G):
+    r"""
+    Function to plot a graph or an array of graphs
+
+    Parameters
+    ----------
+    G : Graph
+        Graph object to plot
+
+    Examples
+    --------
+    >>> from pygsp import plotting, graphs
+    >>> sen = pygsp.graphs.Sensor()
+    >>> plotting.plot_graph(sen)
+
+    """
+
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
 
@@ -107,9 +124,9 @@ def plot_pointcloud(P):
 
     Examples
     --------
-    >>> import pygsp
-    >>> pygsp.graphs.dummy(0, [1, 2, 3], True)
-    array([1, 2, 3])
+    >>> from pygsp import graphs, plotting
+    >>> logo = graphs.PointsClouds('logo')
+    >>> plotting.plot_pointcloud(logo)
 
     """
     if P.coords.shape[1] == 2:
@@ -151,16 +168,12 @@ def plot_filter(G, filters, npoints=1000, line_width=4, x_width=3, x_size=10,
         To plot an extra line showing the sum of the squared magnitudes\
          of the filters (default True if there is multiple filters).
 
-    Returns
-    -------
-    d : ndarray
-        Description.
-
     Examples
     --------
-    >>> import pygsp
-    >>> pygsp.graphs.dummy(0, [1, 2, 3], True)
-    array([1, 2, 3])
+    >>> from pygsp import filters, plotting, graphs
+    >>> sen = graph.Sensor()
+    >>> mh = filters.MexicanHat(sen)
+    >>> plotting.plot_filter(mh)
 
     """
     if plot_eigenvalues is None:
