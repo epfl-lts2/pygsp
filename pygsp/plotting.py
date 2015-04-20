@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+r"""
+This module implements plotting functions for the pygsp main objects
+"""
 
 import numpy as np
 import pygsp
@@ -7,16 +10,53 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def plot(G):
-    if issubclass(type(G), pygsp.graphs.Graph):
-        plot_graph(G)
-    elif issubclass(type(G), pygsp.graphs.PointsCloud):
-        plot_pointcloud(G)
+def plot(O, **kwargs):
+    r"""
+    Main plotting function
+
+    This function should be able to determine the appropriated plot for the object
+    Additionnal kwargs may be given in case of filter plotting
+
+    Parameters
+    ----------
+    O : object
+        Should be either a Graph, Filter or PointCloud
+
+    Examples
+    --------
+    >>> from pygsp import graphs, plotting
+    >>> sen = graphs.Sensor()
+    >>> plotting.plot(sen)
+
+    """
+
+    if issubclass(type(O), pygsp.graphs.Graph):
+        plot_graph(O)
+    elif issubclass(type(O), pygsp.graphs.PointsCloud):
+        plot_pointcloud(O)
+    elif issubclass(type(O), pygsp.filters.Filter):
+        plot_filter(O, **kwargs)
     else:
-        raise TypeError('Your object type is incorrect, be sure it is a PointCloud or a graphs')
+        raise TypeError('Your object type is incorrect, be sure it is a PointCloud, a Filter or a Graph')
 
 
 def plot_graph(G):
+    r"""
+    Function to plot a graph or an array of graphs
+
+    Parameters
+    ----------
+    G : Graph
+        Graph object to plot
+
+    Examples
+    --------
+    >>> from pygsp import plotting, graphs
+    >>> sen = pygsp.graphs.Sensor()
+    >>> plotting.plot_graph(sen)
+
+    """
+
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
 
@@ -87,9 +127,9 @@ def plot_pointcloud(P):
 
     Examples
     --------
-    >>> import pygsp
-    >>> pygsp.graphs.dummy(0, [1, 2, 3], True)
-    array([1, 2, 3])
+    >>> from pygsp import graphs, plotting
+    >>> logo = graphs.PointsClouds('logo')
+    >>> plotting.plot_pointcloud(logo)
 
     """
     if P.coords.shape[1] == 2:
@@ -104,40 +144,72 @@ def plot_pointcloud(P):
         plt.show()
 
 
-def plot_filter(G, filters, plotting={}):
+def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=10,
+                plot_eigenvalues=None, show_sum=None):
     r"""
     Plot a system of graph spectral filters.
 
     Parameters
     ----------
-    G : Graph object
-        Description.
     filters : filter object
-        Description.
-    **kwargs : plotting parameters
-        Description.
-
-    Returns
-    -------
-    d : ndarray
-        Description.
+    G : Graph object
+        If not specified it will take the one used to create the filter
+    npoints : int
+        Number of point where the filters are evaluated.
+    line_width : int
+        Width of the filters plots.
+    x_width : int
+        Width of the X marks representing the eigenvalues.
+    x_size : int
+        Size of the X marks representing the eigenvalues.
+    plot_eigenvalues : boolean
+        To plot black X marks at all eigenvalues of the graph (You need to \
+            compute the Fourier basis to use this option). By default the \
+            eigenvalues are plot if they are contained in the Graph.
+    show_sum : boolean
+        To plot an extra line showing the sum of the squared magnitudes\
+         of the filters (default True if there is multiple filters).
 
     Examples
     --------
-    >>> import pygsp
-    >>> pygsp.graphs.dummy(0, [1, 2, 3], True)
-    array([1, 2, 3])
+    >>> from pygsp import filters, plotting, graphs
+    >>> sen = graph.Sensor()
+    >>> mh = filters.MexicanHat(sen)
+    >>> plotting.plot_filter(mh)
 
     """
-    lambdas = np.linspace(0, G.lmax, 1000)
+    if plot_eigenvalues is None:
+        plot_eigenvalues = hasattr(G, 'e')
+    if show_sum is None:
+        show_sum = len(filters.g) > 1
+    if G is None:
+        G = filters.G
+
+    lambdas = np.linspace(0, G.lmax, npoints)
 
     # apply the filter
     fd = filters.evaluate(lambdas)
 
     # plot the filter
+    size = len(fd)
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.plot(lambdas, fd)
+    if len(filters.g) == 1:
+        ax.plot(lambdas, fd, linewidth=line_width)
+    elif len(filters.g) > 1:
+        for i in range(size):
+            ax.plot(lambdas, fd[i], linewidth=line_width)
+
+    # plot eigenvalues
+    if plot_eigenvalues:
+        ax.plot(G.e, np.zeros(G.N), 'xk', markeredgewidth=x_width, markersize=x_size)
+    # plot highlighted eigenvalues TODO
+
+    # plot the sum
+    if show_sum:
+        test_sum = np.sum(np.power(fd, 2), 0)
+        ax.plot(lambdas, test_sum, 'k', linewidth=line_width)
+
     plt.show()
 
 

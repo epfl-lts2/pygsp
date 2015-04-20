@@ -34,6 +34,7 @@ class FunctionsTestCase(unittest.TestCase):
         # TODO choose values
         x = None
         y = None
+        stype = ['average', 'full']
 
         def test_is_directed(G):
             self.assertFalse(utils.is_directed(G))
@@ -60,12 +61,23 @@ class FunctionsTestCase(unittest.TestCase):
             mat_answser = None
             self.assertEqual(utils.distanz(x, y))
 
+        def test_symetrize(W, sy_type):
+            mat_answser = None
+            self.assertAlmostEqual(mat_answser, utils.symetrize(W, sy_type))
+
+        def test_tree_depths(A, root):
+            mat_answser = None
+            self.assertEqual(mat_answser, utils.tree_depths(A, root))
+
         # Doesn't work bc of python bug
         # test_is_directed(G)
-        test_estimate_lmax(W)
+        test_estimate_lmax(G)
         test_check_weights(W)
         test_create_laplacian(G)
         test_check_connectivity(G, **kwargs)
+        test_tree_depths(A, root)
+        for s in stype:
+            test_symetrize(W, s)
 
         test_distanz(x, y)
 

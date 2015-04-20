@@ -1,11 +1,11 @@
-#w-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 r"""
-This module implements principally grpahs and some PointsClouds
+This module implements principally graphs and some PointsClouds
 
-* :class: `Graph` Class countaing all the graphs
+* :class: `Graph` Main graph class
 
-* :class: `PointsCloud` Class countaing all the PointsClouds
+* :class: `PointsCloud` Class countaining all the PointsClouds
 """
 
 import os
@@ -17,6 +17,96 @@ from copy import deepcopy
 from scipy import sparse, io, spatial
 
 from pygsp import utils, plotting, operators
+
+
+class PointsCloud(object):
+    r"""
+    Load the parameters of models and the points
+
+    Parameters
+    ----------
+    name (string) : the name of the point cloud to load
+        possible name: 'airfoil', 'bunny', 'david64', 'david500', 'logo', 'two_moons'
+    max_dim (int) : the maximum dimensionality of the points (only valid for two_moons)
+        default is 2
+
+    Returns
+    -------
+    The differents informations of the PointsCloud Loaded.
+
+
+    Examples
+    --------
+    >>> from pygsp import graphs
+    >>> bunny = graphs.PointsCloud('bunny')
+    >>> Xin = bunny.Xin
+
+    Note
+    ----
+    The bunny is the model from the Stanford Computer Graphics Laboratory
+    (see reference).
+
+
+    Reference
+    ----------
+    :cite:`turk1994zippered`
+
+    """
+
+    def __init__(self, pointcloudname, max_dim=2):
+        if pointcloudname == "airfoil":
+            airfoilmat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
+                                    + '/misc/airfoil.mat')
+            self.i_inds = airfoilmat['i_inds']
+            self.j_inds = airfoilmat['j_inds']
+            self.x = airfoilmat['x']
+            self.y = airfoilmat['y']
+            self.coords = np.concatenate((self.x, self.y), axis=1)
+
+        elif pointcloudname == "bunny":
+            bunnymat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) +
+                                  '/misc/bunny.mat')
+            self.Xin = bunnymat["bunny"]
+
+        elif pointcloudname == "david64":
+            david64mat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
+                                    + '/misc/david64.mat')
+            self.W = david64mat["W"]
+            self.N = david64mat["N"][0, 0]
+            self.coords = david64mat["coords"]
+
+        elif pointcloudname == "david500":
+            david500mat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
+                                     + '/misc/david500.mat')
+            self.W = david500mat["W"]
+            self.N = david500mat["N"][0, 0]
+            self.coords = david500mat["coords"]
+
+        elif pointcloudname == "logo":
+            logomat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) +
+                                 '/misc/logogsp.mat')
+            self.W = logomat["W"]
+            self.coords = logomat["coords"]
+            self.limits = np.array([0, 640, -400, 0])
+
+            self.info = {"idx_g": logomat["idx_g"],
+                         "idx_s": logomat["idx_s"],
+                         "idx_p": logomat["idx_p"]}
+
+        elif pointcloudname == "minnesota":
+            minnesotamat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/minnesota.mat')
+            self.A = minnesotamat["A"]
+            self.labels = minnesotamat["labels"]
+            self.coords = minnesotamat["xy"]
+
+        elif pointcloudname == "two_moons":
+            twomoonsmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/two_moons.mat')
+            if max_dim == -1:
+                max_dim == 2
+            self.Xin = twomoonsmat["features"][:max_dim].transpose()
+
+        else:
+            raise ValueError("This PointsCloud does not exist. Please verify you wrote the right name in lower case.")
 
 
 class Graph(object):
@@ -51,17 +141,22 @@ class Graph(object):
     Examples
     --------
     >>> from pygsp import graphs
-    >>> G = graphs.Graph()
+    >>> import numpy as np
+    >>> W = np.arange(4).reshape(2, 2)
+    >>> G = graphs.Graph(W)
+
     """
 
     # All the parameters that needs calculation to be set
     # or not needed are set to None
-    def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
+    def __init__(self, W, A=None, N=None, d=None, Ne=None,
                  gtype='unknown', directed=None, coords=None,
-                 lap_type='combinatorial', L=None, plotting={}, **kwargs):
+                 lap_type='combinatorial', L=None, verbose=False,
+                 plotting={}, **kwargs):
 
         self.gtype = gtype
         self.lap_type = lap_type
+        self.verbose = verbose
 
         if W is not None:
             self.W = sparse.lil_matrix(W)
@@ -93,7 +188,6 @@ class Graph(object):
             self.directed = utils.is_directed(self.W)
         if L is not None:
             self.L = L
-
         else:
             self.L = operators.create_laplacian(self)
 
@@ -120,11 +214,56 @@ class Graph(object):
         else:
             self.plotting['vertex_color'] = 'b'
 
-    def copy_graph_attr(self, gtype, Gn):
+    def deep_copy_graph(self):
         r"""
         TODO write doc
         """
         return deepcopy(self)
+
+    def copy_graph_attributes(self, ctype=True, Gn=None):
+        r"""
+        copy graph attributes copy the parameter of the graph
+
+        Parameters
+        ----------:
+        G : Graph structure
+        ctype (bool): flag to select what to copy
+            Default is True
+        Gn : Graph structure (optional)
+
+        Returns
+        -------
+        Gn : Partial graph structure
+
+        Examples
+        --------
+        >>> from pygsp import graphs
+        >>> Torus = graphs.Torus()
+        >>> G = graphs.TwoMoons()
+        >>> G.copy_graph_attributes(type=0, Gn=Torus);
+        """
+        # if no Gn given
+        if not Gn:
+            if ctype:
+                Gn = Graph(lap_type=G.lap_type, plotting=G.plotting, limits=G.limits)
+            else:
+                Gn = Graph(lap_type=G.lap_type, plotting=G.plotting)
+
+            return Gn
+
+        # if Gn given.
+        if hasattr(G, 'lap_type'):
+            Gn.lap_type = G.lap_type
+
+        if hasattr(G, 'plotting'):
+            Gn.plotting = G.plotting
+
+        if ctype:
+            if hasattr(G, 'coords'):
+                Gn.coords = G.coords
+        else:
+            if hasattr(Gn.plotting, 'limits'):
+                del GN.plotting['limits']
 
     def separate_graph(self):
         r"""
@@ -148,10 +287,14 @@ class Graph(object):
         Examples
         --------
         >>> from pygsp import graphs
-        >>> G = graphs.Graph()
+        >>> import numpy as np
+        >>> W = np.arange(16).reshape(4, 4)
+        >>> G = graphs.Graph(W)
+        >>> c = 10
         >>> subG = graphs.Graph.subgraph(G, c)
 
         This function create a subgraph from G taking only the node in c.
+
         """
 
         sub_G = self
@@ -193,8 +336,9 @@ class NNGraph(Graph):
     --------
     >>> from pygsp import graphs
     >>> import numpy as np
-    >>> Xin = np.arange(16)
+    >>> Xin = np.arange(9).reshape(3, 3)
     >>> G = graphs.NNGraph(Xin)
+
     """
 
     def __init__(self, Xin, NNtype='knn', use_flann=False, center=True,
@@ -221,7 +365,6 @@ class NNGraph(Graph):
         else:
             self.plotting = {}
         self.symetrize_type = symetrize_type
-        param = kwargs
 
         N, d = np.shape(self.Xin)
         Xout = self.Xin
@@ -231,8 +374,8 @@ class NNGraph(Graph):
                                       np.mean(self.Xin, axis=0))
 
         if self.rescale:
-            bounding_radius = 0.5*np.linalg.norm(np.amax(Xout, axis=0)
-                                                 - np.amin(Xout, axis=0), 2)
+            bounding_radius = 0.5*np.linalg.norm(np.amax(Xout, axis=0) -
+                                                 np.amin(Xout, axis=0), 2)
             scale = np.power(N, 1./float(min(d, 3)))/10.
             Xout *= scale/bounding_radius
 
@@ -253,7 +396,8 @@ class NNGraph(Graph):
             for i in range(N):
                 spi[i*k:(i+1)*k] = np.kron(np.ones((k)), i)
                 spj[i*k:(i+1)*k] = NN[i, 1:]
-                spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2)/float(self.sigma))
+                spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2) /
+                                          float(self.sigma))
 
             W = sparse.csc_matrix((spv, (spi, spj)),
                                   shape=(np.shape(self.Xin)[0],
@@ -276,7 +420,8 @@ class NNGraph(Graph):
                 leng = len(NN[i]) - 1
                 spi[start:start+leng] = np.kron(np.ones((leng)), i)
                 spj[start:start+leng] = NN[i][1:]
-                spv[start:start+leng] = np.exp(-np.power(D[i][1:], 2)/float(self.sigma))
+                spv[start:start+leng] = np.exp(-np.power(D[i][1:], 2) /
+                                               float(self.sigma))
                 start = start+leng
 
             W = sparse.csc_matrix((spv, (spi, spj)),
@@ -317,6 +462,7 @@ class Bunny(NNGraph):
     References
     ----------
     :cite:`turk1994zippered`
+
     """
 
     def __init__(self, **kwargs):
@@ -359,11 +505,11 @@ class Cube(NNGraph):
     >>> from pygsp import graphs
     >>> radius = 5
     >>> G = graphs.Cube(radius=radius)
+
     """
 
     def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random",
                  **kwargs):
-        param = kwargs
         self.radius = radius
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
@@ -430,7 +576,8 @@ class Sphere(NNGraph):
     --------
     >>> from pygsp import graphs
     >>> radius = 5
-    >>> G = graphs.sphere(radius=radius)
+    >>> G = graphs.Sphere(radius=radius)
+
     """
 
     def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random",
@@ -480,8 +627,8 @@ class TwoMoons(NNGraph):
     --------
     >>> from pygsp import graphs
     >>> G1 = graphs.TwoMoons(moontype='standard')
-    >>> 
     >>> G2 =  graphs.TwoMoons(moontype='synthetised', N=1000, sigmad=0.1, d=1)
+
     """
 
     def __init__(self, moontype="standard", sigmag=0.05, N=400, sigmad=0.07,
@@ -513,7 +660,8 @@ class TwoMoons(NNGraph):
             self.Xin = two_moons.Xin
 
             self.gtype = "Two Moons standard"
-            self.labels = 2*(np.where(np.arange(1, N+1).reshape(N, 1) > 1000, 1, 0) + 1)
+            self.labels = 2*(np.where(np.arange(1, N+1).reshape(N, 1) > 1000,
+                                      1, 0) + 1)
 
             super(TwoMoons, self).__init__(Xin=self.Xin, sigma=sigmag,
                                            labels=self.labels, k=self.k,
@@ -532,7 +680,8 @@ class TwoMoons(NNGraph):
             Coordmoon2 = create_arc_moon(N2, sigmad, d, 2)
 
             self.Xin = np.concatenate((Coordmoon1, Coordmoon2))
-            self.labels = 2*(np.where(np.arange(1, N+1).reshape(N, 1) > N1, 1, 0) + 1)
+            self.labels = 2*(np.where(np.arange(1, N+1).reshape(N, 1) >
+                                      N1, 1, 0) + 1)
 
             super(TwoMoons, self).__init__(Xin=self.Xin, sigma=sigmag,
                                            labels=self.labels, k=self.k,
@@ -555,6 +704,7 @@ class Grid2d(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.Grid2d(Nv=32)
+
     """
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
@@ -578,18 +728,25 @@ class Grid2d(Graph):
 
         self.W = sparse.csc_matrix((np.ones((K*Mv+J*Nv)), (i_inds, j_inds)), shape=(Mv*Nv, Mv*Nv))
 
-        xtmp = np.kron(np.ones((Mv, 1)), (np.arange(Nv)/float(Nv)).reshape(Nv, 1))
-        ytmp = np.sort(np.kron(np.ones((Nv, 1)), np.arange(Mv)/float(Mv)).reshape(Mv*Nv, 1), axis=0)
+        xtmp = np.kron(np.ones((Mv, 1)), (np.arange(Nv)/float(Nv)).reshape(Nv,
+                                                                           1))
+        ytmp = np.sort(np.kron(np.ones((Nv, 1)),
+                               np.arange(Mv)/float(Mv)).reshape(Mv*Nv, 1),
+                       axis=0)
+
         self.coords = np.concatenate((xtmp, ytmp), axis=1)
 
         self.N = Nv * Mv
         self.Nv = Nv
         self.Mv = Mv
         self.gtype = '2d-grid'
-        self.plotting = {"limits": np.array([-1./self.Nv, 1 + 1./self.Nv, 1./self.Mv, 1 + 1./self.Mv]),
+        self.plotting = {"limits": np.array([-1./self.Nv, 1 + 1./self.Nv,
+                                             1./self.Mv, 1 + 1./self.Mv]),
                          "vertex_size": 30}
 
-        super(Grid2d, self).__init__(N=self.N, W=self.W, gtype=self.gtype, plotting=self.plotting, coords=self.coords, **kwargs)
+        super(Grid2d, self).__init__(N=self.N, W=self.W, gtype=self.gtype,
+                                     plotting=self.plotting,
+                                     coords=self.coords, **kwargs)
 
 
 class Torus(Graph):
@@ -673,7 +830,7 @@ class Comet(Graph):
     Examples
     --------
     >>> from pygsp import graphs
-    >>> G = graphs.Comet() (== graphs.Comet(Nv=32, k=12))
+    >>> G = graphs.Comet() # (== graphs.Comet(Nv=32, k=12))
 
     """
 
@@ -723,7 +880,8 @@ class LowStretchTree(Graph):
     --------
     >>> from pygsp import graphs, plotting
     >>> G = graphs.LowStretchTree(k=3)
-    >>> plotting.plot_graph(G)
+
+    # >>> plotting.plot_graph(G)
     """
 
     def __init__(self, k=6, **kwargs):
@@ -774,7 +932,8 @@ class LowStretchTree(Graph):
 class RandomRegular(Graph):
     r"""
     Creates a random regular graph
-    The random regular graph has the property that every nodes is connected to 'k' other nodes.
+    The random regular graph has the property that every nodes is connected to
+    'k' other nodes.
 
     Parameters
     ----------
@@ -787,13 +946,15 @@ class RandomRegular(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.RandomRegular()
+
     """
 
-    def __init__(self, N=64, k=6, **kwargs):
+    def __init__(self, N=64, k=6, verbose=False, **kwargs):
 
         def isRegularGraph(A):
             r"""
-            This fonction prints a message describing the problem of a given sparse matrix
+            This fonction prints a message describing the problem of a given
+            sparse matrix
 
             Inputs
             ------
@@ -828,7 +989,8 @@ class RandomRegular(Graph):
             else:
                 msg += "is ok"
 
-            print(msg)
+            if verbose:
+                print(msg)
 
         def createRandRegGraph(vertNum, deg):
             r"""
@@ -855,7 +1017,7 @@ class RandomRegular(Graph):
             Reference
             ---------
             http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.67.7957&rep=rep1&type=pdf
-            (This code has been adapted from matlab to pyhton)
+            (This code has been adapted from matlab to python)
             """
 
             n = vertNum
@@ -882,7 +1044,8 @@ class RandomRegular(Graph):
 
                 # print progess
                 if edgesTested % 5000 == 0:
-                    print("createRandRegGraph() progress: edges=%d/%d\n" % (edgesTested, n*d))
+                    print("createRandRegGraph() progress: edges=%d/%d\n" %
+                          (edgesTested, n*d))
 
                 # chose at random 2 half edges
                 i1 = floor(rd.random()*np.shape(U)[0])
@@ -936,6 +1099,7 @@ class Ring(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.Ring()
+
     """
 
     def __init__(self, N=64, k=1, **kwargs):
@@ -956,8 +1120,8 @@ class Ring(Graph):
         for i in range(min(k, floor((N-1)/2.))):
             i_inds[i*2*N + np.arange(N)] = all_inds
             j_inds[i*2*N + np.arange(N)] = np.remainder(all_inds + i + 1, N)
-            i_inds[i*2*(N+1):(i+1)*2*N] = np.remainder(all_inds + i + 1, N)
-            j_inds[i*2*(N+1):(i+1)*2*N] = all_inds
+            i_inds[(i*2+1)*N + np.arange(N)] = np.remainder(all_inds + i + 1, N)
+            j_inds[(i*2+1)*N + np.arange(N)] = all_inds
 
         if k == N/2.:
             i_inds[2*N*(k-1) + np.arange(N)] = all_inds
@@ -1013,6 +1177,7 @@ class Community(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.Community()
+
     """
 
     def __init__(self, N=256, Nc=None, com_sizes=np.array([]), min_com=None,
@@ -1123,6 +1288,7 @@ class Minnesota(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.Minnesota()
+
     """
 
     def __init__(self, connect=True):
@@ -1191,12 +1357,12 @@ class Sensor(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.Sensor(N=300)
+
     """
 
     def __init__(self, N=64, Nc=2, regular=False, verbose=1, n_try=50,
                  distribute=False, connected=True, **kwargs):
 
-        param = kwargs
         self.N = N
         self.Nc = Nc
         self.regular = regular
@@ -1307,6 +1473,7 @@ class Airfoil(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.Airfoil()
+
     """
 
     def __init__(self):
@@ -1345,7 +1512,8 @@ class DavidSensorNet(Graph):
     Examples
     --------
     >>> from pygsp import graphs
-    >>> G = graphs.DavidSensorNets(N=500)
+    >>> G = graphs.DavidSensorNet(N=500)
+
     """
 
     def __init__(self, N=64):
@@ -1369,7 +1537,7 @@ class DavidSensorNet(Graph):
             target_dist_cutoff = -0.125*self.N/436.075+0.2183
             T = 0.6
             s = sqrt(-target_dist_cutoff**2/(2.*log(T)))
-            d = gsp_distanz(np.conjugate(np.transpose(self.coords)))
+            d = utils.distanz(np.conjugate(np.transpose(self.coords)))
             W = np.exp(-np.power(d, 2)/2.*s**2)
             W = np.where(W < T, 0, W)
             W -= np.diag(np.diag(W))
@@ -1396,6 +1564,7 @@ class FullConnected(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.FullConnected(N=5)
+
     """
 
     def __init__(self, N=10):
@@ -1427,6 +1596,7 @@ class Logo(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.Logo()
+
     """
 
     def __init__(self):
@@ -1461,6 +1631,7 @@ class Path(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.Path(N=16)
+
     """
 
     def __init__(self, N=16):
@@ -1494,6 +1665,7 @@ class RandomRing(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.RandomRing(N=16)
+
     """
 
     def __init__(self, N=64):
@@ -1545,6 +1717,7 @@ class SwissRoll(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.SwissRoll()
+
     """
 
     def __init__(self, N=400, a=1, b=4, dim=3, thresh=1e-6, s=None,
@@ -1587,94 +1760,6 @@ class SwissRoll(Graph):
         self.coords = coords.transpose()
         super(SwissRoll, self).__init__(W=self.W, coords=self.coords,
                                         limits=self.limits, gtype=self.gtype)
-
-
-class PointsCloud(object):
-    r"""
-    Load the parameters of models and the points
-
-    Parameters
-    ----------
-    name (string) : the name of the point cloud to load
-        possible name: 'airfoil', 'bunny', 'david64', 'david500', 'logo', 'two_moons'
-    max_dim (int) : the maximum dimensionality of the points (only valid for two_moons)
-        default is 2
-
-    Returns
-    -------
-    The differents informations of the PointsCloud Loaded.
-
-
-    Examples
-    --------
-    >>> from pygsp import graphs
-    >>> bunny = PointsCloud('bunny')
-    >>> Xin = bunny.Xin
-
-    Note
-    ----
-    The bunny is the model from the Stanford Computer Graphics Laboratory (see reference).
-
-
-    Reference
-    ----------
-    :cite:`turk1994zippered`
-    """
-
-    def __init__(self, pointcloudname, max_dim=2):
-        if pointcloudname == "airfoil":
-            airfoilmat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
-                                    + '/misc/airfoil.mat')
-            self.i_inds = airfoilmat['i_inds']
-            self.j_inds = airfoilmat['j_inds']
-            self.x = airfoilmat['x']
-            self.y = airfoilmat['y']
-            self.coords = np.concatenate((self.x, self.y), axis=1)
-
-        elif pointcloudname == "bunny":
-            bunnymat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) +
-                                  '/misc/bunny.mat')
-            self.Xin = bunnymat["bunny"]
-
-        elif pointcloudname == "david64":
-            david64mat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
-                                    + '/misc/david64.mat')
-            self.W = david64mat["W"]
-            self.N = david64mat["N"][0, 0]
-            self.coords = david64mat["coords"]
-
-        elif pointcloudname == "david500":
-            david500mat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
-                                     + '/misc/david500.mat')
-            self.W = david500mat["W"]
-            self.N = david500mat["N"][0, 0]
-            self.coords = david500mat["coords"]
-
-        elif pointcloudname == "logo":
-            logomat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) +
-                                 '/misc/logogsp.mat')
-            self.W = logomat["W"]
-            self.coords = logomat["coords"]
-            self.limits = np.array([0, 640, -400, 0])
-
-            self.info = {"idx_g": logomat["idx_g"],
-                         "idx_s": logomat["idx_s"],
-                         "idx_p": logomat["idx_p"]}
-
-        elif pointcloudname == "minnesota":
-            minnesotamat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/minnesota.mat')
-            self.A = minnesotamat["A"]
-            self.labels = minnesotamat["labels"]
-            self.coords = minnesotamat["xy"]
-
-        elif pointcloudname == "two_moons":
-            twomoonsmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/two_moons.mat')
-            if max_dim == -1:
-                max_dim == 2
-            self.Xin = twomoonsmat["features"][:max_dim].transpose()
-
-        else:
-            raise ValueError("This PointsCloud does not exist. Please verify you wrote the right name in lower case.")
 
 
 def dummy(a, b, c):

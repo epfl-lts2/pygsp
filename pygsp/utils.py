@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import scipy as sp
 from scipy import sparse
@@ -29,17 +31,14 @@ def graph_array_handler(func):
 
 def filterbank_handler(func):
 
-    def inner(f, x, *args, **kwargs):
-
+    def inner(f, *args, **kwargs):
         if len(f.g) <= 1:
-            return func(f, x, *args, **kwargs)
-
+            return func(f, *args, **kwargs)
         elif len(f.g) > 1:
             output = []
-            i = range(len(f.g)-1)
+            i = range(len(f.g))
             for ii in i:
-                output.append(func(f, x, *args, i=ii, **kwargs))
-
+                output.append(func(f, *args, i=ii, **kwargs))
             return output
 
         else:
@@ -73,8 +72,9 @@ def is_directed(M):
     Just define a Graph and look if it is directed
 
     >>> import pygsp
-    >>> G = pygsp.graph.Bunny()
-    >>> pygsp.utils.is_directed(W)
+    >>> G = pygsp.graphs.Bunny()
+    >>> pygsp.utils.is_directed(G)
+    False
 
     Notes
     -----
@@ -107,7 +107,8 @@ def is_directed(M):
 
 def estimate_lmax(G):
     r"""
-    This function estimates lmax from a Graph object
+    This function estimates lmax from a Graph object and stores it into the
+    graph.
 
     Parameters
     ----------
@@ -123,17 +124,22 @@ def estimate_lmax(G):
     Just define a graph an apply the estimation on it
 
     >>> import pygsp
-    >>> G = pygsp.graph.Graph()
+    >>> import numpy as np
+    >>> W = np.arange(16).reshape(4, 4)
+    >>> G = pygsp.graphs.Graph(W)
     >>> lmax = pygsp.utils.estimate_lmax(G)
+
     """
     try:
-        # MAT: lmax=eigs(G.L,1,'lm',opts)
         lmax = sparse.linalg.eigs(G.L, k=1, tol=5e-3, ncv=10)[0]
+        # MAT: lmax=eigs(G.L,1,'lm',opts)
         # On robustness purposes, increasing the error by 1 percent
         lmax *= 1.01
     except ValueError:
-        print('GSP_ESTIMATE_LMAX: Cannot use default method')
-        lmax = max(G.d)
+        if G.verbose:
+            print('GSP_ESTIMATE_LMAX: Cannot use default method')
+        lmax = np.max(G.d)
+    G.lmax = np.real(lmax)
     return np.real(lmax)
 
 
@@ -375,6 +381,44 @@ def distanz(x, y=None):
     return np.sqrt(d)
 
 
+def repmatline(A, ncol=1, nrow=1):
+    r"""
+    This function repeat the matrix A in a specific manner
+
+    Parameters
+    ----------
+    A : ndarray
+    ncol : Integer
+        default is 1
+    nrow : Integer
+        default is 1
+
+    Returns
+    -------
+    Ar : Matrix
+
+    Examples
+    --------
+
+    For ncol=2 and nrow=3, the matix
+
+                1 2
+                3 4
+    becomes
+                1 1 1 2 2 2
+                1 1 1 2 2 2
+                3 3 3 4 4 4
+                3 3 3 4 4 4
+    np.repeat(np.repeat(x, nrow, axis=1), ncol,  axis=0)
+    """
+
+    if ncol < 0 or nrow < 0:
+        raise ValueError("The number of lines and rows must be greater or\
+                         equal to one, or you will get an empty array.")
+
+    return np.repeat(np.repeat(x, ncol, axis=1), nrow, axis=0)
+
+
 def symetrize(W, symetrize_type='average'):
     r"""
     symetrize a matrix
@@ -418,6 +462,36 @@ def symetrize(W, symetrize_type='average'):
 
     else:
         raise ValueError("Unknown symetrize type")
+
+
+def tree_depths(A, root):
+
+    if check_connectivity(A) == 0:
+        raise ValueError('Graph is not connected')
+
+    N = np.shape(A)[0]
+    assigned = root-1
+    depths = np.zeros((N))
+    parents = np.zeros((N))
+
+    next_to_expand = np.array([root])
+    current_depth = 1
+
+    while len(assigned) < N:
+        new_entries_whole_round = []
+        for i in range(len(next_to_expand)):
+            neighbors = np.where(A[next_to_expand[i]] > 1e-7)[0]
+            new_entries = np.setdiff1d(neighbors, assigned)
+            parents[new_entries] = next_to_expand[i]
+            depths[new_entries] = current_depth
+            assigned = np.concatenate((assigned, new_entries))
+            new_entries_whole_round = np.concatenate((new_entries_whole_round,
+                                                      new_entries))
+
+        current_depth = current_depth+1
+        next_to_expand = new_entries_whole_round
+
+    return depths, parents
 
 
 def dummy(a, b, c):
