@@ -25,7 +25,7 @@ def plot(O, **kwargs):
     Examples
     --------
     >>> from pygsp import graphs, plotting
-    >>> sen = pygsp.graphs.Sensor()
+    >>> sen = graphs.Sensor()
     >>> plotting.plot(sen)
 
     """

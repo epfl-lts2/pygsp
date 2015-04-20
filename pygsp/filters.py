@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 r"""
 This module implements the main filter class and all the filters subclasses
 
@@ -54,7 +53,7 @@ class Filter(object):
         >>> from pygsp import graphs, filters
         >>> sen = graphs.Sensor()
         >>> MH = filters.MexicanHat(sen)
-        >>> x = np.random.rand(64, 64)
+        >>> x = np.arange(64).reshape(8, 8)
         >>> co = MH.analysis(sen, x)
 
         Matlab Authors
@@ -63,6 +62,7 @@ class Filter(object):
 
         :cite:`hammond2011wavelets`
         .. bibliography:: project.bib
+
         """
         Nf = len(self.g)
 

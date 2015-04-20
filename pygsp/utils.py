@@ -108,7 +108,9 @@ def estimate_lmax(G):
     Just define a graph an apply the estimation on it
 
     >>> import pygsp
-    >>> G = pygsp.graphs.Graph()
+    >>> import numpy as np
+    >>> W = np.arange(16).reshape(4, 4)
+    >>> G = pygsp.graphs.Graph(W)
     >>> lmax = pygsp.utils.estimate_lmax(G)
 
     """

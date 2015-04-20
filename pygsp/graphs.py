@@ -143,7 +143,7 @@ class Graph(object):
     >>> from pygsp import graphs
     >>> import numpy as np
     >>> W = np.arange(4).reshape(2, 2)
-    >>> G = graphs.Graph()
+    >>> G = graphs.Graph(W)
 
     """
 
@@ -336,8 +336,7 @@ class NNGraph(Graph):
     --------
     >>> from pygsp import graphs
     >>> import numpy as np
-    >>> Xin = np.arange(9)
-    >>> Xin = Xin.reshape(3,3)
+    >>> Xin = np.arange(9).reshape(3, 3)
     >>> G = graphs.NNGraph(Xin)
 
     """
