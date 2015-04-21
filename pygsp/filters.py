@@ -127,8 +127,37 @@ class Filter(object):
     def inverse(self, G, c, **kwargs):
         raise NotImplementedError
 
-    def synthesis(self, G, c, **kwargs):
-        raise NotImplementedError
+    def synthesis(self, G, c, order=30, verbose=True, methode=None, **kwargs):
+        r"""
+        Synthesis operator of a filterbank
+
+        Parameters
+        ----------
+        G : Graph structure.
+        c : Transform coefficients
+        method : Select the method ot be used for the computation.
+            - 'exact' : Exact method using the graph Fourier matrix
+            - 'cheby' : Chebyshev polynomial approximation
+            - 'lanczos' : Lanczos approximation
+            Default : if the Fourier matrix is present: 'exact' otherwise 'cheby'
+        order : Degree of the Chebyshev approximation
+            Default is 30
+        verbose : Verbosity level (False no log - True display warnings)
+            Default is True
+
+        Returns
+        -------
+        signal : sythesis signal
+
+        Examples
+        --------
+
+        Reference
+        ----------
+        :cite:`hammond2011wavelets`
+        """
+
+        pass
 
     def approx(G, m, N, **kwargs):
         raise NotImplementedError
