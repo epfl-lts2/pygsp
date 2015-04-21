@@ -1,0 +1,23 @@
+# Required for usage.
+numpy
+
+# Required to build documentation.
+sphinx
+numpydoc
+matplotlib
+
+# Required for packaging.
+wheel
+
+# Required for code style checking.
+flake8
+
+# Required for testing on Python 2.6.
+unittest2
+
+# Required for extended testing.
+#tox
+#virtualenv
+
+# Matplotlib dependency that it fails to automatically install.
+#tornado
