@@ -213,6 +213,89 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
     plt.show()
 
 
+def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, climits=None, vertex_highlight=False, colorbar=True, bar=False, bar_width=1):
+    r"""
+    Plot a graph signal in 2D or 3D.
+
+    Parameters
+    ----------
+    TODO
+
+    Examples
+    --------
+    >>> TODO
+
+    """
+    if np.sum(np.abs(signal.imag)) > 1e-10:
+        raise ValueError("Can't display complex signal.")
+
+    if show_edges is None:
+        show_edges = G.Ne < 10000
+    if vertex_size is None:
+        vertex_size = 500
+    if climits is None:
+        cmin = 1.01 * np.min(signal)
+        cmax = 1.01 * np.max(signal)
+        climits = {cmin, cmax}
+
+    # Plot graph
+    if show_edges:
+        ki, kj = np.nonzero(G.A)
+        if G.directed:
+            raise NotImplementedError('TODO')
+            if G.coords.shape[1] == 2:
+                raise NotImplementedError('TODO')
+            else:
+                raise NotImplementedError('TODO')
+        else:
+            if G.coords.shape[1] == 2:
+                fig = plt.figure()
+                ax = fig.add_subplot(111)
+                ki, kj = np.nonzero(G.A)
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
+                # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
+                ax.plot(x, y, color='red', marker='o', markerfacecolor='blue')
+                plt.show()
+            if G.coords.shape[1] == 3:
+                # Very dirty way to display a 3d graph
+                fig = plt.figure()
+                ax = fig.gca(projection='3d')
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
+                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
+                ii = range(0, x.shape[1])
+                x2 = np.ndarray((0, 1))
+                y2 = np.ndarray((0, 1))
+                z2 = np.ndarray((0, 1))
+                for i in ii:
+                    x2 = np.append(x2, x[:, i])
+                for i in ii:
+                    y2 = np.append(y2, y[:, i])
+                for i in ii:
+                    z2 = np.append(z2, z[:, i])
+                for i in range(0, x.shape[1] * 2, 2):
+                    x3 = x2[i:i + 2]
+                    y3 = y2[i:i + 2]
+                    z3 = z2[i:i + 2]
+                    ax.plot(x3, y3, z3, color='red', marker='o', markerfacecolor='blue')
+                    # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
+                plt.show()
+    else:
+        if G.coords.shape[1] == 2:
+            fig = plt.figure()
+            ax = fig.add_subplot(111)
+            ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo')
+            plt.show()
+        if G.coords.shape[1] == 3:
+            fig = plt.figure()
+            ax = fig.gca(projection='3d')
+            ax.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
+            plt.show()
+
+    # Plot signal TODO
+
+
 def rescale_center(x):
     r"""
     Rescaling the dataset.
