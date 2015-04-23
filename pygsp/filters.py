@@ -127,7 +127,8 @@ class Filter(object):
     def inverse(self, G, c, **kwargs):
         raise NotImplementedError
 
-    def synthesis(self, G, c, order=30, verbose=True, methode=None, **kwargs):
+    @utils.filterbank_handler
+    def synthesis(self, G, c, order=30, verbose=True, method=None, **kwargs):
         r"""
         Synthesis operator of a filterbank
 
@@ -157,7 +158,55 @@ class Filter(object):
         :cite:`hammond2011wavelets`
         """
 
-        pass
+        Nf = len(self.g)
+
+        if not method:
+            if hasattr(G, 'U'):
+                method = 'exact'
+            else:
+                method = 'cheby'
+
+        if method == 'exact':
+            if not hasattr(G, 'e') or not hasattr(G, 'U'):
+                if verbose:
+                    print("The Fourier matrix is not available. The function will compute it for you. However, if you apply many time this function, you should precompute it using the function: compute_fourier_basis")
+                operators.compute_fourier_basis(G)
+
+            fie = self.evaluate(G)
+            Nv = np.shape(c)[1]
+            s = np.zeros((G.N, Nv))
+
+            for i in range(Nf):
+                s += operators.igft(np.conjugate(G.U),
+                                    np.kron(np.ones((1, Nv)), fie[:, i])*operators.gft(G, c[G.N*i + range(G.N)]))
+
+            return s
+
+        elif method == 'cheby':
+            if hasattr(G, 'lmax'):
+                if verbose:
+                    print('The variable lmax is not available. The function will compute it for you. However, if you apply many time this function, you should precompute it using the function: ')
+                utils.estimate_lmax(G)
+
+            cheb_coeffs = operators(self, G, m=order, N=order+1)
+            s = np.zeros((G.N, np.shape(c)[1]))
+
+            for i in range(Nf):
+                s += utils.cheby_op(G, cheb_coeffs[:, i], c[i*G.N + range(G.N)])
+
+            return s
+
+        elif method == 'lanczos':
+            s = np.zeros((G.N, np.shape(c)[1]))
+
+            for i in range(Nf):
+                s += utils.lanczos_op(G, self[i], c[i*G.N + range(G.N)], order=order, verbose=verbose)
+
+            return s
+
+        else:
+            raise ValueError('Unknown method: please select exact, cheby or lanczos')
+
 
     def approx(G, m, N, **kwargs):
         raise NotImplementedError
