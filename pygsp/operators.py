@@ -479,11 +479,12 @@ def cheby_op(G, c, signal, **kwargs):
     twf_old = signal
     twf_cur = (G.L * signal - a2 * signal)/a1
 
-    Nv = signal.shape[0]# len(signal[1])
+    Nv = signal.shape[1]# len(signal[1])
+    print(Nv)
     r = np.zeros((G.N * Nscales, Nv))
 
     for i in range(Nscales):
-        r[np.arange(G.N) + G.N * (i - 1)] = 0.5 * c[0][i] * twf_old + c[1][i] * twf_cur
+        r[np.arange(G.N) + G.N * (i)] = 0.5 * c[0][i] * twf_old + c[1][i] * twf_cur
 
     for k in range(maxM + 1):
         twf_new = (2/a1) * (G.L * twf_cur-a2 * twf_cur) - twf_old
