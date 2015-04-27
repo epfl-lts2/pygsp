@@ -498,13 +498,12 @@ class Meyer(Filter):
         super(Meyer, self).__init__(G, **kwargs)
 
         if not hasattr(G, 't'):
-            G.t = (4/(3 * G.lmax)) * np.power(2., [Nf-2, -1, 0])
+            G.t = (4/(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
 
         if len(G.t) >= Nf-1:
             print('You have specified more scales than  the number of scales minus 1')
 
         t = G.t
-        print(t)
 
         g = [lambda x: kernel_meyer(t[0] * x, 'sf')]
         for i in range(Nf-1):
