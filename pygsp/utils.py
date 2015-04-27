@@ -12,13 +12,17 @@ import pygsp
 def graph_array_handler(func):
 
     def inner(G, *args, **kwargs):
+
         if isinstance(G, pygsp.graphs.Graph):
             return func(G, *args, **kwargs)
+
         elif type(G) is list:
             output = []
             for g in G:
                 output.append(func(g, *args, **kwargs))
+
             return output
+
         else:
             raise TypeError("This function only accept Graphs or Graphs lists")
 
@@ -36,6 +40,7 @@ def filterbank_handler(func):
             for ii in i:
                 output.append(func(f, *args, i=ii, **kwargs))
             return output
+
         else:
             raise TypeError("This function only accepts Filters or\
                             Filters lists")
@@ -75,6 +80,14 @@ def is_directed(M):
     -----
     The Weight matrix has to be sparse (For now)
     Can also be used to check if a matrix is symetrical
+
+    Examples
+    --------
+    >>> from scipy import sparse
+    >>> from pygsp import graphs, utils
+    >>> W = sparse.rand(10,10,0.2)
+    >>> G = graphs.Graph(W=W)
+    >>> is_directed = utils.is_directed(G.W)
     """
     # To pass a graph or a weight matrix as an argument
     if isinstance(M, pygsp.graphs.Graph):
@@ -85,8 +98,10 @@ def is_directed(M):
     # Python Bug Can't use this in tests
     if np.shape(W) != (1, 1):
         is_dir = (W - W.transpose()).sum() != 0
+
     else:
         is_dir = False
+
     return is_dir
 
 
@@ -102,6 +117,7 @@ def estimate_lmax(G):
     Returns
     -------
     lmax : float
+        Returns the value of lmax
 
     Examples
     --------
@@ -129,82 +145,169 @@ def estimate_lmax(G):
 
 def check_weights(W):
     r"""
-    Check the values of a weight matrix
+    Check the charasteristics of the weights matrix
 
     Parameters
     ----------
-    W : sparse matrix
-        Weight matrix
+    W : weights matrix
+        The weights matrix to check
 
     Returns
     -------
-        has_inf_val
-        has_nan_value
-        is_not_square
-        diag_is_not_zero
+    An array of bool containing informations about the matrix
+
+    has_inf_val : bool
+        True if the matrix has infinite values else false
+    has_nan_value : bool
+        True if the matrix has a not a number value else false
+    is_not_square : bool
+        True if the matrix is not square else false
+    diag_is_not_zero : bool
+        True if the matrix diagonal has not only zero value else false
+
+    Examples
+    --------
+    >>> from scipy import sparse
+    >>> from pygsp import graphs, utils
+    >>> W = sparse.rand(10,10,0.2)
+    >>> [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero] = utils.check_weights(W)
+    or
+    >>> weights_chara = utils.check_weights(W)
     """
+
     has_inf_val = False
     diag_is_not_zero = False
     is_not_square = False
     has_nan_value = False
+
     if isinf(W.sum()):
-        print("GSP_TEST_WEIGHTS: There is an inifinite \
+        print("GSP_TEST_WEIGHTS: There is an infinite \
               value in the weight matrix")
         has_inf_val = True
-    if abs(W.diagonal()).sum():
+
+    if abs(W.diagonal()).sum() != 0:
         print("GSP_TEST_WEIGHTS: The main diagonal of \
               the weight matrix is not 0!")
         diag_is_not_zero = True
+
     if W.get_shape()[0] != W.get_shape()[1]:
         print("GSP_TEST_WEIGHTS: The weight matrix is \
               not square!")
         is_not_square = True
+
     if isnan(W.sum()):
-        print("GSP_TEST_WEIGHTS: There is an inifinite \
+        print("GSP_TEST_WEIGHTS: There is an infinite \
               value in the weight matrix")
         has_nan_value = True
 
     return [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero]
 
 
+def create_laplacian(G):
+    r"""
+    Create the laplacian of a graph from it's weights matrix and the laplacian's type
+
+    Parameters
+    ----------
+    G : graph
+        The graph wich will be used to create the laplacian
+
+    Returns
+    -------
+    L : sparse.lil_matrix
+        The laplacian under the form of a sparse matrix
+
+    Examples
+    --------
+    >>> from pygsp import graphs, utils
+    >>> G = graphs.Graph()
+    >>> L = utils.create_laplacian(G)
+    """
+
+    if sp.shape(G.W) == (1, 1):
+        return sparse.lil_matrix(0)
+
+    else:
+        if G.lap_type == 'combinatorial':
+            L = sparse.lil_matrix(G.W.sum(1).diagonal() - G.W)
+
+        elif G.lap_type == 'normalized':
+            D = sparse.lil_matrix(G.W.sum(1).diagonal() ** (-0.5))
+            L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
+
+        elif G.lap_type == 'none':
+            L = sparse.lil_matrix(0)
+
+        else:
+            raise AttributeError('Unknown laplacian type!')
+
+        return L
+
+
 def check_connectivity(G, **kwargs):
+    r"""
+    Function to check the connectivity of the input graph
+    It will call _check_connectivity_directed or _check_connectivity_undirected
+    wether the graph is directed or not
+
+    Parameters
+    ----------
+    G : graph
+        Graph to check
+    **kwargs : keyowords arguments
+        (not implmented yet)
+
+    Returns
+    -------
+    is_connected : bool
+        A bool value telling if the graph is connected
+    """
+
     A = G.W
-    try:
-        G.directed
-    except AttributeError:
+    if not hasattr(G, 'directed'):
         G.directed = is_directed(G)
     # Removing the diagonal
     A -= A.diagonal()
+
     if G.directed:
         return _check_connectivity_directed(A, **kwargs)
+
     else:
         return _check_connectivity_undirected(A, **kwargs)
+
     pass
 
 
 def _check_connectivity_directed(A, **kwargs):
     is_connected = (A <= 0).all()
     c = 0
+
     while c <= sp.shape(A)[0]:
         c_is_connected = (c == 0).all()
         c += 1
         if c_is_connected:
             break
+
     r = 0
+
     while r <= sp.shape(A)[1]:
         r_is_connected = (c == 0).all()
         r += 1
         if r_is_connected:
             break
+
     # TODO check axises
     in_conn = (A.sum(axis=1) > 0).nonzero()
     out_conn = (A.sum(axis=2) > 0).nonzero()
 
     if c_is_connected and r_is_connected:
-        return True, in_conn, out_conn
+        is_connected = True
+
+    return is_connected, in_conn, out_conn
 
 
 def _check_connectivity_undirected(A, **kwargs):
+
     is_connected = (A <= 0).all()
     c = 0
     while c <= sp.shape(A)[0]:
@@ -212,29 +315,52 @@ def _check_connectivity_undirected(A, **kwargs):
         c += 1
         if c_is_connected:
             break
+
     # TODO check axises
     in_conn = (A.sum(axis=1) > 0).nonzero()
     out_conn = in_conn
+
     if c_is_connected:
         return True, in_conn, out_conn
 
 
 def distanz(x, y=None):
     r"""
-    paramters:
-        - x: matrix with col vectors
-        - y: matrix with col vectors
+    Calculate the distanz between two colon vectors
+
+    Parameters
+    ----------
+    x : ndarray
+        First colon vector
+    y : ndarray
+        Second colon vector
+
+    Returns
+    -------
+    d : ndarray
+        Distance between x and y
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pygsp import utils
+    >>> x = np.random.rand(16)
+    >>> y = np.random.rand(16)
+    >>> distanz = utils.distanz(x, y)
     """
     try:
         x.shape[1]
+
     except IndexError:
         x = x.reshape(1, x.shape[0])
 
     if y is None:
         y = x
+
     else:
         try:
             y.shape[1]
+
         except IndexError:
             y = y.reshape(1, y.shape[0])
 
@@ -248,6 +374,7 @@ def distanz(x, y=None):
     xx = (x*x).sum(axis=0)
     yy = (y*y).sum(axis=0)
     xy = np.dot(np.transpose(x), y)
+
     d = abs(sp.kron(sp.ones((cy, 1)), xx).transpose() +
             sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
 
@@ -295,20 +422,27 @@ def repmatline(A, ncol=1, nrow=1):
 def symetrize(W, symetrize_type='average'):
     r"""
     symetrize a matrix
-    Usage:  W = gsp_symetrize(W)
-            W = gsp_symetrize(W, symetrize_type='average')
 
-    Input parameters:
-        W: square matrix
-        symetrize_type: type of symetrization (default 'average')
+    Parameters
+    ----------
+        W : sparse matrix
+            Weight matrix
+        symetrize_type : string
+            type of symetrization (default 'average')
+        TThe availlable symetrization_types are:
+            'average' : average of W and W^T (default)
+            'full'    : copy the missing entries
+            'none'    : nothing is done (the matrix might stay unsymetric!)
 
-    Output parameters:
+    Returns
+    -------
         W: symetrized matrix
 
-    The availlable symetrization_types are:
-        'average' : average of W and W^T (default)
-        'full'    : copy the missing entries
-        'none'    : nothing is done (the matrix might stay unsymetric!)
+
+    Examples
+    --------
+    >>> W = gsp_symetrize(W)
+    >>> W = gsp_symetrize(W, symetrize_type='average')
     """
 
     if symetrize_type == 'average':
@@ -320,6 +454,7 @@ def symetrize(W, symetrize_type='average'):
         M = (A - (A.T.multiply(A)))
         W = sparse.csr_matrix(W)
         W[M.T] = W.T[M.T]
+
         return W
 
     elif symetrize_type == 'none':

@@ -11,8 +11,13 @@ setup(
     version = '0.0.1',
     description = 'The official Graph Processing Toolbox',
     long_description = open('README.rst').read(),
+<<<<<<< HEAD
     author = ['Basile Châtillon (EPFL LTS2)', 'Alexandre Lafaye (EPFL LTS2)', 'Nicolas Rod (EPFL LTS2)'],
     author_email = ['basile.chatillon@epfl.ch', 'alexandre.lafaye@epfl.ch', 'nicolas.rod@epfl.ch'],
+=======
+    author = 'Alexandre Lafaye (EPFL LTS2), Basile Châtillon (EPFL LTS2), Nicolas Rod (EPFL LTS2)',
+    author_email = 'alexandre.lafaye@epfl.ch, basile.chatillon@epfl.ch, nicolas.rod@epfl.ch',
+>>>>>>> master
     url = 'https://github.com/epfl-lts2/',
     packages = ['pygsp', 'pygsp.tests'],
     package_data = {'pygsp': ['misc/*']},

@@ -1182,7 +1182,6 @@ class Community(Graph):
 
     def __init__(self, N=256, Nc=None, com_sizes=np.array([]), min_com=None,
                  min_deg=None, verbose=1, size_ratio=1, world_density=None):
-
         # Initialisation of the parameters
         if not Nc:
             Nc = int(round(sqrt(N)/2.))
