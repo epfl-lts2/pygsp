@@ -394,7 +394,7 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
 
 
 @utils.filterbank_handler
-def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
+def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
     r"""
     Compute Chebyshev coefficients for a Filterbank
 
@@ -415,6 +415,9 @@ def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
         Matrix of Chebyshev coefficients
 
     """
+
+    if G is None:
+        G = f.G
 
     if not N:
         N = m + 1
