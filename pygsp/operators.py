@@ -433,7 +433,6 @@ def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
 
     for o in range(m+1):
         c[o] = np.sum(f.g[0](a1*np.cos(pi*(np.arange(N) + 0.5)/N) + a2)*np.cos(pi*o*(np.arange(N) + 0.5)/N)) * 2./N
-        print c[o]
 
     return c
 
