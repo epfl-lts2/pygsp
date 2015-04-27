@@ -505,12 +505,10 @@ class Meyer(Filter):
 
         t = G.t
         print(t)
-        g = []
 
-        g.append(lambda x: kernel_meyer(t[1] * x, 'sf'))
+        g = [lambda x: kernel_meyer(t[0] * x, 'sf')]
         for i in range(Nf-1):
-            g.append(lambda x, ind=i: kernel_meyer(t[ind] * x,
-                                                   'wavelet'))
+            g.append(lambda x, ind=i: kernel_meyer(t[ind] * x, 'wavelet'))
 
         self.g = g
 
@@ -537,23 +535,23 @@ class Meyer(Filter):
             l2 = 4./3.
             l3 = 8./3.
 
-            v = lambda x: x ** 4. * (35-84 * x+70 * x ** 2-20 * x ** 3)
+            v = lambda x: x ** 4. * (35 - 84*x + 70*x**2 - 20*x**3)
 
-            r1ind = x >= 0 and x < l1
-            r2ind = x >= l1 and x < l2
-            r3ind = x >= l2 and x < l3
+            r1ind = (x < l1)
+            r2ind = (x >= l1)*(x < l2)
+            r3ind = (x >= l2)*(x < l3)
 
             r = np.empty(x.shape)
             if kerneltype is 'sf':
                 r[r1ind] = 1
-                r[r2ind] = np.cos((pi/2) * v(np.abs(x * r2ind)/l1 - 1))
+                r[r2ind] = np.cos((pi/2) * v(np.abs(x[r2ind])/l1 - 1))
             elif kerneltype is 'wavelet':
-                r[r2ind] = np.sin((pi/2) * v(np.abs(x * r2ind)/l1 - 1))
-                r[r3ind] = np.cos((pi/2) * v(np.abs(x * r3ind)/l2 - 1))
+                r[r2ind] = np.sin((pi/2) * v(np.abs(x[r2ind])/l1 - 1))
+                r[r3ind] = np.cos((pi/2) * v(np.abs(x[r3ind])/l2 - 1))
             else:
                 raise TypeError('Unknown kernel type ', kerneltype)
 
-                return r
+            return r
 
 
 class SimpleTf(Filter):

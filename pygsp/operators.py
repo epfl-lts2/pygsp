@@ -424,15 +424,16 @@ def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
         print('The variable lmax has not been computed yet, it will be done \
               but if you have to compute multiple times you can precompute \
               it with pygsp.utils.estimate_lmax(G)')
-    a_arange = range(0, int(G.lmax))
+    a_arange = [0, int(G.lmax)]
 
-    a1 = (a_arange[2]-a_arange[1])/2
-    a2 = (a_arange[2]+a_arange[1])/2
-    c = np.zeros(m+1)
+    a1 = (a_arange[1] - a_arange[0])/2
+    a2 = (a_arange[1] + a_arange[0])/2
+    c = np.zeros((m+1))
 
     for o in range(m+1):
-        c[o] = np.sum(f.g[i](a1 * np.cos(pi * (np.arange(1, N)-0.5))/N) + a2 *
-                      np.cos(pi * (o-1) * (np.arange(1, N)-0.5)/N)) * 2/N
+        c[o] = np.sum(f.g[0](a1*np.cos(pi*(np.arange(N) + 0.5)/N) + a2)*np.cos(pi*o*(np.arange(N) + 0.5)/N)) * 2./N
+        print c[o]
+
     return c
 
 
@@ -474,7 +475,7 @@ def cheby_op(G, c, signal, **kwargs):
     twf_old = signal
     twf_cur = (G.L * signal - a2 * signal)/a1
 
-    Nv = len(signal[1])
+    Nv = np.shape(signal)[1] # len(signal[1])
     r = np.zeros((G.N * Nscales, Nv))
 
     for i in range(Nscales):
