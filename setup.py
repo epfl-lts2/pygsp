@@ -17,6 +17,7 @@ setup(
     packages = ['pygsp', 'pygsp.tests'],
     package_data = {'pygsp': ['misc/*']},
     test_suite = 'pygsp.tests.test_all.suite',
+    setup_requires = ['numpy',],
     install_requires = ['numpy', 'scipy', 'matplotlib'],
     requires = ['numpy'],
     license = "BSD",
