@@ -20,7 +20,7 @@ class Filter(object):
     methods for those classes.
     """
 
-    def __init__(self, G, verbose=False, **kwargs):
+    def __init__(self, G, verbose=True, **kwargs):
         self.verbose = verbose
         if not hasattr(G, 'lmax'):
             if self.verbose:
@@ -377,7 +377,7 @@ class Expwin(Filter):
     out : Expwin
     """
     def __init__(self, G, bmax=0.2, a=1., **kwargs):
-        super(Expwin, self).__init__(**kwargs)
+        super(Expwin, self).__init__(G, **kwargs)
 
         def fx(x, a):
             y = np.exp(-float(a)/x)
@@ -609,41 +609,41 @@ class SimpleTf(Filter):
 
             """
 
-            l1 = 1./4.
-            l2 = 1./2.
-            l3 = 1
+            l1 = 0.25
+            l2 = 0.5
+            l3 = 1.
 
-            h = lambda x: np.sin(pi * x / 2) ** 2
+            h = lambda x: np.sin(pi*x/2.)**2
 
-            r1ind = x.any() >= 0 and x < l1
-            r2ind = x.any() >= l1 and x < l2
-            r3ind = x.any() >= l2 and x < l3
+            r1ind = x < l1
+            r2ind = (x >= l1)*(x < l2)
+            r3ind = (x >= l2)*(x < l3)
 
-            r = np.empty(x.shape)
+            r = np.zeros(x.shape)
             if kerneltype is 'sf':
-                r[r1ind] = 1
-                r[r2ind] = np.sqrt(1 - h(4 * (x * r2ind) - 1) ** 2)
+                r[r1ind] = 1.
+                r[r2ind] = np.sqrt(1 - h(4*x[r2ind] - 1)**2)
             elif kerneltype is 'wavelet':
-                r[r2ind] = h(4 * (x * r2ind) - 1./4.)
-                r[r3ind] = np.sqrt(1 - h(2 * (x * r3ind) - 1) ** 2)
+                r[r2ind] = h(4*(x[r2ind] - 1/4.))
+                r[r3ind] = np.sqrt(1 - h(2*x[r3ind] - 1)**2)
             else:
                 raise TypeError('Unknown kernel type', kerneltype)
 
             return r
 
         if not t:
-            t = (1./(2. * G.lmax) * np.power(2., (range(Nf-2, 0, -1))))
+            t = (1./(2.*G.lmax) * np.power(2, np.arange(Nf-2, -1, -1)))
 
         if self.verbose:
-            if len(t) >= Nf - 1:
+            if len(t) != Nf - 1:
                 print('You have specified more scales than Number if filters minus 1.')
 
-        g = []
+        g = [lambda x: kernel_simple_tf(t[0] * x, 'sf')]
 
-        g.append(lambda x: kernel_simple_tf(t[0] * x, 'sf'))
         for i in range(Nf-1):
             g.append(lambda x, ind=i: kernel_simple_tf(t[ind] * x, 'wavelet'))
-            self.g = g
+
+        self.g = g
 
 
 class WarpedTranslat(Filter):
@@ -674,8 +674,7 @@ class Papadakis(Filter):
     def __init__(self, G, a=0.75, **kwargs):
         super(Papadakis, self).__init__(**kwargs)
 
-        g = []
-        g.append(lambda x: papadakis(x * (2./G.lmax), a))
+        g = [lambda x: papadakis(x * (2./G.lmax), a)]
         g.append(lambda x: np.real(np.sqrt(1 - (papadakis(x*(2./G.lmax), a)) **
                                    2)))
 
