@@ -28,6 +28,7 @@ class Filter(object):
             G.lmax = utils.estimate_lmax(G)
             self.G = G
 
+    @utils.graph_array_handler
     def analysis(self, G, s, exact=True, cheb_order=30, **kwargs):
         r"""
         Operator to analyse a filterbank
