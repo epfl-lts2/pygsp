@@ -139,7 +139,7 @@ def plot_pointcloud(P):
         plt.show()
     if P.coords.shape[1] == 3:
         fig = plt.figure()
-        ax = fig.gca(projection='3d')
+        ax = fig.add_subplot(111, projection='3d')
         ax.plot(P.coords[:, 0], P.coords[:, 1], P.coords[:, 2], 'bo')
         plt.show()
 
@@ -203,6 +203,7 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
     # Plot eigenvalues
     if plot_eigenvalues:
         ax.plot(G.e, np.zeros(G.N), 'xk', markeredgewidth=x_width, markersize=x_size)
+
     # Plot highlighted eigenvalues TODO
 
     # Plot the sum
@@ -213,13 +214,33 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
     plt.show()
 
 
-def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, climits=None, vertex_highlight=False, colorbar=True, bar=False, bar_width=1):
+def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, vertex_highlight=False, climits=None, colorbar=True, bar=False, bar_width=1):
     r"""
     Plot a graph signal in 2D or 3D.
 
     Parameters
     ----------
-    TODO
+    G : Graph object
+        If not specified it will take the one used to create the filter.
+    signal : array of int
+        Signal applied to the graph.
+    show_edges : boolean
+        Set to 0 to only draw the vertices (default G.Ne < 10000).
+    cp : List of int
+        Camera position for a 3D graph.
+    vertex_size : int
+        Size of circle representing each signal component.
+    vertex_highlight : boolean
+        Vector of indices of vertices to be highlighted.
+    climits : array of int
+        Limits of the colorbar.
+    colorbar : boolean
+        To plot an extra line showing the sum of the squared magnitudes\
+         of the filters (default True if there is multiple filters).
+    bar : int
+        0 display color, 1 display bar for the graph (default 0).
+    bar_width : int
+        Width of the bar (default 1)
 
     Examples
     --------
@@ -238,30 +259,40 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
         cmax = 1.01 * np.max(signal)
         climits = {cmin, cmax}
 
+    # Matplotlib graph initialization in 2D and 3D
+    if G.coords.shape[1] == 2:
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+    elif G.coords.shape[1] == 3:
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+    # Plot signal
+    if G.coords.shape[1] == 2:
+        ax.scatter(G.coords[:, 0], G.coords[:, 1], s=vertex_size, c=signal)
+    if G.coords.shape[1] == 3:
+        ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], s=vertex_size, c=signal)
 
     # Plot edges
     if show_edges:
         ki, kj = np.nonzero(G.A)
+
         if G.directed:
             raise NotImplementedError('TODO')
             if G.coords.shape[1] == 2:
                 raise NotImplementedError('TODO')
             else:
                 raise NotImplementedError('TODO')
+
         else:
             if G.coords.shape[1] == 2:
-                fig = plt.figure()
-                ax = fig.add_subplot(111)
-                ki, kj = np.nonzero(G.A)
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
                 # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
                 ax.plot(x, y, color='red')
                 # plt.show()
             if G.coords.shape[1] == 3:
-                # Very dirty way to display 3d graph edges
-                fig = plt.figure()
-                ax = fig.gca(projection='3d')
+                # Very dirty way to display 3D graph edges
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
                 z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
@@ -281,19 +312,8 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
                     z3 = z2[i:i + 2]
                     ax.plot(x3, y3, z3, color='red', marker='o', markerfacecolor='blue')
                     # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
-                plt.show()
 
-    # Plot signal
-    if G.coords.shape[1] == 2:
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111)
-        ax.scatter(G.coords[:, 0], G.coords[:, 1], s=vertex_size, c=signal)
-        plt.show()
-    if G.coords.shape[1] == 3:
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        ax.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
-        plt.show()
+    plt.show()
 
 
 def rescale_center(x):
