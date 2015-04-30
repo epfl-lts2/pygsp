@@ -394,9 +394,7 @@ class Expwin(Filter):
 
         ffin = lambda x, a: gx(1 - x, a)
 
-        g = []
-        g.append(lambda x: ffin(np.float64(x)/bmax/G.lmax, a))
-
+        g = [lambda x: ffin(np.float64(x)/bmax/G.lmax, a)]
         self.g = g
 
 
@@ -484,15 +482,15 @@ class MexicanHat(Filter):
 
         lminfac = .4 * G.lmin
 
-        self.g = []
-        self.g.append(lambda x: 1.2 * exp(-1) * gl(x / lminfac))
+        g = [lambda x: 1.2 * exp(-1) * gl(x / lminfac)]
 
-        for i in range(0, Nf-1):
+        for i in range(Nf-1):
             if normalize:
-                self.g.append(lambda x, ind=i: np.sqrt(t[i]) *
-                              gb(self.t[ind] * x))
+                g.append(lambda x, ind=i: np.sqrt(t[i]) * gb(self.t[ind] * x))
             else:
-                self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
+                g.append(lambda x, ind=i: gb(self.t[ind] * x))
+
+        self.g = g
 
 
 class Meyer(Filter):
@@ -672,7 +670,7 @@ class Papadakis(Filter):
 
     """
     def __init__(self, G, a=0.75, **kwargs):
-        super(Papadakis, self).__init__(**kwargs)
+        super(Papadakis, self).__init__(G, **kwargs)
 
         g = [lambda x: papadakis(x * (2./G.lmax), a)]
         g.append(lambda x: np.real(np.sqrt(1 - (papadakis(x*(2./G.lmax), a)) **
@@ -690,7 +688,7 @@ class Papadakis(Filter):
             r3ind = val >= l2
 
             y[r1ind] = 1
-            y[r2ind] = np.sqrt((1 - np.sin(3 * pi/(2 * a) * val[r2ind]))/2.)
+            y[r2ind] = np.sqrt((1 - np.sin(3*pi/(2*a) * val[r2ind]))/2.)
             y[r3ind] = 0
 
             return y
@@ -717,8 +715,7 @@ class Regular(Filter):
     def __init__(self, G, d=3, **kwargs):
         super(Regular, self).__init__(G, **kwargs)
 
-        g = []
-        g.append(lambda x: regular(x * (2/G.lmax), d))
+        g = [lambda x: regular(x * (2/G.lmax), d)]
         g.append(lambda x: np.real(np.sqrt(1-(regular(x * (2/G.lmax), d))
                                            ** 2)))
 
@@ -726,12 +723,14 @@ class Regular(Filter):
 
         def regular(val, d):
             if d == 0:
-                return np.sin(pi / 4 * val)
+                return np.sin(pi / 4*val)
+
             else:
-                output = np.sin(pi * (val - 1) / 2)
+                output = np.sin(pi*(val - 1) / 2)
                 for i in range(2, d):
-                    output = np.sin(pi * output / 2)
-                return np.sin(pi / 4 * (1 + output))
+                    output = np.sin(pi*output / 2)
+
+                return np.sin(pi / 4*(1 + output))
 
 
 class Simoncelli(Filter):
@@ -756,8 +755,7 @@ class Simoncelli(Filter):
     def __init__(self, G, a=2./3, verbose=False, **kwargs):
         super(Simoncelli, self).__init__(G, **kwargs)
 
-        g = []
-        g.append(lambda x: simoncelli(x * (2./G.lmax), a))
+        g = [lambda x: simoncelli(x * (2./G.lmax), a)]
         g.append(lambda x: np.real(np.sqrt(1 -
                                            (simoncelli(x*(2./G.lmax), a))
                                            ** 2)))
@@ -802,8 +800,7 @@ class Held(Filter):
     def __init__(self, G, a=2./3, **kwargs):
         super(Held, self).__init__(G, **kwargs)
 
-        g = []
-        g.append(lambda x: held(x * (2./G.lmax), a))
+        g = [lambda x: held(x * (2./G.lmax), a)]
         g.append(lambda x: np.real(np.sqrt(1-(held(x * (2./G.lmax), a))
                                            ** 2)))
 
