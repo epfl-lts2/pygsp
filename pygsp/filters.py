@@ -127,7 +127,7 @@ class Filter(object):
     def inverse(self, G, c, **kwargs):
         raise NotImplementedError
 
-    @utils.filterbank_handler
+    @utils.graph_array_handler
     def synthesis(self, G, c, order=30, verbose=True, method=None, **kwargs):
         r"""
         Synthesis operator of a filterbank
@@ -247,11 +247,24 @@ class Filter(object):
         return s
 
     def evaluate_can_dual(val):
-        raise NotImplementedError
+        N = np.shape(val)[0]
+        gcoeff = self.g.evaluate(val).tranpose()
 
-    def can_dual():
-        pass
-        raise NotImplementedError
+        np.linalg.pinv(gcoeff)
+
+    @utils.filterbank_handler
+    def can_dual(i=0):
+        gd = lambda x: can_dual_func(self.g, i, x)
+
+        return gd
+
+        def can_dual_func(g, n, x):
+            N1, N2 = np.shape(x)
+            x = np.ravel(x)
+            sol = g.evaluate_can_dual(x)
+            ret = sol[:, n].reshape(N1, N2)
+
+            return ret
 
     def vec2mat(d, Nf):
         raise NotImplementedError
