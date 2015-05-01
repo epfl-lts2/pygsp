@@ -8,6 +8,7 @@ This module implements the main filter class and all the filters subclasses
 from math import exp, log, pi
 import numpy as np
 from numpy import linalg
+from copy import deepcopy
 import scipy as sp
 import scipy.optimize
 
@@ -208,7 +209,6 @@ class Filter(object):
         else:
             raise ValueError('Unknown method: please select exact, cheby or lanczos')
 
-
     def approx(G, m, N, **kwargs):
         raise NotImplementedError
 
@@ -247,25 +247,28 @@ class Filter(object):
 
         return s
 
-    def evaluate_can_dual(val):
-        N = np.shape(val)[0]
-        gcoeff = self.g.evaluate(val).tranpose()
-
-        np.linalg.pinv(gcoeff)
-
-    @utils.filterbank_handler
-    def can_dual(i=0):
-        gd = lambda x: can_dual_func(self.g, i, x)
-
-        return gd
-
+    def can_dual(self):
         def can_dual_func(g, n, x):
-            N1, N2 = np.shape(x)
+            Nshape = np.shape(x)
             x = np.ravel(x)
-            sol = g.evaluate_can_dual(x)
-            ret = sol[:, n].reshape(N1, N2)
+            N = np.shape(x)[0]
+            M = len(g.g)
+            gcoeff = np.transpose(g.evaluate(x))
 
+            s = np.zeros((N, M))
+            for i in range(N):
+                    s[i] = np.linalg.pinv(np.expand_dims(gcoeff[i], axis=1))
+
+            ret = s[:, n]
             return ret
+
+        gdual = deepcopy(self)
+
+        Nf = len(self.g)
+        for i in range(Nf):
+            gdual.g[i] = lambda x, ind=i: can_dual_func(self, ind, deepcopy(x))
+
+        return gdual
 
     def vec2mat(d, Nf):
         raise NotImplementedError
