@@ -52,10 +52,10 @@ class Filter(object):
         --------
         >>> import numpy as np
         >>> from pygsp import graphs, filters
-        >>> sen = graphs.Sensor()
-        >>> MH = filters.MexicanHat(sen)
+        >>> G = graphs.Logo()
+        >>> MH = filters.MexicanHat(G)
         >>> x = np.arange(64).reshape(8, 8)
-        >>> co = MH.analysis(sen, x)
+        >>> co = MH.analysis(G, x)
 
         Matlab Authors
         --------------
@@ -109,8 +109,8 @@ class Filter(object):
         --------
         >>> import numpy as np
         >>> from pygsp import graphs, filters
-        >>> sen = graphs.Sensor()
-        >>> MH = filters.MexicanHat(sen)
+        >>> G = graphs.Logo()
+        >>> MH = filters.MexicanHat(G)
         >>> x = np.arange(2)
         >>> MH.evaluate(x)
         [array([  4.41455329e-01,   6.98096605e-42]),

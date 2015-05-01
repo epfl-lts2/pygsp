@@ -88,6 +88,7 @@ def is_directed(M):
     >>> W = sparse.rand(10,10,0.2)
     >>> G = graphs.Graph(W=W)
     >>> is_directed = utils.is_directed(G.W)
+
     """
     # To pass a graph or a weight matrix as an argument
     if isinstance(M, pygsp.graphs.Graph):
@@ -171,8 +172,9 @@ def check_weights(W):
     >>> from pygsp import graphs, utils
     >>> W = sparse.rand(10,10,0.2)
     >>> [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero] = utils.check_weights(W)
-    or
+    GSP_TEST_WEIGHTS: The main diagonal of the weight matrix is not 0!
     >>> weights_chara = utils.check_weights(W)
+    GSP_TEST_WEIGHTS: The main diagonal of the weight matrix is not 0!
     """
 
     has_inf_val = False
@@ -220,8 +222,9 @@ def create_laplacian(G):
     Examples
     --------
     >>> from pygsp import graphs, utils
-    >>> G = graphs.Graph()
+    >>> G = graphs.Logo()
     >>> L = utils.create_laplacian(G)
+
     """
 
     if sp.shape(G.W) == (1, 1):
@@ -261,6 +264,7 @@ def check_connectivity(G, **kwargs):
     -------
     is_connected : bool
         A bool value telling if the graph is connected
+
     """
 
     A = G.W
@@ -347,6 +351,7 @@ def distanz(x, y=None):
     >>> x = np.random.rand(16)
     >>> y = np.random.rand(16)
     >>> distanz = utils.distanz(x, y)
+
     """
     try:
         x.shape[1]
@@ -410,6 +415,7 @@ def repmatline(A, ncol=1, nrow=1):
                 3 3 3 4 4 4
                 3 3 3 4 4 4
     np.repeat(np.repeat(x, nrow, axis=1), ncol,  axis=0)
+
     """
 
     if ncol < 0 or nrow < 0:
@@ -441,8 +447,10 @@ def symetrize(W, symetrize_type='average'):
 
     Examples
     --------
-    >>> W = gsp_symetrize(W)
-    >>> W = gsp_symetrize(W, symetrize_type='average')
+    >>> from pygsp import utils
+    >>> W = utils.gsp_symetrize(W)
+    >>> W = utils.gsp_symetrize(W, symetrize_type='average')
+
     """
 
     if symetrize_type == 'average':
