@@ -240,7 +240,8 @@ class Graph(object):
         >>> from pygsp import graphs
         >>> Torus = graphs.Torus()
         >>> G = graphs.TwoMoons()
-        >>> G.copy_graph_attributes(type=0, Gn=Torus);
+        >>> G.copy_graph_attributes(ctype=False, Gn=Torus);
+
         """
         # if no Gn given
         if not Gn:
@@ -290,7 +291,7 @@ class Graph(object):
         >>> import numpy as np
         >>> W = np.arange(16).reshape(4, 4)
         >>> G = graphs.Graph(W)
-        >>> c = 10
+        >>> c = 3
         >>> subG = graphs.Graph.subgraph(G, c)
 
         This function create a subgraph from G taking only the node in c.

@@ -25,7 +25,7 @@ def plot(O, **kwargs):
     Examples
     --------
     >>> from pygsp import graphs, plotting
-    >>> sen = graphs.Sensor()
+    >>> sen = graphs.Logo()
     >>> plotting.plot(sen)
 
     """
@@ -52,7 +52,7 @@ def plot_graph(G):
     Examples
     --------
     >>> from pygsp import plotting, graphs
-    >>> sen = pygsp.graphs.Sensor()
+    >>> sen = graphs.Logo()
     >>> plotting.plot_graph(sen)
 
     """
@@ -128,7 +128,7 @@ def plot_pointcloud(P):
     Examples
     --------
     >>> from pygsp import graphs, plotting
-    >>> logo = graphs.PointsClouds('logo')
+    >>> logo = graphs.PointsCloud('logo')
     >>> plotting.plot_pointcloud(logo)
 
     """
@@ -173,7 +173,7 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
     Examples
     --------
     >>> from pygsp import filters, plotting, graphs
-    >>> sen = graph.Sensor()
+    >>> sen = graphs.Logo()
     >>> mh = filters.MexicanHat(sen)
     >>> plotting.plot_filter(mh)
 
