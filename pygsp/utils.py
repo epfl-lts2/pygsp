@@ -205,48 +205,6 @@ def check_weights(W):
     return [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero]
 
 
-def create_laplacian(G):
-    r"""
-    Create the laplacian of a graph from it's weights matrix and the laplacian's type
-
-    Parameters
-    ----------
-    G : graph
-        The graph wich will be used to create the laplacian
-
-    Returns
-    -------
-    L : sparse.lil_matrix
-        The laplacian under the form of a sparse matrix
-
-    Examples
-    --------
-    >>> from pygsp import graphs, utils
-    >>> G = graphs.Logo()
-    >>> L = utils.create_laplacian(G)
-
-    """
-
-    if sp.shape(G.W) == (1, 1):
-        return sparse.lil_matrix(0)
-
-    else:
-        if G.lap_type == 'combinatorial':
-            L = sparse.lil_matrix(G.W.sum(1).diagonal() - G.W)
-
-        elif G.lap_type == 'normalized':
-            D = sparse.lil_matrix(G.W.sum(1).diagonal() ** (-0.5))
-            L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
-
-        elif G.lap_type == 'none':
-            L = sparse.lil_matrix(0)
-
-        else:
-            raise AttributeError('Unknown laplacian type!')
-
-        return L
-
-
 def check_connectivity(G, **kwargs):
     r"""
     Function to check the connectivity of the input graph
@@ -424,6 +382,50 @@ def repmatline(A, ncol=1, nrow=1):
 
     return np.repeat(np.repeat(x, ncol, axis=1), nrow, axis=0)
 
+
+def resistance_distance(G):
+    r"""
+    Compute the resitance distances of a graph
+
+    Parameters
+    ----------
+    G : Graph structure or Laplacian matrix (L)
+    verbose (bool) : Display parameter - False no log - True display warnings
+        Default is True
+
+    Returns
+    -------
+    rd : distance matrix
+
+    Examples
+    --------
+    >>>
+    >>>
+    >>>
+
+    Reference
+    ----------
+    :cite:`klein1993resistance`
+
+
+    """
+    if isinstance(G, pygsp.graphs.Graph):
+        if not G.lap_type == 'combinatorial':
+            pygsp.operators.create_laplacian(G, lap_type='combinatorial', get_laplacian_only=False)
+            if verbose:
+                print('Compute the combinatorial laplacian for the resitance distance')
+        L = G.L
+
+    else:
+        L = G
+
+    pseudo = np.linalg.pinv(L.todense())
+    N = np.shape(L)[0]
+
+    d = np.diagonal(pseudo)
+    rd = np.kron(np.ones((1, N)), d) + np.kron(np.ones((N, 1)), d) - pseudo - pseudo.transpose()
+
+    return rd
 
 def symetrize(W, symetrize_type='average'):
     r"""

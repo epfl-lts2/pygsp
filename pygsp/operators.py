@@ -139,7 +139,6 @@ def grad_mat(G):
 def gft(G, f):
     r"""
     Graph Fourier transform
-    Usage:  f_hat=gsp_gft(G,f);
 
     Parameters
     ----------
@@ -537,7 +536,7 @@ def full_eigen(L):
 
 
 @utils.graph_array_handler
-def create_laplacian(G, lap_type=None):
+def create_laplacian(G, lap_type=None, get_laplacian_only=True):
     r"""
     Create the graph laplacian of graph G
 
@@ -547,6 +546,9 @@ def create_laplacian(G, lap_type=None):
     lap_type (string) : the laplacian type to use.
         Defalut is the lap_type of the G struct.
         If G does not have one, it will be "combinatorial"
+    get_laplacian_only (bool) : - True return each Laplacian in an array
+                                - False set each Laplacian in each graphs.
+        Defalut is True
 
     Returns
     -------
@@ -586,7 +588,11 @@ def create_laplacian(G, lap_type=None):
             L = sparse.lil_matrix(0)
         else:
             raise AttributeError('Unknown laplacian type!')
+
+    if get_laplacian_only:
         return L
+    else:
+        G.L = L
 
 
 def kernel_meyer(x, kerneltype):
