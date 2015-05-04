@@ -240,7 +240,8 @@ class Graph(object):
         >>> from pygsp import graphs
         >>> Torus = graphs.Torus()
         >>> G = graphs.TwoMoons()
-        >>> G.copy_graph_attributes(type=0, Gn=Torus);
+        >>> G.copy_graph_attributes(ctype=False, Gn=Torus);
+
         """
         # if no Gn given
         if not Gn:
@@ -290,7 +291,7 @@ class Graph(object):
         >>> import numpy as np
         >>> W = np.arange(16).reshape(4, 4)
         >>> G = graphs.Graph(W)
-        >>> c = 10
+        >>> c = 3
         >>> subG = graphs.Graph.subgraph(G, c)
 
         This function create a subgraph from G taking only the node in c.
@@ -1182,7 +1183,6 @@ class Community(Graph):
 
     def __init__(self, N=256, Nc=None, com_sizes=np.array([]), min_com=None,
                  min_deg=None, verbose=1, size_ratio=1, world_density=None):
-
         # Initialisation of the parameters
         if not Nc:
             Nc = int(round(sqrt(N)/2.))

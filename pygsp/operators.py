@@ -394,7 +394,7 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
 
 
 @utils.filterbank_handler
-def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
+def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
     r"""
     Compute Chebyshev coefficients for a Filterbank
 
@@ -416,6 +416,9 @@ def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
 
     """
 
+    if G is None:
+        G = f.G
+
     if not N:
         N = m + 1
 
@@ -424,21 +427,22 @@ def compute_cheby_coeff(f, G, m=30, N=None, i=0, *args):
         print('The variable lmax has not been computed yet, it will be done \
               but if you have to compute multiple times you can precompute \
               it with pygsp.utils.estimate_lmax(G)')
-    a_arange = range(0, int(G.lmax))
 
-    a1 = (a_arange[2]-a_arange[1])/2
-    a2 = (a_arange[2]+a_arange[1])/2
-    c = np.zeros(m+1)
+    a_arange = [0, int(G.lmax)]
+
+    a1 = (a_arange[1] - a_arange[0])/2
+    a2 = (a_arange[1] + a_arange[0])/2
+    c = np.zeros((m+1))
 
     for o in range(m+1):
-        c[o] = np.sum(f.g[i](a1 * np.cos(pi * (np.arange(1, N)-0.5))/N) + a2 *
-                      np.cos(pi * (o-1) * (np.arange(1, N)-0.5)/N)) * 2/N
+        c[o] = np.sum(f.g[0](a1*np.cos(pi*(np.arange(N) + 0.5)/N) + a2)*np.cos(pi*o*(np.arange(N) + 0.5)/N)) * 2./N
+
     return c
 
 
 def cheby_op(G, c, signal, **kwargs):
     r"""
-    Chebyshev polylnomial of graph Laplacian apllid to vector
+    Chebyshev polylnomial of graph Laplacian applied to vector
 
     Parameters
     ----------
@@ -456,7 +460,11 @@ def cheby_op(G, c, signal, **kwargs):
     """
     Nscales = len(c[1])
 
-    M = len(c)
+    M = len(c[0])
+    try:
+        M >= 2
+    except:
+        print("The signal has an invalid shape")
 
     maxM = np.max(M)
 
@@ -466,24 +474,24 @@ def cheby_op(G, c, signal, **kwargs):
     if signal.dtype == 'float32':
         signal = np.float64(signal)
 
-    a_arange = range(0, int(G.lmax))
+    a_arange = [0, G.lmax]
 
-    a1 = (a_arange[2]-a_arange[1])/2
-    a2 = (a_arange[2]+a_arange[1])/2
+    a1 = float(a_arange[1]-a_arange[0])/2
+    a2 = float(a_arange[1]+a_arange[0])/2
 
     twf_old = signal
     twf_cur = (G.L * signal - a2 * signal)/a1
 
-    Nv = len(signal[1])
+    Nv = signal.shape[1]# len(signal[1])
     r = np.zeros((G.N * Nscales, Nv))
 
     for i in range(Nscales):
-        pass
+        r[np.arange(G.N) + G.N * (i)] = 0.5 * c[0][i] * twf_old + c[1][i] * twf_cur
 
     for k in range(maxM + 1):
         twf_new = (2/a1) * (G.L * twf_cur-a2 * twf_cur) - twf_old
         for i in range(Nscales):
-            if k < M:
+            if k+1 < M:
                 r[np.arange(G.N) + G.N * (i-1)] = r[np.arange(G.N)+G.N *
                                                     (i-1)] + c[k][i] * twf_new
 

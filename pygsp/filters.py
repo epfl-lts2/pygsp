@@ -8,6 +8,7 @@ This module implements the main filter class and all the filters subclasses
 from math import exp, log, pi
 import numpy as np
 from numpy import linalg
+from copy import deepcopy
 import scipy as sp
 import scipy.optimize
 
@@ -20,7 +21,7 @@ class Filter(object):
     methods for those classes.
     """
 
-    def __init__(self, G, verbose=False, **kwargs):
+    def __init__(self, G, verbose=True, **kwargs):
         self.verbose = verbose
         if not hasattr(G, 'lmax'):
             if self.verbose:
@@ -28,6 +29,7 @@ class Filter(object):
             G.lmax = utils.estimate_lmax(G)
             self.G = G
 
+    @utils.graph_array_handler
     def analysis(self, G, s, exact=True, cheb_order=30, **kwargs):
         r"""
         Operator to analyse a filterbank
@@ -51,10 +53,10 @@ class Filter(object):
         --------
         >>> import numpy as np
         >>> from pygsp import graphs, filters
-        >>> sen = graphs.Sensor()
-        >>> MH = filters.MexicanHat(sen)
+        >>> G = graphs.Logo()
+        >>> MH = filters.MexicanHat(G)
         >>> x = np.arange(64).reshape(8, 8)
-        >>> co = MH.analysis(sen, x)
+        >>> co = MH.analysis(G, x)
 
         Matlab Authors
         --------------
@@ -108,8 +110,8 @@ class Filter(object):
         --------
         >>> import numpy as np
         >>> from pygsp import graphs, filters
-        >>> sen = graphs.Sensor()
-        >>> MH = filters.MexicanHat(sen)
+        >>> G = graphs.Logo()
+        >>> MH = filters.MexicanHat(G)
         >>> x = np.arange(2)
         >>> MH.evaluate(x)
         [array([  4.41455329e-01,   6.98096605e-42]),
@@ -127,8 +129,85 @@ class Filter(object):
     def inverse(self, G, c, **kwargs):
         raise NotImplementedError
 
-    def synthesis(self, G, c, **kwargs):
-        raise NotImplementedError
+    @utils.graph_array_handler
+    def synthesis(self, G, c, order=30, verbose=True, method=None, **kwargs):
+        r"""
+        Synthesis operator of a filterbank
+
+        Parameters
+        ----------
+        G : Graph structure.
+        c : Transform coefficients
+        method : Select the method ot be used for the computation.
+            - 'exact' : Exact method using the graph Fourier matrix
+            - 'cheby' : Chebyshev polynomial approximation
+            - 'lanczos' : Lanczos approximation
+            Default : if the Fourier matrix is present: 'exact' otherwise 'cheby'
+        order : Degree of the Chebyshev approximation
+            Default is 30
+        verbose : Verbosity level (False no log - True display warnings)
+            Default is True
+
+        Returns
+        -------
+        signal : sythesis signal
+
+        Examples
+        --------
+
+        Reference
+        ----------
+        :cite:`hammond2011wavelets`
+        """
+
+        Nf = len(self.g)
+
+        if not method:
+            if hasattr(G, 'U'):
+                method = 'exact'
+            else:
+                method = 'cheby'
+
+        if method == 'exact':
+            if not hasattr(G, 'e') or not hasattr(G, 'U'):
+                if verbose:
+                    print("The Fourier matrix is not available. The function will compute it for you. However, if you apply many time this function, you should precompute it using the function: compute_fourier_basis")
+                operators.compute_fourier_basis(G)
+
+            fie = self.evaluate(G)
+            Nv = np.shape(c)[1]
+            s = np.zeros((G.N, Nv))
+
+            for i in range(Nf):
+                s += operators.igft(np.conjugate(G.U),
+                                    np.kron(np.ones((1, Nv)), fie[:, i])*operators.gft(G, c[G.N*i + range(G.N)]))
+
+            return s
+
+        elif method == 'cheby':
+            if hasattr(G, 'lmax'):
+                if verbose:
+                    print('The variable lmax is not available. The function will compute it for you. However, if you apply many time this function, you should precompute it using the function: ')
+                utils.estimate_lmax(G)
+
+            cheb_coeffs = operators(self, G, m=order, N=order+1)
+            s = np.zeros((G.N, np.shape(c)[1]))
+
+            for i in range(Nf):
+                s += utils.cheby_op(G, cheb_coeffs[:, i], c[i*G.N + range(G.N)])
+
+            return s
+
+        elif method == 'lanczos':
+            s = np.zeros((G.N, np.shape(c)[1]))
+
+            for i in range(Nf):
+                s += utils.lanczos_op(G, self[i], c[i*G.N + range(G.N)], order=order, verbose=verbose)
+
+            return s
+
+        else:
+            raise ValueError('Unknown method: please select exact, cheby or lanczos')
 
     def approx(G, m, N, **kwargs):
         raise NotImplementedError
@@ -168,12 +247,28 @@ class Filter(object):
 
         return s
 
-    def evaluate_can_dual(val):
-        raise NotImplementedError
+    def can_dual(self):
+        def can_dual_func(g, n, x):
+            Nshape = np.shape(x)
+            x = np.ravel(x)
+            N = np.shape(x)[0]
+            M = len(g.g)
+            gcoeff = np.transpose(g.evaluate(x))
 
-    def can_dual():
-        pass
-        raise NotImplementedError
+            s = np.zeros((N, M))
+            for i in range(N):
+                    s[i] = np.linalg.pinv(np.expand_dims(gcoeff[i], axis=1))
+
+            ret = s[:, n]
+            return ret
+
+        gdual = deepcopy(self)
+
+        Nf = len(self.g)
+        for i in range(Nf):
+            gdual.g[i] = lambda x, ind=i: can_dual_func(self, ind, deepcopy(x))
+
+        return gdual
 
     def vec2mat(d, Nf):
         raise NotImplementedError
@@ -211,27 +306,35 @@ class Abspline(Filter):
         super(Abspline, self).__init__(G, **kwargs)
 
         def kernel_abspline3(x, alpha, beta, t1, t2):
-            r = np.zeros(x.shape)
-
             M = np.array([[1, t1, t1**2, t1**3],
                           [1, t2, t2**2, t2**3],
-                          [0, 1, 2*t1, 3*t1],
-                          [0, 1, 2*t2, 3*t2]])
+                          [0, 1, 2*t1, 3*t1**2],
+                          [0, 1, 2*t2, 3*t2**2]])
+            v = np.array([1, 1, t1**(-alpha) * alpha * t1**(alpha-1),
+                          -beta*t2**(-(beta+1)) * t2**beta])
+            a = np.linalg.solve(M, v)
 
-            v = np.array([1, 1, t1**(-alpha * alpha * t1**(alpha-1)),
-                          -beta*t2**(-(beta+1) * t2**beta)])
-            M = np.invert(M)
-            a = M.dot(v)
+            r1 = x <= t1
+            r2 = (x >= t1)*(x < t2)
+            r3 = (x >= t2)
 
-            r1 = x.any() >= 0 and x <= t1
-            r2 = x.any() >= t1 and x < t2
-            r3 = x.any() >= t2
+            if isinstance(x, np.float64):
 
-            x2 = x[r2]
+                if r1:
+                    r = x[r1]**alpha * t1**(-alpha)
+                if r2:
+                    r = a[0] + a[1] * x + a[2] * x**2 + a[3] * x**3
+                if r3:
+                    r = x[r3]**(-beta) * t2**beta
 
-            r[r1] = x[r1] ** alpha * t1 ** (-alpha)
-            r[r2] = a[0] + a[1] * x2 + a[2] * x2 ** 2 + a[3] * x2 ** 3
-            r[r3] = x[r3] ** -beta * t2 ** (beta)
+            else:
+                r = np.zeros(x.shape)
+
+                x2 = x[r2]
+
+                r[r1] = x[r1]**alpha * t1**(-alpha)
+                r[r2] = a[0] + a[1] * x2 + a[2] * x2**2 + a[3] * x2**3
+                r[r3] = x[r3]**(-beta) * t2 **beta
 
             return r
 
@@ -247,15 +350,12 @@ class Abspline(Filter):
 
         lminfac = .4 * G.lmin
 
-        self.g = []
-        self.g.append(lambda x: 1.2 * exp(-1) * gl(x / lminfac))
-
+        self.g = [lambda x: 1.2 * exp(-1) * gl(x / lminfac)]
         for i in range(0, Nf-1):
             self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
         f = lambda x: -gb(x)
-        xstar = scipy.optimize.minimize_scalar(f, method='Bounded',
-                                               bounds=(1, 2))
+        xstar = scipy.optimize.minimize_scalar(f, bounds=(1, 2), method='bounded')
         gamma_l = -f(xstar.x)
         lminfac = .6 * G.lmin
         self.g[0] = lambda x: gamma_l * gl(x / lminfac)
@@ -280,7 +380,7 @@ class Expwin(Filter):
     out : Expwin
     """
     def __init__(self, G, bmax=0.2, a=1., **kwargs):
-        super(Expwin, self).__init__(**kwargs)
+        super(Expwin, self).__init__(G, **kwargs)
 
         def fx(x, a):
             y = np.exp(-float(a)/x)
@@ -297,9 +397,7 @@ class Expwin(Filter):
 
         ffin = lambda x, a: gx(1 - x, a)
 
-        g = []
-        g.append(lambda x: ffin(np.float64(x)/bmax/G.lmax, a))
-
+        g = [lambda x: ffin(np.float64(x)/bmax/G.lmax, a)]
         self.g = g
 
 
@@ -387,15 +485,15 @@ class MexicanHat(Filter):
 
         lminfac = .4 * G.lmin
 
-        self.g = []
-        self.g.append(lambda x: 1.2 * exp(-1) * gl(x / lminfac))
+        g = [lambda x: 1.2 * exp(-1) * gl(x / lminfac)]
 
-        for i in range(0, Nf-1):
+        for i in range(Nf-1):
             if normalize:
-                self.g.append(lambda x, ind=i: np.sqrt(t[i]) *
-                              gb(self.t[ind] * x))
+                g.append(lambda x, ind=i: np.sqrt(t[i]) * gb(self.t[ind] * x))
             else:
-                self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
+                g.append(lambda x, ind=i: gb(self.t[ind] * x))
+
+        self.g = g
 
 
 class Meyer(Filter):
@@ -420,19 +518,16 @@ class Meyer(Filter):
         super(Meyer, self).__init__(G, **kwargs)
 
         if not hasattr(G, 't'):
-            G.t = (4/(3 * G.lmax)) * np.power(2., [Nf-2, -1, 0])
+            G.t = (4/(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
 
         if len(G.t) >= Nf-1:
             print('You have specified more scales than  the number of scales minus 1')
 
         t = G.t
-        print(t)
-        g = []
 
-        g.append(lambda x: kernel_meyer(t[1] * x, 'sf'))
+        g = [lambda x: kernel_meyer(t[0] * x, 'sf')]
         for i in range(Nf-1):
-            g.append(lambda x, ind=i: kernel_meyer(t[ind] * x,
-                                                   'wavelet'))
+            g.append(lambda x, ind=i: kernel_meyer(t[ind] * x, 'wavelet'))
 
         self.g = g
 
@@ -459,23 +554,23 @@ class Meyer(Filter):
             l2 = 4./3.
             l3 = 8./3.
 
-            v = lambda x: x ** 4. * (35-84 * x+70 * x ** 2-20 * x ** 3)
+            v = lambda x: x ** 4. * (35 - 84*x + 70*x**2 - 20*x**3)
 
-            r1ind = x >= 0 and x < l1
-            r2ind = x >= l1 and x < l2
-            r3ind = x >= l2 and x < l3
+            r1ind = (x < l1)
+            r2ind = (x >= l1)*(x < l2)
+            r3ind = (x >= l2)*(x < l3)
 
             r = np.empty(x.shape)
             if kerneltype is 'sf':
                 r[r1ind] = 1
-                r[r2ind] = np.cos((pi/2) * v(np.abs(x * r2ind)/l1 - 1))
+                r[r2ind] = np.cos((pi/2) * v(np.abs(x[r2ind])/l1 - 1))
             elif kerneltype is 'wavelet':
-                r[r2ind] = np.sin((pi/2) * v(np.abs(x * r2ind)/l1 - 1))
-                r[r3ind] = np.cos((pi/2) * v(np.abs(x * r3ind)/l2 - 1))
+                r[r2ind] = np.sin((pi/2) * v(np.abs(x[r2ind])/l1 - 1))
+                r[r3ind] = np.cos((pi/2) * v(np.abs(x[r3ind])/l2 - 1))
             else:
                 raise TypeError('Unknown kernel type ', kerneltype)
 
-                return r
+            return r
 
 
 class SimpleTf(Filter):
@@ -515,41 +610,41 @@ class SimpleTf(Filter):
 
             """
 
-            l1 = 1./4.
-            l2 = 1./2.
-            l3 = 1
+            l1 = 0.25
+            l2 = 0.5
+            l3 = 1.
 
-            h = lambda x: np.sin(pi * x / 2) ** 2
+            h = lambda x: np.sin(pi*x/2.)**2
 
-            r1ind = x.any() >= 0 and x < l1
-            r2ind = x.any() >= l1 and x < l2
-            r3ind = x.any() >= l2 and x < l3
+            r1ind = x < l1
+            r2ind = (x >= l1)*(x < l2)
+            r3ind = (x >= l2)*(x < l3)
 
-            r = np.empty(x.shape)
+            r = np.zeros(x.shape)
             if kerneltype is 'sf':
-                r[r1ind] = 1
-                r[r2ind] = np.sqrt(1 - h(4 * (x * r2ind) - 1) ** 2)
+                r[r1ind] = 1.
+                r[r2ind] = np.sqrt(1 - h(4*x[r2ind] - 1)**2)
             elif kerneltype is 'wavelet':
-                r[r2ind] = h(4 * (x * r2ind) - 1./4.)
-                r[r3ind] = np.sqrt(1 - h(2 * (x * r3ind) - 1) ** 2)
+                r[r2ind] = h(4*(x[r2ind] - 1/4.))
+                r[r3ind] = np.sqrt(1 - h(2*x[r3ind] - 1)**2)
             else:
                 raise TypeError('Unknown kernel type', kerneltype)
 
             return r
 
         if not t:
-            t = (1./(2. * G.lmax) * np.power(2., (range(Nf-2, 0, -1))))
+            t = (1./(2.*G.lmax) * np.power(2, np.arange(Nf-2, -1, -1)))
 
         if self.verbose:
-            if len(t) >= Nf - 1:
+            if len(t) != Nf - 1:
                 print('You have specified more scales than Number if filters minus 1.')
 
-        g = []
+        g = [lambda x: kernel_simple_tf(t[0] * x, 'sf')]
 
-        g.append(lambda x: kernel_simple_tf(t[0] * x, 'sf'))
         for i in range(Nf-1):
             g.append(lambda x, ind=i: kernel_simple_tf(t[ind] * x, 'wavelet'))
-            self.g = g
+
+        self.g = g
 
 
 class WarpedTranslat(Filter):
@@ -578,10 +673,9 @@ class Papadakis(Filter):
 
     """
     def __init__(self, G, a=0.75, **kwargs):
-        super(Papadakis, self).__init__(**kwargs)
+        super(Papadakis, self).__init__(G, **kwargs)
 
-        g = []
-        g.append(lambda x: papadakis(x * (2./G.lmax), a))
+        g = [lambda x: papadakis(x * (2./G.lmax), a)]
         g.append(lambda x: np.real(np.sqrt(1 - (papadakis(x*(2./G.lmax), a)) **
                                    2)))
 
@@ -597,7 +691,7 @@ class Papadakis(Filter):
             r3ind = val >= l2
 
             y[r1ind] = 1
-            y[r2ind] = np.sqrt((1 - np.sin(3 * pi/(2 * a) * val[r2ind]))/2.)
+            y[r2ind] = np.sqrt((1 - np.sin(3*pi/(2*a) * val[r2ind]))/2.)
             y[r3ind] = 0
 
             return y
@@ -624,8 +718,7 @@ class Regular(Filter):
     def __init__(self, G, d=3, **kwargs):
         super(Regular, self).__init__(G, **kwargs)
 
-        g = []
-        g.append(lambda x: regular(x * (2/G.lmax), d))
+        g = [lambda x: regular(x * (2/G.lmax), d)]
         g.append(lambda x: np.real(np.sqrt(1-(regular(x * (2/G.lmax), d))
                                            ** 2)))
 
@@ -633,12 +726,14 @@ class Regular(Filter):
 
         def regular(val, d):
             if d == 0:
-                return np.sin(pi / 4 * val)
+                return np.sin(pi / 4*val)
+
             else:
-                output = np.sin(pi * (val - 1) / 2)
+                output = np.sin(pi*(val - 1) / 2)
                 for i in range(2, d):
-                    output = np.sin(pi * output / 2)
-                return np.sin(pi / 4 * (1 + output))
+                    output = np.sin(pi*output / 2)
+
+                return np.sin(pi / 4*(1 + output))
 
 
 class Simoncelli(Filter):
@@ -663,8 +758,7 @@ class Simoncelli(Filter):
     def __init__(self, G, a=2./3, verbose=False, **kwargs):
         super(Simoncelli, self).__init__(G, **kwargs)
 
-        g = []
-        g.append(lambda x: simoncelli(x * (2./G.lmax), a))
+        g = [lambda x: simoncelli(x * (2./G.lmax), a)]
         g.append(lambda x: np.real(np.sqrt(1 -
                                            (simoncelli(x*(2./G.lmax), a))
                                            ** 2)))
@@ -709,8 +803,7 @@ class Held(Filter):
     def __init__(self, G, a=2./3, **kwargs):
         super(Held, self).__init__(G, **kwargs)
 
-        g = []
-        g.append(lambda x: held(x * (2./G.lmax), a))
+        g = [lambda x: held(x * (2./G.lmax), a)]
         g.append(lambda x: np.real(np.sqrt(1-(held(x * (2./G.lmax), a))
                                            ** 2)))
 
