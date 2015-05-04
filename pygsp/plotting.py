@@ -5,6 +5,7 @@ This module implements plotting functions for the pygsp main objects
 
 import numpy as np
 import pygsp
+import threading
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -57,64 +58,66 @@ def plot_graph(G):
 
     """
 
-    # TODO handling when G is a list of graphs
-    # TODO integrate param when G is a clustered graph
+    def _thread():
 
-    show_edges = G.Ne < 10000
+        # TODO handling when G is a list of graphs
+        # TODO integrate param when G is a clustered graph
 
-    if show_edges:
-        ki, kj = np.nonzero(G.A)
-        if G.directed:
-            raise NotImplementedError('TODO')
-            if G.coords.shape[1] == 2:
-                raise NotImplementedError('TODO')
-            else:
-                raise NotImplementedError('TODO')
-        else:
-            if G.coords.shape[1] == 2:
-                fig = plt.figure()
-                ax = fig.add_subplot(111)
-                ki, kj = np.nonzero(G.A)
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
-                # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
-                ax.plot(x, y, color='red', marker='o', markerfacecolor='blue')
-                plt.show()
-            if G.coords.shape[1] == 3:
-                # Very dirty way to display a 3d graph
-                fig = plt.figure()
-                ax = fig.gca(projection='3d')
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
-                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
-                ii = range(0, x.shape[1])
-                x2 = np.ndarray((0, 1))
-                y2 = np.ndarray((0, 1))
-                z2 = np.ndarray((0, 1))
-                for i in ii:
-                    x2 = np.append(x2, x[:, i])
-                for i in ii:
-                    y2 = np.append(y2, y[:, i])
-                for i in ii:
-                    z2 = np.append(z2, z[:, i])
-                for i in range(0, x.shape[1] * 2, 2):
-                    x3 = x2[i:i + 2]
-                    y3 = y2[i:i + 2]
-                    z3 = z2[i:i + 2]
-                    ax.plot(x3, y3, z3, color='red', marker='o', markerfacecolor='blue')
-                    # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
-                plt.show()
-    else:
+        show_edges = G.Ne < 10000
+
+        # Matplotlib graph initialization in 2D and 3D
         if G.coords.shape[1] == 2:
             fig = plt.figure()
             ax = fig.add_subplot(111)
-            ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo')
-            plt.show()
-        if G.coords.shape[1] == 3:
+        elif G.coords.shape[1] == 3:
             fig = plt.figure()
-            ax = fig.gca(projection='3d')
-            ax.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
-            plt.show()
+            ax = fig.add_subplot(111, projection='3d')
+
+        if show_edges:
+            ki, kj = np.nonzero(G.A)
+            if G.directed:
+                raise NotImplementedError('TODO')
+                if G.coords.shape[1] == 2:
+                    raise NotImplementedError('TODO')
+                else:
+                    raise NotImplementedError('TODO')
+            else:
+                if G.coords.shape[1] == 2:
+                    ki, kj = np.nonzero(G.A)
+                    x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
+                    y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
+                    # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
+                    ax.plot(x, y, color='red', marker='o', markerfacecolor='blue')
+                if G.coords.shape[1] == 3:
+                    # Very dirty way to display a 3d graph
+                    x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
+                    y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
+                    z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
+                    ii = range(0, x.shape[1])
+                    x2 = np.ndarray((0, 1))
+                    y2 = np.ndarray((0, 1))
+                    z2 = np.ndarray((0, 1))
+                    for i in ii:
+                        x2 = np.append(x2, x[:, i])
+                    for i in ii:
+                        y2 = np.append(y2, y[:, i])
+                    for i in ii:
+                        z2 = np.append(z2, z[:, i])
+                    for i in range(0, x.shape[1] * 2, 2):
+                        x3 = x2[i:i + 2]
+                        y3 = y2[i:i + 2]
+                        z3 = z2[i:i + 2]
+                        ax.plot(x3, y3, z3, color='red', marker='o', markerfacecolor='blue')
+                        # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
+        else:
+            if G.coords.shape[1] == 2:
+                ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo')
+            if G.coords.shape[1] == 3:
+                ax.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
+
+        plt.show()
+
+    threading.Thread(None, _thread).start()
 
 
 def plot_pointcloud(P):
@@ -240,7 +243,7 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
     bar : int
         0 display color, 1 display bar for the graph (default 0).
     bar_width : int
-        Width of the bar (default 1)
+        Width of the bar (default 1).
 
     Examples
     --------
