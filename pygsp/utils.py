@@ -427,6 +427,7 @@ def resistance_distance(G):
 
     return rd
 
+
 def symetrize(W, symetrize_type='average'):
     r"""
     symetrize a matrix

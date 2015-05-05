@@ -866,6 +866,37 @@ class Heat(Filter):
         self.g = g
 
 
+def filterbank_matrix(G, g, verbose=True):
+    r"""
+    Create the matrix of the filterbank frame.
+
+    This function create the matrix associated to the filterbank g. The
+    size of the matrix is MN x N, where M is the number of filters.
+
+    Parameters
+    ----------
+    G : Graph
+    g : Filters
+    verbose (bool) : False no log, True print all steps.
+        Default is True
+
+    Returns
+    -------
+    F : Frame
+    """
+    if verbose and G.N > 200:
+        print('Waring. Create a big matrix, you can use other methods.')
+
+    Nf = len(g.g)
+    Ft = g.analysis(G, np.identity(G.N))
+
+    F = np.zeros(np.shape(Ft.transpose()))
+    for i in range(Nf):
+        F[:, G.N*ii + np.arange(G.N)] = Ft[G.N*ii + np.arange(G.N)]
+
+    return F
+
+
 def dummy(a, b, c):
     r"""
     Short description.
