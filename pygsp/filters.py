@@ -215,11 +215,77 @@ class Filter(object):
     def tighten(G):
         raise NotImplementedError
 
-    def bank_bounds(G, **kwargs):
-        raise NotImplementedError
+    @graph_array_handler
+    def filterbank_bounds(self, G, N=999, use_eigenvalues=True):
+        r"""
+        Compute approximate frame bounds for a filterbank.
 
-    def bank_matrix(G, **kwargs):
-        raise NotImplementedError
+        Parameters
+        ----------
+        G : Graph structure or interval to compute the bound (given in an ndarray).
+            G = Logo() or G = np.array([xmin, xnmax])
+        N : Number of point for the line search
+            Default is 999
+        use_eigenvalues : Use eigenvalues if possible . To be used, the eigenvalues have to be computed first using
+            Default is True
+
+        Returns
+        -------
+        A   : Filterbank lower bound
+        B   : Filterbank Upper bound
+        """
+
+        if isinstance(G, pygsp.graphs.Graph):
+            if not hasattr(G, 'lmax'):
+                estimate_lmax(G)
+                print('FILTERBANK_BOUNDS: Had to estimate lmax.')
+            xmax = G.lmax
+            xmin = 0
+        else:
+            xmin = G[0]
+            xmax = G[0]
+
+        if use_eigenvalues and isinstance(G, pygsp.graphs.Graph) and hasattr(G, 'E'):
+            lamba = G.E
+        else:
+            lamba = np.linspace(xmin, xmax, N)
+
+        Nf = len(slef.g)
+        sum_filters = np.sum(np.abs(self.g.evaluate(lamba)**2), axis=1)
+
+        A = np.min(sum_filters)
+        B = np.max(sum_filters)
+
+        return A, B
+
+    def filterbank_matrix(self, G, verbose=True):
+        r"""
+        Create the matrix of the filterbank frame.
+
+        This function create the matrix associated to the filterbank g. The
+        size of the matrix is MN x N, where M is the number of filters.
+
+        Parameters
+        ----------
+        G : Graph
+        verbose (bool) : False no log, True print all steps.
+            Default is True
+
+        Returns
+        -------
+        F : Frame
+        """
+        if verbose and G.N > 200:
+            print('Waring. Create a big matrix, you can use other methods.')
+
+        Nf = len(self.g)
+        Ft = self.analysis(G, np.identity(G.N))
+
+        F = np.zeros(np.shape(Ft.transpose()))
+        for i in range(Nf):
+            F[:, G.N*ii + np.arange(G.N)] = Ft[G.N*ii + np.arange(G.N)]
+
+        return F
 
     def wlog_scales(self, lmin, lmax, Nscales, t1=1, t2=2):
         r"""
@@ -864,37 +930,6 @@ class Heat(Filter):
             g.append(lambda x: np.exp(-tau * x/G.lmax))
 
         self.g = g
-
-
-def filterbank_matrix(G, g, verbose=True):
-    r"""
-    Create the matrix of the filterbank frame.
-
-    This function create the matrix associated to the filterbank g. The
-    size of the matrix is MN x N, where M is the number of filters.
-
-    Parameters
-    ----------
-    G : Graph
-    g : Filters
-    verbose (bool) : False no log, True print all steps.
-        Default is True
-
-    Returns
-    -------
-    F : Frame
-    """
-    if verbose and G.N > 200:
-        print('Waring. Create a big matrix, you can use other methods.')
-
-    Nf = len(g.g)
-    Ft = g.analysis(G, np.identity(G.N))
-
-    F = np.zeros(np.shape(Ft.transpose()))
-    for i in range(Nf):
-        F[:, G.N*ii + np.arange(G.N)] = Ft[G.N*ii + np.arange(G.N)]
-
-    return F
 
 
 def dummy(a, b, c):
