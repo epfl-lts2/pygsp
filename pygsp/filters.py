@@ -250,7 +250,7 @@ class Filter(object):
         else:
             lamba = np.linspace(xmin, xmax, N)
 
-        Nf = len(slef.g)
+        Nf = len(self.g)
         sum_filters = np.sum(np.abs(self.g.evaluate(lamba)**2), axis=1)
 
         A = np.min(sum_filters)
