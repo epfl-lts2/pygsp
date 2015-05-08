@@ -478,7 +478,6 @@ class HalfCosine(Filter):
     G : Graph
     Nf = int
         Number of filters from 0 to lmax (default = 6)
-
     Returns
     -------
     out : HalfCosine
@@ -503,10 +502,39 @@ class HalfCosine(Filter):
 
 
 class Itersine(Filter):
+    r"""
+    Create a itersine filterbanks
 
-    def __init__(self, G, Nf, **kwargs):
+    This function create a itersine half overlap filterbank of Nf filters
+    Going from 0 to lambda_max
+
+    Parameters
+    ----------
+    G : Graph
+    Nf = int
+        Number of filters from 0 to lmax (default = 6)
+    verbose (bool) : verbosity level: 0 no log - 1 display warnings.
+        Default is True
+    overlap: Overlap
+        Default is 2
+
+
+    Returns
+    -------
+    out : Itersine
+
+    """
+    def __init__(self, G, Nf=6, verbose=True, overlap=2, **kwargs):
         super(Itersine, self).__init__(G, **kwargs)
-        raise NotImplementedError
+
+        k = lambda x: np.sin(0.5*pi*np.power(np.cos(x*pi), 2)) * (x >= -05) * (x <= 0.5)
+        scale = lmax/(Nf - overlap + 1)*overlap
+        g = []
+
+        for i in range(1, Nf + 1):
+            g.append(lambda x: k(x/scale - (ii-overlap/2)/overlap)/sqrt(overlap)*sqrt(2))
+
+        self.g = g
 
 
 class MexicanHat(Filter):
