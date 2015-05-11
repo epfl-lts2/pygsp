@@ -62,7 +62,6 @@ class Filter(object):
         David I Shuman, Nathanael Perraudin
 
         :cite:`hammond2011wavelets`
-        .. bibliography:: project.bib
 
         """
         Nf = len(self.g)
@@ -156,7 +155,7 @@ class Filter(object):
 
         Reference
         ----------
-        :cite:`hammond2011wavelets`
+        See :cite:`hammond2011wavelets` for more details.
         """
 
         Nf = len(self.g)
@@ -628,7 +627,22 @@ class SimpleTf(Filter):
             self.g = g
 
 
-class WarpedTranslat(Filter):
+class WarpedTranslates(Filter):
+    r"""
+    Creates a vertex frequency filterbank
+
+    Parameters
+    ----------
+    G : Graph
+    Nf : int
+        Number of filters
+
+    Returns
+    -------
+    out : WarpedTranslates
+
+    See :cite:`shuman2013spectrum`
+    """
 
     def __init__(self, G, Nf, **kwargs):
         super(WarpedTranslat, self).__init__(G, **kwargs)
