@@ -11,7 +11,7 @@ from numpy import linalg
 from copy import deepcopy
 import scipy as sp
 import scipy.optimize
-
+import pygsp
 from pygsp import utils, operators
 
 
@@ -254,6 +254,12 @@ class Filter(object):
         A   : Filterbank lower bound
         B   : Filterbank Upper bound
         """
+        if type(G) is list:
+            output = []
+            for i in range(len(self.g)):
+                output.append(g[i].analysis(G[i]), N=N, use_eigenvalues=use_eigenvalues)
+
+            return output
 
         if isinstance(G, pygsp.graphs.Graph):
             if not hasattr(G, 'lmax'):
@@ -271,7 +277,7 @@ class Filter(object):
             lamba = np.linspace(xmin, xmax, N)
 
         Nf = len(self.g)
-        sum_filters = np.sum(np.abs(self.g.evaluate(lamba)**2), axis=1)
+        sum_filters = np.sum(np.abs(np.power(self.evaluate(lamba), 2)), axis=1)
 
         A = np.min(sum_filters)
         B = np.max(sum_filters)
