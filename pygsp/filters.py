@@ -269,7 +269,7 @@ class Filter(object):
             xmin = 0
         else:
             xmin = G[0]
-            xmax = G[0]
+            xmax = G[1]
 
         if use_eigenvalues and isinstance(G, pygsp.graphs.Graph) and hasattr(G, 'E'):
             lamba = G.E
@@ -301,7 +301,7 @@ class Filter(object):
         -------
         F : Frame
         """
-        if self.verbose and G.N > 200:
+        if self.verbose and G.N > 2000:
             print('Waring. Create a big matrix, you can use other methods.')
 
         Nf = len(self.g)

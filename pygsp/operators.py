@@ -425,14 +425,14 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
         G.lmax = utils.estimate_lmax(G)
         print('The variable lmax has not been computed yet, it will be done.)')
 
-    a_arange = [0, int(G.lmax)]
+    a_arange = [0, G.lmax]
 
     a1 = (a_arange[1] - a_arange[0])/2
     a2 = (a_arange[1] + a_arange[0])/2
-    c = np.zeros((m+1, 1))
+    c = np.zeros((m+1))
 
     for o in range(m+1):
-        c[o] = np.sum(f.g[0](a1*np.cos(pi*(np.arange(N) + 0.5)/N) + a2)*np.cos(pi*o*(np.arange(N) + 0.5)/N)) * 2./N
+        c[o] = np.sum(f.g[i](a1*np.cos(pi*(np.arange(N) + 0.5)/N) + a2)*np.cos(pi*o*(np.arange(N) + 0.5)/N)) * 2./N
 
     return c
 
@@ -455,15 +455,16 @@ def cheby_op(G, c, signal, **kwargs):
         Result if the filtering
 
     """
-    Nscales = np.shape(c[0])[0]
 
-    M = len(c)
+    # M = np.shape(c)[0]
+    # Nscales = np.shape(c)[1]
+    Nscales = len(c)
+    M = np.shape(c[0])[0]
+
     try:
         M >= 2
     except:
         print("The signal has an invalid shape")
-
-    maxM = np.max(M)
 
     if not hasattr(G, 'lmax'):
         G.lmax = utils.estimate_lmax(G)
@@ -477,19 +478,20 @@ def cheby_op(G, c, signal, **kwargs):
     a2 = float(a_arange[1]+a_arange[0])/2
 
     twf_old = signal
-    twf_cur = (G.L * signal - a2 * signal)/a1
+    twf_cur = (np.dot(G.L.todense(), signal) - a2 * signal)/a1
 
-    Nv = signal.shape[1]# len(signal[1])
+    Nv = signal.shape[1]
+    # len(signal[1])
     r = np.zeros((G.N * Nscales, Nv))
 
     for i in range(Nscales):
-        r[np.arange(G.N) + G.N*i] = 0.5*c[0][i]*twf_old + c[1][i]*twf_cur
+        r[np.arange(G.N) + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
 
-    for k in range(1, maxM):
-        twf_new = (2/a1) * (G.L*twf_cur - a2*twf_cur) - twf_old
+    for k in range(2, M+1):
+        twf_new = (2./a1) * (np.dot(G.L.todense(), twf_cur) - a2*twf_cur) - twf_old
         for i in range(Nscales):
-            if (k + 1) + 1 <= M:
-                r[np.arange(G.N) + G.N*i] += c[k+1][i]*twf_new
+            if k + 1 <= M:
+                r[np.arange(G.N) + G.N*i] += c[i][k]*twf_new
 
         twf_old = twf_cur
         twf_cur = twf_new
