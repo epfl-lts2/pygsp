@@ -139,7 +139,6 @@ def grad_mat(G):
 def gft(G, f):
     r"""
     Graph Fourier transform
-    Usage:  f_hat=gsp_gft(G,f);
 
     Parameters
     ----------
@@ -424,18 +423,16 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
 
     if not hasattr(G, 'lmax'):
         G.lmax = utils.estimate_lmax(G)
-        print('The variable lmax has not been computed yet, it will be done \
-              but if you have to compute multiple times you can precompute \
-              it with pygsp.utils.estimate_lmax(G)')
+        print('The variable lmax has not been computed yet, it will be done.)')
 
-    a_arange = [0, int(G.lmax)]
+    a_arange = [0, G.lmax]
 
     a1 = (a_arange[1] - a_arange[0])/2
     a2 = (a_arange[1] + a_arange[0])/2
     c = np.zeros((m+1))
 
     for o in range(m+1):
-        c[o] = np.sum(f.g[0](a1*np.cos(pi*(np.arange(N) + 0.5)/N) + a2)*np.cos(pi*o*(np.arange(N) + 0.5)/N)) * 2./N
+        c[o] = np.sum(f.g[i](a1*np.cos(pi*(np.arange(N) + 0.5)/N) + a2)*np.cos(pi*o*(np.arange(N) + 0.5)/N)) * 2./N
 
     return c
 
@@ -458,15 +455,16 @@ def cheby_op(G, c, signal, **kwargs):
         Result if the filtering
 
     """
-    Nscales = len(c[1])
 
-    M = len(c[0])
+    # M = np.shape(c)[0]
+    # Nscales = np.shape(c)[1]
+    Nscales = len(c)
+    M = np.shape(c[0])[0]
+
     try:
         M >= 2
     except:
         print("The signal has an invalid shape")
-
-    maxM = np.max(M)
 
     if not hasattr(G, 'lmax'):
         G.lmax = utils.estimate_lmax(G)
@@ -480,20 +478,20 @@ def cheby_op(G, c, signal, **kwargs):
     a2 = float(a_arange[1]+a_arange[0])/2
 
     twf_old = signal
-    twf_cur = (G.L * signal - a2 * signal)/a1
+    twf_cur = (np.dot(G.L.todense(), signal) - a2 * signal)/a1
 
-    Nv = signal.shape[1]# len(signal[1])
+    Nv = signal.shape[1]
+    # len(signal[1])
     r = np.zeros((G.N * Nscales, Nv))
 
     for i in range(Nscales):
-        r[np.arange(G.N) + G.N * (i)] = 0.5 * c[0][i] * twf_old + c[1][i] * twf_cur
+        r[np.arange(G.N) + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
 
-    for k in range(maxM + 1):
-        twf_new = (2/a1) * (G.L * twf_cur-a2 * twf_cur) - twf_old
+    for k in range(2, M+1):
+        twf_new = (2./a1) * (np.dot(G.L.todense(), twf_cur) - a2*twf_cur) - twf_old
         for i in range(Nscales):
-            if k+1 < M:
-                r[np.arange(G.N) + G.N * (i-1)] = r[np.arange(G.N)+G.N *
-                                                    (i-1)] + c[k][i] * twf_new
+            if k + 1 <= M:
+                r[np.arange(G.N) + G.N*i] += c[i][k]*twf_new
 
         twf_old = twf_cur
         twf_cur = twf_new
@@ -537,7 +535,7 @@ def full_eigen(L):
 
 
 @utils.graph_array_handler
-def create_laplacian(G, lap_type=None):
+def create_laplacian(G, lap_type=None, get_laplacian_only=True):
     r"""
     Create the graph laplacian of graph G
 
@@ -547,6 +545,9 @@ def create_laplacian(G, lap_type=None):
     lap_type (string) : the laplacian type to use.
         Defalut is the lap_type of the G struct.
         If G does not have one, it will be "combinatorial"
+    get_laplacian_only (bool) : - True return each Laplacian in an array
+                                - False set each Laplacian in each graphs.
+        Defalut is True
 
     Returns
     -------
@@ -586,7 +587,11 @@ def create_laplacian(G, lap_type=None):
             L = sparse.lil_matrix(0)
         else:
             raise AttributeError('Unknown laplacian type!')
+
+    if get_laplacian_only:
         return L
+    else:
+        G.L = L
 
 
 def kernel_meyer(x, kerneltype):

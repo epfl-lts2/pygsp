@@ -11,7 +11,7 @@ from numpy import linalg
 from copy import deepcopy
 import scipy as sp
 import scipy.optimize
-
+import pygsp
 from pygsp import utils, operators
 
 
@@ -29,8 +29,7 @@ class Filter(object):
             G.lmax = utils.estimate_lmax(G)
             self.G = G
 
-    @utils.graph_array_handler
-    def analysis(self, G, s, exact=True, cheb_order=30, **kwargs):
+    def analysis(self, G, s, method=None, cheb_order=30, **kwargs):
         r"""
         Operator to analyse a filterbank
 
@@ -66,27 +65,49 @@ class Filter(object):
         .. bibliography:: project.bib
 
         """
+        if type(G) is list:
+            output = []
+            for i in range(len(self.g)):
+                output.append(g[i].analysis(G[i]), s[i], method=method, cheb_order=cheb_order, **kwargs)
+
+            return output
+
+        if not method:
+            if hasattr(G, 'U'):
+                method = 'exact'
+
+            else:
+                method = 'cheby'
+
         Nf = len(self.g)
 
-        if exact:
+        if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
-                G = operators.compute_fourier_basis(G)
-            Nv = s.shape[1]
-            c = np.zeros((G.N * Nf, Nv))
+                if self.verbose:
+                    print('The Fourier matrix is not available. The function will compute it for you. ')
+                operators.compute_fourier_basis(G)
 
+            Nv = np.shape(s)[1]
+            c = np.zeros((G.N * Nf, Nv))
             fie = self.evaluate(G.e)
 
             for i in range(Nf):
-                c[np.arange(G.N) + G.N * (i-1)] =\
-                    operators.igft(G, sp.kron(sp.ones((fie[0][i], 1)), Nv) *
-                                   operators.gft(G, s))
+                c[np.arange(G.N) + G.N*i] = operators.igft(G, np.kron(np.ones((1, Nv)), fie[:][i]) * operators.gft(G, s))
 
-        else:  # Chebyshev approx
+        elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
-                G = utils.estimate_lmax(G)
+                if self.verbose:
+                    print('FILTER_ANALYSIS: The variable lmax is not available. The function will compute it for you')
+                utils.estimate_lmax(G)
 
-            cheb_coef = operators.compute_cheby_coeff(self.g, G, m=cheb_order)
+            cheb_coef = operators.compute_cheby_coeff(self, G, m=cheb_order)
             c = operators.cheby_op(G, cheb_coef, s)
+
+        elif method == 'lanczos':
+            raise NotImplementedError
+
+        else:
+            raise ValueError('Unknown method: please select exact, cheby or lanczos')
 
         return c
 
@@ -130,7 +151,7 @@ class Filter(object):
         raise NotImplementedError
 
     @utils.graph_array_handler
-    def synthesis(self, G, c, order=30, verbose=True, method=None, **kwargs):
+    def synthesis(self, G, c, order=30, method=None, **kwargs):
         r"""
         Synthesis operator of a filterbank
 
@@ -170,7 +191,7 @@ class Filter(object):
 
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
-                if verbose:
+                if self.verbose:
                     print("The Fourier matrix is not available. The function will compute it for you. However, if you apply many time this function, you should precompute it using the function: compute_fourier_basis")
                 operators.compute_fourier_basis(G)
 
@@ -180,17 +201,17 @@ class Filter(object):
 
             for i in range(Nf):
                 s += operators.igft(np.conjugate(G.U),
-                                    np.kron(np.ones((1, Nv)), fie[:, i])*operators.gft(G, c[G.N*i + range(G.N)]))
+                                    np.kron(np.ones((1, Nv)), fie[:][i])*operators.gft(G, c[G.N*i + range(G.N)]))
 
             return s
 
         elif method == 'cheby':
             if hasattr(G, 'lmax'):
-                if verbose:
+                if self.verbose:
                     print('The variable lmax is not available. The function will compute it for you. However, if you apply many time this function, you should precompute it using the function: ')
                 utils.estimate_lmax(G)
 
-            cheb_coeffs = operators(self, G, m=order, N=order+1)
+            cheb_coeffs = operators.compute_cheby_coeff(self, G, m=order, N=order+1)
             s = np.zeros((G.N, np.shape(c)[1]))
 
             for i in range(Nf):
@@ -202,7 +223,7 @@ class Filter(object):
             s = np.zeros((G.N, np.shape(c)[1]))
 
             for i in range(Nf):
-                s += utils.lanczos_op(G, self[i], c[i*G.N + range(G.N)], order=order, verbose=verbose)
+                s += utils.lanczos_op(G, self[i], c[i*G.N + range(G.N)], order=order, verbose=self.verbose)
 
             return s
 
@@ -215,11 +236,82 @@ class Filter(object):
     def tighten(G):
         raise NotImplementedError
 
-    def bank_bounds(G, **kwargs):
-        raise NotImplementedError
+    def filterbank_bounds(self, G, N=999, use_eigenvalues=True):
+        r"""
+        Compute approximate frame bounds for a filterbank.
 
-    def bank_matrix(G, **kwargs):
-        raise NotImplementedError
+        Parameters
+        ----------
+        G : Graph structure or interval to compute the bound (given in an ndarray).
+            G = Logo() or G = np.array([xmin, xnmax])
+        N : Number of point for the line search
+            Default is 999
+        use_eigenvalues : Use eigenvalues if possible . To be used, the eigenvalues have to be computed first using
+            Default is True
+
+        Returns
+        -------
+        A   : Filterbank lower bound
+        B   : Filterbank Upper bound
+        """
+        if type(G) is list:
+            output = []
+            for i in range(len(self.g)):
+                output.append(g[i].analysis(G[i]), N=N, use_eigenvalues=use_eigenvalues)
+
+            return output
+
+        if isinstance(G, pygsp.graphs.Graph):
+            if not hasattr(G, 'lmax'):
+                estimate_lmax(G)
+                print('FILTERBANK_BOUNDS: Had to estimate lmax.')
+            xmax = G.lmax
+            xmin = 0
+        else:
+            xmin = G[0]
+            xmax = G[1]
+
+        if use_eigenvalues and isinstance(G, pygsp.graphs.Graph) and hasattr(G, 'E'):
+            lamba = G.E
+        else:
+            lamba = np.linspace(xmin, xmax, N)
+
+        Nf = len(self.g)
+        sum_filters = np.sum(np.abs(np.power(self.evaluate(lamba), 2)), axis=1)
+
+        A = np.min(sum_filters)
+        B = np.max(sum_filters)
+
+        return A, B
+
+    def filterbank_matrix(self, G):
+        r"""
+        Create the matrix of the filterbank frame.
+
+        This function create the matrix associated to the filterbank g. The
+        size of the matrix is MN x N, where M is the number of filters.
+
+        Parameters
+        ----------
+        G : Graph
+        verbose (bool) : False no log, True print all steps.
+            Default is True
+
+        Returns
+        -------
+        F : Frame
+        """
+        if self.verbose and G.N > 2000:
+            print('Waring. Create a big matrix, you can use other methods.')
+
+        Nf = len(self.g)
+        Ft = self.analysis(G, np.identity(G.N))
+        F = np.zeros(np.shape(Ft.transpose()))
+
+        for i in range(Nf):
+            F[:, G.N*i + np.arange(G.N)] = Ft[G.N*i + np.arange(G.N)]
+
+        return F
 
     def wlog_scales(self, lmin, lmax, Nscales, t1=1, t2=2):
         r"""
@@ -412,7 +504,6 @@ class HalfCosine(Filter):
     G : Graph
     Nf = int
         Number of filters from 0 to lmax (default = 6)
-
     Returns
     -------
     out : HalfCosine
@@ -430,17 +521,46 @@ class HalfCosine(Filter):
 
         g = []
 
-        for i in range(1, Nf+1):
-            g.append(lambda x, ind=i: main_window(x - dila_fact/3. * (ind-3)))
+        for i in range(Nf):
+            g.append(lambda x, ind=i: main_window(x - dila_fact/3. * (ind-2)))
 
         self.g = g
 
 
 class Itersine(Filter):
+    r"""
+    Create a itersine filterbanks
 
-    def __init__(self, G, Nf, **kwargs):
+    This function create a itersine half overlap filterbank of Nf filters
+    Going from 0 to lambda_max
+
+    Parameters
+    ----------
+    G : Graph
+    Nf = int
+        Number of filters from 0 to lmax (default = 6)
+    verbose (bool) : verbosity level: 0 no log - 1 display warnings.
+        Default is True
+    overlap: Overlap
+        Default is 2
+
+
+    Returns
+    -------
+    out : Itersine
+
+    """
+    def __init__(self, G, Nf=6, overlap=2., **kwargs):
         super(Itersine, self).__init__(G, **kwargs)
-        raise NotImplementedError
+
+        k = lambda x: np.sin(0.5*pi*np.power(np.cos(x*pi), 2)) * ((x >= -0.5)*(x <= 0.5))
+        scale = G.lmax/(Nf - overlap + 1.)*overlap
+        g = []
+
+        for i in range(1, Nf + 1):
+            g.append(lambda x, ind=i: k(x/scale - (ind - overlap/2.)/overlap) / np.sqrt(overlap)*np.sqrt(2))
+
+        self.g = g
 
 
 class MexicanHat(Filter):
@@ -518,10 +638,11 @@ class Meyer(Filter):
         super(Meyer, self).__init__(G, **kwargs)
 
         if not hasattr(G, 't'):
-            G.t = (4/(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
+            G.t = (4./(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
 
-        if len(G.t) >= Nf-1:
-            print('You have specified more scales than  the number of scales minus 1')
+        if self.verbose:
+            if len(G.t) >= Nf-1:
+                print('You have specified more scales than  the number of scales minus 1')
 
         t = G.t
 
@@ -582,8 +703,10 @@ class SimpleTf(Filter):
     Parameters
     ----------
     G : Graph
-    Nf (int) : Number of filters from 0 to lmax
-    t (ndarray) : Vector of scale to be used (Initialized by default at the value of the log scale)
+    Nf : int
+        Number of filters from 0 to lmax
+    t : ndarray
+        Vector of scale to be used (Initialized by default at the value of the log scale)
 
     Returns
     -------
@@ -755,7 +878,7 @@ class Simoncelli(Filter):
 
     """
 
-    def __init__(self, G, a=2./3, verbose=False, **kwargs):
+    def __init__(self, G, a=2./3, **kwargs):
         super(Simoncelli, self).__init__(G, **kwargs)
 
         g = [lambda x: simoncelli(x * (2./G.lmax), a)]
