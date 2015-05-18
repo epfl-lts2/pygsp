@@ -265,8 +265,9 @@ class Filter(object):
             if not hasattr(G, 'lmax'):
                 estimate_lmax(G)
                 print('FILTERBANK_BOUNDS: Had to estimate lmax.')
-            xmax = G.lmax
             xmin = 0
+            xmax = G.lmax
+
         else:
             xmin = G[0]
             xmax = G[1]
@@ -276,12 +277,12 @@ class Filter(object):
                 lamba = G.e
 
             else:
-                print('You need to calculate and set the eigenvalues to normalize the kernel)
+                raise ValueError('You need to calculate and set the eigenvalues to normalize the kernel: use compute_fourier_basis.')
         else:
             lamba = np.linspace(xmin, xmax, N)
 
         Nf = len(self.g)
-        sum_filters = np.sum(np.abs(np.power(self.evaluate(lamba), 2)), axis=1)
+        sum_filters = np.sum(np.abs(np.power(self.evaluate(lamba), 2)), axis=0)
 
         A = np.min(sum_filters)
         B = np.max(sum_filters)
