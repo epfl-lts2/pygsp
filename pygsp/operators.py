@@ -165,7 +165,7 @@ def gft(G, f):
     return U.transpose().conjugate()*f
 
 
-def gwft(G, g, f, verbose=1, lowmemory=True):
+def gwft(G, g, f, lowmemory=True, verbose=True):
     r"""
     Graph windowed Fourier transform
 
@@ -174,9 +174,10 @@ def gwft(G, g, f, verbose=1, lowmemory=True):
     G : Graph
     g : Window (graph signal or kernel)
     f : Graph signal (column vector)
-    verbose (int) : 0 no log, 1 print main steps, 2 print all steps
-        Default is 1
     lowmemory (bool) : use less memory
+        Default is True
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
         Default is True
 
     Returns
@@ -214,7 +215,7 @@ def gwft(G, g, f, verbose=1, lowmemory=True):
     return C
 
 
-def gwft2(G, f, k, verbose=1):
+def gwft2(G, f, k, verbose=True):
     r"""
     Graph windowed Fourier transform
 
@@ -223,7 +224,9 @@ def gwft2(G, f, k, verbose=1):
     G : Graph
     f : Graph signal
     k : kernel
-    param : Structure of optional parameter
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
 
     Returns
     -------
@@ -240,7 +243,7 @@ def gwft2(G, f, k, verbose=1):
     return C
 
 
-def gwft_frame_matrix(G, g, verbose=1):
+def gwft_frame_matrix(G, g, verbose=True):
     r"""
     Create the matrix of the GWFT frame
 
@@ -248,14 +251,15 @@ def gwft_frame_matrix(G, g, verbose=1):
     ----------
     G : Graph
     g : window
-    verbose : 0 no log, 1 print main steps
-        default is 1.
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
 
     Returns
     -------
         F : Frame
     """
-    if verbose == 1 and G.N > 256:
+    if verbose and G.N > 256:
         print("It will create a big matrix. You can use other methods.")
 
     ghat = G.U.transpose()*g
@@ -295,7 +299,7 @@ def igft(G, f_hat):
     return f_hat*U
 
 
-def ngwft(G, f, g, verbose=1, lowmemory=True):
+def ngwft(G, f, g, lowmemory=True, verbose=True):
     r"""
     Normalized graph windowed Fourier transform
 
@@ -304,8 +308,9 @@ def ngwft(G, f, g, verbose=1, lowmemory=True):
     G : Graph
     f : Graph signal
     g : window
-    verbose : 0 no log, 1 print main steps
-        default is 1
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
     lowmemory : use less memory.
         default is True.
 
@@ -340,7 +345,7 @@ def ngwft(G, f, g, verbose=1, lowmemory=True):
     return C
 
 
-def ngwft_frame_matrix(G, g, verbose=1):
+def ngwft_frame_matrix(G, g, verbose=True):
     r"""
     Create the matrix of the GWFT frame
 
@@ -348,13 +353,14 @@ def ngwft_frame_matrix(G, g, verbose=1):
     ----------
     G : Graph
     g : window
-    verbose : 0 no log, 1 print main steps
-        default is 1
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
 
     Output parameters:
     F : Frame
     """
-    if verbose >= 1 and G.N > 256:
+    if verbose and G.N > 256:
         print('It will create a big matrix, you can use other methods.')
 
     ghat = G.U.transpose()*g
@@ -592,6 +598,52 @@ def create_laplacian(G, lap_type=None, get_laplacian_only=True):
         return L
     else:
         G.L = L
+
+
+def lanczos_op(fi, s, G=None, order=30, verbose=True):
+    r"""
+    Perform the lanczos approximation of the signal s
+
+    Parameters
+    ----------
+    fi: Filter or list of filters
+    s : ndarray
+        Signal to approximate.
+    G (Graph) : Graph
+    order : int
+        Degree of the lanczos approximation
+        Defalut is 30
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
+
+
+
+    Returns
+    -------
+    L : ndarray
+        lanczos approximation of s
+    """
+    if not G:
+        G = fi.G
+
+    Nf = len(fi.g)
+    Nv = np.shape(s)[1]
+    c = np.zeros((G.N))
+
+    for j in range(Nv):
+        V, H = lanczos(G.L, order, s[:, j])
+        Uh, Eh = np.linalg.eig(H)
+        V = np.dot(V, Uh)
+
+        Eh = np.diagonal(Eh)
+        Eh = np.where(Eh < 0, 0, Eh)
+        fie = fi.evaluate(Eh)
+
+        for i in range(Nf):
+            c[range(G.N) + i*G.N, j] = np.dot(V, fie[:, i] * np.dot(np.transpose(V), s[:, j]))
+
+    return c
 
 
 def localize(G, g, i):

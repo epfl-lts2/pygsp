@@ -84,7 +84,7 @@ class Filter(object):
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
                 if self.verbose:
-                    print('The Fourier matrix is not available. The function will compute it for you. ')
+                    print('The Fourier matrix is not available. The function will compute it for you.')
                 operators.compute_fourier_basis(G)
 
             Nv = np.shape(s)[1]
@@ -97,7 +97,7 @@ class Filter(object):
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
                 if self.verbose:
-                    print('FILTER_ANALYSIS: The variable lmax is not available. The function will compute it for you')
+                    print('FILTER_ANALYSIS: The variable lmax is not available. The function will compute it for you.')
                 utils.estimate_lmax(G)
 
             cheb_coef = operators.compute_cheby_coeff(self, G, m=cheb_order)
@@ -192,7 +192,7 @@ class Filter(object):
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
                 if self.verbose:
-                    print("The Fourier matrix is not available. The function will compute it for you. However, if you apply many time this function, you should precompute it using the function: compute_fourier_basis")
+                    print("The Fourier matrix is not available. The function will compute it for you.")
                 operators.compute_fourier_basis(G)
 
             fie = self.evaluate(G)
@@ -208,7 +208,7 @@ class Filter(object):
         elif method == 'cheby':
             if hasattr(G, 'lmax'):
                 if self.verbose:
-                    print('The variable lmax is not available. The function will compute it for you. However, if you apply many time this function, you should precompute it using the function: ')
+                    print('The variable lmax is not available. The function will compute it for you.')
                 utils.estimate_lmax(G)
 
             cheb_coeffs = operators.compute_cheby_coeff(self, G, m=order, N=order+1)
@@ -271,8 +271,12 @@ class Filter(object):
             xmin = G[0]
             xmax = G[1]
 
-        if use_eigenvalues and isinstance(G, pygsp.graphs.Graph) and hasattr(G, 'E'):
-            lamba = G.E
+        if use_eigenvalues and isinstance(G, pygsp.graphs.Graph):
+            if hasattr(G, 'e'):
+                lamba = G.e
+
+            else:
+                print('You need to calculate and set the eigenvalues to normalize the kernel)
         else:
             lamba = np.linspace(xmin, xmax, N)
 
@@ -513,6 +517,9 @@ class HalfCosine(Filter):
     def __init__(self, G, Nf=6, **kwargs):
         super(HalfCosine, self).__init__(G, **kwargs)
 
+        if Nf <= 2:
+            raise ValueError('The number of filters must be higher than 2.')
+
         dila_fact = G.lmax * (3./(Nf - 2))
 
         main_window = lambda x: np.multiply(np.multiply((.5 + .5*np.cos(2.*pi*(x/dila_fact - 1./2))),
@@ -609,7 +616,7 @@ class MexicanHat(Filter):
 
         for i in range(Nf-1):
             if normalize:
-                g.append(lambda x, ind=i: np.sqrt(t[i]) * gb(self.t[ind] * x))
+                g.append(lambda x, ind=i: np.sqrt(t[ind]) * gb(self.t[ind] * x))
             else:
                 g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
@@ -671,9 +678,9 @@ class Meyer(Filter):
 
             x = np.array(x)
 
-            l1 = 2./3.
-            l2 = 4./3.
-            l3 = 8./3.
+            l1 = 2/3.
+            l2 = 4/3.
+            l3 = 8/3.
 
             v = lambda x: x ** 4. * (35 - 84*x + 70*x**2 - 20*x**3)
 
@@ -841,22 +848,22 @@ class Regular(Filter):
     def __init__(self, G, d=3, **kwargs):
         super(Regular, self).__init__(G, **kwargs)
 
-        g = [lambda x: regular(x * (2/G.lmax), d)]
-        g.append(lambda x: np.real(np.sqrt(1-(regular(x * (2/G.lmax), d))
+        g = [lambda x: regular(x * (2./G.lmax), d)]
+        g.append(lambda x: np.real(np.sqrt(1 - (regular(x * (2./G.lmax), d))
                                            ** 2)))
 
         self.g = g
 
         def regular(val, d):
             if d == 0:
-                return np.sin(pi / 4*val)
+                return np.sin(pi / 4.*val)
 
             else:
-                output = np.sin(pi*(val - 1) / 2)
+                output = np.sin(pi*(val - 1) / 2.)
                 for i in range(2, d):
-                    output = np.sin(pi*output / 2)
+                    output = np.sin(pi*output / 2.)
 
-                return np.sin(pi / 4*(1 + output))
+                return np.sin(pi / 4.*(1 + output))
 
 
 class Simoncelli(Filter):
@@ -976,11 +983,11 @@ class Heat(Filter):
 
         g = []
         if normalize:
-            if not hasattr(G, 'E'):
-                raise ValueError('You need the eigenvalues to normalize the kernel')
+            if not hasattr(G, 'e'):
+                raise ValueError('You need to calculate and set the eigenvalues to normalize the kernel')
 
             gu = lambda x: np.exp(-tau * x/G.lmax)
-            ng = linalg.norm(gu(G.E))
+            ng = linalg.norm(gu(G.e))
             g.append(lambda x: np.exp(-tau * x/G.lmax / ng))
 
         else:
