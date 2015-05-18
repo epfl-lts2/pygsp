@@ -26,7 +26,10 @@ def plot(O, **kwargs):
     --------
     >>> from pygsp import graphs, plotting
     >>> sen = graphs.Logo()
-    >>> plotting.plot(sen)
+    >>> try:
+    >>>     plotting.plot(sen)
+    >>> except:
+    >>>     pass
 
     """
 
