@@ -594,45 +594,6 @@ def create_laplacian(G, lap_type=None, get_laplacian_only=True):
         G.L = L
 
 
-def kernel_meyer(x, kerneltype):
-    r"""
-    Evaluates Meyer function and scaling function
-
-    Parameters
-    ----------
-    x (ndarray) : Array of independant variables values
-    kerneltype (str) : Can be either 'sf' or 'wavelet'
-
-    Returns
-    -------
-    r : ndarray
-
-    """
-    l1 = 2./3.
-    l2 = 4./3.
-    l3 = 8./3.
-
-    v = lambda x: x ** 4. * (35-84 * x+70 * x ** 2-20 * x ** 3)
-    print(x)
-
-    r1ind = np.extract(x.any() >= 0 and x < l1, x)
-    r2ind = np.extract(x.any() >= l1 and x < l2, x)
-    r3ind = np.extract(x.any() >= l2 and x < l3, x)
-
-    r = np.empty(x.shape)
-    if kerneltype is 'df':
-        r[r1ind] = 1
-        r[r2ind] = np.cos((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
-    if kerneltype is 'wavelet':
-        print(r2ind)
-        r[r2ind] = np.sin((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
-        r[r3ind] = np.cos((pi/2) * v[np.abs(x[r3ind])/l2 - 1])
-    else:
-        raise('Unknown kernel type ', kerneltype)
-
-        return r
-
-
 def localize(G, g, i):
     r"""
     Localize a kernel g to the node i
