@@ -136,14 +136,18 @@ def grad_mat(G):
     return D
 
 
-def gft(G, f):
+def gft(G, f, verbose=True):
     r"""
     Graph Fourier transform
 
     Parameters
     ----------
     G : Graph or Fourier basis
-    f : f (signal)
+    f : ndarray  - must be in 2d, even if the second dim is 1
+        signal
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
 
     Returns
     -------
@@ -152,9 +156,9 @@ def gft(G, f):
 
     if isinstance(G, pygsp.graphs.Graph):
         if not hasattr(G, 'U'):
-            raise AttributeError('You need first to compute the Fourier basis.\
-                                  You can do it with the function \
-                                 compute_fourier_basis')
+            if verbose:
+                print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+            compute_fourier_basis(G)
 
         else:
             U = G.U
@@ -162,7 +166,7 @@ def gft(G, f):
     else:
         U = G
 
-    return U.transpose().conjugate()*f
+    return np.dot(np.transpose(np.conjugate(U)), f)
 
 
 def gwft(G, g, f, lowmemory=True, verbose=True):
@@ -187,30 +191,32 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     Nf = np.shape(f)[1]
 
     if not hasattr(G, 'U'):
-        raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+        if verbose:
+            print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        compute_fourier_basis(G)
 
     # if iscell(g)
     #    g = gsp_igft(G,g{1}(G.e))
 
     if hasattr(g, 'function_handle'):
-        g = gsp_igft(G, g(G.e))
+        g = gsp_igft(G, g.g[0](G.e))
 
     if not lowmemory:
         # Compute the Frame into a big matrix
         Frame = gwft_frame_matrix(G, g, verbose=verbose)
 
-        C = Frame.transpose()*f
+        C = np.dot(Frame.transpose(), f)
         C = C.reshape(G.N, G.N, Nf)
 
     else:
         # Compute the translate of g
-        ghat = G.U.transpose()*g
-        Ftrans = np.sqrt(G.N)*G.U*(np.kron(np.ones((G.N)), ghat)*G.U.transpose())
+        ghat = np.dot(G.U.transpose(), g)
+        Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.transpose()))
         C = zeros((G.N, G.N))
 
-        for jj in range(Nf):
-            for ii in range(G.N):
-                C[:, ii, jj] = (np.kron(np.ones((G.N)), 1./G.U[:, 1])*G.U*np.kron(np.ones((G.N)), Ftrans[:, ii])).transpose()*f[:, jj]
+        for j in range(Nf):
+            for i in range(G.N):
+                C[:, i, j] = (np.kron(np.ones((G.N)), 1./G.U[:, 0])*G.U*np.dot(np.transpose(np.kron(np.ones((G.N)), Ftrans[:, i]))), f[:, j])
 
     return C
 
@@ -232,13 +238,15 @@ def gwft2(G, f, k, verbose=True):
     -------
     C : Coefficient.
     """
-    if not hasattr(G, 'E'):
-        raise ValueError('You need first to compute the Fourier basis .You can do it with the function compute_fourier_basis.')
+    if not hasattr(G, 'e'):
+        if verbose:
+            print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        compute_fourier_basis(G)
 
     g = filters.gabor_filterbank(G, k)
 
     C = filters.analysis(G, g, f, verbose=verbose)
-    C = transpose(vec2mat(C, G.N))
+    C = np.transpose(vec2mat(C, G.N))
 
     return C
 
@@ -262,15 +270,15 @@ def gwft_frame_matrix(G, g, verbose=True):
     if verbose and G.N > 256:
         print("It will create a big matrix. You can use other methods.")
 
-    ghat = G.U.transpose()*g
-    Ftrans = np.sqrt(G.N)*G.U*np.kron(np.ones((1, G.N)), ghat)*G.U.transpose()
+    ghat = np.dot(np.transpose(G.U), g)
+    Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*np.transpose(G.U)))
 
     F = utils.repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
 
     return F
 
 
-def igft(G, f_hat):
+def igft(G, f_hat, verbose=True):
     r"""
     Inverse graph Fourier transform
 
@@ -278,6 +286,9 @@ def igft(G, f_hat):
     ----------
     G : Graph or Fourier basis
     f_hat : Signal
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
 
     Returns
     -------
@@ -286,9 +297,9 @@ def igft(G, f_hat):
     """
     if isinstance(G, pygsp.graphs.Graph):
         if not hasattr(G, 'U'):
-            raise AttributeError('You need first to compute the Fourier basis.\
-                                  You can do it with the function \
-                                 compute_fourier_basis')
+            if verbose:
+                print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+            compute_fourier_basis(G)
 
         else:
             U = G.U
@@ -296,7 +307,7 @@ def igft(G, f_hat):
     else:
         U = G
 
-    return f_hat*U
+    return np.dot(f_hat, U)
 
 
 def ngwft(G, f, g, lowmemory=True, verbose=True):
@@ -311,7 +322,8 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
     verbose : bool
         Verbosity level (False no log - True display warnings)
         Default is True
-    lowmemory : use less memory.
+    lowmemory : bool
+        use less memory.
         default is True.
 
     Returns
@@ -320,27 +332,29 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
     """
 
     if not hasattr(G, 'U'):
-        raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+        if verbose:
+            print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        compute_fourier_basis(G)
 
     if lowmemory:
         # Compute the Frame into a big matrix
         Frame = ngwft_frame_matrix(G, g, verbose=verbose)
-        C = Frame.transpose()*f
+        C = np.dot(np.transpose(Frame), f)
         C = C.reshape(G.N, G.N)
 
     else:
         # Compute the translate of g
-        ghat = G.U.transpose()*g
-        Ftrans = np.sqrt(G.N)*G.U*np.kron(np.ones((1, G.N)), ghat)*G.U.transpose()
-
+        ghat = np.dot(np.transpose(G.U), g)
+        Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*np.transpose(G.U)))
         C = np.zeros((G.N, G.N))
+
         for i in range(G.N):
             atoms = np.kron(np.ones((G.N)), 1./G.U[:, 0])*G.U*np.kron(np.ones((G.N)), Ftrans[:, i]).transpose()
 
             # normalization
             atoms /= np.kron((np.ones((G.N))), np.sqrt(np.sum(np.abs(atoms),
                                                               axis=0)))
-            C[:, i] = atoms*f
+            C[:, i] = np.dot(atoms, f)
 
     return C
 
@@ -363,8 +377,8 @@ def ngwft_frame_matrix(G, g, verbose=True):
     if verbose and G.N > 256:
         print('It will create a big matrix, you can use other methods.')
 
-    ghat = G.U.transpose()*g
-    Ftrans = np.sqrt(g.N)*G.U*(np.kron(np.ones((G.N)), ghat)*G.U.transpose())
+    ghat = np.dot(np.transpose(G.U), g)
+    Ftrans = np.sqrt(g.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*np.transpose(G.U)))
 
     F = repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
 
@@ -413,7 +427,7 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
         Maximum order of Chebyshev coeff to compute (default = 30)
     N : int
         Grid order used to compute quadrature (default = m + 1)
-    i = int
+    i : int
         Indice of the Filterbank element to compute
 
     Returns
@@ -463,17 +477,12 @@ def cheby_op(G, c, signal, **kwargs):
         Result if the filtering
 
     """
+    # With that way, we can handle if we do not have a list of filter but only a simple filter.
+    if type(c) != list:
+        c = [c]
 
-    #With that way, we can handle if we do not have a list of filter but only a simport filter.
-    try:
-        M = np.shape(c[0])[0]
-        Nscales = len(c)
-        dimun = False
-
-    except IndexError:
-        Nscales = 1
-        M = np.shape(c)[0]
-        dimun = True
+    M = np.shape(c[0])[0]
+    Nscales = len(c)
 
     try:
         M >= 2
@@ -486,6 +495,14 @@ def cheby_op(G, c, signal, **kwargs):
     if signal.dtype == 'float32':
         signal = np.float64(signal)
 
+    # thanks to that, we can also have 1d signal.
+    try:
+        Nv = np.shape(signal)[1]
+        r = np.zeros((G.N * Nscales, Nv))
+    except IndexError:
+        r = np.zeros((G.N * Nscales, 1))
+        signal = np.expand_dims(signal, axis=1)
+
     a_arange = [0, G.lmax]
 
     a1 = float(a_arange[1]-a_arange[0])/2
@@ -493,26 +510,15 @@ def cheby_op(G, c, signal, **kwargs):
 
     twf_old = signal
     twf_cur = (np.dot(G.L.todense(), signal) - a2 * signal)/a1
+    print(np.shape(twf_cur))
 
-    Nv = signal.shape[1]
-    # len(signal[1])
-    r = np.zeros((G.N * Nscales, Nv))
-
-    if dimun:
-            r[np.arange(G.N)] = 0.5*c[0]*twf_old + c[1]*twf_cur
-    if not dimun:
-        for i in range(Nscales):
-            r[np.arange(G.N) + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
-
+    for i in range(Nscales):
+        r[np.arange(G.N) + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
     for k in range(2, M+1):
         twf_new = (2./a1) * (np.dot(G.L.todense(), twf_cur) - a2*twf_cur) - twf_old
-
         for i in range(Nscales):
             if k + 1 <= M:
-                if dimun:
-                    r[np.arange(G.N)] += c[k]*twf_new
-                if not dimun:
-                    r[np.arange(G.N) + G.N*i] += c[i][k]*twf_new
+                r[np.arange(G.N) + G.N*i] += c[i][k]*twf_new
 
         twf_old = twf_cur
         twf_cur = twf_new
