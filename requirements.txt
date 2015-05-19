@@ -6,6 +6,7 @@ sphinx
 numpydoc
 matplotlib
 sphinxcontrib-bibtex
+sphinx-rtd-theme
 
 # Required for packaging.
 wheel

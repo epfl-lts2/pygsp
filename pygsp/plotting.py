@@ -184,6 +184,8 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
     >>> plotting.plot_filter(mh)
 
     """
+    if not isinstance(filters.g, list):
+        filters.g = [filters.g]
     if plot_eigenvalues is None:
         plot_eigenvalues = hasattr(G, 'e')
     if show_sum is None:

@@ -392,6 +392,8 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
         if not hasattr(G, 'L'):
             raise AttributeError("Graph Laplacian is missing")
         G.e, G.U = full_eigen(G.L)
+        G.e = np.array(G.e)
+        G.U = np.array(G.U)
 
     G.lmax = np.max(G.e)
 

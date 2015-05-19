@@ -120,14 +120,14 @@ class Graph(object):
     ----------
     W (sparse) : weights matrix
         default is empty
-    A (sparse) : adjancency matrix
+    A (sparse) : adjacency matrix
         default is constructed with W
     N (int) : number of nodes
         default is the lenght of the first dimension of W
     d (float) : degree vector
         default
     Ne (int) : edge number
-    gtype (strnig) : graph type
+    gtype (string) : graph type
         default is "unknown"
     directed (bool) : whether the graph is directed
         default depending of the previous values
