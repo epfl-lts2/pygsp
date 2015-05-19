@@ -38,8 +38,8 @@ class Filter(object):
         G : Graph object
         s : ndarray
             graph signal to analyse
-        exact : bool
-            wether using an exact method or cheby approx
+        method : string
+            wether using an exact method, cheby approx or lanczos
         cheb_order : int
             Order for chebyshev
 
