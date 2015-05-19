@@ -47,9 +47,9 @@ class PointsCloud(object):
     (see reference).
 
 
-    Reference
+    References
     ----------
-    :cite:`turk1994zippered`
+    See :cite:`turk1994zippered` for more informations.
 
     """
 
@@ -767,6 +767,10 @@ class Torus(Graph):
     >>> Nv = 32
     >>> G = graphs.Torus(Nv=Nv)
 
+    References
+    ----------
+    See :cite:`strang1999discrete` for more informations.
+
     """
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
@@ -1290,6 +1294,10 @@ class Minnesota(Graph):
     >>> from pygsp import graphs
     >>> G = graphs.Minnesota()
 
+    References
+    ----------
+    See :cite:`gleich`
+
     """
 
     def __init__(self, connect=True):
@@ -1633,6 +1641,7 @@ class Path(Graph):
     >>> from pygsp import graphs
     >>> G = graphs.Path(N=16)
 
+    See :cite:`strang1999discrete` for more informations.
     """
 
     def __init__(self, N=16):

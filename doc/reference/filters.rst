@@ -67,10 +67,10 @@ SimpleTf
     :show-inheritance:
     :members:
 
-WarpedTranslat
---------------
+WarpedTranslates
+----------------
 
-.. autoclass:: pygsp.filters.WarpedTranslat
+.. autoclass:: pygsp.filters.WarpedTranslates
     :undoc-members:
     :show-inheritance:
     :members:
