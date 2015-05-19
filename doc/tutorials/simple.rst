@@ -2,10 +2,11 @@
 Simple problem
 ==============
 
-This simplistic example is only meant to demonstrate the basic workflow of the
-toolbox.
+This example demonstrates how to create a graph, a filter and analyse a signal on the graph.
 
 >>> import pygsp
->>> y = [4, 5, 6, 7]
->>> pygsp.graphs.dummy(1, y, True)
-array([4, 5, 6, 7])
+>>> G = pygsp.graphs.Logo()
+>>> f = pygsp.filters.Heat(G)
+<class 'pygsp.filters.Heat'> : has to compute lmax
+>>> f.analysis(G, G.L, method='cheby')
+
