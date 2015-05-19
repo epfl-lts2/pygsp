@@ -166,7 +166,7 @@ def gft(G, f, verbose=True):
     else:
         U = G
 
-    return U.transpose().conjugate()*f
+    return np.dot(np.transpose(np.conjugate(U)), f)
 
 
 def gwft(G, g, f, lowmemory=True, verbose=True):
@@ -199,24 +199,24 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     #    g = gsp_igft(G,g{1}(G.e))
 
     if hasattr(g, 'function_handle'):
-        g = gsp_igft(G, g(G.e))
+        g = gsp_igft(G, g.g[0](G.e))
 
     if not lowmemory:
         # Compute the Frame into a big matrix
         Frame = gwft_frame_matrix(G, g, verbose=verbose)
 
-        C = Frame.transpose()*f
+        C = np.dot(Frame.transpose(), f)
         C = C.reshape(G.N, G.N, Nf)
 
     else:
         # Compute the translate of g
-        ghat = G.U.transpose()*g
-        Ftrans = np.sqrt(G.N)*G.U*(np.kron(np.ones((G.N)), ghat)*G.U.transpose())
+        ghat = np.dot(G.U.transpose(), g)
+        Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.transpose()))
         C = zeros((G.N, G.N))
 
-        for jj in range(Nf):
-            for ii in range(G.N):
-                C[:, ii, jj] = (np.kron(np.ones((G.N)), 1./G.U[:, 1])*G.U*np.kron(np.ones((G.N)), Ftrans[:, ii])).transpose()*f[:, jj]
+        for j in range(Nf):
+            for i in range(G.N):
+                C[:, i, j] = (np.kron(np.ones((G.N)), 1./G.U[:, 0])*G.U*np.dot(np.transpose(np.kron(np.ones((G.N)), Ftrans[:, i]))), f[:, j])
 
     return C
 
@@ -246,7 +246,7 @@ def gwft2(G, f, k, verbose=True):
     g = filters.gabor_filterbank(G, k)
 
     C = filters.analysis(G, g, f, verbose=verbose)
-    C = transpose(vec2mat(C, G.N))
+    C = np.transpose(vec2mat(C, G.N))
 
     return C
 
@@ -270,8 +270,8 @@ def gwft_frame_matrix(G, g, verbose=True):
     if verbose and G.N > 256:
         print("It will create a big matrix. You can use other methods.")
 
-    ghat = G.U.transpose()*g
-    Ftrans = np.sqrt(G.N)*G.U*np.kron(np.ones((1, G.N)), ghat)*G.U.transpose()
+    ghat = np.dot(np.transpose(G.U), g)
+    Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*np.transpose(G.U)))
 
     F = utils.repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
 
@@ -307,7 +307,7 @@ def igft(G, f_hat, verbose=True):
     else:
         U = G
 
-    return f_hat*U
+    return np.dot(f_hat, U)
 
 
 def ngwft(G, f, g, lowmemory=True, verbose=True):
@@ -339,22 +339,22 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
     if lowmemory:
         # Compute the Frame into a big matrix
         Frame = ngwft_frame_matrix(G, g, verbose=verbose)
-        C = Frame.transpose()*f
+        C = np.dot(np.transpose(Frame), f)
         C = C.reshape(G.N, G.N)
 
     else:
         # Compute the translate of g
-        ghat = G.U.transpose()*g
-        Ftrans = np.sqrt(G.N)*G.U*np.kron(np.ones((1, G.N)), ghat)*G.U.transpose()
-
+        ghat = np.dot(np.transpose(G.U), g)
+        Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*np.transpose(G.U)))
         C = np.zeros((G.N, G.N))
+
         for i in range(G.N):
             atoms = np.kron(np.ones((G.N)), 1./G.U[:, 0])*G.U*np.kron(np.ones((G.N)), Ftrans[:, i]).transpose()
 
             # normalization
             atoms /= np.kron((np.ones((G.N))), np.sqrt(np.sum(np.abs(atoms),
                                                               axis=0)))
-            C[:, i] = atoms*f
+            C[:, i] = np.dot(atoms, f)
 
     return C
 
@@ -377,8 +377,8 @@ def ngwft_frame_matrix(G, g, verbose=True):
     if verbose and G.N > 256:
         print('It will create a big matrix, you can use other methods.')
 
-    ghat = G.U.transpose()*g
-    Ftrans = np.sqrt(g.N)*G.U*(np.kron(np.ones((G.N)), ghat)*G.U.transpose())
+    ghat = np.dot(np.transpose(G.U), g)
+    Ftrans = np.sqrt(g.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*np.transpose(G.U)))
 
     F = repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
 
