@@ -588,7 +588,7 @@ def create_laplacian(G, lap_type=None, get_laplacian_only=True):
 
     if G.directed:
         if lap_type == 'combinatorial':
-            L = 0.5*sparse.lil_matrix(np.diagflat(G.W.sum(0)) + np.flatdiag(G.W.sum(1)) - G.W - G.W.getH())
+            L = 0.5*sparse.lil_matrix(np.diagflat(G.W.sum(0)) + np.diagflat(G.W.sum(1)) - G.W - G.W.getH())
         elif lap_type == 'normalized':
             raise NotImplementedError('Yet. Ask Nathanael.')
         elif lap_type == 'none':

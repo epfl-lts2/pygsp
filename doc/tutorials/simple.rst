@@ -8,5 +8,5 @@ This example demonstrates how to create a graph, a filter and analyse a signal o
 >>> G = pygsp.graphs.Logo()
 >>> f = pygsp.filters.Heat(G)
 <class 'pygsp.filters.Heat'> : has to compute lmax
->>> f.analysis(G, G.L, method='cheby')
+>>> f.analysis(G, G.L.todense(), method='cheby')
 
