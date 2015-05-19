@@ -4,8 +4,12 @@ This module implements plotting functions for the pygsp main objects
 """
 
 import numpy as np
+import pyqtgraph as pg
+import pyqtgraph.opengl as gl
+from pyqtgraph.Qt import QtCore, QtGui
 import pygsp
 import threading
+import uuid
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -118,6 +122,105 @@ def plot_graph(G):
         plt.show()
 
     threading.Thread(None, _thread).start()
+
+
+def pg_plot_graph(G, show_edges=None):
+    r"""
+    Function to plot a graph or an array of graphs
+
+    Parameters
+    ----------
+    G : Graph
+        Graph object to plot
+
+    Examples
+    --------
+    >>> from pygsp import plotting, graphs
+    >>> sen = graphs.Logo()
+    >>> plotting.plot_graph(sen)
+
+    """
+
+    # TODO handling when G is a list of graphs
+    # TODO integrate param when G is a clustered graph
+    global window_list
+    if 'window_list' not in globals():
+        window_list = {}
+        print '!'
+
+    if show_edges is None:
+        show_edges = G.Ne < 10000
+
+    if show_edges:
+        ki, kj = np.nonzero(G.A)
+        if G.directed:
+            raise NotImplementedError('TODO')
+            if G.coords.shape[1] == 2:
+                raise NotImplementedError('TODO')
+            else:
+                raise NotImplementedError('TODO')
+        else:
+            if G.coords.shape[1] == 2:
+                adj = np.concatenate((np.expand_dims(ki, axis=1), np.expand_dims(kj, axis=1)), axis=1)
+                w = pg.GraphicsWindow()
+                w.setWindowTitle(G.gtype)
+                v = w.addViewBox()
+                v.setAspectLocked()
+                g = pg.GraphItem()
+                v.addItem(g)
+                g.setData(pos=G.coords, adj=adj)
+
+                # print v.__dict__, window_list
+
+                # for pos, ww in window_list.iteritems():
+                #     for key, val in ww.__dict__.iteritems():
+                #         if getattr(w, key) != val:
+                #             print key, val, getattr(w, key)
+
+                window_list[str(uuid.uuid4())] = w
+
+            if G.coords.shape[1] == 3:
+                app = QtGui.QApplication([])
+                w = gl.GLViewWidget()
+                w.opts['distance'] = 10
+                w.show()
+                w.setWindowTitle(G.gtype)
+
+                # Very dirty way to display a 3d graph
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
+                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
+                ii = range(0, x.shape[1])
+                x2 = np.ndarray((0, 1))
+                y2 = np.ndarray((0, 1))
+                z2 = np.ndarray((0, 1))
+                for i in ii:
+                    x2 = np.append(x2, x[:, i])
+                for i in ii:
+                    y2 = np.append(y2, y[:, i])
+                for i in ii:
+                    z2 = np.append(z2, z[:, i])
+
+                pts = np.concatenate((np.expand_dims(x2, axis=1), np.expand_dims(y2, axis=1), np.expand_dims(z2, axis=1)), axis=1)
+
+                g = gl.GLLinePlotItem(pos=pts, mode='lines')
+
+                gp = gl.GLScatterPlotItem(pos=G.coords, color=(1., 0., 0., 1))
+
+                w.addItem(g)
+                w.addItem(gp)
+
+                window_list[str(uuid.uuid4())] = app
+
+    else:
+        if G.coords.shape[1] == 2:
+            pg.plot(G.coords, pen=None, symbol='o')
+        if G.coords.shape[1] == 3:
+            pg.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
+
+    #if __name__ == '__main__':
+    #    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+    #        QtGui.QApplication.instance().exec_()
 
 
 def plot_pointcloud(P):
