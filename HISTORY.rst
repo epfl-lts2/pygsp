@@ -8,3 +8,9 @@ History
 ------------------
 
 Toolbox template release.
+
+
+0.0.2 (2015-04-19)
+------------------
+
+Beginning of user tests.

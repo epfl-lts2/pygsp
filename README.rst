@@ -4,6 +4,7 @@ About
 
 PyGSP is a Graph Signal Processing Toolbox implemented in Python. It is a port of the Matlab GSP toolbox
 
+* Development : https://github.com/epfl-lts2/pygsp
 * GSP matlab toolbox : #TODO
 
 Features
