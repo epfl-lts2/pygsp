@@ -136,14 +136,18 @@ def grad_mat(G):
     return D
 
 
-def gft(G, f):
+def gft(G, f, verbose=True):
     r"""
     Graph Fourier transform
 
     Parameters
     ----------
     G : Graph or Fourier basis
-    f : f (signal)
+    f : ndarray  - must be in 2d, even if the second dim is 1
+        signal
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
 
     Returns
     -------
@@ -152,9 +156,9 @@ def gft(G, f):
 
     if isinstance(G, pygsp.graphs.Graph):
         if not hasattr(G, 'U'):
-            raise AttributeError('You need first to compute the Fourier basis.\
-                                  You can do it with the function \
-                                 compute_fourier_basis')
+            if verbose:
+                print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+            compute_fourier_basis(G)
 
         else:
             U = G.U
@@ -187,7 +191,9 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     Nf = np.shape(f)[1]
 
     if not hasattr(G, 'U'):
-        raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+        if verbose:
+            print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        compute_fourier_basis(G)
 
     # if iscell(g)
     #    g = gsp_igft(G,g{1}(G.e))
@@ -232,8 +238,10 @@ def gwft2(G, f, k, verbose=True):
     -------
     C : Coefficient.
     """
-    if not hasattr(G, 'E'):
-        raise ValueError('You need first to compute the Fourier basis .You can do it with the function compute_fourier_basis.')
+    if not hasattr(G, 'e'):
+        if verbose:
+            print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        compute_fourier_basis(G)
 
     g = filters.gabor_filterbank(G, k)
 
@@ -270,7 +278,7 @@ def gwft_frame_matrix(G, g, verbose=True):
     return F
 
 
-def igft(G, f_hat):
+def igft(G, f_hat, verbose=True):
     r"""
     Inverse graph Fourier transform
 
@@ -278,6 +286,9 @@ def igft(G, f_hat):
     ----------
     G : Graph or Fourier basis
     f_hat : Signal
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
 
     Returns
     -------
@@ -286,9 +297,9 @@ def igft(G, f_hat):
     """
     if isinstance(G, pygsp.graphs.Graph):
         if not hasattr(G, 'U'):
-            raise AttributeError('You need first to compute the Fourier basis.\
-                                  You can do it with the function \
-                                 compute_fourier_basis')
+            if verbose:
+                print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+            compute_fourier_basis(G)
 
         else:
             U = G.U
@@ -311,7 +322,8 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
     verbose : bool
         Verbosity level (False no log - True display warnings)
         Default is True
-    lowmemory : use less memory.
+    lowmemory : bool
+        use less memory.
         default is True.
 
     Returns
@@ -320,7 +332,9 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
     """
 
     if not hasattr(G, 'U'):
-        raise AttributeError('You need first to compute the Fourier basis. You can do it with the function compute_fourier_basis')
+        if verbose:
+            print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        compute_fourier_basis(G)
 
     if lowmemory:
         # Compute the Frame into a big matrix
@@ -411,7 +425,7 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
         Maximum order of Chebyshev coeff to compute (default = 30)
     N : int
         Grid order used to compute quadrature (default = m + 1)
-    i = int
+    i : int
         Indice of the Filterbank element to compute
 
     Returns

@@ -83,7 +83,7 @@ class Filter(object):
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
                 if self.verbose:
-                    print('The Fourier matrix is not available. The function will compute it for you.')
+                    print('analysis filter has to compute the eigenvalues and the eigenvectors.')
                 operators.compute_fourier_basis(G)
 
             Nv = np.shape(s)[1]
@@ -272,11 +272,13 @@ class Filter(object):
             xmax = G[1]
 
         if use_eigenvalues and isinstance(G, pygsp.graphs.Graph):
-            if hasattr(G, 'e'):
-                lamba = G.e
+            if not hasattr(G, 'e'):
+                if self.verbose:
+                    print('filterbank_bounds has to compute the eigenvalues and the eigenvectors.')
+                compute_fourier_basis(G)
 
-            else:
-                raise ValueError('You need to calculate and set the eigenvalues to normalize the kernel: use compute_fourier_basis.')
+            lamba = G.e
+
         else:
             lamba = np.linspace(xmin, xmax, N)
 
@@ -999,7 +1001,9 @@ class Heat(Filter):
         g = []
         if normalize:
             if not hasattr(G, 'e'):
-                raise ValueError('You need to calculate and set the eigenvalues to normalize the kernel')
+                if self.verbose:
+                    print('Filter Heat has to compute the eigenvalues and the eigenvectors.')
+                compute_fourier_basis(G)
 
             gu = lambda x: np.exp(-tau * x/G.lmax)
             ng = linalg.norm(gu(G.e))
