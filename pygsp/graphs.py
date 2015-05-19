@@ -47,7 +47,7 @@ class PointsCloud(object):
     (see reference).
 
 
-    Reference
+    References
     ----------
     See :cite:`turk1994zippered` for more informations.
 
