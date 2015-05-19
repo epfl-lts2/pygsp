@@ -462,10 +462,16 @@ def cheby_op(G, c, signal, **kwargs):
 
     """
 
-    # M = np.shape(c)[0]
-    # Nscales = np.shape(c)[1]
-    Nscales = len(c)
-    M = np.shape(c[0])[0]
+    #With that way, we can handle if we do not have a list of filter but only a simport filter.
+    try:
+        M = np.shape(c[0])[0]
+        Nscales = len(c)
+        dimun = False
+
+    except IndexError:
+        Nscales = 1
+        M = np.shape(c)[0]
+        dimun = True
 
     try:
         M >= 2
@@ -490,14 +496,21 @@ def cheby_op(G, c, signal, **kwargs):
     # len(signal[1])
     r = np.zeros((G.N * Nscales, Nv))
 
-    for i in range(Nscales):
-        r[np.arange(G.N) + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
+    if dimun:
+            r[np.arange(G.N)] = 0.5*c[0]*twf_old + c[1]*twf_cur
+    if not dimun:
+        for i in range(Nscales):
+            r[np.arange(G.N) + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
 
     for k in range(2, M+1):
         twf_new = (2./a1) * (np.dot(G.L.todense(), twf_cur) - a2*twf_cur) - twf_old
+
         for i in range(Nscales):
             if k + 1 <= M:
-                r[np.arange(G.N) + G.N*i] += c[i][k]*twf_new
+                if dimun:
+                    r[np.arange(G.N)] += c[k]*twf_new
+                if not dimun:
+                    r[np.arange(G.N) + G.N*i] += c[i][k]*twf_new
 
         twf_old = twf_cur
         twf_cur = twf_new
