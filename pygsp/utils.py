@@ -88,6 +88,7 @@ def is_directed(M):
     >>> W = sparse.rand(10,10,0.2)
     >>> G = graphs.Graph(W=W)
     >>> is_directed = utils.is_directed(G.W)
+
     """
     # To pass a graph or a weight matrix as an argument
     if isinstance(M, pygsp.graphs.Graph):
@@ -171,8 +172,9 @@ def check_weights(W):
     >>> from pygsp import graphs, utils
     >>> W = sparse.rand(10,10,0.2)
     >>> [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero] = utils.check_weights(W)
-    or
+    GSP_TEST_WEIGHTS: The main diagonal of the weight matrix is not 0!
     >>> weights_chara = utils.check_weights(W)
+    GSP_TEST_WEIGHTS: The main diagonal of the weight matrix is not 0!
     """
 
     has_inf_val = False
@@ -203,47 +205,6 @@ def check_weights(W):
     return [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero]
 
 
-def create_laplacian(G):
-    r"""
-    Create the laplacian of a graph from it's weights matrix and the laplacian's type
-
-    Parameters
-    ----------
-    G : graph
-        The graph wich will be used to create the laplacian
-
-    Returns
-    -------
-    L : sparse.lil_matrix
-        The laplacian under the form of a sparse matrix
-
-    Examples
-    --------
-    >>> from pygsp import graphs, utils
-    >>> G = graphs.Graph()
-    >>> L = utils.create_laplacian(G)
-    """
-
-    if sp.shape(G.W) == (1, 1):
-        return sparse.lil_matrix(0)
-
-    else:
-        if G.lap_type == 'combinatorial':
-            L = sparse.lil_matrix(G.W.sum(1).diagonal() - G.W)
-
-        elif G.lap_type == 'normalized':
-            D = sparse.lil_matrix(G.W.sum(1).diagonal() ** (-0.5))
-            L = sparse.lil_matrix(np.matlib.identity(G.N)) - D * G.W * D
-
-        elif G.lap_type == 'none':
-            L = sparse.lil_matrix(0)
-
-        else:
-            raise AttributeError('Unknown laplacian type!')
-
-        return L
-
-
 def check_connectivity(G, **kwargs):
     r"""
     Function to check the connectivity of the input graph
@@ -261,6 +222,7 @@ def check_connectivity(G, **kwargs):
     -------
     is_connected : bool
         A bool value telling if the graph is connected
+
     """
 
     A = G.W
@@ -347,6 +309,7 @@ def distanz(x, y=None):
     >>> x = np.random.rand(16)
     >>> y = np.random.rand(16)
     >>> distanz = utils.distanz(x, y)
+
     """
     try:
         x.shape[1]
@@ -410,6 +373,7 @@ def repmatline(A, ncol=1, nrow=1):
                 3 3 3 4 4 4
                 3 3 3 4 4 4
     np.repeat(np.repeat(x, nrow, axis=1), ncol,  axis=0)
+
     """
 
     if ncol < 0 or nrow < 0:
@@ -417,6 +381,51 @@ def repmatline(A, ncol=1, nrow=1):
                          equal to one, or you will get an empty array.")
 
     return np.repeat(np.repeat(x, ncol, axis=1), nrow, axis=0)
+
+
+def resistance_distance(G):
+    r"""
+    Compute the resitance distances of a graph
+
+    Parameters
+    ----------
+    G : Graph structure or Laplacian matrix (L)
+    verbose (bool) : Display parameter - False no log - True display warnings
+        Default is True
+
+    Returns
+    -------
+    rd : distance matrix
+
+    Examples
+    --------
+    >>>
+    >>>
+    >>>
+
+    Reference
+    ----------
+    :cite:`klein1993resistance`
+
+
+    """
+    if isinstance(G, pygsp.graphs.Graph):
+        if not G.lap_type == 'combinatorial':
+            pygsp.operators.create_laplacian(G, lap_type='combinatorial', get_laplacian_only=False)
+            if verbose:
+                print('Compute the combinatorial laplacian for the resitance distance')
+        L = G.L
+
+    else:
+        L = G
+
+    pseudo = np.linalg.pinv(L.todense())
+    N = np.shape(L)[0]
+
+    d = np.diagonal(pseudo)
+    rd = np.kron(np.ones((1, N)), d) + np.kron(np.ones((N, 1)), d) - pseudo - pseudo.transpose()
+
+    return rd
 
 
 def symetrize(W, symetrize_type='average'):
@@ -441,8 +450,10 @@ def symetrize(W, symetrize_type='average'):
 
     Examples
     --------
-    >>> W = gsp_symetrize(W)
-    >>> W = gsp_symetrize(W, symetrize_type='average')
+    >>> from pygsp import utils
+    >>> W = utils.gsp_symetrize(W)
+    >>> W = utils.gsp_symetrize(W, symetrize_type='average')
+
     """
 
     if symetrize_type == 'average':

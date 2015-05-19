@@ -139,7 +139,6 @@ def grad_mat(G):
 def gft(G, f):
     r"""
     Graph Fourier transform
-    Usage:  f_hat=gsp_gft(G,f);
 
     Parameters
     ----------
@@ -166,7 +165,7 @@ def gft(G, f):
     return U.transpose().conjugate()*f
 
 
-def gwft(G, g, f, verbose=1, lowmemory=True):
+def gwft(G, g, f, lowmemory=True, verbose=True):
     r"""
     Graph windowed Fourier transform
 
@@ -175,9 +174,10 @@ def gwft(G, g, f, verbose=1, lowmemory=True):
     G : Graph
     g : Window (graph signal or kernel)
     f : Graph signal (column vector)
-    verbose (int) : 0 no log, 1 print main steps, 2 print all steps
-        Default is 1
     lowmemory (bool) : use less memory
+        Default is True
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
         Default is True
 
     Returns
@@ -215,7 +215,7 @@ def gwft(G, g, f, verbose=1, lowmemory=True):
     return C
 
 
-def gwft2(G, f, k, verbose=1):
+def gwft2(G, f, k, verbose=True):
     r"""
     Graph windowed Fourier transform
 
@@ -224,7 +224,9 @@ def gwft2(G, f, k, verbose=1):
     G : Graph
     f : Graph signal
     k : kernel
-    param : Structure of optional parameter
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
 
     Returns
     -------
@@ -241,7 +243,7 @@ def gwft2(G, f, k, verbose=1):
     return C
 
 
-def gwft_frame_matrix(G, g, verbose=1):
+def gwft_frame_matrix(G, g, verbose=True):
     r"""
     Create the matrix of the GWFT frame
 
@@ -249,14 +251,15 @@ def gwft_frame_matrix(G, g, verbose=1):
     ----------
     G : Graph
     g : window
-    verbose : 0 no log, 1 print main steps
-        default is 1.
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
 
     Returns
     -------
         F : Frame
     """
-    if verbose == 1 and G.N > 256:
+    if verbose and G.N > 256:
         print("It will create a big matrix. You can use other methods.")
 
     ghat = G.U.transpose()*g
@@ -296,7 +299,7 @@ def igft(G, f_hat):
     return f_hat*U
 
 
-def ngwft(G, f, g, verbose=1, lowmemory=True):
+def ngwft(G, f, g, lowmemory=True, verbose=True):
     r"""
     Normalized graph windowed Fourier transform
 
@@ -305,8 +308,9 @@ def ngwft(G, f, g, verbose=1, lowmemory=True):
     G : Graph
     f : Graph signal
     g : window
-    verbose : 0 no log, 1 print main steps
-        default is 1
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
     lowmemory : use less memory.
         default is True.
 
@@ -341,7 +345,7 @@ def ngwft(G, f, g, verbose=1, lowmemory=True):
     return C
 
 
-def ngwft_frame_matrix(G, g, verbose=1):
+def ngwft_frame_matrix(G, g, verbose=True):
     r"""
     Create the matrix of the GWFT frame
 
@@ -349,13 +353,14 @@ def ngwft_frame_matrix(G, g, verbose=1):
     ----------
     G : Graph
     g : window
-    verbose : 0 no log, 1 print main steps
-        default is 1
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
 
     Output parameters:
     F : Frame
     """
-    if verbose >= 1 and G.N > 256:
+    if verbose and G.N > 256:
         print('It will create a big matrix, you can use other methods.')
 
     ghat = G.U.transpose()*g
@@ -424,18 +429,16 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
 
     if not hasattr(G, 'lmax'):
         G.lmax = utils.estimate_lmax(G)
-        print('The variable lmax has not been computed yet, it will be done \
-              but if you have to compute multiple times you can precompute \
-              it with pygsp.utils.estimate_lmax(G)')
+        print('The variable lmax has not been computed yet, it will be done.)')
 
-    a_arange = [0, int(G.lmax)]
+    a_arange = [0, G.lmax]
 
     a1 = (a_arange[1] - a_arange[0])/2
     a2 = (a_arange[1] + a_arange[0])/2
     c = np.zeros((m+1))
 
     for o in range(m+1):
-        c[o] = np.sum(f.g[0](a1*np.cos(pi*(np.arange(N) + 0.5)/N) + a2)*np.cos(pi*o*(np.arange(N) + 0.5)/N)) * 2./N
+        c[o] = np.sum(f.g[i](a1*np.cos(pi*(np.arange(N) + 0.5)/N) + a2)*np.cos(pi*o*(np.arange(N) + 0.5)/N)) * 2./N
 
     return c
 
@@ -458,15 +461,16 @@ def cheby_op(G, c, signal, **kwargs):
         Result if the filtering
 
     """
-    Nscales = len(c[1])
 
-    M = len(c[0])
+    # M = np.shape(c)[0]
+    # Nscales = np.shape(c)[1]
+    Nscales = len(c)
+    M = np.shape(c[0])[0]
+
     try:
         M >= 2
     except:
         print("The signal has an invalid shape")
-
-    maxM = np.max(M)
 
     if not hasattr(G, 'lmax'):
         G.lmax = utils.estimate_lmax(G)
@@ -480,20 +484,20 @@ def cheby_op(G, c, signal, **kwargs):
     a2 = float(a_arange[1]+a_arange[0])/2
 
     twf_old = signal
-    twf_cur = (G.L * signal - a2 * signal)/a1
+    twf_cur = (np.dot(G.L.todense(), signal) - a2 * signal)/a1
 
-    Nv = signal.shape[1]# len(signal[1])
+    Nv = signal.shape[1]
+    # len(signal[1])
     r = np.zeros((G.N * Nscales, Nv))
 
     for i in range(Nscales):
-        r[np.arange(G.N) + G.N * (i)] = 0.5 * c[0][i] * twf_old + c[1][i] * twf_cur
+        r[np.arange(G.N) + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
 
-    for k in range(maxM + 1):
-        twf_new = (2/a1) * (G.L * twf_cur-a2 * twf_cur) - twf_old
+    for k in range(2, M+1):
+        twf_new = (2./a1) * (np.dot(G.L.todense(), twf_cur) - a2*twf_cur) - twf_old
         for i in range(Nscales):
-            if k+1 < M:
-                r[np.arange(G.N) + G.N * (i-1)] = r[np.arange(G.N)+G.N *
-                                                    (i-1)] + c[k][i] * twf_new
+            if k + 1 <= M:
+                r[np.arange(G.N) + G.N*i] += c[i][k]*twf_new
 
         twf_old = twf_cur
         twf_cur = twf_new
@@ -537,7 +541,7 @@ def full_eigen(L):
 
 
 @utils.graph_array_handler
-def create_laplacian(G, lap_type=None):
+def create_laplacian(G, lap_type=None, get_laplacian_only=True):
     r"""
     Create the graph laplacian of graph G
 
@@ -547,6 +551,9 @@ def create_laplacian(G, lap_type=None):
     lap_type (string) : the laplacian type to use.
         Defalut is the lap_type of the G struct.
         If G does not have one, it will be "combinatorial"
+    get_laplacian_only (bool) : - True return each Laplacian in an array
+                                - False set each Laplacian in each graphs.
+        Defalut is True
 
     Returns
     -------
@@ -586,46 +593,57 @@ def create_laplacian(G, lap_type=None):
             L = sparse.lil_matrix(0)
         else:
             raise AttributeError('Unknown laplacian type!')
+
+    if get_laplacian_only:
         return L
+    else:
+        G.L = L
 
 
-def kernel_meyer(x, kerneltype):
+def lanczos_op(fi, s, G=None, order=30, verbose=True):
     r"""
-    Evaluates Meyer function and scaling function
+    Perform the lanczos approximation of the signal s
 
     Parameters
     ----------
-    x (ndarray) : Array of independant variables values
-    kerneltype (str) : Can be either 'sf' or 'wavelet'
+    fi: Filter or list of filters
+    s : ndarray
+        Signal to approximate.
+    G (Graph) : Graph
+    order : int
+        Degree of the lanczos approximation
+        Defalut is 30
+    verbose : bool
+        Verbosity level (False no log - True display warnings)
+        Default is True
+
+
 
     Returns
     -------
-    r : ndarray
-
+    L : ndarray
+        lanczos approximation of s
     """
-    l1 = 2./3.
-    l2 = 4./3.
-    l3 = 8./3.
+    if not G:
+        G = fi.G
 
-    v = lambda x: x ** 4. * (35-84 * x+70 * x ** 2-20 * x ** 3)
-    print(x)
+    Nf = len(fi.g)
+    Nv = np.shape(s)[1]
+    c = np.zeros((G.N))
 
-    r1ind = np.extract(x.any() >= 0 and x < l1, x)
-    r2ind = np.extract(x.any() >= l1 and x < l2, x)
-    r3ind = np.extract(x.any() >= l2 and x < l3, x)
+    for j in range(Nv):
+        V, H = lanczos(G.L, order, s[:, j])
+        Uh, Eh = np.linalg.eig(H)
+        V = np.dot(V, Uh)
 
-    r = np.empty(x.shape)
-    if kerneltype is 'df':
-        r[r1ind] = 1
-        r[r2ind] = np.cos((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
-    if kerneltype is 'wavelet':
-        print(r2ind)
-        r[r2ind] = np.sin((pi/2) * v[np.abs(x[r2ind])/l1 - 1])
-        r[r3ind] = np.cos((pi/2) * v[np.abs(x[r3ind])/l2 - 1])
-    else:
-        raise('Unknown kernel type ', kerneltype)
+        Eh = np.diagonal(Eh)
+        Eh = np.where(Eh < 0, 0, Eh)
+        fie = fi.evaluate(Eh)
 
-        return r
+        for i in range(Nf):
+            c[range(G.N) + i*G.N, j] = np.dot(V, fie[:, i] * np.dot(np.transpose(V), s[:, j]))
+
+    return c
 
 
 def localize(G, g, i):
