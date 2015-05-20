@@ -307,7 +307,14 @@ def igft(G, f_hat, verbose=True):
     else:
         U = G
 
-    return np.dot(f_hat, U)
+    if len(f_hat.shape) == 2:
+        if f_hat.shape[0] == 1:
+            f_hat = f_hat[0,:]
+
+        elif f_hat.shape[1] == 1:
+            f_hat = f_hat[:, 0]
+
+    return np.dot(U, f_hat)
 
 
 def ngwft(G, f, g, lowmemory=True, verbose=True):
