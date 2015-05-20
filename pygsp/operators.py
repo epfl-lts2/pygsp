@@ -691,7 +691,7 @@ def localize(G, g, i):
     return gt
 
 
-def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None,
+def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
                  filters=None):
     r"""
     Compute a pyramid of graphs using the kron reduction
@@ -706,7 +706,8 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None,
         default is True.
     epsilon (float) : Sparsification parameter if the sparsification is used
         default is min(2/sqrt(G.N), 0.1)
-    filters (Ndarray): A Ndarray of filter that will be used for the analysis and sytheis operator. If only one filter is given, it will be used for all levels. You may change that later on.
+    filters : list of function.
+        list of filter that will be used for the analysis and sytheis operator. If only one filter is given, it will be used for all levels. You may change that later on.
 
     Returns
     -------
@@ -716,32 +717,40 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None,
     if not epsilon:
         epsilon = min(10/sqrt(G.N), 1)
 
-    if not filters:
-        filters = np.empty(Nlevels)
-        for i in filters:
-            # i =  @(x) .5./(.5+x)
-            pass
+    # check if the type of filters is right.
+    if filters:
+        if type(filters) != list:
+            print('filters is not a list. I will convert it for you.')
+            if hasattr(filters, '__call__'):
+                filters = [filters]
+            else:
+                print('filters must be a list of function.')
 
-    if isinstance(filters, np.ndarray):
+                # I don't know if i want to put a restriction on the filter
+                # raise TypeError('filters must be a list of function.')
+
         if len(filters) == 1:
-            newfilters = np.empty(Nlevels)
-            for i in newfilters:
-                i = filters
-            filters = newfilters
-        elif 1 < len(filters) < Nlevels:
+            for _ in range(Nlevels-1):
+                filters.append(filters[0])
+
+        elif 1 < len(filters) or len(filters) < Nlevels or Nlevels < len(filters):
             raise ValueError('The numbers of filters can must be one or equal to Nlevels')
-    else:
-        raise TypeError('filters must be a numpy array!')
+
+    elif not filters:
+        filters = []
+        for i in range(Nlevels):
+            filters.append(lambda x: 5./(5+x))
 
     Gs = [G]
-
     for i in range(Nlevels):
         L_reg = Gs[i].L.todense() + lamda*np.eye(Gs[i].N)
         _, Vtemp = np.linalg.eig(L_reg)
+        print Vtemp.shape
         V = Vtemp[:, 0]
-
+        print(V.shape)
         # Select the bigger group
         V = np.where(V >= 0, 1, 0)
+        print(V.shape)
         if np.sum(V) >= Gs[i].N/2.:
             ind = np.nonzero(V)
         else:
@@ -749,12 +758,12 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None,
 
         if sparsify:
             Gtemp = kron_reduction(Gs[i], ind)
-            Gs.append(utils.graph_sparsify(Gtemp, max(epsilon, 2./sqrt(G[i].N))))
+            Gs.append(utils.graph_sparsify(Gtemp, max(epsilon, 2./sqrt(Gs[i].N))))
         else:
-            Gs.append(kron_reduction(G[i], ind))
+            Gs.append(kron_reduction(Gs[i], ind))
 
         Gs[i+1].pyramid = {'ind': ind,
-                           # 'green_kernel': @(x) 1/(lamda + x},
+                           'green_kernel': lambda x: 1./(lamda + x),
                            'filter': filters[i],
                            'level': i,
                            'K_reg': kron_reduction(L_reg, ind)}
@@ -777,7 +786,7 @@ def kron_reduction(G, ind):
     """
     if isinstance(G, pygsp.graphs.Graph):
         if hasattr(G, 'lap_type'):
-            if G.lap_type == 'combinatorial':
+            if not G.lap_type == 'combinatorial':
                 raise ValueError('Not implemented.')
 
         if G.directed:
@@ -790,9 +799,10 @@ def kron_reduction(G, ind):
     N = np.shape(L)[0]
     ind_comp = np.setdiff1d(np.arange(N), ind)
 
-    L_red = L[ind-1, ind-1]
-    L_in_out = L[ind-1, ind_comp]
-    L_out_in = L[ind_com, ind-1]
+    print(ind.shape)
+    L_red = L[ind, ind]
+    L_in_out = L[ind, ind_comp]
+    L_out_in = L[ind_com, ind]
     L_com = L[ind_com, ind_com]
 
     Lnew = L_red - L_in_out * (L_com/L_out_in)
