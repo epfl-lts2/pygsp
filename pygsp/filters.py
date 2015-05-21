@@ -88,13 +88,18 @@ class Filter(object):
 
             try:
                 Nv = np.shape(s)[1]
+                c = np.zeros((G.N * Nf, Nv))
             except IndexError:
                 Nv = 1
-            c = np.zeros((G.N * Nf, Nv))
+                c = np.zeros((G.N * Nf))
+
             fie = self.evaluate(G.e)
 
-            for i in range(Nf):
-                c[np.arange(G.N) + G.N*i, 0] = operators.igft(G, np.kron(np.ones((1, Nv)), fie[:][i]) * operators.gft(G, s))
+            if Nf == 1:
+                c = operators.igft(G, fie*operators.gft(G, s))
+            else:
+                for i in range(Nf):
+                    c[np.arange(G.N) + G.N*i] = operators.igft(G, np.kron(np.ones((1, Nv)), fie[:][i]) * operators.gft(G, s))
 
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):

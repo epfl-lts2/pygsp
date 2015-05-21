@@ -307,13 +307,6 @@ def igft(G, f_hat, verbose=True):
     else:
         U = G
 
-    if len(f_hat.shape) == 2:
-        if f_hat.shape[0] == 1:
-            f_hat = f_hat[0,:]
-
-        elif f_hat.shape[1] == 1:
-            f_hat = f_hat[:, 0]
-
     return np.dot(U, f_hat)
 
 
@@ -517,7 +510,6 @@ def cheby_op(G, c, signal, **kwargs):
 
     twf_old = signal
     twf_cur = (np.dot(G.L.todense(), signal) - a2 * signal)/a1
-    print(np.shape(twf_cur))
 
     for i in range(Nscales):
         r[np.arange(G.N) + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
