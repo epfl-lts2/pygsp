@@ -391,7 +391,7 @@ class Abspline(Filter):
         Low-pass factor lmin=lmax/lpfactor will be used to determine scales,
         the scaling function will be created to fill the lowpass gap.
         (default = 20)
-    t = ndarray
+    t : ndarray
         Vector of scale to be used (Initialized by default at
         the value of the log scale)
 
@@ -469,9 +469,9 @@ class Expwin(Filter):
     Parameters
     ----------
     G : Graph
-    bmax = float
+    bmax : float
         Maximum relative band (default = 0.2)
-    a = int
+    a : int
         Slope parameter (default = 1)
 
     Returns
@@ -509,7 +509,7 @@ class HalfCosine(Filter):
     Parameters
     ----------
     G : Graph
-    Nf = int
+    Nf : int
         Number of filters from 0 to lmax (default = 6)
     Returns
     -------
@@ -547,13 +547,10 @@ class Itersine(Filter):
     Parameters
     ----------
     G : Graph
-    Nf = int
-        Number of filters from 0 to lmax (default = 6)
-    verbose (bool) : verbosity level: 0 no log - 1 display warnings.
-        Default is True
-    overlap: Overlap
-        Default is 2
-
+    Nf : int
+        Number of filters from 0 to lmax. (default = 6)
+    overlap : int
+        (default = 2)
 
     Returns
     -------
@@ -588,11 +585,10 @@ class MexicanHat(Filter):
         Low-pass factor lmin=lmax/lpfactor will be used to determine scales,
         the scaling function will be created to fill the lowpass gap.
         (default = 20)
-    t = ndarray
-        Vector of scale to be used (Initialized by default at
-        the value of the log scale)
+    t : ndarray
+        Vector of scale to be used (Initialized by default at the value of the log scale)
     normalize : bool
-        Wether to normalize the wavelet by the factor/sqrt(t) (default = False)
+        Wether to normalize the wavelet by the factor/sqrt(t). (default = False)
 
     Returns
     -------
@@ -635,7 +631,7 @@ class Meyer(Filter):
     Parameters
     ----------
     G : Graph
-    Nf = int
+    Nf : int
         Number of filters from 0 to lmax (default = 6)
 
     Returns
@@ -714,7 +710,7 @@ class SimpleTf(Filter):
     ----------
     G : Graph
     Nf : int
-        Number of filters from 0 to lmax
+        Number of filters from 0 to lmax (default = 6)
     t : ndarray
         Vector of scale to be used (Initialized by default at the value of the log scale)
 
@@ -788,13 +784,14 @@ class WarpedTranslates(Filter):
     ----------
     G : Graph
     Nf : int
-        Number of filters
+        Number of filters (default = #TODO)
 
     Returns
     -------
     out : WarpedTranslates
 
     See :cite:`shuman2013spectrum`
+
     """
 
     def __init__(self, G, Nf, **kwargs):
@@ -983,8 +980,8 @@ class Heat(Filter):
     Parameters
     ----------
     G : Graph
-    tau (int) : Scaling parameter
-        Default is 10
+    tau : int or list of ints
+        Scaling parameter. (default = 10)
     normalize (bool) : Normalize the kernel (works only if the eigenvalues are present in the graph)
         Default is 0
 
