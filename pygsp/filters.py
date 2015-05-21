@@ -94,7 +94,7 @@ class Filter(object):
             fie = self.evaluate(G.e)
 
             for i in range(Nf):
-                c[np.arange(G.N) + G.N*i, 0] = operators.igft(G, np.kron(np.ones((1, Nv)), fie[:][i]) * operators.gft(G, s))
+                c[np.arange(G.N) + G.N*i] = operators.igft(G,  fie[:][i] * operators.gft(G, s))
 
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
@@ -1009,7 +1009,11 @@ class Heat(Filter):
             g.append(lambda x: np.exp(-tau * x/G.lmax / ng))
 
         else:
-            g.append(lambda x: np.exp(-tau * x/G.lmax))
+            if isinstance(tau, list):
+                for t in tau:
+                    g.append(lambda x, taulam=t: np.exp(-taulam * x/G.lmax))
+            else:
+                g.append(lambda x: np.exp(-tau * x/G.lmax))
 
         self.g = g
 
