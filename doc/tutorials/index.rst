@@ -9,3 +9,4 @@ to solve some real problems.
     :maxdepth: 2
 
     simple
+    demo

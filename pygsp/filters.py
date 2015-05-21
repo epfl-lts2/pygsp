@@ -83,15 +83,18 @@ class Filter(object):
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
                 if self.verbose:
-                    print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+                    print('The Fourier matrix is not available. The function will compute it for you.')
                 operators.compute_fourier_basis(G)
 
-            Nv = np.shape(s)[1]
+            try:
+                Nv = np.shape(s)[1]
+            except IndexError:
+                Nv = 1
             c = np.zeros((G.N * Nf, Nv))
             fie = self.evaluate(G.e)
 
             for i in range(Nf):
-                c[np.arange(G.N) + G.N*i] = operators.igft(G, np.kron(np.ones((1, Nv)), fie[:][i]) * operators.gft(G, s))
+                c[np.arange(G.N) + G.N*i, 0] = operators.igft(G, np.kron(np.ones((1, Nv)), fie[:][i]) * operators.gft(G, s))
 
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
@@ -272,13 +275,11 @@ class Filter(object):
             xmax = G[1]
 
         if use_eigenvalues and isinstance(G, pygsp.graphs.Graph):
-            if not hasattr(G, 'e'):
-                if self.verbose:
-                    print('filterbank_bounds has to compute the eigenvalues and the eigenvectors.')
-                compute_fourier_basis(G)
+            if hasattr(G, 'e'):
+                lamba = G.e
 
-            lamba = G.e
-
+            else:
+                raise ValueError('You need to calculate and set the eigenvalues to normalize the kernel: use compute_fourier_basis.')
         else:
             lamba = np.linspace(xmin, xmax, N)
 
@@ -1001,9 +1002,7 @@ class Heat(Filter):
         g = []
         if normalize:
             if not hasattr(G, 'e'):
-                if self.verbose:
-                    print('Filter Heat has to compute the eigenvalues and the eigenvectors.')
-                compute_fourier_basis(G)
+                raise ValueError('You need to calculate and set the eigenvalues to normalize the kernel')
 
             gu = lambda x: np.exp(-tau * x/G.lmax)
             ng = linalg.norm(gu(G.e))
