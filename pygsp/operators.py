@@ -774,7 +774,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
     for i in range(Nlevels):
         L_reg = Gs[i].L.todense() + lamda*np.eye(Gs[i].N)
         _, Vtemp = np.linalg.eig(L_reg)
-        print Vtemp.shape
+        print(Vtemp.shape)
         V = Vtemp[:, 0]
         print(V.shape)
         # Select the bigger group

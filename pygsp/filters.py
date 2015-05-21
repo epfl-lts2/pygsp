@@ -74,7 +74,6 @@ class Filter(object):
         if not method:
             if hasattr(G, 'U'):
                 method = 'exact'
-
             else:
                 method = 'cheby'
 
