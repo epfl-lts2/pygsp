@@ -99,7 +99,7 @@ class Filter(object):
                 c = operators.igft(G, fie*operators.gft(G, s))
             else:
                 for i in range(Nf):
-                    c[np.arange(G.N) + G.N*i] = operators.igft(G, np.kron(np.ones((1, Nv)), fie[:][i]) * operators.gft(G, s))
+                    c[np.arange(G.N) + G.N*i] = operators.igft(G, fie[:][i]*operators.gft(G, s))
 
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
