@@ -156,7 +156,7 @@ class Filter(object):
     def inverse(self, G, c, **kwargs):
         raise NotImplementedError
 
-    @utils.graph_array_handler
+    # @utils.graph_array_handler
     def synthesis(self, G, c, order=30, method=None, **kwargs):
         r"""
         Synthesis operator of a filterbank
@@ -221,7 +221,7 @@ class Filter(object):
             s = np.zeros((G.N, np.shape(c)[1]))
 
             for i in range(Nf):
-                s += utils.cheby_op(G, cheb_coeffs[:, i], c[i*G.N + range(G.N)])
+                s += operators.cheby_op(G, cheb_coeffs[:, i], c[i*G.N + range(G.N)])
 
             return s
 
