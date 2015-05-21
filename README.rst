@@ -27,8 +27,7 @@ Installation in an isolated virtual environment::
     $ pip install pygsp
 
 You need virtualenvwrapper to run this command. The ``--system-site-packages``
-option could be useful if you want to use a shared system installation of numpy
-and matplotlib. Their building and installation require quite some
+option could be useful if you want to use a shared system installation of numpy, scipy and matplotlib. Their building and installation require quite some
 dependencies.
 
 Another way is to manually download from PyPI, unpack the package and install
@@ -42,6 +41,7 @@ Execute the project test suite once to make sure you have a working install::
 
 Authors
 -------
-Basile Châtillon <basile.chatillon@epfl.ch>
-Alexandre Lafaye <alexandre.lafaye@epfl.ch>
+
+Basile Châtillon <basile.chatillon@epfl.ch>,
+Alexandre Lafaye <alexandre.lafaye@epfl.ch>,
 Nicolas Rod <nicolas.rod@epfl.ch>

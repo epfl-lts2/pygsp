@@ -50,7 +50,8 @@ def div(G, s):
     Parameters
     ----------
     G : Graph structure
-    s : Signal living on the nodes
+    s : ndarray
+        Signal living on the nodes
 
     Returns
     -------
@@ -79,7 +80,8 @@ def grad(G, s):
     Parameters
     ----------
     G : Graph structure
-    s : Signal living on the nodes
+    s : ndarray
+        Signal living on the nodes
 
     Returns
     -------
@@ -143,15 +145,15 @@ def gft(G, f, verbose=True):
     Parameters
     ----------
     G : Graph or Fourier basis
-    f : ndarray  - must be in 2d, even if the second dim is 1
-        signal
+    f : ndarray
+        must be in 2d, even if the second dim is 1 signal
     verbose : bool
-        Verbosity level (False no log - True display warnings)
-        Default is True
+        Verbosity level (False no log - True display warnings) (default = True)
 
     Returns
     -------
-    f_hat : Graph Fourier transform of *f*
+    f_hat : ndarray
+        Graph Fourier transform of *f*
     """
 
     if isinstance(G, pygsp.graphs.Graph):
@@ -176,17 +178,21 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     Parameters
     ----------
     G : Graph
-    g : Window (graph signal or kernel)
-    f : Graph signal (column vector)
-    lowmemory (bool) : use less memory
+    g : 
+        Window (graph signal or kernel)
+    f : ndarray
+        Graph signal
+    lowmemory : bool
+        use less memory
         Default is True
     verbose : bool
-        Verbosity level (False no log - True display warnings)
-        Default is True
+        Verbosity level (False no log - True display warnings) (default = True)
 
     Returns
     -------
-    C : Coefficient.
+    C : ndarray
+        Coefficients
+
     """
     Nf = np.shape(f)[1]
 
@@ -228,11 +234,12 @@ def gwft2(G, f, k, verbose=True):
     Parameters
     ----------
     G : Graph
-    f : Graph signal
-    k : kernel
+    f : ndarray
+        Graph signal
+    k : #TODO
+        kernel
     verbose : bool
-        Verbosity level (False no log - True display warnings)
-        Default is True
+        Verbosity level (False no log - True display warnings) (default = True)
 
     Returns
     -------
@@ -260,12 +267,12 @@ def gwft_frame_matrix(G, g, verbose=True):
     G : Graph
     g : window
     verbose : bool
-        Verbosity level (False no log - True display warnings)
-        Default is True
+        Verbosity level (False no log - True display warnings) 
 
     Returns
     -------
-        F : Frame
+        F : TODO
+            Frame
     """
     if verbose and G.N > 256:
         print("It will create a big matrix. You can use other methods.")
@@ -285,10 +292,10 @@ def igft(G, f_hat, verbose=True):
     Parameters
     ----------
     G : Graph or Fourier basis
-    f_hat : Signal
+    f_hat : ndarray
+        Signal
     verbose : bool
-        Verbosity level (False no log - True display warnings)
-        Default is True
+        Verbosity level (False no log - True display warnings) (default = True)
 
     Returns
     -------
@@ -317,18 +324,19 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
     Parameters
     ----------
     G : Graph
-    f : Graph signal
-    g : window
+    f : ndarray
+        Graph signal
+    g : TODO
+        window
     verbose : bool
-        Verbosity level (False no log - True display warnings)
-        Default is True
+        Verbosity level (False no log - True display warnings) (default = True)
     lowmemory : bool
-        use less memory.
-        default is True.
+        use less memory. (default = True)
 
     Returns
     -------
-    C : Coefficient
+    C : ndarray
+        Coefficients
     """
 
     if not hasattr(G, 'U'):
@@ -366,13 +374,14 @@ def ngwft_frame_matrix(G, g, verbose=True):
     Parameters
     ----------
     G : Graph
-    g : window
+    g : TODO
+        window
     verbose : bool
-        Verbosity level (False no log - True display warnings)
-        Default is True
+        Verbosity level (False no log - True display warnings) (default = True)
 
     Output parameters:
-    F : Frame
+    F : TODO
+        Frame
     """
     if verbose and G.N > 256:
         print('It will create a big matrix, you can use other methods.')
@@ -391,6 +400,9 @@ def ngwft_frame_matrix(G, g, verbose=True):
 
 @utils.graph_array_handler
 def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
+    r"""
+    TODO
+    """
 
     if hasattr(G, 'e') or hasattr(G, 'U'):
         print("This graph already has Laplacian eigenvectors or eigenvalues")
@@ -428,7 +440,7 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
     N : int
         Grid order used to compute quadrature (default = m + 1)
     i : int
-        Indice of the Filterbank element to compute
+        Indice of the Filterbank element to compute (default = 0)
 
     Returns
     -------
@@ -474,7 +486,7 @@ def cheby_op(G, c, signal, **kwargs):
     Returns
     -------
     r : ndarray
-        Result if the filtering
+        Result of the filtering
 
     """
     # With that way, we can handle if we do not have a list of filter but only a simple filter.
@@ -567,13 +579,14 @@ def create_laplacian(G, lap_type=None, get_laplacian_only=True):
 
     Parameters
     ----------
-    G (Graph) : Graph
-    lap_type (string) : the laplacian type to use.
-        Defalut is the lap_type of the G struct.
-        If G does not have one, it will be "combinatorial"
-    get_laplacian_only (bool) : - True return each Laplacian in an array
-                                - False set each Laplacian in each graphs.
-        Defalut is True
+    G : Graph
+    lap_type : string :
+        the laplacian type to use.
+        Default is the lap_type attribute of G, otherwise it is "combinatorial".
+    get_laplacian_only : bool
+        True return each Laplacian in an array
+        False set each Laplacian in each graphs.
+        (default = True)
 
     Returns
     -------
@@ -629,13 +642,11 @@ def lanczos_op(fi, s, G=None, order=30, verbose=True):
     fi: Filter or list of filters
     s : ndarray
         Signal to approximate.
-    G (Graph) : Graph
+    G : Graph
     order : int
-        Degree of the lanczos approximation
-        Defalut is 30
+        Degree of the lanczos approximation. (default = 30)
     verbose : bool
-        Verbosity level (False no log - True display warnings)
-        Default is True
+        Verbosity level (False no log - True display warnings). (default = True)
 
 
 
@@ -643,6 +654,7 @@ def lanczos_op(fi, s, G=None, order=30, verbose=True):
     -------
     L : ndarray
         lanczos approximation of s
+
     """
     if not G:
         G = fi.G
@@ -673,12 +685,15 @@ def localize(G, g, i):
     Parameters
     ----------
     G : Graph
-    g : kernel (or filterbank)
-    i : Indices of vertex (int)
+    g : TODO
+        kernel (or filterbank)
+    i : int
+        Indices of vertex
 
     Returns
     -------
     gt : translate signal
+
     """
     raise NotImplementedError
 
@@ -698,6 +713,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
     Parameters
     ----------
     G : Graph structure
+<<<<<<< HEAD
     Nlevels (int) : Number of level of decomposition
     lambda (float) : Stability parameter. It add self loop to the graph to give the alorithm some stability 
         default is 0.025.
@@ -707,10 +723,24 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
         default is min(2/sqrt(G.N), 0.1)
     filters : list of function.
         list of filter that will be used for the analysis and sytheis operator. If only one filter is given, it will be used for all levels. You may change that later on.
+=======
+    Nlevels : int
+        Number of level of decomposition
+    lambda : float 
+        Stability parameter. It add self loop to the graph to give the alorithm some stability.
+        (default = 0.025)
+    sparsify : bool
+        Sparsify the graph after the Kron reduction. (default is True)
+    epsilon : float
+        Sparsification parameter if the sparsification is used. (default = min(2/sqrt(G.N), 0.1))
+    filters : ndarray
+        A Ndarray of filter that will be used for the analysis and sythesis operator. If only one filter is given, it will be used for all levels. You may change that later on.
+>>>>>>> devel
 
     Returns
     -------
-    Cs : Cell array of graphs
+    Cs : ndarray
+
     """
     # TODO @ function
     if not epsilon:
@@ -835,12 +865,16 @@ def pyramid_cell2coeff(ca, pe):
 
     Parameters
     ----------
-    ca : Array with the coarse approximation at each level
-    pe : Array with the prediction errors at each level
+    ca : ndarray
+        Array with the coarse approximation at each level
+    pe : ndarray
+        Array with the prediction errors at each level
 
     Returns
     -------
-    coeff : Vector of coefficient
+    coeff : ndarray
+        Array of coefficient
+
     """
     Nl = len(ca) - 1
     N = 0
@@ -872,8 +906,8 @@ def pyramid_synthesis(Gs, coeff, order=100, **kwargs):
     ----------
     Gs : A multiresolution sequence of graph structures.
     coeff : The coefficients to perform the reconstruction
-    order : Degree of the Chebyshev approximation
-        Default is 100
+    order : int
+        Degree of the Chebyshev approximation. (default = 100)
 
     Returns
     -------
@@ -912,12 +946,13 @@ def interpolate(Gh, Gl, coeff, order=100, **kwargs):
     Gh : Upper graph
     Gl : Lower graph
     coeff : Coefficients
-    order : Degree of the Chebyshev approximation
-        Default is 100
+    order : int
+        Degree of the Chebyshev approximation. (default = 100)
 
     Returns
     -------
     s_pred : Predicted signal
+
     """
     alpha = Gl.pyramid['k_reg']
     s_pred = np.zeros((Gh.N))
@@ -935,12 +970,15 @@ def modulate(G, f, k):
     Parameters
     ----------
     G : Graph
-    f : Signal (column)
-    k : Indices of frequencies (int)
+    f : ndarray
+        Signal (column)
+    k :  int
+        Indices of frequencies
 
     Returns
     -------
     fm : Modulated signal
+
     """
     nt = np.shape(f)[1]
     fm = np.sqrt(G.N)*np.kron(np.ones((nt, 1)), f)*np.kron(np.ones((1, nt)), G.U[:, k])
@@ -955,12 +993,15 @@ def translate(G, f, i):
     Parameters
     ----------
     G : Graph
-    f : Signal (column)
-    i : Indices of vertex (int)
+    f : ndarray
+        Signal
+    i : int
+        Indices of vertex
 
     Returns
     -------
     ft : translate signal
+
     """
 
     fhat = gft(G, f)
@@ -978,18 +1019,23 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
 
     Parameters
     ----------
-    G : Graph structure of a tree.
+    G : Graph
+        Graph structure of a tree.
     Nlevel : Number of times to downsample and coarsen the tree
-    root : The index of the root of the tree
-        default id 1
-    reduction_method : The graph reduction method 
-        default is 'resistance_distance'
-    compute_full_eigen : To also compute the graph Laplacian eigenvalues for every tree in the sequence
+    root : int
+        The index of the root of the tree. (default = 1)
+    reduction_method : str
+        The graph reduction method (default = 'resistance_distance')
+    compute_full_eigen : bool
+        To also compute the graph Laplacian eigenvalues for every tree in the sequence
 
     Returns
     -------
-    Gs : Cell array, with each element containing a graph structure represent a reduced tree.
-    subsampled_vertex_indices : Indices of the vertices of the previous tree that are kept for the subsequent tree.
+    Gs : ndarray
+        Ndarray, with each element containing a graph structure represent a reduced tree.
+    subsampled_vertex_indices : ndarray
+        Indices of the vertices of the previous tree that are kept for the subsequent tree.
+
     """
 
     if not root:
