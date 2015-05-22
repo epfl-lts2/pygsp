@@ -713,17 +713,6 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
     Parameters
     ----------
     G : Graph structure
-<<<<<<< HEAD
-    Nlevels (int) : Number of level of decomposition
-    lambda (float) : Stability parameter. It add self loop to the graph to give the alorithm some stability 
-        default is 0.025.
-    sparsify (bool) : Sparsify the graph after the Kron reduction
-        default is True.
-    epsilon (float) : Sparsification parameter if the sparsification is used
-        default is min(2/sqrt(G.N), 0.1)
-    filters : list of function.
-        list of filter that will be used for the analysis and sytheis operator. If only one filter is given, it will be used for all levels. You may change that later on.
-=======
     Nlevels : int
         Number of level of decomposition
     lambda : float 
@@ -735,7 +724,6 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
         Sparsification parameter if the sparsification is used. (default = min(2/sqrt(G.N), 0.1))
     filters : ndarray
         A Ndarray of filter that will be used for the analysis and sythesis operator. If only one filter is given, it will be used for all levels. You may change that later on.
->>>>>>> devel
 
     Returns
     -------

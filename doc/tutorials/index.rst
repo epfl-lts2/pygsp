@@ -10,3 +10,4 @@ to solve some real problems.
 
     simple
     demo
+    demo_wavelet
