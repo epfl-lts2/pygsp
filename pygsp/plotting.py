@@ -45,7 +45,7 @@ def plot(O, **kwargs):
         raise TypeError('Your object type is incorrect, be sure it is a PointCloud, a Filter or a Graph')
 
 
-def plot_graph(G):
+def plot_graph(G, savefig=False):
     r"""
     Function to plot a graph or an array of graphs
 
@@ -53,6 +53,9 @@ def plot_graph(G):
     ----------
     G : Graph
         Graph object to plot
+    savefig : boolean
+        Determine wether the plot is saved as a PNG file in your\
+         current directory (True) or shown in a window (False) (default False).
 
     Examples
     --------
@@ -119,7 +122,12 @@ def plot_graph(G):
             if G.coords.shape[1] == 3:
                 ax.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
 
-        plt.show()
+        # Save plot as PNG or show it in a window
+        if savefig:
+            filename = "Plot of " + G.gtype
+            plt.savefig(filename)
+        else:
+            plt.show()
 
     threading.Thread(None, _thread).start()
 
@@ -262,7 +270,7 @@ def plot_pointcloud(P):
 
 
 def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=10,
-                plot_eigenvalues=None, show_sum=None):
+                plot_eigenvalues=None, show_sum=None, savefig=False):
     r"""
     Plot a system of graph spectral filters.
 
@@ -286,6 +294,9 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
     show_sum : boolean
         To plot an extra line showing the sum of the squared magnitudes\
          of the filters (default True if there is multiple filters).
+    savefig : boolean
+        Determine wether the plot is saved as a PNG file in your\
+         current directory (True) or shown in a window (False) (default False).
 
     Examples
     --------
@@ -328,10 +339,15 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
         test_sum = np.sum(np.power(fd, 2), 0)
         ax.plot(lambdas, test_sum, 'k', linewidth=line_width)
 
-    plt.show()
+    # Save plot as PNG or show it in a window
+    if savefig:
+        filename = "Plot filter of " + G.gtype + " and the given filters"
+        plt.savefig(filename)
+    else:
+        plt.show()
 
 
-def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, vertex_highlight=False, climits=None, colorbar=True, bar=False, bar_width=1):
+def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, vertex_highlight=False, climits=None, colorbar=True, bar=False, bar_width=1, savefig=False):
     r"""
     Plot a graph signal in 2D or 3D.
 
@@ -355,9 +371,12 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
         To plot an extra line showing the sum of the squared magnitudes\
          of the filters (default True if there is multiple filters).
     bar : int
-        0 display color, 1 display bar for the graph (default 0).
+        NOT IMPLEMENTED: 0 display color, 1 display bar for the graph (default 0).
     bar_width : int
         Width of the bar (default 1).
+    savefig : boolean
+        Determine wether the plot is saved as a PNG file in your\
+         current directory (True) or shown in a window (False) (default False).
 
     Examples
     --------
@@ -438,7 +457,12 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
     if G.coords.shape[1] == 3:
         ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], s=vertex_size, c=signal, zorder=2)
 
-    plt.show()
+    # Save plot as PNG or show it in a window
+    if savefig:
+        filename = "Plot signal of " + G.gtype + " and the given signal"
+        plt.savefig(filename)
+    else:
+        plt.show()
 
 
 def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, vertex_highlight=False, climits=None, colorbar=True, bar=False, bar_width=1):
