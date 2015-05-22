@@ -95,10 +95,10 @@ class Filter(object):
             fie = self.evaluate(G.e)
 
             if Nf == 1:
-                c = operators.igft(G, fie*operators.gft(G, s))
+                c = operators.igft(G, np.kron(np.ones((Nv)), fie)*operators.gft(G, s))
             else:
                 for i in range(Nf):
-                    c[np.arange(G.N) + G.N*i] = operators.igft(G, fie[:][i]*operators.gft(G, s))
+                    c[np.arange(G.N) + G.N*i] = operators.igft(G, np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, s))
 
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
@@ -185,6 +185,12 @@ class Filter(object):
         ----------
         See :cite:`hammond2011wavelets` for more details.
         """
+        if type(G) is list:
+            output = []
+            for i in range(len(self.g)):
+                output.append(g[i].synthesis(G[i]), c[i], method=method, order=order, **kwargs)
+
+            return output
 
         Nf = len(self.g)
 
@@ -200,13 +206,13 @@ class Filter(object):
                     print("The Fourier matrix is not available. The function will compute it for you.")
                 operators.compute_fourier_basis(G)
 
-            fie = self.evaluate(G)
+            fie = self.evaluate(G.e)
             Nv = np.shape(c)[1]
             s = np.zeros((G.N, Nv))
 
             for i in range(Nf):
-                s += operators.igft(np.conjugate(G.U),
-                                    np.kron(np.ones((1, Nv)), fie[:][i])*operators.gft(G, c[G.N*i + range(G.N)]))
+                print(operators.igft(np.conjugate(G.U), np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, c[G.N*i + np.arange(G.N)])).shape)
+                s = s + operators.igft(np.conjugate(G.U), np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, c[G.N*i + np.arange(G.N)]))
 
             return s
 
@@ -994,19 +1000,25 @@ class Heat(Filter):
 
     """
 
-    def __init__(self, G, tau=10, normalize=False, **kwargs):
+    def __init__(self, G, tau=10, normalize=True, **kwargs):
         super(Heat, self).__init__(G, **kwargs)
 
-        # TODO: ferme le machinqui manque --
-
         g = []
+
         if normalize:
             if not hasattr(G, 'e'):
-                raise ValueError('You need to calculate and set the eigenvalues to normalize the kernel')
+                print('Filter Heat will calculate and set the eigenvalues to normalize the kernel')
+                operators.compute_fourier_basis(G)
 
-            gu = lambda x: np.exp(-tau * x/G.lmax)
-            ng = linalg.norm(gu(G.e))
-            g.append(lambda x: np.exp(-tau * x/G.lmax / ng))
+            if isinstance(tau, list):
+                for t in tau:
+                    gu = lambda x, taulam=t: np.exp(-taulam * x/G.lmax)
+                    ng = linalg.norm(gu(G.e))
+                    g.append(lambda x, taulam=t: np.exp(-taulam * x/G.lmax / ng))
+            else:
+                gu = lambda x: np.exp(-tau * x/G.lmax)
+                ng = linalg.norm(gu(G.e))
+                g.append(lambda x: np.exp(-tau * x/G.lmax / ng))
 
         else:
             if isinstance(tau, list):
