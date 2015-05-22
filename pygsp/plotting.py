@@ -392,12 +392,6 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-    # Plot signal
-    if G.coords.shape[1] == 2:
-        ax.scatter(G.coords[:, 0], G.coords[:, 1], s=vertex_size, c=signal)
-    if G.coords.shape[1] == 3:
-        ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], s=vertex_size, c=signal)
-
     # Plot edges
     if show_edges:
         ki, kj = np.nonzero(G.A)
@@ -414,7 +408,7 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
                 # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
-                ax.plot(x, y, color='red')
+                ax.plot(x, y, color='grey', zorder=1)
                 # plt.show()
             if G.coords.shape[1] == 3:
                 # Very dirty way to display 3D graph edges
@@ -435,8 +429,14 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
                     x3 = x2[i:i + 2]
                     y3 = y2[i:i + 2]
                     z3 = z2[i:i + 2]
-                    ax.plot(x3, y3, z3, color='red', marker='o', markerfacecolor='blue')
+                    ax.plot(x3, y3, z3, color='grey', marker='o', markerfacecolor='blue', zorder=1)
                     # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
+
+    # Plot signal
+    if G.coords.shape[1] == 2:
+        ax.scatter(G.coords[:, 0], G.coords[:, 1], s=vertex_size, c=signal, zorder=2)
+    if G.coords.shape[1] == 3:
+        ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], s=vertex_size, c=signal, zorder=2)
 
     plt.show()
 
@@ -518,7 +518,7 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=Non
         gp = pg.ScatterPlotItem(G.coords[:, 0], G.coords[:, 1], size=vertex_size, brush=cmap.map(normalized_signal, 'qcolor'))
         v.addItem(gp)
     if G.coords.shape[1] == 3:
-        gp = pg.ScatterPlotItem(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], size=vertex_size, c=signal)
+        gp = gl.GLScatterPlotItem(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], size=vertex_size, c=signal)
         w.addItem(gp)
 
     # Plot edges
