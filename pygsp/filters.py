@@ -185,7 +185,7 @@ class Filter(object):
         ----------
         See :cite:`hammond2011wavelets` for more details.
         """
-        if type(G) is list:
+        if isinstance(G, list):
             output = []
             for i in range(len(self.g)):
                 output.append(g[i].synthesis(G[i]), c[i], method=method, order=order, **kwargs)
