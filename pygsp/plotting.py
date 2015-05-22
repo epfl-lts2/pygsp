@@ -4,8 +4,12 @@ This module implements plotting functions for the pygsp main objects
 """
 
 import numpy as np
+import pyqtgraph as pg
+import pyqtgraph.opengl as gl
+from pyqtgraph.Qt import QtCore, QtGui
 import pygsp
 import threading
+import uuid
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -121,6 +125,116 @@ def plot_graph(G):
         plt.show()
 
     threading.Thread(None, _thread).start()
+
+
+def pg_plot_graph(G, show_edges=None):
+    r"""
+    Function to plot a graph or an array of graphs
+
+    Parameters
+    ----------
+    G : Graph
+        Graph object to plot
+
+    Examples
+    --------
+    >>> from pygsp import plotting, graphs
+    >>> sen = graphs.Logo()
+    >>> plotting.plot_graph(sen)
+
+    """
+
+    # TODO handling when G is a list of graphs
+    # TODO integrate param when G is a clustered graph
+    global window_list
+    if 'window_list' not in globals():
+        window_list = {}
+        print '!'
+
+    if show_edges is None:
+        show_edges = G.Ne < 10000
+
+    if show_edges:
+        ki, kj = np.nonzero(G.A)
+        if G.directed:
+            raise NotImplementedError('TODO')
+            if G.coords.shape[1] == 2:
+                raise NotImplementedError('TODO')
+            else:
+                raise NotImplementedError('TODO')
+        else:
+            if G.coords.shape[1] == 2:
+                adj = np.concatenate((np.expand_dims(ki, axis=1), np.expand_dims(kj, axis=1)), axis=1)
+                w = pg.GraphicsWindow()
+                w.setWindowTitle(G.gtype)
+                v = w.addViewBox()
+                v.setAspectLocked()
+
+                signal = range(0, 1130)
+
+                pos = np.array([0., 1., 0.5, 0.25, 0.75])
+                color = np.array([[0, 255, 255, 255], [255, 255, 0, 255], [0, 0, 0, 255], (0, 0, 255, 255), (255, 0, 0, 255)], dtype=np.ubyte)
+                cmap = pg.ColorMap(pos, color)
+
+                mininum = min(signal)
+                maximum = max(signal)
+
+                faux_signal = map(lambda x: (float(x) - mininum) / (maximum - mininum), signal)
+
+                g = pg.GraphItem(pos=G.coords, adj=adj, symbolBrush=cmap.map(faux_signal, 'qcolor'))
+                v.addItem(g)
+
+                # print v.__dict__, window_list
+
+                # for pos, ww in window_list.iteritems():
+                #     for key, val in ww.__dict__.iteritems():
+                #         if getattr(w, key) != val:
+                #             print key, val, getattr(w, key)
+
+                window_list[str(uuid.uuid4())] = w
+
+            if G.coords.shape[1] == 3:
+                app = QtGui.QApplication([])
+                w = gl.GLViewWidget()
+                w.opts['distance'] = 10
+                w.show()
+                w.setWindowTitle(G.gtype)
+
+                # Very dirty way to display a 3d graph
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
+                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
+                ii = range(0, x.shape[1])
+                x2 = np.ndarray((0, 1))
+                y2 = np.ndarray((0, 1))
+                z2 = np.ndarray((0, 1))
+                for i in ii:
+                    x2 = np.append(x2, x[:, i])
+                for i in ii:
+                    y2 = np.append(y2, y[:, i])
+                for i in ii:
+                    z2 = np.append(z2, z[:, i])
+
+                pts = np.concatenate((np.expand_dims(x2, axis=1), np.expand_dims(y2, axis=1), np.expand_dims(z2, axis=1)), axis=1)
+
+                g = gl.GLLinePlotItem(pos=pts, mode='lines')
+
+                gp = gl.GLScatterPlotItem(pos=G.coords, color=(1., 0., 0., 1))
+
+                w.addItem(g)
+                w.addItem(gp)
+
+                window_list[str(uuid.uuid4())] = app
+
+    else:
+        if G.coords.shape[1] == 2:
+            pg.plot(G.coords, pen=None, symbol='o')
+        if G.coords.shape[1] == 3:
+            pg.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
+
+    #if __name__ == '__main__':
+    #    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+    #        QtGui.QApplication.instance().exec_()
 
 
 def plot_pointcloud(P):
@@ -252,7 +366,15 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
 
     Examples
     --------
-    >>> TODO
+    >>> import numpy as np
+    >>> import pygsp
+    >>> from pygsp import graphs
+    >>> from pygsp import filters
+    >>> from pygsp import plotting
+    >>> G = graphs.Ring(15)
+    >>> signal = np.sin((np.arange(1, 16)*2*np.pi/15))
+    >>> plotting.plot_signal(signal, G)
+
 
     """
     if np.sum(np.abs(signal.imag)) > 1e-10:
@@ -275,12 +397,6 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-    # Plot signal
-    if G.coords.shape[1] == 2:
-        ax.scatter(G.coords[:, 0], G.coords[:, 1], s=vertex_size, c=signal)
-    if G.coords.shape[1] == 3:
-        ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], s=vertex_size, c=signal)
-
     # Plot edges
     if show_edges:
         ki, kj = np.nonzero(G.A)
@@ -297,7 +413,7 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
                 # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
-                ax.plot(x, y, color='red')
+                ax.plot(x, y, color='grey', zorder=1)
                 # plt.show()
             if G.coords.shape[1] == 3:
                 # Very dirty way to display 3D graph edges
@@ -318,10 +434,157 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
                     x3 = x2[i:i + 2]
                     y3 = y2[i:i + 2]
                     z3 = z2[i:i + 2]
-                    ax.plot(x3, y3, z3, color='red', marker='o', markerfacecolor='blue')
+                    ax.plot(x3, y3, z3, color='grey', marker='o', markerfacecolor='blue', zorder=1)
                     # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
 
+    # Plot signal
+    if G.coords.shape[1] == 2:
+        ax.scatter(G.coords[:, 0], G.coords[:, 1], s=vertex_size, c=signal, zorder=2)
+    if G.coords.shape[1] == 3:
+        ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], s=vertex_size, c=signal, zorder=2)
+
     plt.show()
+
+
+def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, vertex_highlight=False, climits=None, colorbar=True, bar=False, bar_width=1):
+    r"""
+    Plot a graph signal in 2D or 3D, with pyqtgraph.
+
+    Parameters
+    ----------
+    G : Graph object
+        If not specified it will take the one used to create the filter.
+    signal : array of int
+        Signal applied to the graph.
+    show_edges : boolean
+        Set to 0 to only draw the vertices (default G.Ne < 10000).
+    cp : List of int
+        Camera position for a 3D graph.
+    vertex_size : int
+        Size of circle representing each signal component.
+    vertex_highlight : boolean
+        Vector of indices of vertices to be highlighted.
+    climits : array of int
+        Limits of the colorbar.
+    colorbar : boolean
+        To plot an extra line showing the sum of the squared magnitudes\
+         of the filters (default True if there is multiple filters).
+    bar : int
+        0 display color, 1 display bar for the graph (default 0).
+    bar_width : int
+        Width of the bar (default 1).
+
+    Examples
+    --------
+    >>> TODO
+
+    """
+    if np.sum(np.abs(signal.imag)) > 1e-10:
+        raise ValueError("Can't display complex signal.")
+
+    if show_edges is None:
+        show_edges = G.Ne < 10000
+    if vertex_size is None:
+        vertex_size = 15
+    if climits is None:
+        cmin = 1.01 * np.min(signal)
+        cmax = 1.01 * np.max(signal)
+        climits = {cmin, cmax}
+
+    # pygtgraph window initialization in 2D and 3D
+    global window_list
+    if 'window_list' not in globals():
+        window_list = {}
+        print '!'
+
+    if G.coords.shape[1] == 2:
+        w = pg.GraphicsWindow()
+        w.setWindowTitle(G.gtype)
+        v = w.addViewBox()
+    elif G.coords.shape[1] == 3:
+        app = QtGui.QApplication([])
+        w = gl.GLViewWidget()
+        w.opts['distance'] = 10
+        w.show()
+        w.setWindowTitle(G.gtype)
+
+
+    # Plot signal
+    pos = np.array([0., 1., 0.5, 0.25, 0.75])
+    color = np.array([[0, 255, 255, 255], [255, 255, 0, 255], [0, 0, 0, 255], (0, 0, 255, 255), (255, 0, 0, 255)], dtype=np.ubyte)
+    cmap = pg.ColorMap(pos, color)
+
+    mininum = min(signal)
+    maximum = max(signal)
+
+    normalized_signal = map(lambda x: (float(x) - mininum) / (maximum - mininum), signal)
+
+    if G.coords.shape[1] == 2:
+        gp = pg.ScatterPlotItem(G.coords[:, 0], G.coords[:, 1], size=vertex_size, brush=cmap.map(normalized_signal, 'qcolor'))
+        v.addItem(gp)
+    if G.coords.shape[1] == 3:
+        gp = gl.GLScatterPlotItem(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], size=vertex_size, c=signal)
+        w.addItem(gp)
+
+    # Plot edges
+    if show_edges:
+        ki, kj = np.nonzero(G.A)
+        if G.directed:
+            raise NotImplementedError('TODO')
+            if G.coords.shape[1] == 2:
+                raise NotImplementedError('TODO')
+            else:
+                raise NotImplementedError('TODO')
+        else:
+            if G.coords.shape[1] == 2:
+                adj = np.concatenate((np.expand_dims(ki, axis=1), np.expand_dims(kj, axis=1)), axis=1)
+
+                g = pg.GraphItem(pos=G.coords, adj=adj, symbolBrush=None, symbolPen=None)
+                v.addItem(g)
+
+                # print v.__dict__, window_list
+
+                # for pos, ww in window_list.iteritems():
+                #     for key, val in ww.__dict__.iteritems():
+                #         if getattr(w, key) != val:
+                #             print key, val, getattr(w, key)
+
+            if G.coords.shape[1] == 3:
+                app = QtGui.QApplication([])
+                w = gl.GLViewWidget()
+                w.opts['distance'] = 10
+                w.show()
+                w.setWindowTitle(G.gtype)
+
+                # Very dirty way to display a 3d graph
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
+                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
+                ii = range(0, x.shape[1])
+                x2 = np.ndarray((0, 1))
+                y2 = np.ndarray((0, 1))
+                z2 = np.ndarray((0, 1))
+                for i in ii:
+                    x2 = np.append(x2, x[:, i])
+                for i in ii:
+                    y2 = np.append(y2, y[:, i])
+                for i in ii:
+                    z2 = np.append(z2, z[:, i])
+
+                pts = np.concatenate((np.expand_dims(x2, axis=1), np.expand_dims(y2, axis=1), np.expand_dims(z2, axis=1)), axis=1)
+
+                g = gl.GLLinePlotItem(pos=pts, mode='lines')
+
+                gp = gl.GLScatterPlotItem(pos=G.coords, color=(1., 0., 0., 1))
+
+                w.addItem(g)
+                w.addItem(gp)
+
+    # Multiple windows handling
+    if G.coords.shape[1] == 2:
+        window_list[str(uuid.uuid4())] = w
+    elif G.coords.shape[1] == 3:
+        window_list[str(uuid.uuid4())] = app
 
 
 def rescale_center(x):
