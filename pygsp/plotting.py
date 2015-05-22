@@ -48,7 +48,7 @@ def plot(O, **kwargs):
         raise TypeError('Your object type is incorrect, be sure it is a PointCloud, a Filter or a Graph')
 
 
-def plot_graph(G, savefig=False):
+def plot_graph(G, savefig=False, plot_name=None):
     r"""
     Function to plot a graph or an array of graphs
 
@@ -59,9 +59,12 @@ def plot_graph(G, savefig=False):
     savefig : boolean
         Determine wether the plot is saved as a PNG file in your\
          current directory (True) or shown in a window (False) (default False).
+    plot_name : str
+        To give custom names to plots
 
     Examples
     --------
+
     >>> from pygsp import plotting, graphs
     >>> sen = graphs.Logo()
     >>> plotting.plot_graph(sen)
@@ -72,6 +75,9 @@ def plot_graph(G, savefig=False):
 
         # TODO handling when G is a list of graphs
         # TODO integrate param when G is a clustered graph
+
+        if plot_name is None:
+            plot_name = "Plot of " + G.gtype
 
         show_edges = G.Ne < 10000
 
@@ -127,8 +133,7 @@ def plot_graph(G, savefig=False):
 
         # Save plot as PNG or show it in a window
         if savefig:
-            filename = "Plot of " + G.gtype
-            plt.savefig(filename)
+            plt.savefig(plot_name + '.png')
         else:
             plt.show()
 
@@ -261,7 +266,7 @@ def plot_pointcloud(P):
 
 
 def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=10,
-                plot_eigenvalues=None, show_sum=None, savefig=False):
+                plot_eigenvalues=None, show_sum=None, savefig=False, plot_name=None):
     r"""
     Plot a system of graph spectral filters.
 
@@ -288,6 +293,8 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
     savefig : boolean
         Determine wether the plot is saved as a PNG file in your\
          current directory (True) or shown in a window (False) (default False).
+    plot_name : str
+        To give custom names to plots
 
     Examples
     --------
@@ -305,6 +312,8 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
         show_sum = len(filters.g) > 1
     if G is None:
         G = filters.G
+    if plot_name is None:
+        plot_name = "Filter plot of " + G.gtype
 
     lambdas = np.linspace(0, G.lmax, npoints)
 
@@ -334,13 +343,12 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
 
     # Save plot as PNG or show it in a window
     if savefig:
-        filename = "Plot filter of " + G.gtype + " and the given filters"
-        plt.savefig(filename)
+        plt.savefig(plot_name + '.png')
     else:
         plt.show()
 
 
-def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, vertex_highlight=False, climits=None, colorbar=True, bar=False, bar_width=1, savefig=False):
+def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, vertex_highlight=False, climits=None, colorbar=True, bar=False, bar_width=1, savefig=False, plot_name=None):
     r"""
     Plot a graph signal in 2D or 3D.
 
@@ -370,6 +378,8 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
     savefig : boolean
         Determine wether the plot is saved as a PNG file in your\
          current directory (True) or shown in a window (False) (default False).
+    plot_name : str
+        To give custom names to plots
 
     Examples
     --------
@@ -395,6 +405,8 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
         cmin = 1.01 * np.min(signal)
         cmax = 1.01 * np.max(signal)
         climits = {cmin, cmax}
+    if plot_name is None:
+        plot_name = "Signal plot of " + G.gtype
 
     # Matplotlib graph initialization in 2D and 3D
     if G.coords.shape[1] == 2:
@@ -452,8 +464,7 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
 
     # Save plot as PNG or show it in a window
     if savefig:
-        filename = "Plot signal of " + G.gtype + " and the given signal"
-        plt.savefig(filename)
+        plt.savefig(plot_name + '.png')
     else:
         plt.show()
 
