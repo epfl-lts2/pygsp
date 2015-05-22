@@ -119,25 +119,29 @@ class Graph(object):
 
     Parameters
     ----------
-    W (sparse) : weights matrix
-        default is empty
-    A (sparse) : adjacency matrix
+    W : sparse : 
+        weights matrix (default is empty)
+    A : sparse adjacency matrix
         default is constructed with W
-    N (int) : number of nodes
+    N int : number of nodes
         default is the lenght of the first dimension of W
-    d (float) : degree vector
+    d : float 
+        degree vector
         default
-    Ne (int) : edge number
-    gtype (string) : graph type
-        default is "unknown"
-    directed (bool) : whether the graph is directed
-        default depending of the previous values
-    lap_type (string) : laplacian type
-        default is 'combinatorial'
-    L (Ndarray): laplacian
-    coords : Coordinates of the vertices
-        default is np.array([0, 0])
-    plotting (Dict): § dictionnary conataining the plotting parameters
+    Ne : int 
+        edge number
+    gtype : string 
+        graph type (default is "unknown")
+    directed : bool 
+        whether the graph is directed (default depending of the previous values)
+    lap_type : string 
+        laplacian type (default = 'combinatorial')
+    L : Ndarray
+        laplacian
+    coords : ndarray
+        Coordinates of the vertices (default = np.array([0, 0]))
+    plotting : Dict
+        dictionnary containing the plotting parameters
 
     Examples
     --------
@@ -228,9 +232,10 @@ class Graph(object):
         Parameters
         ----------:
         G : Graph structure
-        ctype (bool): flag to select what to copy
-            Default is True
-        Gn : Graph structure (optional)
+        ctype : bool
+            flag to select what to copy (Default is True)
+        Gn : Graph structure
+            (optional)
 
         Returns
         -------
@@ -317,22 +322,23 @@ class NNGraph(Graph):
 
     Parameters
     ----------
-    Xin (nunpy Array) : Input Points
-    use_flann : Whether flann method should be used (knn is otherwise used)
-        default is False
+    Xin : ndarray 
+        Input Points
+    use_flann : bool
+        Whether flann method should be used (knn is otherwise used) (default is False)
         (not implemented yet)
-    center (bool) : center the data
-        default is True
-    rescale (bool) : rescale the data (in a 1-ball)
-        default is True
-    k (int) : number of neighbors for knn
-        default is 10
-    sigma (float) : variance of the distance kernel
-        default is 0.1
-    epsilon (float) : radius for the range search
-        default is 0.01
-    gtype (string) : the type of graph
-            default is "knn"
+    center : bool 
+        Center the data (default is True)
+    rescale : bool 
+        Rescale the data (in a 1-ball) (default is True)
+    k : int 
+        Number of neighbors for knn (default is 10)
+    sigma : float 
+        Variance of the distance kernel (default is 0.1)
+    epsilon : float 
+        RRdius for the range search (default is 0.01)
+    gtype : string 
+        The type of graph (default is "knn")
 
     Examples
     --------
@@ -492,14 +498,14 @@ class Cube(NNGraph):
 
     Parameters
     ----------
-    radius (float) : edge lenght
-        default is 1
-    nb_pts (int) : number of vertices
-        default is 300
-    nb_dim (int) : dimension
-        default is 3
-    sampling (string) : variance of the distance kernel
-        default is 'random'
+    radius : float 
+        Edge lenght (default = 1)
+    nb_pts : int 
+        Number of vertices (default = 300)
+    nb_dim : int 
+        Dimension (default = 3)
+    sampling : string 
+        Variance of the distance kernel (default = 'random')
         (Can now only be 'random')
 
     Examples
@@ -564,14 +570,14 @@ class Sphere(NNGraph):
 
     Parameters
     ----------
-    radius (flaot) : radius of the sphere
-        default is 1
-    nb_pts (int) : number of vertices
-        default is 300
-    nb_dim (int) : dimension
-        default is 3
-    sampling (sting) : variance of the distance kernel
-        default is 'random'
+    radius : flaot 
+        Radius of the sphere (default = 1)
+    nb_pts : int 
+        Number of vertices (default = 300)
+    nb_dim : int 
+        Dimension (default = 3)
+    sampling : sting 
+        Variance of the distance kernel (default = 'random')
         (Can now only be 'random')
 
     Examples
@@ -610,20 +616,20 @@ class TwoMoons(NNGraph):
 
     Parameters
     ----------
-    moontype (string): You have the freedom to chose if you want to create a standard two_moons graph or a synthetised one (default is 'standard').
+    moontype : string
+        You have the freedom to chose if you want to create a standard two_moons graph or a synthetised one (default is 'standard').
         * 'standard' : create a two_moons graph from a based graph.
-            sigmag (flaot) : variance of the distance kernel
-                default is 0.05
-
+            sigmag (flaot) : variance of the distance kernel (default is 0.05)
         * 'synthetised' : create a synthetised two_moon
-            sigmag (flaot) : variance of the distance kernel
-                default is 0.05
-            N (int) : Number of vertices
-                default is 2000
-            sigmad (flaot) : variance of the data (do not set it to high or you won't see anything)
-                default is 0.05
-            d (flaot) : distance of the two moons
-                default is 0.5
+
+    sigmag : float 
+        Variance of the distance kernel (default is 0.05)
+    N : int 
+        Number of vertices (default is 2000)
+    sigmad : float 
+        variance of the data (do not set it to high or you won't see anything) (default is 0.05)
+    d : float 
+        distance of the two moons (default is 0.5)
 
     Examples
     --------
@@ -697,10 +703,10 @@ class Grid2d(Graph):
 
     Parameters
     ----------
-    Nv (int) : Number of vertices along the first dimension
-        default is 16
-    Mv (int) : Number of vertices along the second dimension
-        default is Nv
+    Nv : int 
+        Number of vertices along the first dimension (default is 16)
+    Mv : int 
+        Number of vertices along the second dimension (default is Nv)
 
     Examples
     --------
@@ -757,10 +763,10 @@ class Torus(Graph):
 
     Parameters
     ----------
-    Nv (int) : Number of vertices along the first dimension
-        default is 16
-    Mv (int) : Number of vertices along the second dimension
-        default is Nv
+    Nv : int 
+        Number of vertices along the first dimension (default is 16)
+    Mv : int 
+        Number of vertices along the second dimension (default is Nv)
 
     Examples
     --------
@@ -828,10 +834,10 @@ class Comet(Graph):
 
     Parameters
     ----------
-    Nv (int) : Number of vertices along the first dimension
-        default is 16
-    Mv (int) : Number of vertices along the second dimension
-        default is Nv
+    Nv : int 
+        Number of vertices along the first dimension (default is 16)
+    Mv : int 
+        Number of vertices along the second dimension (default is Nv)
 
     Examples
     --------
@@ -879,8 +885,8 @@ class LowStretchTree(Graph):
 
     Parameters
     ----------
-    k (int) : 2^k points on each side of the grid of vertices
-        default 6
+    k : int 
+        2^k points on each side of the grid of vertices (default 6)
 
     Examples
     --------
@@ -943,10 +949,10 @@ class RandomRegular(Graph):
 
     Parameters
     ----------
-    N (int) : Number of nodes
-        default is 64
-    k (int) : Number of connections of each nodes
-        default is 6
+    N : int 
+        Number of nodes (default is 64)
+    k : int 
+        Number of connections of each nodes (default is 6)
 
     Examples
     --------
@@ -1011,7 +1017,8 @@ class RandomRegular(Graph):
 
             Returns
             -------
-            A (sparse) : representation of the graph
+            A : sparse 
+                representation of the graph
 
             Algorithm
             ---------
@@ -1096,10 +1103,10 @@ class Ring(Graph):
 
     Parameters
     ----------
-    N (int) : Number of vertices
-        default is 64
-    k (int) : Number of neighbors in each directions
-        default is 1
+    N : int 
+        Number of vertices (default is 64)
+    k : int 
+        Number of neighbors in each directions (default is 1)
 
     Examples
     --------
@@ -1162,22 +1169,22 @@ class Community(Graph):
 
     Parameters
     ----------
-    N (int) : Number of nodes
-        default is 256
-    Nc (int) : Number of communities
-        default is round(sqrt(N)/2)
-    com_sizes (int) : Size of the communities
-        default is is random
-    min_comm (int) : Minimum size of the communities
-        default is round(N/Nc/3)
-    min_deg (int) : Minimum degree of each node
-        default is round(min_comm/2) (not implemented yet)
-    verbose (int) : Verbosity output
-        default is 1
-    size_ratio (float) : Ratio between the radius of world and the radius of communities
-        default is 1
-    world_density (float) : Probability of a random edge between any pair of edges
-        default is 1/N
+    N : int 
+        Number of nodes (default = 256)
+    Nc : int 
+        Number of communities (default = round(sqrt(N)/2))
+    com_sizes : int 
+        Size of the communities (default = random)
+    min_comm : int 
+        Minimum size of the communities (default = round(N/Nc/3))
+    min_deg : int 
+        Minimum degree of each node (default = round(min_comm/2) (not implemented yet))
+    verbose : int 
+        Verbosity output (default = 1)
+    size_ratio : float 
+        Ratio between the radius of world and the radius of communities (default = 1)
+    world_density : float 
+        Probability of a random edge between any pair of edges (default = 1/N)
 
     Examples
     --------
@@ -1287,8 +1294,8 @@ class Minnesota(Graph):
 
     Parameters
     ----------
-    connect (bool) : change the graph to be connected.
-        default is True (--> default minnesota graph is coneected)
+    connect : bool 
+        change the graph to be connected. (default = True)
 
     Examples
     --------
@@ -1348,20 +1355,20 @@ class Sensor(Graph):
 
     Parameters
     ----------
-    N (int) : Number of nodes
-        default is 64
-    Nc (int) : Minimum number of connections
-        default is 1
-    regular (bool) : Flag to fix the number of connections to nc
-        default is False
-    verbose (bool) : Verbosity parameter
-        default is True
-    n_try (int) : Number of attempt to create the graph
-        default is 50
-    distribute (bool) : To distribute the points more evenly
-        default is False
-    connected (bool): To force the graph to be connected
-        default is True
+    N : int 
+        Number of nodes (default = 64)
+    Nc : int 
+        Minimum number of connections (default = 1)
+    regular : bool 
+        Flag to fix the number of connections to nc (default = False)
+    verbose : bool 
+        Verbosity parameter (default = True)
+    n_try : int 
+        Number of attempt to create the graph (default = 50)
+    distribute : bool 
+        To distribute the points more evenly (default = False)
+    connected : bool
+        To force the graph to be connected (default = True)
 
     Examples
     --------
@@ -1475,10 +1482,6 @@ class Airfoil(Graph):
     r"""
     Creates the aifoil graph
 
-    Parameters
-    ----------
-    None
-
     Examples
     --------
     >>> from pygsp import graphs
@@ -1516,8 +1519,8 @@ class DavidSensorNet(Graph):
 
     Parameters
     ----------
-    N (int): Number of vertices
-        default is 64
+    N : int
+        Number of vertices (default = 64)
 
     Examples
     --------
@@ -1567,8 +1570,8 @@ class FullConnected(Graph):
 
     Parameters
     ----------
-    N (int) : Number of vertices
-        default 10
+    N : int 
+        Number of vertices (default = 10)
 
     Examples
     --------
@@ -1597,10 +1600,6 @@ class FullConnected(Graph):
 class Logo(Graph):
     r"""
     Creates a graph with the GSP Logo
-
-    Parameters
-    ----------
-    None
 
     Examples
     --------
@@ -1634,8 +1633,8 @@ class Path(Graph):
 
     Parameters
     ----------
-    N (int) : Number of vertices
-        default 32
+    N : int 
+        Number of vertices (default = 32)
 
     Examples
     --------
@@ -1669,8 +1668,8 @@ class RandomRing(Graph):
 
     Parameters
     ----------
-    N (int) : Number of vertices
-        default 64
+    N : int 
+        Number of vertices (default = 64)
 
     Examples
     --------
@@ -1715,14 +1714,22 @@ class SwissRoll(Graph):
 
     Parameters
     ----------
-    N (int) : Number of vertices
-        default 400
-    s (float) : sigma
-        default sqrt(2./N)
-    thresh (float) : threshold
-        default 1e-6
-    rand_state : rand seed
-        default 45
+    N : int 
+        Number of vertices (default = 400)
+    a : int
+        (default = 1)
+    b : int
+        (default = 4)
+    dim : int
+        (default = 3)
+    thresh : float
+        (default = 1e-6)
+    s : float 
+        sigma (default =  sqrt(2./N))
+    noise : bool
+        Wether to add noise or not (default = False)
+    srtype : str
+    Swiss roll Type, possible arguments are 'uniform' or 'classic' (default = 'uniform')
 
     Examples
     --------

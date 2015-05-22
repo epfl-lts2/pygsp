@@ -149,7 +149,6 @@ def pg_plot_graph(G, show_edges=None):
     global window_list
     if 'window_list' not in globals():
         window_list = {}
-        print '!'
 
     if show_edges is None:
         show_edges = G.Ne < 10000
@@ -183,13 +182,6 @@ def pg_plot_graph(G, show_edges=None):
 
                 g = pg.GraphItem(pos=G.coords, adj=adj, symbolBrush=cmap.map(faux_signal, 'qcolor'))
                 v.addItem(g)
-
-                # print v.__dict__, window_list
-
-                # for pos, ww in window_list.iteritems():
-                #     for key, val in ww.__dict__.iteritems():
-                #         if getattr(w, key) != val:
-                #             print key, val, getattr(w, key)
 
                 window_list[str(uuid.uuid4())] = w
 
@@ -231,10 +223,6 @@ def pg_plot_graph(G, show_edges=None):
             pg.plot(G.coords, pen=None, symbol='o')
         if G.coords.shape[1] == 3:
             pg.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
-
-    #if __name__ == '__main__':
-    #    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-    #        QtGui.QApplication.instance().exec_()
 
 
 def plot_pointcloud(P):
@@ -495,7 +483,6 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=Non
     global window_list
     if 'window_list' not in globals():
         window_list = {}
-        print '!'
 
     if G.coords.shape[1] == 2:
         w = pg.GraphicsWindow()
@@ -541,13 +528,6 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=Non
 
                 g = pg.GraphItem(pos=G.coords, adj=adj, symbolBrush=None, symbolPen=None)
                 v.addItem(g)
-
-                # print v.__dict__, window_list
-
-                # for pos, ww in window_list.iteritems():
-                #     for key, val in ww.__dict__.iteritems():
-                #         if getattr(w, key) != val:
-                #             print key, val, getattr(w, key)
 
             if G.coords.shape[1] == 3:
                 app = QtGui.QApplication([])
