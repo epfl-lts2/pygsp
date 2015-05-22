@@ -1000,7 +1000,7 @@ class Heat(Filter):
 
     """
 
-    def __init__(self, G, tau=10, normalize=True, **kwargs):
+    def __init__(self, G, tau=10, normalize=False, **kwargs):
         super(Heat, self).__init__(G, **kwargs)
 
         g = []

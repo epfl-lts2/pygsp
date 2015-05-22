@@ -26,9 +26,9 @@ For the nexts steps of the demo, we will be using the logo graph bundled with th
 
 You can now plot the graph:
 
->>> pygsp.plotting.plot(G)
+>>> pygsp.plotting.plot(G, savefig=True, plot_name='Logo')
 
-#TODO insert image of logo here!
+.. image:: Logo.*
 
 Looks good isn't it? Now we can start to analyse the graph. The next step to compute Graph Fourier Transform or exact graph filtering is to precompute the Fourier basis of the graph. This operation can be very long as it needs to to fully diagonalize the Laplacian. Happily it is not needed to filter signal on graphs.
 
@@ -37,8 +37,11 @@ Looks good isn't it? Now we can start to analyse the graph. The next step to com
 You can now access the eigenvalues of the fourier basis with G.e and the eigenvectors G.U, they look like sinuses on the graph.
 Let's plot the second and third eigenvector, as the one is only constant.
 
->>> pygsp.plotting.plot_signal(G, G.U[:, 2])
->>> pygsp.plotting.plot_signal(G, G.U[:, 3])
+>>> pygsp.plotting.plot_signal(G, G.U[:, 2], savefig=True, plot_name='logo_second_eigenvector')
+>>> pygsp.plotting.plot_signal(G, G.U[:, 3], savefig=True, plot_name='logo_third_eigenvector')
+
+.. image:: logo_second_eigenvector.*
+.. image:: logo_third_eigenvector.*
 
 Let's discover basic filters operations, filters are usually defined in the spectral domain.
 
@@ -57,9 +60,20 @@ to it:
 
 You can also put multiple functions in a list to define a filterbank!
 
->>> pygsp.plotting.plot(F, plot_eigenvalues=True)
+>>> pygsp.plotting.plot(F,plot_eigenvalues=True, savefig=True, plot_name='low_pass_filter')
+
+.. image:: low_pass_filter.*
 
 Here's our low pass filter.
+
+
+To accompain our new filter, let's create a nice signal on the logo by setting each letter to a certain value and then adding some random noise.
+
+>>> f = np.zeros((G.N,))
+>>> f[G.info['idx_g']-1] = - 1
+>>> f[G.info['idx_s']-1] = 1
+>>> f[G.info['idx_p']-1] = -0.5
+>>> f += np.random.rand(G.N,)
 
 The filter is plotted all along the spectrum of the graph, the cross at the bottom are the laplacian's eigenvalues. Those are the point where the continuous filter will be evaluated to create a discrete filter.
 To apply it to a given signal, you only need to run:
@@ -68,8 +82,11 @@ To apply it to a given signal, you only need to run:
 
 Finally here's the noisy signal and the denoised version right under.
 
->>> pygsp.plotting.plot_signal(G, f)
->>> pygsp.plotting.plot_signal(G, f2)
+>>> pygsp.plotting.plot_signal(G, f, savefig=True, plot_name='noisy_logo')
+>>> pygsp.plotting.plot_signal(G, f2, savefig=True, plot_name='denoised_logo')
+
+.. image:: noisy_logo.*
+.. image:: denoised_logo.*
 
 So here are the basics for the PyGSP toolbox, if you want more informations you can check the doc at : #TODO.
 Enjoy the toolbox!

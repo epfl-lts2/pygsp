@@ -4,7 +4,7 @@ GSP Wavelet Demo
 
 * Introduction to spectral graph wavelet whith the PyGSP
 
-** Description
+Description
 
 The wavelets are a special type of filterbank, in this demo we will show you how you can very easily construct a wavelet frame and apply it to a signal.
 
@@ -23,7 +23,7 @@ At this stage we could compute the full Fourier basis using
 
 but this would take a lot of time, and can be avoided by using Chebychev polynomials approximations.
 
-** Simple filtering
+Simple filtering
 
 Before tackling wavelets, we can see the effect of one filter localized on the graph. So we can first design a few heat kernel filters
 
@@ -45,7 +45,7 @@ Let's plot the signal:
 >>> pygsp.plotting.plot_signal(G, Sf[:,2])
 >>> pygsp.plotting.plot_signal(G, Sf[:,3])
 
-** Visualizing wavelets atoms
+Visualizing wavelets atoms
 
 Let's now replace the Heat filter by a filter bank of wavelets. We can create a filter bank using one of the predefined filters such as pygsp.filters.MexicanHat.
 

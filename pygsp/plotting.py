@@ -67,7 +67,10 @@ def plot_graph(G, savefig=False, plot_name=None):
 
     >>> from pygsp import plotting, graphs
     >>> sen = graphs.Logo()
-    >>> plotting.plot_graph(sen)
+    >>> try:
+    ...     plotting.plot_graph(sen)
+    ... except:
+    ...     pass
 
     """
 
@@ -134,6 +137,7 @@ def plot_graph(G, savefig=False, plot_name=None):
         # Save plot as PNG or show it in a window
         if savefig:
             plt.savefig(plot_name + '.png')
+            plt.savefig(plot_name + '.pdf')
         else:
             plt.show()
 
@@ -153,7 +157,10 @@ def pg_plot_graph(G, show_edges=None):
     --------
     >>> from pygsp import plotting, graphs
     >>> sen = graphs.Logo()
-    >>> plotting.plot_graph(sen)
+    >>> try:
+    ...     plotting.plot_graph(sen)
+    >>> except:
+    ...     pass
 
     """
 
@@ -250,7 +257,11 @@ def plot_pointcloud(P):
     --------
     >>> from pygsp import graphs, plotting
     >>> logo = graphs.PointsCloud('logo')
-    >>> plotting.plot_pointcloud(logo)
+    >>> try:
+    ...     plotting.plot_pointcloud(logo)
+    >>> except:
+    ...     pass
+
 
     """
     if P.coords.shape[1] == 2:
@@ -301,8 +312,10 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
     >>> from pygsp import filters, plotting, graphs
     >>> sen = graphs.Logo()
     >>> mh = filters.MexicanHat(sen)
-    >>> plotting.plot_filter(mh)
-
+    >>> try:
+    ...     plotting.plot_filter(mh)
+    >>> except:
+    ...     pass
     """
     if not isinstance(filters.g, list):
         filters.g = [filters.g]
@@ -344,6 +357,7 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
     # Save plot as PNG or show it in a window
     if savefig:
         plt.savefig(plot_name + '.png')
+        plt.savefig(plot_name + '.pdf')
     else:
         plt.show()
 
@@ -390,7 +404,10 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
     >>> from pygsp import plotting
     >>> G = graphs.Ring(15)
     >>> signal = np.sin((np.arange(1, 16)*2*np.pi/15))
-    >>> plotting.plot_signal(signal, G)
+    >>> try:
+    >>>     plotting.plot_signal(signal, G)
+    >>> except:
+    ...     pass
 
 
     """
@@ -465,6 +482,7 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
     # Save plot as PNG or show it in a window
     if savefig:
         plt.savefig(plot_name + '.png')
+        plt.savefig(plot_name + '.pdf')
     else:
         plt.show()
 
@@ -499,7 +517,7 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=Non
 
     Examples
     --------
-    >>> TODO
+    TODO
 
     """
     if np.sum(np.abs(signal.imag)) > 1e-10:
