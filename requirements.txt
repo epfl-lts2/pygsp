@@ -1,12 +1,17 @@
 # Required for usage.
 numpy
 
+# Required for plotting
+matlplotlib
+pyqtgraph
+
 # Required to build documentation.
 sphinx
 numpydoc
 matplotlib
 sphinxcontrib-bibtex
 sphinx-rtd-theme
+pyqtgraph
 
 # Required for packaging.
 wheel

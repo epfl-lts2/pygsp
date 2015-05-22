@@ -618,9 +618,8 @@ class TwoMoons(NNGraph):
     ----------
     moontype : string
         You have the freedom to chose if you want to create a standard two_moons graph or a synthetised one (default is 'standard').
-        * 'standard' : create a two_moons graph from a based graph.
-            sigmag (flaot) : variance of the distance kernel (default is 0.05)
-        * 'synthetised' : create a synthetised two_moon
+        'standard' : Create a two_moons graph from a based graph.
+        'synthetised' : Create a synthetised two_moon
 
     sigmag : float 
         Variance of the distance kernel (default is 0.05)
