@@ -156,10 +156,6 @@ class Filter(object):
     def inverse(self, G, c, **kwargs):
         raise NotImplementedError
 
-<<<<<<< HEAD
-=======
-    # @utils.graph_array_handler
->>>>>>> 9fdc2fe43490a15894a0b511732ae78c035f9c6b
     def synthesis(self, G, c, order=30, method=None, **kwargs):
         r"""
         Synthesis operator of a filterbank
