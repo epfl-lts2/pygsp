@@ -67,10 +67,7 @@ def plot_graph(G, show_edges=None, savefig=False):
 
     """
 
-    local_arg = locals()
-    print(local_arg)
-
-    def _thread(**kwargs):
+    def _thread(G, show_edges, savefig):
 
         # TODO handling when G is a list of graphs
         # TODO integrate param when G is a clustered graph
@@ -135,7 +132,7 @@ def plot_graph(G, show_edges=None, savefig=False):
         else:
             plt.show()
 
-    threading.Thread(None, _thread, kwargs=local_arg).start()
+    threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
 
 def pg_plot_graph(G, show_edges=None):
