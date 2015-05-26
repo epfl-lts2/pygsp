@@ -40,10 +40,15 @@ Let's now create a signal as a Kronecker located on one vertex (e.g. the vertex 
 
 Let's plot the signal:
 
->>> pygsp.plotting.plot_signal(G, Sf[:,0])
->>> pygsp.plotting.plot_signal(G, Sf[:,1])
->>> pygsp.plotting.plot_signal(G, Sf[:,2])
->>> pygsp.plotting.plot_signal(G, Sf[:,3])
+>>> pygsp.plotting.plot_signal(G, Sf[:,0], savefig=True, plot_name='doc/tutorials/img/heat_tau_1')
+>>> pygsp.plotting.plot_signal(G, Sf[:,1], savefig=True, plot_name='doc/tutorials/img/heat_tau_10')
+>>> pygsp.plotting.plot_signal(G, Sf[:,2], savefig=True, plot_name='doc/tutorials/img/heat_tau_25')
+>>> pygsp.plotting.plot_signal(G, Sf[:,3], savefig=True, plot_name='doc/tutorials/img/heat_tau_50')
+
+.. image:: img/heat_tau_1
+.. image:: img/heat_tau_10
+.. image:: img/heat_tau_25
+.. image:: img/heat_tau_50
 
 Visualizing wavelets atoms
 
@@ -54,7 +59,9 @@ Let's now replace the Heat filter by a filter bank of wavelets. We can create a 
 
 We can now plot the filter bank spectrum :
 
->>> pygsp.plotting.plot(Wk)
+>>> pygsp.plotting.plot(Wk, savefig=True, plot_name='doc/tutorials/img/mexican_hat')
+
+.. image:: img/mexican_hat
 
 As we can see, the wavelets atoms are stacked on the low frequency part of the spectrum.
 If we want to get a better coverage of the graph spectrum, we could have used the WarpedTranslates filter bank.

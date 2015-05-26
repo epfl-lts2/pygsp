@@ -53,6 +53,7 @@ And we can assign this function
 
 to it:
 
+>>> tau = 1
 >>> g = lambda x: 1./(1. + tau * x)
 >>> F.g = g
 
