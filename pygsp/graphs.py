@@ -208,7 +208,7 @@ class Graph(object):
         if 'vertex_size' in plotting:
             self.plotting['vertex_size'] = plotting['vertex_size']
         else:
-            self.plotting['vertex_size'] = 50
+            self.plotting['vertex_size'] = 5
         if 'vertex_color' in plotting:
             self.plotting['vertex_color'] = plotting['vertex_color']
         else:
@@ -1612,7 +1612,7 @@ class Logo(Graph):
 
         self.plotting = {"vertex_color": np.array([200./255, 136./255, 204./255]),
                          "edge_color": np.array([0, 136./255, 204./255]),
-                         "vertex_size": 20}
+                         "vertex_size": 8}
 
         super(Logo, self).__init__(plotting=self.plotting, coords=self.coords,
                                    gtype=self.gtype, limits=self.limits,

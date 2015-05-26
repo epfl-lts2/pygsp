@@ -45,7 +45,7 @@ def plot(O, **kwargs):
         raise TypeError('Your object type is incorrect, be sure it is a PointCloud, a Filter or a Graph')
 
 
-def plot_graph(G, savefig=False):
+def plot_graph(G, show_edges=None, savefig=False):
     r"""
     Function to plot a graph or an array of graphs
 
@@ -53,6 +53,8 @@ def plot_graph(G, savefig=False):
     ----------
     G : Graph
         Graph object to plot
+    show_edges : boolean
+        Set to False to only draw the vertices (default G.Ne < 10000).
     savefig : boolean
         Determine wether the plot is saved as a PNG file in your\
          current directory (True) or shown in a window (False) (default False).
@@ -65,12 +67,16 @@ def plot_graph(G, savefig=False):
 
     """
 
-    def _thread():
+    local_arg = locals()
+    print(local_arg)
+
+    def _thread(**kwargs):
 
         # TODO handling when G is a list of graphs
         # TODO integrate param when G is a clustered graph
 
-        show_edges = G.Ne < 10000
+        if show_edges is None:
+            show_edges = G.Ne < 10000
 
         # Matplotlib graph initialization in 2D and 3D
         if G.coords.shape[1] == 2:
@@ -94,7 +100,7 @@ def plot_graph(G, savefig=False):
                     x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
                     y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
                     # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
-                    ax.plot(x, y, color='red', marker='o', markerfacecolor='blue')
+                    ax.plot(x, y, linewidth=G.plotting['edge_width'], color=G.plotting['edge_color'], linestyle=G.plotting['edge_style'], marker='o', markersize=G.plotting['vertex_size'], markerfacecolor=G.plotting['vertex_color'])
                 if G.coords.shape[1] == 3:
                     # Very dirty way to display a 3d graph
                     x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
@@ -114,7 +120,7 @@ def plot_graph(G, savefig=False):
                         x3 = x2[i:i + 2]
                         y3 = y2[i:i + 2]
                         z3 = z2[i:i + 2]
-                        ax.plot(x3, y3, z3, color='red', marker='o', markerfacecolor='blue')
+                        ax.plot(x3, y3, z3, linewidth=G.plotting['edge_width'], color=G.plotting['edge_color'], linestyle=G.plotting['edge_style'], marker='o', markersize=G.plotting['vertex_size'], markerfacecolor=G.plotting['vertex_color'])
                         # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
         else:
             if G.coords.shape[1] == 2:
@@ -129,7 +135,7 @@ def plot_graph(G, savefig=False):
         else:
             plt.show()
 
-    threading.Thread(None, _thread).start()
+    threading.Thread(None, _thread, kwargs=local_arg).start()
 
 
 def pg_plot_graph(G, show_edges=None):
@@ -358,7 +364,7 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
     signal : array of int
         Signal applied to the graph.
     show_edges : boolean
-        Set to 0 to only draw the vertices (default G.Ne < 10000).
+        Set to False to only draw the vertices (default G.Ne < 10000).
     cp : List of int
         Camera position for a 3D graph.
     vertex_size : int
