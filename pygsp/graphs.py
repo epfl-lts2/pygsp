@@ -252,22 +252,22 @@ class Graph(object):
         # if no Gn given
         if not Gn:
             if ctype:
-                Gn = Graph(lap_type=G.lap_type, plotting=G.plotting, limits=G.limits)
+                Gn = Graph(lap_type=self.lap_type, plotting=self.plotting, limits=self.limits)
             else:
-                Gn = Graph(lap_type=G.lap_type, plotting=G.plotting)
+                Gn = Graph(lap_type=self.lap_type, plotting=self.plotting)
 
             return Gn
 
         # if Gn given.
         if hasattr(self, 'lap_type'):
-            Gn.lap_type = G.lap_type
+            Gn.lap_type = self.lap_type
 
         if hasattr(self, 'plotting'):
-            Gn.plotting = G.plotting
+            Gn.plotting = self.plotting
 
         if ctype:
             if hasattr(self, 'coords'):
-                Gn.coords = G.coords
+                Gn.coords = self.coords
         else:
             if hasattr(Gn.plotting, 'limits'):
                 del GN.plotting['limits']
