@@ -16,9 +16,7 @@ The first step is to create a graph, there's a general class that can be used to
 
 
 You have now a graph structure ready to be used everywhere in the box! If you want to know more about the Graph class and it's subclasses you can check the online doc at : #TODO
-You can also check the included methods for all graphs:
-
->>> help(pygsp.graphs.Graph)
+You can also check the included methods for all graphs with the usual help function.
 
 For the nexts steps of the demo, we will be using the logo graph bundled with the toolbox :
 
@@ -26,9 +24,9 @@ For the nexts steps of the demo, we will be using the logo graph bundled with th
 
 You can now plot the graph:
 
->>> pygsp.plotting.plot(G, savefig=True, plot_name='Logo')
+>>> pygsp.plotting.plot(G, savefig=True, plot_name='doc/tutorials/img/logo')
 
-.. image:: Logo.*
+.. image:: logo.*
 
 Looks good isn't it? Now we can start to analyse the graph. The next step to compute Graph Fourier Transform or exact graph filtering is to precompute the Fourier basis of the graph. This operation can be very long as it needs to to fully diagonalize the Laplacian. Happily it is not needed to filter signal on graphs.
 
@@ -37,11 +35,11 @@ Looks good isn't it? Now we can start to analyse the graph. The next step to com
 You can now access the eigenvalues of the fourier basis with G.e and the eigenvectors G.U, they look like sinuses on the graph.
 Let's plot the second and third eigenvector, as the one is only constant.
 
->>> pygsp.plotting.plot_signal(G, G.U[:, 2], savefig=True, plot_name='logo_second_eigenvector')
->>> pygsp.plotting.plot_signal(G, G.U[:, 3], savefig=True, plot_name='logo_third_eigenvector')
+>>> pygsp.plotting.plot_signal(G, G.U[:, 2], savefig=True, plot_name='doc/tutorials/img/logo_second_eigenvector')
+>>> pygsp.plotting.plot_signal(G, G.U[:, 3], savefig=True, plot_name='doc/tutorials/img/logo_third_eigenvector')
 
-.. image:: logo_second_eigenvector.*
-.. image:: logo_third_eigenvector.*
+.. image:: img/logo_second_eigenvector.*
+.. image:: img/logo_third_eigenvector.*
 
 Let's discover basic filters operations, filters are usually defined in the spectral domain.
 
@@ -60,9 +58,9 @@ to it:
 
 You can also put multiple functions in a list to define a filterbank!
 
->>> pygsp.plotting.plot(F,plot_eigenvalues=True, savefig=True, plot_name='low_pass_filter')
+>>> pygsp.plotting.plot(F,plot_eigenvalues=True, savefig=True, plot_name='doc/tutorials/img/low_pass_filter')
 
-.. image:: low_pass_filter.*
+.. image:: img/low_pass_filter.*
 
 Here's our low pass filter.
 
@@ -82,11 +80,11 @@ To apply it to a given signal, you only need to run:
 
 Finally here's the noisy signal and the denoised version right under.
 
->>> pygsp.plotting.plot_signal(G, f, savefig=True, plot_name='noisy_logo')
->>> pygsp.plotting.plot_signal(G, f2, savefig=True, plot_name='denoised_logo')
+>>> pygsp.plotting.plot_signal(G, f, savefig=True, plot_name='doc/tutorials/img/noisy_logo')
+>>> pygsp.plotting.plot_signal(G, f2, savefig=True, plot_name='doc/tutorials/img/denoised_logo')
 
-.. image:: noisy_logo.*
-.. image:: denoised_logo.*
+.. image:: img/noisy_logo.*
+.. image:: img/denoised_logo.*
 
 So here are the basics for the PyGSP toolbox, if you want more informations you can check the doc at : #TODO.
 Enjoy the toolbox!

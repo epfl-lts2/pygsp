@@ -259,14 +259,14 @@ class Graph(object):
             return Gn
 
         # if Gn given.
-        if hasattr(G, 'lap_type'):
+        if hasattr(self, 'lap_type'):
             Gn.lap_type = G.lap_type
 
-        if hasattr(G, 'plotting'):
+        if hasattr(self, 'plotting'):
             Gn.plotting = G.plotting
 
         if ctype:
-            if hasattr(G, 'coords'):
+            if hasattr(self, 'coords'):
                 Gn.coords = G.coords
         else:
             if hasattr(Gn.plotting, 'limits'):
@@ -344,7 +344,7 @@ class NNGraph(Graph):
     --------
     >>> from pygsp import graphs
     >>> import numpy as np
-    >>> Xin = np.arange(9).reshape(3, 3)
+    >>> Xin = np.arange(90).reshape(30, 3)
     >>> G = graphs.NNGraph(Xin)
 
     """
