@@ -67,15 +67,6 @@ def is_directed(M):
     -------
     is_dir : bool
 
-    Examples
-    --------
-    Just define a Graph and look if it is directed
-
-    >>> import pygsp
-    >>> G = pygsp.graphs.Bunny()
-    >>> pygsp.utils.is_directed(G)
-    False
-
     Notes
     -----
     The Weight matrix has to be sparse (For now)
@@ -172,9 +163,10 @@ def check_weights(W):
     >>> from pygsp import graphs, utils
     >>> W = sparse.rand(10,10,0.2)
     >>> [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero] = utils.check_weights(W)
-    GSP_TEST_WEIGHTS: The main diagonal of the weight matrix is not 0!
+        GSP_TEST_WEIGHTS: The main diagonal of the weight matrix is not 0!
     >>> weights_chara = utils.check_weights(W)
     GSP_TEST_WEIGHTS: The main diagonal of the weight matrix is not 0!
+
     """
 
     has_inf_val = False
