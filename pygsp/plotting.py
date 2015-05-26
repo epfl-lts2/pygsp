@@ -121,9 +121,9 @@ def plot_graph(G, show_edges=None, savefig=False):
                         # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
         else:
             if G.coords.shape[1] == 2:
-                ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo')
+                ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o', s=G.plotting['vertex_size'], c=G.plotting['vertex_color'])
             if G.coords.shape[1] == 3:
-                ax.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
+                ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], marker='o', s=G.plotting['vertex_size'], c=G.plotting['vertex_color'])
 
         # Save plot as PNG or show it in a window
         if savefig:
