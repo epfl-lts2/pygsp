@@ -77,7 +77,6 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=None):
     """
 
     local_arg = locals()
-    print(local_arg)
 
     def _thread(**kwargs):
 
