@@ -45,10 +45,29 @@ Let's plot the signal:
 >>> pygsp.plotting.plot_signal(G, Sf[:,2], savefig=True, plot_name='doc/tutorials/img/heat_tau_25')
 >>> pygsp.plotting.plot_signal(G, Sf[:,3], savefig=True, plot_name='doc/tutorials/img/heat_tau_50')
 
-.. image:: img/heat_tau_1
-.. image:: img/heat_tau_10
-.. image:: img/heat_tau_25
-.. image:: img/heat_tau_50
+.. figure:: img/heat_tau_1.*
+    :alt: Tau = 1
+    :align: center
+
+    Heat tau = 1
+
+.. figure:: img/heat_tau_10.*
+    :alt: Tau = 10
+    :align: center
+
+    Heat tau = 10
+
+.. figure:: img/heat_tau_25.*
+    :alt: Tau = 25
+    :align: center
+
+    Heat tau = 25
+
+.. figure:: img/heat_tau_50.*
+    :alt: Tau = 50
+    :align: center
+
+    Heat tau = 50
 
 Visualizing wavelets atoms
 
@@ -61,7 +80,11 @@ We can now plot the filter bank spectrum :
 
 >>> pygsp.plotting.plot(Wk, savefig=True, plot_name='doc/tutorials/img/mexican_hat')
 
-.. image:: img/mexican_hat
+.. figure:: img/mexican_hat.*
+    :alt: Mexican Hat Wavelet filter
+    :align: center
+
+    Mexican Hat Wavelet filter
 
 As we can see, the wavelets atoms are stacked on the low frequency part of the spectrum.
 If we want to get a better coverage of the graph spectrum, we could have used the WarpedTranslates filter bank.
