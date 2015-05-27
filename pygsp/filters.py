@@ -95,7 +95,7 @@ class Filter(object):
             fie = self.evaluate(G.e)
 
             if Nf == 1:
-                c = operators.igft(G, np.kron(np.ones((Nv)), fie)*operators.gft(G, s))
+                c = operators.igft(G, np.kron(np.ones((1, Nv)), np.expand_dims(fie, axis=1))*operators.gft(G, s))
             else:
                 for i in range(Nf):
                     c[np.arange(G.N) + G.N*i] = operators.igft(G, np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, s))
@@ -211,7 +211,6 @@ class Filter(object):
             s = np.zeros((G.N, Nv))
 
             for i in range(Nf):
-                print(operators.igft(np.conjugate(G.U), np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, c[G.N*i + np.arange(G.N)])).shape)
                 s = s + operators.igft(np.conjugate(G.U), np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, c[G.N*i + np.arange(G.N)]))
 
             return s
@@ -377,12 +376,6 @@ class Filter(object):
             gdual.g[i] = lambda x, ind=i: can_dual_func(self, ind, deepcopy(x))
 
         return gdual
-
-    def vec2mat(d, Nf):
-        raise NotImplementedError
-
-    def mat2vec(d):
-        raise NotImplementedError
 
 
 class Abspline(Filter):
@@ -1028,6 +1021,36 @@ class Heat(Filter):
                 g.append(lambda x: np.exp(-tau * x/G.lmax))
 
         self.g = g
+
+
+def vec2mat(d, Nf):
+    r"""
+    Vector to matrix transfor
+
+    Parameters
+    ----------
+    d : Ndarray
+        Data
+    Nf : int
+        Number of filter
+
+    Returns
+    -------
+    d : list of ndarray
+        Data
+
+    """
+    N = np.shape(d)[0]
+    c = []
+
+    for i in range(Nf):
+        c.append(d[np.arange(N/Nf) + i*N/Nf, :])
+
+    return c
+
+
+def mat2vec(d):
+    raise NotImplementedError
 
 
 def dummy(a, b, c):
