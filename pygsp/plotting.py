@@ -148,7 +148,7 @@ def pg_plot_graph(G, show_edges=None):
     --------
     >>> from pygsp import plotting, graphs
     >>> sen = graphs.Logo()
-    >>> plotting.plot_graph(sen)
+    >>> plotting.pg_plot_graph(sen)
 
     """
 
@@ -157,7 +157,6 @@ def pg_plot_graph(G, show_edges=None):
     global window_list
     if 'window_list' not in globals():
         window_list = {}
-        print '!'
 
     if show_edges is None:
         show_edges = G.Ne < 10000
@@ -178,18 +177,7 @@ def pg_plot_graph(G, show_edges=None):
                 v = w.addViewBox()
                 v.setAspectLocked()
 
-                signal = range(0, 1130)
-
-                pos = np.array([0., 1., 0.5, 0.25, 0.75])
-                color = np.array([[0, 255, 255, 255], [255, 255, 0, 255], [0, 0, 0, 255], (0, 0, 255, 255), (255, 0, 0, 255)], dtype=np.ubyte)
-                cmap = pg.ColorMap(pos, color)
-
-                mininum = min(signal)
-                maximum = max(signal)
-
-                faux_signal = map(lambda x: (float(x) - mininum) / (maximum - mininum), signal)
-
-                g = pg.GraphItem(pos=G.coords, adj=adj, symbolBrush=cmap.map(faux_signal, 'qcolor'))
+                g = pg.GraphItem(pos=G.coords, adj=adj)
                 v.addItem(g)
 
                 # print v.__dict__, window_list
@@ -240,7 +228,7 @@ def pg_plot_graph(G, show_edges=None):
         if G.coords.shape[1] == 3:
             pg.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
 
-    #if __name__ == '__main__':
+    # if __name__ == '__main__':
     #    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
     #        QtGui.QApplication.instance().exec_()
 
@@ -529,7 +517,6 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=Non
         w.opts['distance'] = 10
         w.show()
         w.setWindowTitle(G.gtype)
-
 
     # Plot signal
     pos = np.array([0., 1., 0.5, 0.25, 0.75])
