@@ -101,3 +101,8 @@ We can visualize the filtering by one atom the same way the did for the Heat ker
 >>> pygsp.plotting.plot_signal(G, Sf[:,1], savefig=True, plot_name='doc/tutorials/img/wavelet_2')
 >>> pygsp.plotting.plot_signal(G, Sf[:,2], savefig=True, plot_name='doc/tutorials/img/wavelet_3')
 >>> pygsp.plotting.plot_signal(G, Sf[:,3], savefig=True, plot_name='doc/tutorials/img/wavelet_4')
+
+.. figure:: img/wavelet_1.*
+.. figure:: img/wavelet_2.*
+.. figure:: img/wavelet_3.*
+.. figure:: img/wavelet_4.*
