@@ -30,10 +30,10 @@ Before tackling wavelets, we can see the effect of one filter localized on the g
 >>> taus = [1, 10, 25, 50]
 >>> Hk = pygsp.filters.Heat(G, taus)
 
-Let's now create a signal as a Kronecker located on one vertex (e.g. the vertex 100)
+Let's now create a signal as a Kronecker located on one vertex (e.g. the vertex 83)
 
 >>> S = np.zeros(G.N)
->>> vertex_delta = 100
+>>> vertex_delta = 83
 >>> S[vertex_delta] = 1
 >>> Sf_vec = Hk.analysis(G, S)
 >>> Sf = Sf_vec.reshape(Sf_vec.size/len(taus), len(taus))
@@ -91,8 +91,13 @@ If we want to get a better coverage of the graph spectrum, we could have used th
 
 We can visualize the filtering by one atom the same way the did for the Heat kernel, by placing a Kronecker delta at one specific vertex.
 
->>> S = np.zeros(G.N * Nf, Nf)
+>>> S = np.zeros((G.N * Nf, Nf))
 >>> S[vertex_delta] = 1
 >>> for i in range(Nf):
 ...     S[vertex_delta + (i-1) * G.N, i] = 1
 >>> Sf = Wk.synthesis(G, S)
+
+>>> pygsp.plotting.plot_signal(G, Sf[:,0], savefig=True, plot_name='doc/tutorials/img/wavelet_1')
+>>> pygsp.plotting.plot_signal(G, Sf[:,1], savefig=True, plot_name='doc/tutorials/img/wavelet_2')
+>>> pygsp.plotting.plot_signal(G, Sf[:,2], savefig=True, plot_name='doc/tutorials/img/wavelet_3')
+>>> pygsp.plotting.plot_signal(G, Sf[:,3], savefig=True, plot_name='doc/tutorials/img/wavelet_4')

@@ -55,7 +55,7 @@ to it:
 
 >>> tau = 1
 >>> g = lambda x: 1./(1. + tau * x)
->>> F.g = g
+>>> F.g = [g]
 
 You can also put multiple functions in a list to define a filterbank!
 
@@ -77,7 +77,7 @@ To accompain our new filter, let's create a nice signal on the logo by setting e
 The filter is plotted all along the spectrum of the graph, the cross at the bottom are the laplacian's eigenvalues. Those are the point where the continuous filter will be evaluated to create a discrete filter.
 To apply it to a given signal, you only need to run:
 
->>> f2 = F.analysis(G, G.U)
+>>> f2 = F.analysis(G, f)
 
 Finally here's the noisy signal and the denoised version right under.
 
