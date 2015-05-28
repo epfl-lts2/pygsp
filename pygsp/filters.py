@@ -96,7 +96,7 @@ class Filter(object):
             fie = self.evaluate(G.e)
 
             if Nf == 1:
-                c = operators.igft(G, np.kron(np.ones((Nv)), fie)*operators.gft(G, s))
+                c = operators.igft(G,np.kron(np.ones((1, Nv)), np.expand_dims(fie, axis=1))*operators.gft(G, s))
             else:
                 for i in range(Nf):
                     c[np.arange(G.N) + G.N*i] = operators.igft(G, np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, s))
