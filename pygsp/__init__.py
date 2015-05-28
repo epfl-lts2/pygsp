@@ -7,20 +7,14 @@ Package documentation.
 # When importing the toolbox, you surely want these modules.
 from pygsp import utils
 from pygsp import graphs
-try:
-    from pygsp import plotting
-except:
-    pass
+from pygsp import plotting
 from pygsp import operators
 from pygsp import filters
 
 # Silence the code checker warning about unused symbols.
 assert utils
 assert graphs
-try:
-    assert plotting
-except:
-    pass
+assert plotting
 assert operators
 assert filters
 
