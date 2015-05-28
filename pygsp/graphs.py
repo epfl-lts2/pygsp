@@ -11,6 +11,7 @@ This module implements principally graphs and some PointsClouds
 import os
 import os.path
 import numpy as np
+from numpy import ndarray
 import random as rd
 from math import ceil, sqrt, log, exp, floor, pi
 from copy import deepcopy
@@ -25,10 +26,10 @@ class PointsCloud(object):
 
     Parameters
     ----------
-    name : string 
+    name : string
         The name of the point cloud to load.
         Possible arguments : 'airfoil', 'bunny', 'david64', 'david500', 'logo', 'two_moons'.
-    max_dim : int 
+    max_dim : int
         The maximum dimensionality of the points (only valid for two_moons) (default is 2)
 
     Returns
@@ -104,7 +105,7 @@ class PointsCloud(object):
             twomoonsmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/two_moons.mat')
             if max_dim == -1:
                 max_dim == 2
-            self.Xin = twomoonsmat["features"][:max_dim].transpose()
+            self.Xin = twomoonsmat["features"][:max_dim].T
 
         else:
             raise ValueError("This PointsCloud does not exist. Please verify you wrote the right name in lower case.")
@@ -1227,7 +1228,7 @@ class Community(Graph):
                     com_lims_tmp = np.sort(np.resize(np.random.permutation(int(x)), (Nc-1.))) + 1
                     com_lims_tmp += np.cumsum((min_com-1)*np.ones(np.shape(com_lims_temp)))
                     X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([N])))
-                dX = np.transpose(np.diff(np.transpose(X)))
+                dX = np.diff(X.T).T
                 for i in range(int(Nc)):
                     # TODO figure; hist(dX(:,i), 100); title('histogram of row community size'); end
                     pass
@@ -1259,7 +1260,7 @@ class Community(Graph):
             coords[node_ind] = rad_com*coords[node_ind] + com_coords[i]
             info["node_com"] = i
 
-        D = utils.distanz(np.transpose(coords))
+        D = utils.distanz(coords.T)
         W = np.exp(-np.power(D, 2))
         W = np.where(W < 1e-3, 0, W)
 
@@ -1410,7 +1411,7 @@ class Sensor(Graph):
             target_dist_cutoff = 2*N**(-0.5)
             T = 0.6
             s = sqrt(-target_dist_cutoff**2/(2*log(T)))
-            d = utils.distanz(x=np.transpose(Coords))
+            d = utils.distanz(x=Coords.T)
             W = np.exp(-d**2/(2.*s**2))
             W -= np.diag(np.diag(W))
 
@@ -1436,7 +1437,7 @@ class Sensor(Graph):
                     W[i, ind] = val
                     l[ind] = 0
 
-            W = (W + np.transpose(np.conjugate(W)))/2.
+            W = (W + np.conjugate(W).T)/2.
 
             return W
 
@@ -1549,7 +1550,7 @@ class DavidSensorNet(Graph):
             target_dist_cutoff = -0.125*self.N/436.075+0.2183
             T = 0.6
             s = sqrt(-target_dist_cutoff**2/(2.*log(T)))
-            d = utils.distanz(np.conjugate(np.transpose(self.coords)))
+            d = utils.distanz(self.coords.conj().T)
             W = np.exp(-np.power(d, 2)/2.*s**2)
             W = np.where(W < T, 0, W)
             W -= np.diag(np.diag(W))
@@ -1774,7 +1775,7 @@ class SwissRoll(Graph):
 
         self.W = W
 
-        self.coords = coords.transpose()
+        self.coords = coords.T
         super(SwissRoll, self).__init__(W=self.W, coords=self.coords,
                                         limits=self.limits, gtype=self.gtype)
 
