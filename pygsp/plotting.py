@@ -76,9 +76,7 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=None):
 
     """
 
-    local_arg = locals()
-
-    def _thread(**kwargs):
+    def _thread(G, show_edges, savefig):
 
         # TODO handling when G is a list of graphs
         # TODO integrate param when G is a clustered graph
@@ -135,9 +133,9 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=None):
                         # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
         else:
             if G.coords.shape[1] == 2:
-                ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo')
+                ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o', s=G.plotting['vertex_size'], c=G.plotting['vertex_color'])
             if G.coords.shape[1] == 3:
-                ax.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
+                ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], marker='o', s=G.plotting['vertex_size'], c=G.plotting['vertex_color'])
 
         # Save plot as PNG or show it in a window
         if savefig:
@@ -146,7 +144,7 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=None):
         else:
             plt.show()
 
-    threading.Thread(None, _thread, kwargs=local_arg).start()
+    threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
 
 def pg_plot_graph(G, show_edges=None):
@@ -161,11 +159,16 @@ def pg_plot_graph(G, show_edges=None):
     Examples
     --------
     >>> from pygsp import plotting, graphs
+<<<<<<< HEAD
     >>> G = graphs.Logo()
     >>> try:
     ...     plotting.plot_graph(G)
     ... except:
     ...     pass
+=======
+    >>> sen = graphs.Logo()
+    >>> plotting.pg_plot_graph(sen)
+>>>>>>> plotting
 
     """
 
@@ -194,18 +197,7 @@ def pg_plot_graph(G, show_edges=None):
                 v = w.addViewBox()
                 v.setAspectLocked()
 
-                signal = range(0, 1130)
-
-                pos = np.array([0., 1., 0.5, 0.25, 0.75])
-                color = np.array([[0, 255, 255, 255], [255, 255, 0, 255], [0, 0, 0, 255], (0, 0, 255, 255), (255, 0, 0, 255)], dtype=np.ubyte)
-                cmap = pg.ColorMap(pos, color)
-
-                mininum = min(signal)
-                maximum = max(signal)
-
-                faux_signal = map(lambda x: (float(x) - mininum) / (maximum - mininum), signal)
-
-                g = pg.GraphItem(pos=G.coords, adj=adj, symbolBrush=cmap.map(faux_signal, 'qcolor'))
+                g = pg.GraphItem(pos=G.coords, adj=adj)
                 v.addItem(g)
 
                 window_list[str(uuid.uuid4())] = w
@@ -554,7 +546,6 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=Non
         w.opts['distance'] = 10
         w.show()
         w.setWindowTitle(G.gtype)
-
 
     # Plot signal
     pos = np.array([0., 1., 0.5, 0.25, 0.75])
