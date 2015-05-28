@@ -159,16 +159,12 @@ def pg_plot_graph(G, show_edges=None):
     Examples
     --------
     >>> from pygsp import plotting, graphs
-<<<<<<< HEAD
     >>> G = graphs.Logo()
     >>> try:
-    ...     plotting.plot_graph(G)
+    ...     plotting.pg_plot_graph(G)
     ... except:
     ...     pass
-=======
-    >>> sen = graphs.Logo()
-    >>> plotting.pg_plot_graph(sen)
->>>>>>> plotting
+
 
     """
 
