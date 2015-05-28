@@ -67,15 +67,6 @@ def is_directed(M):
     -------
     is_dir : bool
 
-    Examples
-    --------
-    Just define a Graph and look if it is directed
-
-    >>> import pygsp
-    >>> G = pygsp.graphs.Bunny()
-    >>> pygsp.utils.is_directed(G)
-    False
-
     Notes
     -----
     The Weight matrix has to be sparse (For now)
@@ -175,6 +166,7 @@ def check_weights(W):
     GSP_TEST_WEIGHTS: The main diagonal of the weight matrix is not 0!
     >>> weights_chara = utils.check_weights(W)
     GSP_TEST_WEIGHTS: The main diagonal of the weight matrix is not 0!
+
     """
 
     has_inf_val = False
@@ -183,23 +175,23 @@ def check_weights(W):
     has_nan_value = False
 
     if isinf(W.sum()):
-        print("GSP_TEST_WEIGHTS: There is an infinite \
-              value in the weight matrix")
+        print("GSP_TEST_WEIGHTS: There is an infinite "
+              "value in the weight matrix")
         has_inf_val = True
 
     if abs(W.diagonal()).sum() != 0:
-        print("GSP_TEST_WEIGHTS: The main diagonal of \
-              the weight matrix is not 0!")
+        print("GSP_TEST_WEIGHTS: The main diagonal of "
+              "the weight matrix is not 0!")
         diag_is_not_zero = True
 
     if W.get_shape()[0] != W.get_shape()[1]:
-        print("GSP_TEST_WEIGHTS: The weight matrix is \
-              not square!")
+        print("GSP_TEST_WEIGHTS: The weight matrix is "
+              "not square!")
         is_not_square = True
 
     if isnan(W.sum()):
-        print("GSP_TEST_WEIGHTS: There is an infinite \
-              value in the weight matrix")
+        print("GSP_TEST_WEIGHTS: There is an infinite "
+              "value in the weight matrix")
         has_nan_value = True
 
     return [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero]
@@ -438,21 +430,21 @@ def symetrize(W, symetrize_type='average'):
             Weight matrix
         symetrize_type : string
             type of symetrization (default 'average')
-        TThe availlable symetrization_types are:
+        The availlable symetrization_types are:
             'average' : average of W and W^T (default)
             'full'    : copy the missing entries
             'none'    : nothing is done (the matrix might stay unsymetric!)
 
     Returns
     -------
-        W: symetrized matrix
+        W : symetrized matrix
 
 
     Examples
     --------
     >>> from pygsp import utils
-    >>> W = utils.gsp_symetrize(W)
-    >>> W = utils.gsp_symetrize(W, symetrize_type='average')
+    >>> W = utils.symetrize(W)
+    >>> W = utils.symetrize(W, symetrize_type='average')
 
     """
 

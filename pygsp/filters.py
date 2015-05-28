@@ -54,7 +54,8 @@ class Filter(object):
         >>> from pygsp import graphs, filters
         >>> G = graphs.Logo()
         >>> MH = filters.MexicanHat(G)
-        >>> x = np.arange(64).reshape(8, 8)
+                <class 'pygsp.filters.MexicanHat'> : has to compute lmax
+        >>> x = np.arange(G.N**2).reshape(G.N, G.N)
         >>> co = MH.analysis(G, x)
 
         Matlab Authors
@@ -139,14 +140,15 @@ class Filter(object):
         >>> from pygsp import graphs, filters
         >>> G = graphs.Logo()
         >>> MH = filters.MexicanHat(G)
+                <class 'pygsp.filters.Logo'> : has to compute lmax
         >>> x = np.arange(2)
         >>> MH.evaluate(x)
-        [array([  4.41455329e-01,   6.98096605e-42]),
-         array([ 0.        ,  0.20636635]),
-         array([ 0.        ,  0.36786227]),
-         array([ 0.        ,  0.26561591]),
-         array([ 0.        ,  0.13389365]),
-         array([ 0.        ,  0.05850726])]
+            [array([  4.41455329e-01,   6.98096605e-42]),/n
+             array([ 0.        ,  0.20636635]),
+             array([ 0.        ,  0.36786227]),
+             array([ 0.        ,  0.26561591]),
+             array([ 0.        ,  0.13389365]),
+             array([ 0.        ,  0.05850726])]
 
         """
         fd = np.zeros(x.size)

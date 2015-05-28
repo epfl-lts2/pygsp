@@ -213,7 +213,7 @@ class Graph(object):
         if 'vertex_size' in plotting:
             self.plotting['vertex_size'] = plotting['vertex_size']
         else:
-            self.plotting['vertex_size'] = 50
+            self.plotting['vertex_size'] = 5
         if 'vertex_color' in plotting:
             self.plotting['vertex_color'] = plotting['vertex_color']
         else:
@@ -252,22 +252,22 @@ class Graph(object):
         # if no Gn given
         if not Gn:
             if ctype:
-                Gn = Graph(lap_type=G.lap_type, plotting=G.plotting, limits=G.limits)
+                Gn = Graph(lap_type=self.lap_type, plotting=self.plotting, limits=self.limits)
             else:
-                Gn = Graph(lap_type=G.lap_type, plotting=G.plotting)
+                Gn = Graph(lap_type=self.lap_type, plotting=self.plotting)
 
             return Gn
 
         # if Gn given.
-        if hasattr(G, 'lap_type'):
-            Gn.lap_type = G.lap_type
+        if hasattr(self, 'lap_type'):
+            Gn.lap_type = self.lap_type
 
-        if hasattr(G, 'plotting'):
-            Gn.plotting = G.plotting
+        if hasattr(self, 'plotting'):
+            Gn.plotting = self.plotting
 
         if ctype:
-            if hasattr(G, 'coords'):
-                Gn.coords = G.coords
+            if hasattr(self, 'coords'):
+                Gn.coords = self.coords
         else:
             if hasattr(Gn.plotting, 'limits'):
                 del GN.plotting['limits']
@@ -344,7 +344,7 @@ class NNGraph(Graph):
     --------
     >>> from pygsp import graphs
     >>> import numpy as np
-    >>> Xin = np.arange(9).reshape(3, 3)
+    >>> Xin = np.arange(90).reshape(30, 3)
     >>> G = graphs.NNGraph(Xin)
 
     """
@@ -1619,7 +1619,7 @@ class Logo(Graph):
 
         self.plotting = {"vertex_color": np.array([200./255, 136./255, 204./255]),
                          "edge_color": np.array([0, 136./255, 204./255]),
-                         "vertex_size": 20}
+                         "vertex_size": 8}
 
         super(Logo, self).__init__(plotting=self.plotting, coords=self.coords,
                                    gtype=self.gtype, limits=self.limits,
