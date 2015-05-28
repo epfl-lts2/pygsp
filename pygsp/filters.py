@@ -212,8 +212,12 @@ class Filter(object):
             Nv = np.shape(c)[1]
             s = np.zeros((G.N, Nv))
 
-            for i in range(Nf):
-                s = s + operators.igft(np.conjugate(G.U), np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, c[G.N*i + np.arange(G.N)]))
+            if Nf == 1:
+                s = s + operators.igft(np.conjugate(G.U), np.kron(np.ones((1, Nv)), np.expand_dims(fie, axis=1))*operators.gft(G, c[G.N*i + np.arange(G.N)]))
+
+            else:
+                for i in range(Nf):
+                    s = s + operators.igft(np.conjugate(G.U), np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, c[G.N*i + np.arange(G.N)]))
 
             return s
 
