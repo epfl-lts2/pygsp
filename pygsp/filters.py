@@ -54,7 +54,7 @@ class Filter(object):
         >>> from pygsp import graphs, filters
         >>> G = graphs.Logo()
         >>> MH = filters.MexicanHat(G)
-                <class 'pygsp.filters.MexicanHat'> : has to compute lmax
+        <class 'pygsp.filters.MexicanHat'> : has to compute lmax
         >>> x = np.arange(G.N**2).reshape(G.N, G.N)
         >>> co = MH.analysis(G, x)
 
@@ -140,15 +140,15 @@ class Filter(object):
         >>> from pygsp import graphs, filters
         >>> G = graphs.Logo()
         >>> MH = filters.MexicanHat(G)
-                <class 'pygsp.filters.Logo'> : has to compute lmax
+        <class 'pygsp.filters.Logo'> : has to compute lmax
         >>> x = np.arange(2)
         >>> MH.evaluate(x)
-            [array([  4.41455329e-01,   6.98096605e-42]),/n
-             array([ 0.        ,  0.20636635]),
-             array([ 0.        ,  0.36786227]),
-             array([ 0.        ,  0.26561591]),
-             array([ 0.        ,  0.13389365]),
-             array([ 0.        ,  0.05850726])]
+        [array([  4.41455329e-01,   2.24696854e-73]),
+         array([ 0.        ,  0.16235008]),
+         array([ 0.        ,  0.36447524]),
+         array([ 0.       ,  0.2884481]),
+         array([ 0.       ,  0.1508036]),
+         array([ 0.        ,  0.06685891])]
 
         """
         fd = np.zeros(x.size)
@@ -212,8 +212,12 @@ class Filter(object):
             Nv = np.shape(c)[1]
             s = np.zeros((G.N, Nv))
 
-            for i in range(Nf):
-                s = s + operators.igft(np.conjugate(G.U), np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, c[G.N*i + np.arange(G.N)]))
+            if Nf == 1:
+                s = s + operators.igft(np.conjugate(G.U), np.kron(np.ones((1, Nv)), np.expand_dims(fie, axis=1))*operators.gft(G, c[G.N*i + np.arange(G.N)]))
+
+            else:
+                for i in range(Nf):
+                    s = s + operators.igft(np.conjugate(G.U), np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, c[G.N*i + np.arange(G.N)]))
 
             return s
 

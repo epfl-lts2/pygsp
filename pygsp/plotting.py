@@ -159,16 +159,12 @@ def pg_plot_graph(G, show_edges=None):
     Examples
     --------
     >>> from pygsp import plotting, graphs
-<<<<<<< HEAD
     >>> G = graphs.Logo()
     >>> try:
-    ...     plotting.plot_graph(G)
+    ...     plotting.pg_plot_graph(G)
     ... except:
     ...     pass
-=======
-    >>> sen = graphs.Logo()
-    >>> plotting.pg_plot_graph(sen)
->>>>>>> plotting
+
 
     """
 
@@ -309,7 +305,7 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
     >>> from pygsp import filters, plotting, graphs
     >>> G = graphs.Logo()
     >>> mh = filters.MexicanHat(G)
-            <class 'pygsp.filters.MexicanHat'> : has to compute lmax
+    <class 'pygsp.filters.MexicanHat'> : has to compute lmax
     >>> try:
     ...     plotting.plot_filter(mh)
     ... except:
