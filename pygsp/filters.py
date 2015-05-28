@@ -96,10 +96,16 @@ class Filter(object):
             fie = self.evaluate(G.e)
 
             if Nf == 1:
-                c = operators.igft(G, np.kron(np.ones((1, Nv)), np.expand_dims(fie, axis=1))*operators.gft(G, s))
+                if Nv == 1:
+                    c = operators.igft(G, fie*operators.gft(G, s))
+                else:
+                    c = operators.igft(G, np.tile(fie, (Nv, 1)).T*operators.gft(G, s))
             else:
                 for i in range(Nf):
-                    c[np.arange(G.N) + G.N*i] = operators.igft(G, np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, s))
+                    if Nv == 1:
+                        c[np.arange(G.N) + G.N*i] = operators.igft(G, fie[:][i]*operators.gft(G, s))
+                    else:
+                        c[np.arange(G.N) + G.N*i] = operators.igft(G, np.tile(fie[:][i], (Nv, 1)).T*operators.gft(G, s))
 
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
@@ -213,11 +219,10 @@ class Filter(object):
             s = np.zeros((G.N, Nv))
 
             if Nf == 1:
-                s = s + operators.igft(np.conjugate(G.U), np.kron(np.ones((1, Nv)), np.expand_dims(fie, axis=1))*operators.gft(G, c[G.N*i + np.arange(G.N)]))
-
+                s = s + operators.igft(np.conjugate(G.U), np.tile(fie, (1, Nv)).T*operators.gft(G, c[G.N*i + np.arange(G.N)]))
             else:
                 for i in range(Nf):
-                    s = s + operators.igft(np.conjugate(G.U), np.kron(np.ones((1, Nv)), np.expand_dims(fie[:][i], axis=1))*operators.gft(G, c[G.N*i + np.arange(G.N)]))
+                    s = s + operators.igft(np.conjugate(G.U), np.tile(fie[:][i], (1, Nv)).T*operators.gft(G, c[G.N*i + np.arange(G.N)]))
 
             return s
 
@@ -327,7 +332,7 @@ class Filter(object):
 
         Nf = len(self.g)
         Ft = self.analysis(G, np.identity(G.N))
-        F = np.zeros(np.shape(Ft.transpose()))
+        F = np.zeros(np.shape(Ft.T))
 
         for i in range(Nf):
             F[:, G.N*i + np.arange(G.N)] = Ft[G.N*i + np.arange(G.N)]
@@ -366,7 +371,7 @@ class Filter(object):
             x = np.ravel(x)
             N = np.shape(x)[0]
             M = len(g.g)
-            gcoeff = np.transpose(g.evaluate(x))
+            gcoeff = g.evaluate(x).T
 
             s = np.zeros((N, M))
             for i in range(N):
@@ -441,7 +446,7 @@ class Abspline(Filter):
 
                 r[r1] = x[r1]**alpha * t1**(-alpha)
                 r[r2] = a[0] + a[1] * x2 + a[2] * x2**2 + a[3] * x2**3
-                r[r3] = x[r3]**(-beta) * t2 **beta
+                r[r3] = x[r3]**(-beta) * t2**beta
 
             return r
 
