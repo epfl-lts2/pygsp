@@ -227,7 +227,7 @@ class Filter(object):
             s = np.zeros((G.N, np.shape(c)[1]))
 
             for i in range(Nf):
-                s += operators.cheby_op(G, cheb_coeffs[:, i], c[i*G.N + range(G.N)])
+                s = s + operators.cheby_op(G, cheb_coeffs[i], c[i*G.N + np.arange(G.N)])
 
             return s
 
@@ -235,7 +235,7 @@ class Filter(object):
             s = np.zeros((G.N, np.shape(c)[1]))
 
             for i in range(Nf):
-                s += utils.lanczos_op(G, self[i], c[i*G.N + range(G.N)], order=order, verbose=self.verbose)
+                s += utils.lanczos_op(G, self.g[i], c[i*G.N + np.range(G.N)], order=order, verbose=self.verbose)
 
             return s
 

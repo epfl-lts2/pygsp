@@ -267,7 +267,7 @@ def gwft_frame_matrix(G, g, verbose=True):
     G : Graph
     g : window
     verbose : bool
-        Verbosity level (False no log - True display warnings) 
+        Verbosity level (False no log - True display warnings)
 
     Returns
     -------
@@ -406,6 +406,7 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
 
     if hasattr(G, 'e') or hasattr(G, 'U'):
         print("This graph already has Laplacian eigenvectors or eigenvalues")
+        return
 
     if G.N > 3000:
         print("Performing full eigendecomposition of a large matrix\
