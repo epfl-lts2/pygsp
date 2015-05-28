@@ -42,7 +42,7 @@ class FunctionsTestCase(unittest.TestCase):
         def test_estimate_lmax(G):
             # TODO test with matlab
             mat_answser = None
-            self.assertEqual(utils.estimate_lmax(G), np.max(G.L))
+            self.assertEqual(utils.estimate_lmax(G), np.max(G.L)).all()
 
         def test_check_weights(W):
             mat_answser = [False, False, False, True]

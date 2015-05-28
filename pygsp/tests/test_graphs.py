@@ -33,7 +33,7 @@ class FunctionsTestCase(unittest.TestCase):
         def test_default_graph():
             W = np.arange(16).reshape(4, 4)
             G = graphs.Graph(W, directed=False)
-            self.assertEqual(G.W, sparse.lil_matrix(W))
+            self.assertEqual(G.W, sparse.lil_matrix(W)).all()
             self.assertEqual(G.A, sparse.lil_matrix(G.W > 0))
             self.assertEqual(G.N, 1)
             self.assertEqual(G.d, 0)
