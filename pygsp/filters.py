@@ -99,13 +99,13 @@ class Filter(object):
                 if Nv == 1:
                     c = operators.igft(G, fie*operators.gft(G, s))
                 else:
-                    c = operators.igft(G, np.tile(fie, (Nv, 1)).T*operators.gft(G, s))
+                    c = operators.igft(G, np.tile(fie, (1, Nv))*operators.gft(G, s))
             else:
                 for i in range(Nf):
                     if Nv == 1:
                         c[np.arange(G.N) + G.N*i] = operators.igft(G, fie[:][i]*operators.gft(G, s))
                     else:
-                        c[np.arange(G.N) + G.N*i] = operators.igft(G, np.tile(fie[:][i], (Nv, 1)).T*operators.gft(G, s))
+                        c[np.arange(G.N) + G.N*i] = operators.igft(G, np.tile(fie[:][i], (1, Nv))*operators.gft(G, s))
 
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
@@ -146,7 +146,7 @@ class Filter(object):
         >>> from pygsp import graphs, filters
         >>> G = graphs.Logo()
         >>> MH = filters.MexicanHat(G)
-        <class 'pygsp.filters.Logo'> : has to compute lmax
+        <class 'pygsp.filters.MexicanHat'> : has to compute lmax
         >>> x = np.arange(2)
         >>> MH.evaluate(x)
         [array([  4.41455329e-01,   2.24696854e-73]),
@@ -219,10 +219,10 @@ class Filter(object):
             s = np.zeros((G.N, Nv))
 
             if Nf == 1:
-                s = s + operators.igft(np.conjugate(G.U), np.tile(fie, (1, Nv)).T*operators.gft(G, c[G.N*i + np.arange(G.N)]))
+                s = s + operators.igft(np.conjugate(G.U), np.tile(fie, (Nv, 1)).T*operators.gft(G, c[G.N*i + np.arange(G.N)]))
             else:
                 for i in range(Nf):
-                    s = s + operators.igft(np.conjugate(G.U), np.tile(fie[:][i], (1, Nv)).T*operators.gft(G, c[G.N*i + np.arange(G.N)]))
+                    s = s + operators.igft(np.conjugate(G.U), np.tile(fie[:][i], (Nv, 1)).T*operators.gft(G, c[G.N*i + np.arange(G.N)]))
 
             return s
 
