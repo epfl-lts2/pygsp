@@ -43,7 +43,8 @@ class FunctionsTestCase(unittest.TestCase):
             # self.assertEqual(G.L, )
 
         def test_NNGraph():
-            pass
+            Xin = np.arange(90).reshape(30, 3)
+            G = graphs.NNGraph(Xin)
 
         def test_Bunny():
             G = graphs.Bunny()
@@ -108,26 +109,6 @@ class FunctionsTestCase(unittest.TestCase):
 
         def test_SwissRoll():
             G = graphs.SwissRoll()
-
-        test_default_graph()
-        test_NNGraph()
-        test_Bunny()
-        test_Sphere()
-        test_Cube()
-        test_Grid2d()
-        test_Torus()
-        test_Comet()
-        test_LowStretchTree()
-        test_RandomRegular()
-        test_Ring()
-        test_Community()
-        test_Sensor()
-        test_Airfoil()
-        test_DavidSensorNet()
-        test_FullConnected()
-        test_Logo()
-        test_Path()
-        test_RandomRing()
 
     def test_dummy(self):
         """
