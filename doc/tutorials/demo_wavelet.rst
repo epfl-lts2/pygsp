@@ -94,7 +94,7 @@ We can visualize the filtering by one atom the same way the did for the Heat ker
 >>> S = np.zeros((G.N * Nf, Nf))
 >>> S[vertex_delta] = 1
 >>> for i in range(Nf):
-...     S[vertex_delta + (i-1) * G.N, i] = 1
+...     S[vertex_delta + i * G.N, i] = 1
 >>> Sf = Wk.synthesis(G, S)
 
 >>> pygsp.plotting.plot_signal(G, Sf[:,0], savefig=True, plot_name='doc/tutorials/img/wavelet_1')
