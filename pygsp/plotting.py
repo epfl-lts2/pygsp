@@ -16,6 +16,15 @@ import pygsp
 import threading
 import uuid
 
+plot_id = 0
+
+def show():
+    r"""
+    To show created figures
+
+    Strictly equivalent to plt.show() excepted you don't have to import matplotlib by youself.
+    """
+    plt.show()
 
 
 def plot(O, **kwargs):
@@ -51,7 +60,7 @@ def plot(O, **kwargs):
         raise TypeError('Your object type is incorrect, be sure it is a PointCloud, a Filter or a Graph')
 
 
-def plot_graph(G, savefig=False, show_edges=None, plot_name=None):
+def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
     r"""
     Function to plot a graph or an array of graphs
 
@@ -79,75 +88,78 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=None):
 
     """
 
-    def _thread(G, show_edges, savefig):
+    # def _thread(G, show_edges, savefig):
 
-        # TODO handling when G is a list of graphs
-        # TODO integrate param when G is a clustered graph
+    # TODO handling when G is a list of graphs
+    # TODO integrate param when G is a clustered graph
 
-        if plot_name is None:
-            plot_name = "Plot of " + G.gtype
+    if not plot_name:
+        plot_name = "Plot of " + G.gtype
 
-        if show_edges is None:
-            show_edges = G.Ne < 10000
+    if show_edges is None:
+        show_edges = G.Ne < 10000
 
-        # Matplotlib graph initialization in 2D and 3D
-        if G.coords.shape[1] == 2:
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
-        elif G.coords.shape[1] == 3:
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
+    # Matplotlib graph initialization in 2D and 3D
+    if G.coords.shape[1] == 2:
+        fig = plt.figure(plot_id)
+        plot_id += 1
+        ax = fig.add_subplot(111)
+    elif G.coords.shape[1] == 3:
+        fig = plt.figure(plot_id)
+        plot_id += 1
+        ax = fig.add_subplot(111, projection='3d')
 
-        if show_edges:
-            ki, kj = np.nonzero(G.A)
-            if G.directed:
+    if show_edges:
+        ki, kj = np.nonzero(G.A)
+        if G.directed:
+            raise NotImplementedError('TODO')
+            if G.coords.shape[1] == 2:
                 raise NotImplementedError('TODO')
-                if G.coords.shape[1] == 2:
-                    raise NotImplementedError('TODO')
-                else:
-                    raise NotImplementedError('TODO')
             else:
-                if G.coords.shape[1] == 2:
-                    ki, kj = np.nonzero(G.A)
-                    x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
-                    y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
-                    # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
-                    ax.plot(x, y, linewidth=G.plotting['edge_width'], color=G.plotting['edge_color'], linestyle=G.plotting['edge_style'], marker='o', markersize=G.plotting['vertex_size'], markerfacecolor=G.plotting['vertex_color'])
-                if G.coords.shape[1] == 3:
-                    # Very dirty way to display a 3d graph
-                    x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
-                    y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
-                    z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
-                    ii = range(0, x.shape[1])
-                    x2 = np.ndarray((0, 1))
-                    y2 = np.ndarray((0, 1))
-                    z2 = np.ndarray((0, 1))
-                    for i in ii:
-                        x2 = np.append(x2, x[:, i])
-                    for i in ii:
-                        y2 = np.append(y2, y[:, i])
-                    for i in ii:
-                        z2 = np.append(z2, z[:, i])
-                    for i in range(0, x.shape[1] * 2, 2):
-                        x3 = x2[i:i + 2]
-                        y3 = y2[i:i + 2]
-                        z3 = z2[i:i + 2]
-                        ax.plot(x3, y3, z3, linewidth=G.plotting['edge_width'], color=G.plotting['edge_color'], linestyle=G.plotting['edge_style'], marker='o', markersize=G.plotting['vertex_size'], markerfacecolor=G.plotting['vertex_color'])
-                        # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
+                raise NotImplementedError('TODO')
         else:
             if G.coords.shape[1] == 2:
-                ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o', s=G.plotting['vertex_size'], c=G.plotting['vertex_color'])
+                ki, kj = np.nonzero(G.A)
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
+                # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
+                ax.plot(x, y, linewidth=G.plotting['edge_width'], color=G.plotting['edge_color'], linestyle=G.plotting['edge_style'], marker='o', markersize=G.plotting['vertex_size'], markerfacecolor=G.plotting['vertex_color'])
             if G.coords.shape[1] == 3:
-                ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], marker='o', s=G.plotting['vertex_size'], c=G.plotting['vertex_color'])
+                # Very dirty way to display a 3d graph
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
+                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
+                ii = range(0, x.shape[1])
+                x2 = np.ndarray((0, 1))
+                y2 = np.ndarray((0, 1))
+                z2 = np.ndarray((0, 1))
+                for i in ii:
+                    x2 = np.append(x2, x[:, i])
+                for i in ii:
+                    y2 = np.append(y2, y[:, i])
+                for i in ii:
+                    z2 = np.append(z2, z[:, i])
+                for i in range(0, x.shape[1] * 2, 2):
+                    x3 = x2[i:i + 2]
+                    y3 = y2[i:i + 2]
+                    z3 = z2[i:i + 2]
+                    ax.plot(x3, y3, z3, linewidth=G.plotting['edge_width'], color=G.plotting['edge_color'], linestyle=G.plotting['edge_style'], marker='o', markersize=G.plotting['vertex_size'], markerfacecolor=G.plotting['vertex_color'])
+                    # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
+    else:
+        if G.coords.shape[1] == 2:
+            ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o', s=G.plotting['vertex_size'], c=G.plotting['vertex_color'])
+        if G.coords.shape[1] == 3:
+            ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], marker='o', s=G.plotting['vertex_size'], c=G.plotting['vertex_color'])
 
-        # Save plot as PNG or show it in a window
-        if savefig:
-            plt.savefig(plot_name + '.png')
-            plt.savefig(plot_name + '.pdf')
-        else:
-            plt.show()
+    # Save plot as PNG or show it in a window
+    if savefig:
+        plt.savefig(plot_name + '.png')
+        plt.savefig(plot_name + '.pdf')
+        plt.close(fig)
+    # else:
+    #     plt.show()
 
-    threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
+    # threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
 
 def pg_plot_graph(G, show_edges=None):
@@ -261,15 +273,17 @@ def plot_pointcloud(P):
 
     """
     if P.coords.shape[1] == 2:
-        fig = plt.figure()
+        fig = plt.figure(plot_id)
+        plot_id += 1
         ax = fig.add_subplot(111)
         ax.plot(P.coords[:, 0], P.coords[:, 1], 'bo')
-        plt.show()
+        # plt.show()
     if P.coords.shape[1] == 3:
-        fig = plt.figure()
+        fig = plt.figure(plot_id)
+        plot_id += 1
         ax = fig.add_subplot(111, projection='3d')
         ax.plot(P.coords[:, 0], P.coords[:, 1], P.coords[:, 2], 'bo')
-        plt.show()
+        # plt.show()
 
 
 def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=10,
@@ -333,7 +347,8 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
 
     # Plot the filter
     size = len(fd)
-    fig = plt.figure()
+    fig = plt.figure(plot_id)
+    plot_id += 1
     ax = fig.add_subplot(111)
     if len(filters.g) == 1:
         ax.plot(lambdas, fd, linewidth=line_width)
@@ -356,8 +371,9 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-    else:
-        plt.show()
+        plt.close(fig)
+    # else:
+    #     plt.show()
 
 
 def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, vertex_highlight=False, climits=None, colorbar=True, bar=False, bar_width=1, savefig=False, plot_name=None):
@@ -481,8 +497,9 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-    else:
-        plt.show()
+        plt.close(fig)
+    # else:
+    #     plt.show()
 
 
 def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, vertex_highlight=False, climits=None, colorbar=True, bar=False, bar_width=1):

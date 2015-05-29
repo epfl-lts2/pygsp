@@ -35,8 +35,8 @@ Looks good isn't it? Now we can start to analyse the graph. The next step to com
 You can now access the eigenvalues of the fourier basis with G.e and the eigenvectors G.U, they look like sinuses on the graph.
 Let's plot the second and third eigenvector, as the one is only constant.
 
->>> pygsp.plotting.plot_signal(G, G.U[:, 2], savefig=True, plot_name='doc/tutorials/img/logo_second_eigenvector')
->>> pygsp.plotting.plot_signal(G, G.U[:, 3], savefig=True, plot_name='doc/tutorials/img/logo_third_eigenvector')
+>>> pygsp.plotting.plot_signal(G, G.U[:, 2], savefig=True, vertex_size=50, plot_name='doc/tutorials/img/logo_second_eigenvector')
+>>> pygsp.plotting.plot_signal(G, G.U[:, 3], savefig=True, vertex_size=50, plot_name='doc/tutorials/img/logo_third_eigenvector')
 
 .. image:: img/logo_second_eigenvector.*
 .. image:: img/logo_third_eigenvector.*
@@ -81,8 +81,8 @@ To apply it to a given signal, you only need to run:
 
 Finally here's the noisy signal and the denoised version right under.
 
->>> pygsp.plotting.plot_signal(G, f, savefig=True, plot_name='doc/tutorials/img/noisy_logo')
->>> pygsp.plotting.plot_signal(G, f2, savefig=True, plot_name='doc/tutorials/img/denoised_logo')
+>>> pygsp.plotting.plot_signal(G, f, savefig=True, vertex_size=50, plot_name='doc/tutorials/img/noisy_logo')
+>>> pygsp.plotting.plot_signal(G, f2, savefig=True, vertex_size=50, plot_name='doc/tutorials/img/denoised_logo')
 
 .. image:: img/noisy_logo.*
 .. image:: img/denoised_logo.*
