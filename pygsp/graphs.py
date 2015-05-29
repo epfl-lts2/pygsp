@@ -1714,7 +1714,7 @@ class SwissRoll(Graph):
 
     Parameters
     ----------
-    N : int 
+    N : int
         Number of vertices (default = 400)
     a : int
         (default = 1)
@@ -1724,7 +1724,7 @@ class SwissRoll(Graph):
         (default = 3)
     thresh : float
         (default = 1e-6)
-    s : float 
+    s : float
         sigma (default =  sqrt(2./N))
     noise : bool
         Wether to add noise or not (default = False)

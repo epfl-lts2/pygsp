@@ -46,55 +46,68 @@ class FunctionsTestCase(unittest.TestCase):
             pass
 
         def test_Bunny():
-            pass
-
-        def test_Sphere():
-            pass
+            G = graphs.Bunny()
 
         def test_Cube():
-            pass
+            G = graphs.Cube()
+            G2 = graphs.Cube(nb_dim=2)
+
+        def test_Sphere():
+            G = graphs.Sphere()
+
+        def test_TwoMoons():
+            G = graphs.TwoMoons()
+            G2 = graphs.TwoMoons(moontype='synthetised')
 
         def test_Grid2d():
-            pass
+            G = graphs.Grid2d()
 
         def test_Torus():
-            pass
+            G = graphs.Torus()
 
         def test_Comet():
-            pass
+            G = graphs.Comet
 
         def test_LowStretchTree():
-            pass
+            G = graphs.LowStretchTree()
 
         def test_RandomRegular():
-            pass
+            G = graphs.RandomRegular()
 
         def test_Ring():
-            pass
+            G = graphs.Ring()
 
         def test_Community():
-            pass
+            G = graphs.Community()
+
+        def test_Minnesota():
+            G = graphs.Minnesota()
 
         def test_Sensor():
-            pass
+            G = graphs.Sensor()
 
         def test_Airfoil():
-            pass
+            G = graphs.Airfoil()
 
         def test_DavidSensorNet():
-            pass
+            G = graphs.DavidSensorNet()
+            G2 = graphs.DavidSensorNet(N=500)
+            G3 = graphs.DavidSensorNet(N=128)
 
         def test_FullConnected():
-            pass
+            G = graphs.FullConnected()
 
         def test_Logo():
-            pass
+            G = graphs.Logo()
 
         def test_Path():
-            pass
+            G = graphs.Path()
 
         def test_RandomRing():
-            pass
+            G = graphs.RandomRing()
+
+        def test_SwissRoll():
+            G = graphs.SwissRoll()
 
         test_default_graph()
         test_NNGraph()
