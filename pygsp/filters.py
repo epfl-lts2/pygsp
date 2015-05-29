@@ -309,21 +309,21 @@ class Filter(object):
         r"""
         Create the matrix of the filterbank frame.
 
-        This function create the matrix associated to the filterbank g. The
+        This function creates the matrix associated to the filterbank g. The\
         size of the matrix is MN x N, where M is the number of filters.
 
         Parameters
         ----------
         G : Graph
-        verbose (bool) : False no log, True print all steps.
-            Default is True
+        verbose : bool
+            False = no log, True = print all steps. (Default = True)
 
         Returns
         -------
         F : Frame
         """
         if self.verbose and G.N > 2000:
-            print('Waring. Create a big matrix, you can use other methods.')
+            print('Warning: Create a big matrix, you can use other methods.')
 
         Nf = len(self.g)
         Ft = self.analysis(G, np.identity(G.N))
@@ -441,7 +441,7 @@ class Abspline(Filter):
 
                 r[r1] = x[r1]**alpha * t1**(-alpha)
                 r[r2] = a[0] + a[1] * x2 + a[2] * x2**2 + a[3] * x2**3
-                r[r3] = x[r3]**(-beta) * t2 **beta
+                r[r3] = x[r3]**(-beta) * t2 ** beta
 
             return r
 
