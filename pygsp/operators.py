@@ -712,7 +712,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
     G : Graph structure
     Nlevels : int
         Number of level of decomposition
-    lambda : float 
+    lambda : float
         Stability parameter. It add self loop to the graph to give the alorithm some stability.
         (default = 0.025)
     sparsify : bool
@@ -729,7 +729,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
     """
     # TODO @ function
     if not epsilon:
-        epsilon = min(10/sqrt(G.N), 1)
+        epsilon = min(10./sqrt(G.N), 1)
 
     # check if the type of filters is right.
     if filters:
@@ -742,7 +742,6 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
 
                 # I don't know if i want to put a restriction on the filter
                 # raise TypeError('filters must be a list of function.')
-
         if len(filters) == 1:
             for _ in range(Nlevels-1):
                 filters.append(filters[0])
@@ -753,22 +752,20 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
     elif not filters:
         filters = []
         for i in range(Nlevels):
-            filters.append(lambda x: 5./(5+x))
+            filters.append(lambda x: .5/(.5+x))
 
     Gs = [G]
     for i in range(Nlevels):
         L_reg = Gs[i].L.todense() + lamda*np.eye(Gs[i].N)
         _, Vtemp = np.linalg.eig(L_reg)
-        print(Vtemp.shape)
         V = Vtemp[:, 0]
-        print(V.shape)
+
         # Select the bigger group
         V = np.where(V >= 0, 1, 0)
-        print(V.shape)
         if np.sum(V) >= Gs[i].N/2.:
-            ind = np.nonzero(V)
+            ind = np.nonzero(V)[0]
         else:
-            ind = np.nonzero(1-V)
+            ind = np.nonzero(1-V)[0]
 
         if sparsify:
             Gtemp = kron_reduction(Gs[i], ind)
@@ -805,7 +802,7 @@ def kron_reduction(G, ind):
 
         if G.directed:
             raise ValueError('This method only work for undirected graphs.')
-        L = G.L
+        L = G.L.todense()
 
     else:
         L = G
@@ -813,30 +810,28 @@ def kron_reduction(G, ind):
     N = np.shape(L)[0]
     ind_comp = np.setdiff1d(np.arange(N), ind)
 
-    print(ind.shape)
-    L_red = L[ind, ind]
-    L_in_out = L[ind, ind_comp]
-    L_out_in = L[ind_com, ind]
-    L_com = L[ind_com, ind_com]
+    L_red = L[np.ix_(ind, ind)]
+    L_in_out = L[np.ix_(ind, ind_comp)]
+    L_out_in = L[np.ix_(ind_comp, ind)]
+    L_comp = L[np.ix_(ind_comp, ind_comp)]
 
-    Lnew = L_red - L_in_out * (L_com/L_out_in)
+    Lnew = L_red - np.dot(L_in_out, np.linalg.solve(L_comp, L_out_in))
 
     # Make the laplacian symetric if it is almost symetric!
-    if np.sum(np.sum(np.abs(Lnew-Lnew.T), axis=0), axis=0) < eps*np.sum(np.sum(np.abs(Lnew), axis=0), axis=0):
+    if np.sum(np.abs(Lnew-Lnew.T)) < np.spacing(1)*np.sum(np.abs(Lnew)):
         Lnew = (Lnew + Lnew.T)/2.
 
     if isinstance(G, pygsp.graphs.Graph):
         # Suppress the diagonal ? This is a good question?
-        Wnew = np.diagonal(np.diagonal(Lnew)) - Lnew
-        Snew = np.diagonal(Lnew) - np.sum(Wnew).T
-        if np.linalg.nomr(Snew, 2) < eps(1000):
+        Wnew = np.diag(np.diag(Lnew)) - Lnew
+        Snew = np.diag(Lnew) - np.sum(Wnew, axis=0).T
+        if np.linalg.norm(Snew, 2) < np.spacing(1000):
             Snew = 0
         Wnew = Wnew + np.diagonal(Wnew)
-
-        Gnew = pygsp.graphs.Graph.copy_graph_attr(G)
-        Gnew.coords = G.coords[ind, :]
-        Gnew.W = Wnew
-        Gnew.type = 'Kron reduction'
+        print('coods.shape = ', G.coords[ind, :].shape)
+        Gnew = pygsp.graphs.Graph(W=Wnew, coords=G.coords[ind, :],
+                                  type='Kron reduction')
+        G.copy_graph_attributes(ctype=False, Gn=Gnew)
 
     else:
         Gnew = Lnew
