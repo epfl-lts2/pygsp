@@ -32,7 +32,7 @@ def graph_array_handler(func):
 def filterbank_handler(func):
 
     def inner(f, *args, **kwargs):
-        if isinstance(f.g, function):
+        if hasattr(f.g, '__call__'):
             return func([f], *args, **kwargs)
         if len(f.g) <= 1:
             return func(f, *args, **kwargs)

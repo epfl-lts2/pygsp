@@ -16,7 +16,15 @@ import pygsp
 import threading
 import uuid
 
-plot_id = 0
+
+class plid():
+
+    def __init__(self):
+        self.plot_id = 0
+
+
+plid = plid()
+
 
 def show():
     r"""
@@ -93,6 +101,8 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
 
+    print(plid)
+
     if not plot_name:
         plot_name = "Plot of " + G.gtype
 
@@ -101,12 +111,12 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
 
     # Matplotlib graph initialization in 2D and 3D
     if G.coords.shape[1] == 2:
-        fig = plt.figure(plot_id)
-        plot_id += 1
+        fig = plt.figure(plid.plot_id)
+        plid.plot_id += 1
         ax = fig.add_subplot(111)
     elif G.coords.shape[1] == 3:
-        fig = plt.figure(plot_id)
-        plot_id += 1
+        fig = plt.figure(plid.plot_id)
+        plid.plot_id += 1
         ax = fig.add_subplot(111, projection='3d')
 
     if show_edges:
@@ -273,14 +283,14 @@ def plot_pointcloud(P):
 
     """
     if P.coords.shape[1] == 2:
-        fig = plt.figure(plot_id)
-        plot_id += 1
+        fig = plt.figure(plid.plot_id)
+        plid.plot_id += 1
         ax = fig.add_subplot(111)
         ax.plot(P.coords[:, 0], P.coords[:, 1], 'bo')
         # plt.show()
     if P.coords.shape[1] == 3:
-        fig = plt.figure(plot_id)
-        plot_id += 1
+        fig = plt.figure(plid.plot_id)
+        plid.plot_id += 1
         ax = fig.add_subplot(111, projection='3d')
         ax.plot(P.coords[:, 0], P.coords[:, 1], P.coords[:, 2], 'bo')
         # plt.show()
@@ -347,8 +357,8 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
 
     # Plot the filter
     size = len(fd)
-    fig = plt.figure(plot_id)
-    plot_id += 1
+    fig = plt.figure(plid.plot_id)
+    plid.plot_id += 1
     ax = fig.add_subplot(111)
     if len(filters.g) == 1:
         ax.plot(lambdas, fd, linewidth=line_width)
@@ -425,9 +435,11 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
 
 
     """
+    fig = plt.figure(plid.plot_id)
+    plid.plot_id += 1
+
     if np.sum(np.abs(signal.imag)) > 1e-10:
         raise ValueError("Can't display complex signal.")
-
     if show_edges is None:
         show_edges = G.Ne < 10000
     if vertex_size is None:
