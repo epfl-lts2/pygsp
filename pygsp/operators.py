@@ -729,7 +729,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
     """
     # TODO @ function
     if not epsilon:
-        epsilon = min(10./sqrt(G.N), 1)
+        epsilon = min(10./sqrt(G.N), .1)
 
     # check if the type of filters is right.
     if filters:
@@ -758,14 +758,14 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
     for i in range(Nlevels):
         L_reg = Gs[i].L.todense() + lamda*np.eye(Gs[i].N)
         _, Vtemp = np.linalg.eig(L_reg)
-        V = Vtemp[:, 0]
+        V = np.ravel(Vtemp[:, 0])
 
         # Select the bigger group
         V = np.where(V >= 0, 1, 0)
         if np.sum(V) >= Gs[i].N/2.:
-            ind = np.nonzero(V)[0]
+            ind = (V).nonzero()[0]
         else:
-            ind = np.nonzero(1-V)[0]
+            ind = (1-V).nonzero()[0]
 
         if sparsify:
             Gtemp = kron_reduction(Gs[i], ind)
@@ -776,7 +776,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
         Gs[i+1].pyramid = {'ind': ind,
                            'green_kernel': lambda x: 1./(lamda + x),
                            'filter': filters[i],
-                           'level': i,
+                           'level': i+1,
                            'K_reg': kron_reduction(L_reg, ind)}
 
     return Gs
@@ -828,7 +828,6 @@ def kron_reduction(G, ind):
         if np.linalg.norm(Snew, 2) < np.spacing(1000):
             Snew = 0
         Wnew = Wnew + np.diagonal(Wnew)
-        print('coods.shape = ', G.coords[ind, :].shape)
         Gnew = pygsp.graphs.Graph(W=Wnew, coords=G.coords[ind, :],
                                   type='Kron reduction')
         G.copy_graph_attributes(ctype=False, Gn=Gnew)
