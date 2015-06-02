@@ -68,7 +68,8 @@ class Filter(object):
         if type(G) is list:
             output = []
             for i in range(len(self.g)):
-                output.append(g[i].analysis(G[i]), s[i], method=method, cheb_order=cheb_order, **kwargs)
+                output.append(self.g[i].analysis(G[i]), s[i], method=method,
+                              cheb_order=cheb_order, **kwargs)
 
             return output
 
@@ -83,7 +84,8 @@ class Filter(object):
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
                 if self.verbose:
-                    print('The Fourier matrix is not available. The function will compute it for you.')
+                    print('The Fourier matrix is not available. '
+                          'The function will compute it for you.')
                 operators.compute_fourier_basis(G)
 
             try:
@@ -99,7 +101,8 @@ class Filter(object):
                 if Nv == 1:
                     c = operators.igft(G, fie*operators.gft(G, s))
                 else:
-                    c = operators.igft(G, np.tile(fie, (1, Nv))*operators.gft(G, s))
+                    c = operators.igft(G, np.tile(fie, (1, Nv)) *
+                                       operators.gft(G, s))
             else:
                 for i in range(Nf):
                     if Nv == 1:
@@ -110,7 +113,8 @@ class Filter(object):
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
                 if self.verbose:
-                    print('FILTER_ANALYSIS: The variable lmax is not available. The function will compute it for you.')
+                    print('FILTER_ANALYSIS: The variable lmax is not available.'
+                          ' The function will compute it for you.')
                 utils.estimate_lmax(G)
 
             cheb_coef = operators.compute_cheby_coeff(self, G, m=cheb_order)
@@ -120,7 +124,8 @@ class Filter(object):
             raise NotImplementedError
 
         else:
-            raise ValueError('Unknown method: please select exact, cheby or lanczos')
+            raise ValueError('Unknown method: please select exact, '
+                             'cheby or lanczos')
 
         return c
 
@@ -176,7 +181,8 @@ class Filter(object):
             - 'exact' : Exact method using the graph Fourier matrix
             - 'cheby' : Chebyshev polynomial approximation
             - 'lanczos' : Lanczos approximation
-            Default : if the Fourier matrix is present: 'exact' otherwise 'cheby'
+            Default : if the Fourier matrix is present: 'exact' otherwise
+            'cheby'
         order : Degree of the Chebyshev approximation
             Default is 30
         verbose : Verbosity level (False no log - True display warnings)
@@ -196,7 +202,8 @@ class Filter(object):
         if isinstance(G, list):
             output = []
             for i in range(len(self.g)):
-                output.append(g[i].synthesis(G[i]), c[i], method=method, order=order, **kwargs)
+                output.append(self.g[i].synthesis(G[i]), c[i], method=method,
+                              order=order, **kwargs)
 
             return output
 
@@ -211,7 +218,8 @@ class Filter(object):
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
                 if self.verbose:
-                    print("The Fourier matrix is not available. The function will compute it for you.")
+                    print("The Fourier matrix is not available. "
+                          "The function will compute it for you.")
                 operators.compute_fourier_basis(G)
 
             fie = self.evaluate(G.e)
@@ -232,7 +240,8 @@ class Filter(object):
                     print('The variable lmax is not available. The function will compute it for you.')
                 utils.estimate_lmax(G)
 
-            cheb_coeffs = operators.compute_cheby_coeff(self, G, m=order, N=order+1)
+            cheb_coeffs = operators.compute_cheby_coeff(self, G, m=order,
+                                                        N=order+1)
             s = np.zeros((G.N, np.shape(c)[1]))
 
             for i in range(Nf):
@@ -263,7 +272,8 @@ class Filter(object):
 
         Parameters
         ----------
-        G : Graph structure or interval to compute the bound (given in an ndarray).
+        G : Graph structure or interval to compute the bound
+            (given in an ndarray).
             G = Logo() or G = np.array([xmin, xnmax])
         N : Number of point for the line search
             Default is 999
@@ -278,13 +288,14 @@ class Filter(object):
         if type(G) is list:
             output = []
             for i in range(len(self.g)):
-                output.append(g[i].analysis(G[i]), N=N, use_eigenvalues=use_eigenvalues)
+                output.append(self.g[i].analysis(G[i]), N=N,
+                              use_eigenvalues=use_eigenvalues)
 
             return output
 
         if isinstance(G, pygsp.graphs.Graph):
             if not hasattr(G, 'lmax'):
-                estimate_lmax(G)
+                utils.estimate_lmax(G)
                 print('FILTERBANK_BOUNDS: Had to estimate lmax.')
             xmin = 0
             xmax = G.lmax
@@ -298,7 +309,9 @@ class Filter(object):
                 lamba = G.e
 
             else:
-                raise ValueError('You need to calculate and set the eigenvalues to normalize the kernel: use compute_fourier_basis.')
+                raise ValueError('You need to calculate and set the '
+                                 'eigenvalues to normalize the kernel: '
+                                 'use compute_fourier_basis.')
         else:
             lamba = np.linspace(xmin, xmax, N)
 
@@ -366,8 +379,11 @@ class Filter(object):
         return s
 
     def can_dual(self):
+        r"""
+        Creates a dual graph form a given graph
+        """
         def can_dual_func(g, n, x):
-            Nshape = np.shape(x)
+            # Nshape = np.shape(x)
             x = np.ravel(x)
             N = np.shape(x)[0]
             M = len(g.g)
@@ -467,7 +483,8 @@ class Abspline(Filter):
             self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
         f = lambda x: -gb(x)
-        xstar = scipy.optimize.minimize_scalar(f, bounds=(1, 2), method='bounded')
+        xstar = scipy.optimize.minimize_scalar(f, bounds=(1, 2),
+                                               method='bounded')
         gamma_l = -f(xstar.x)
         lminfac = .6 * G.lmin
         self.g[0] = lambda x: gamma_l * gl(x / lminfac)
@@ -538,9 +555,7 @@ class HalfCosine(Filter):
 
         dila_fact = G.lmax * (3./(Nf - 2))
 
-        main_window = lambda x: np.multiply(np.multiply((.5 + .5*np.cos(2.*pi*(x/dila_fact - 1./2))),
-                                                        (x >= 0)),
-                                            (x <= dila_fact))
+        main_window = lambda x: np.multiply(np.multiply((.5 + .5*np.cos(2.*pi*(x/dila_fact - 1./2))), (x >= 0)),(x <= dila_fact))
 
         g = []
 
@@ -599,9 +614,11 @@ class MexicanHat(Filter):
         the scaling function will be created to fill the lowpass gap.
         (default = 20)
     t : ndarray
-        Vector of scale to be used (Initialized by default at the value of the log scale)
+        Vector of scale to be used (Initialized by default at the value of the
+        log scale)
     normalize : bool
-        Wether to normalize the wavelet by the factor/sqrt(t). (default = False)
+        Wether to normalize the wavelet by the factor/sqrt(t).
+        (default = False)
 
     Returns
     -------
@@ -628,7 +645,8 @@ class MexicanHat(Filter):
 
         for i in range(Nf-1):
             if normalize:
-                g.append(lambda x, ind=i: np.sqrt(t[ind]) * gb(self.t[ind] * x))
+                g.append(lambda x, ind=i: np.sqrt(t[ind]) *
+                         gb(self.t[ind] * x))
             else:
                 g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
@@ -661,7 +679,8 @@ class Meyer(Filter):
 
         if self.verbose:
             if len(G.t) >= Nf-1:
-                print('You have specified more scales than  the number of scales minus 1')
+                print('You have specified more scales than  the number of '
+                      'scales minus 1')
 
         t = G.t
 
@@ -725,7 +744,8 @@ class SimpleTf(Filter):
     Nf : int
         Number of filters from 0 to lmax (default = 6)
     t : ndarray
-        Vector of scale to be used (Initialized by default at the value of the log scale)
+        Vector of scale to be used (Initialized by default at the value
+        of the log scale)
 
     Returns
     -------
@@ -779,7 +799,8 @@ class SimpleTf(Filter):
 
         if self.verbose:
             if len(t) != Nf - 1:
-                print('You have specified more scales than Number if filters minus 1.')
+                print('You have specified more scales than Number if filters '
+                      'minus 1.')
 
         g = [lambda x: kernel_simple_tf(t[0] * x, 'sf')]
 
@@ -808,7 +829,7 @@ class WarpedTranslates(Filter):
     """
 
     def __init__(self, G, Nf, **kwargs):
-        super(WarpedTranslat, self).__init__(G, **kwargs)
+        super(WarpedTranslates, self).__init__(G, **kwargs)
         raise NotImplementedError
 
 
@@ -995,7 +1016,8 @@ class Heat(Filter):
     G : Graph
     tau : int or list of ints
         Scaling parameter. (default = 10)
-    normalize (bool) : Normalize the kernel (works only if the eigenvalues are present in the graph)
+    normalize (bool) : Normalize the kernel (works only if the eigenvalues are
+        present in the graph)
         Default is 0
 
     Returns
@@ -1011,14 +1033,16 @@ class Heat(Filter):
 
         if normalize:
             if not hasattr(G, 'e'):
-                print('Filter Heat will calculate and set the eigenvalues to normalize the kernel')
+                print('Filter Heat will calculate and set the eigenvalues to '
+                      'normalize the kernel')
                 operators.compute_fourier_basis(G)
 
             if isinstance(tau, list):
                 for t in tau:
                     gu = lambda x, taulam=t: np.exp(-taulam * x/G.lmax)
                     ng = linalg.norm(gu(G.e))
-                    g.append(lambda x, taulam=t: np.exp(-taulam * x/G.lmax / ng))
+                    g.append(lambda x, taulam=t: np.exp(-taulam *
+                                                        x/G.lmax / ng))
             else:
                 gu = lambda x: np.exp(-tau * x/G.lmax)
                 ng = linalg.norm(gu(G.e))

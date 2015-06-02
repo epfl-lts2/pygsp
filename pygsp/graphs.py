@@ -8,10 +8,8 @@ This module implements principally graphs and some PointsClouds
 * :class: `PointsCloud` Class countaining all the PointsClouds
 """
 
-import os
-import os.path
+from os import path
 import numpy as np
-from numpy import ndarray
 import random as rd
 from math import ceil, sqrt, log, exp, floor, pi
 from copy import deepcopy
@@ -28,9 +26,11 @@ class PointsCloud(object):
     ----------
     name : string
         The name of the point cloud to load.
-        Possible arguments : 'airfoil', 'bunny', 'david64', 'david500', 'logo', 'two_moons'.
+        Possible arguments : 'airfoil', 'bunny', 'david64', 'david500', 'logo',
+        'two_moons'.
     max_dim : int
-        The maximum dimensionality of the points (only valid for two_moons) (default is 2)
+        The maximum dimensionality of the points (only valid for two_moons)
+        (default is 2)
 
     Returns
     -------
@@ -57,7 +57,7 @@ class PointsCloud(object):
 
     def __init__(self, pointcloudname, max_dim=2):
         if pointcloudname == "airfoil":
-            airfoilmat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
+            airfoilmat = io.loadmat(path.dirname(path.realpath(__file__))
                                     + '/misc/airfoil.mat')
             self.i_inds = airfoilmat['i_inds']
             self.j_inds = airfoilmat['j_inds']
@@ -66,26 +66,26 @@ class PointsCloud(object):
             self.coords = np.concatenate((self.x, self.y), axis=1)
 
         elif pointcloudname == "bunny":
-            bunnymat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) +
+            bunnymat = io.loadmat(path.dirname(path.realpath(__file__)) +
                                   '/misc/bunny.mat')
             self.Xin = bunnymat["bunny"]
 
         elif pointcloudname == "david64":
-            david64mat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
+            david64mat = io.loadmat(path.dirname(path.realpath(__file__))
                                     + '/misc/david64.mat')
             self.W = david64mat["W"]
             self.N = david64mat["N"][0, 0]
             self.coords = david64mat["coords"]
 
         elif pointcloudname == "david500":
-            david500mat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
+            david500mat = io.loadmat(path.dirname(path.realpath(__file__))
                                      + '/misc/david500.mat')
             self.W = david500mat["W"]
             self.N = david500mat["N"][0, 0]
             self.coords = david500mat["coords"]
 
         elif pointcloudname == "logo":
-            logomat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) +
+            logomat = io.loadmat(path.dirname(path.realpath(__file__)) +
                                  '/misc/logogsp.mat')
             self.W = logomat["W"]
             self.coords = logomat["coords"]
@@ -96,19 +96,22 @@ class PointsCloud(object):
                          "idx_p": logomat["idx_p"]}
 
         elif pointcloudname == "minnesota":
-            minnesotamat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/minnesota.mat')
+            minnesotamat = io.loadmat(path.dirname(path.realpath(__file__)) +
+                                      '/misc/minnesota.mat')
             self.A = minnesotamat["A"]
             self.labels = minnesotamat["labels"]
             self.coords = minnesotamat["xy"]
 
         elif pointcloudname == "two_moons":
-            twomoonsmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/two_moons.mat')
+            twomoonsmat = io.loadmat(path.dirname(path.realpath(__file__)) +
+                                     '/misc/two_moons.mat')
             if max_dim == -1:
                 max_dim == 2
             self.Xin = twomoonsmat["features"][:max_dim].T
 
         else:
-            raise ValueError("This PointsCloud does not exist. Please verify you wrote the right name in lower case.")
+            raise ValueError("This PointsCloud does not exist. Please verify"
+                             "you wrote the right name in lower case.")
 
 
 class Graph(object):
@@ -134,7 +137,8 @@ class Graph(object):
     gtype : string
         graph type (default is "unknown")
     directed : bool
-        whether the graph is directed (default depending of the previous values)
+        whether the graph is directed
+        (default depending of the previous values)
     lap_type : string
         laplacian type (default = 'combinatorial')
     L : Ndarray
@@ -253,7 +257,8 @@ class Graph(object):
         # if no Gn given
         if not Gn:
             if ctype:
-                Gn = Graph(lap_type=self.lap_type, plotting=self.plotting, limits=self.limits)
+                Gn = Graph(lap_type=self.lap_type, plotting=self.plotting,
+                           limits=self.limits)
             else:
                 Gn = Graph(lap_type=self.lap_type, plotting=self.plotting)
 
@@ -271,7 +276,7 @@ class Graph(object):
                 Gn.coords = self.coords
         else:
             if hasattr(Gn.plotting, 'limits'):
-                del GN.plotting['limits']
+                del Gn.plotting['limits']
 
     def separate_graph(self):
         r"""
@@ -326,7 +331,8 @@ class NNGraph(Graph):
     Xin : ndarray
         Input Points
     use_flann : bool
-        Whether flann method should be used (knn is otherwise used) (default is False)
+        Whether flann method should be used (knn is otherwise used)
+        (default is False)
         (not implemented yet)
     center : bool
         Center the data (default is True)
@@ -618,7 +624,8 @@ class TwoMoons(NNGraph):
     Parameters
     ----------
     moontype : string
-        You have the freedom to chose if you want to create a standard two_moons graph or a synthetised one (default is 'standard').
+        You have the freedom to chose if you want to create a standard
+        two_moons graph or a synthetised one (default is 'standard').
         'standard' : Create a two_moons graph from a based graph.
         'synthetised' : Create a synthetised two_moon
 
@@ -627,7 +634,8 @@ class TwoMoons(NNGraph):
     N : int
         Number of vertices (default is 2000)
     sigmad : float
-        variance of the data (do not set it to high or you won't see anything) (default is 0.05)
+        variance of the data (do not set it to high or you won't see anything)
+        (default is 0.05)
     d : float
         distance of the two moons (default is 0.5)
 
@@ -734,7 +742,8 @@ class Grid2d(Graph):
             i_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = np.concatenate((i*Nv + np.arange(Nv), (i+1)*Nv + np.arange(Nv)))
             j_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = np.concatenate(((i+1)*Nv + np.arange(Nv), i*Nv + np.arange(Nv)))
 
-        self.W = sparse.csc_matrix((np.ones((K*Mv+J*Nv)), (i_inds, j_inds)), shape=(Mv*Nv, Mv*Nv))
+        self.W = sparse.csc_matrix((np.ones((K*Mv+J*Nv)), (i_inds, j_inds)),
+                                   shape=(Mv*Nv, Mv*Nv))
 
         xtmp = np.kron(np.ones((Mv, 1)), (np.arange(Nv)/float(Nv)).reshape(Nv,
                                                                            1))
