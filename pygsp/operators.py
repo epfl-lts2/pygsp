@@ -1115,9 +1115,11 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
 
 def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, verbose=1, maxit=200, use_matrix=True):
     r"""
-    Short description.
+    TV proximal operator for graphs.
 
-    Long description.
+    This function computes the TV proximal operator for graphs. The TV norm
+    is the one norm of the gradient. The gradient is defined in the
+    function |gsp_grad|. This function require the PyUNLocBoX to be executed.
 
     Parameters
     ----------
@@ -1144,14 +1146,12 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, verbose=1, maxit=200,
 
     Returns
     -------
-    d: ndarray
+    sol: solution
         Description.
 
     Examples
     --------
-    >>> import pygsp
-    >>> pygsp.graphs.dummy(0, [1, 2, 3], True)
-    array([1, 2, 3])
+    >>> TODO
 
     """
 
