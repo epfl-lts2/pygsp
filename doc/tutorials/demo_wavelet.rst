@@ -42,10 +42,10 @@ Let's now create a signal as a Kronecker located on one vertex (e.g. the vertex 
 
 Let's plot the signal:
 
->>> pygsp.plotting.plot_signal(G, Sf[:,0], savefig=True, plot_name='doc/tutorials/img/heat_tau_1')
->>> pygsp.plotting.plot_signal(G, Sf[:,1], savefig=True, plot_name='doc/tutorials/img/heat_tau_10')
->>> pygsp.plotting.plot_signal(G, Sf[:,2], savefig=True, plot_name='doc/tutorials/img/heat_tau_25')
->>> pygsp.plotting.plot_signal(G, Sf[:,3], savefig=True, plot_name='doc/tutorials/img/heat_tau_50')
+>>> pygsp.plotting.plot_signal(G, Sf[:,0], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/heat_tau_1')
+>>> pygsp.plotting.plot_signal(G, Sf[:,1], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/heat_tau_10')
+>>> pygsp.plotting.plot_signal(G, Sf[:,2], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/heat_tau_25')
+>>> pygsp.plotting.plot_signal(G, Sf[:,3], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/heat_tau_50')
 
 .. figure:: img/heat_tau_1.*
     :alt: Tau = 1
@@ -100,10 +100,10 @@ We can visualize the filtering by one atom the same way the did for the Heat ker
 ...     S[vertex_delta + i * G.N, i] = 1
 >>> Sf = Wk.synthesis(G, S)
 
->>> pygsp.plotting.plot_signal(G, Sf[:,0], savefig=True, plot_name='doc/tutorials/img/wavelet_1')
->>> pygsp.plotting.plot_signal(G, Sf[:,1], savefig=True, plot_name='doc/tutorials/img/wavelet_2')
->>> pygsp.plotting.plot_signal(G, Sf[:,2], savefig=True, plot_name='doc/tutorials/img/wavelet_3')
->>> pygsp.plotting.plot_signal(G, Sf[:,3], savefig=True, plot_name='doc/tutorials/img/wavelet_4')
+>>> pygsp.plotting.plot_signal(G, Sf[:,0], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/wavelet_1')
+>>> pygsp.plotting.plot_signal(G, Sf[:,1], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/wavelet_2')
+>>> pygsp.plotting.plot_signal(G, Sf[:,2], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/wavelet_3')
+>>> pygsp.plotting.plot_signal(G, Sf[:,3], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/wavelet_4')
 
 .. figure:: img/wavelet_1.*
 .. figure:: img/wavelet_2.*

@@ -38,8 +38,13 @@ Let's plot the second and third eigenvector, as the one is only constant.
 >>> pygsp.plotting.plot_signal(G, G.U[:, 2], savefig=True, vertex_size=50, plot_name='doc/tutorials/img/logo_second_eigenvector')
 >>> pygsp.plotting.plot_signal(G, G.U[:, 3], savefig=True, vertex_size=50, plot_name='doc/tutorials/img/logo_third_eigenvector')
 
-.. image:: img/logo_second_eigenvector.*
-.. image:: img/logo_third_eigenvector.*
+.. figure:: img/logo_second_eigenvector.*
+
+    Second eigenvector
+
+.. figure:: img/logo_third_eigenvector.*
+
+    Third eigenvector
 
 Let's discover basic filters operations, filters are usually defined in the spectral domain.
 

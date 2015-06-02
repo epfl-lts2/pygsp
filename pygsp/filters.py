@@ -154,12 +154,7 @@ class Filter(object):
         <class 'pygsp.filters.MexicanHat'> : has to compute lmax
         >>> x = np.arange(2)
         >>> MH.evaluate(x)
-        [array([  4.41455329e-01,   2.24696854e-73]),
-         array([ 0.        ,  0.16235008]),
-         array([ 0.        ,  0.36447524]),
-         array([ 0.       ,  0.2884481]),
-         array([ 0.       ,  0.1508036]),
-         array([ 0.        ,  0.06685891])]
+        [array([  4.41455329e-01,   2.24696854e-73]), array([ 0.        ,  0.16235008]), array([ 0.        ,  0.36447524]), array([ 0.       ,  0.2884481]), array([ 0.       ,  0.1508036]), array([ 0.        ,  0.06685891])]
 
         """
         fd = np.zeros(x.size)

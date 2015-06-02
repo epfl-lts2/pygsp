@@ -6,13 +6,13 @@ This module implements plotting functions for the pygsp main objects
 import numpy as np
 try:
     import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
 except:
     pass
 try:
     import pyqtgraph as pg
     import pyqtgraph.opengl as gl
     from pyqtgraph.Qt import QtCore, QtGui
-    from mpl_toolkits.mplot3d import Axes3D
 except:
     pass
 import pygsp
