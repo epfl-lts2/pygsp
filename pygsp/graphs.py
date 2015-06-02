@@ -25,10 +25,10 @@ class PointsCloud(object):
 
     Parameters
     ----------
-    name : string 
+    name : string
         The name of the point cloud to load.
         Possible arguments : 'airfoil', 'bunny', 'david64', 'david500', 'logo', 'two_moons'.
-    max_dim : int 
+    max_dim : int
         The maximum dimensionality of the points (only valid for two_moons) (default is 2)
 
     Returns
@@ -119,22 +119,22 @@ class Graph(object):
 
     Parameters
     ----------
-    W : sparse : 
+    W : sparse :
         weights matrix (default is empty)
     A : sparse adjacency matrix
         default is constructed with W
     N int : number of nodes
         default is the lenght of the first dimension of W
-    d : float 
+    d : float
         degree vector
         default
-    Ne : int 
+    Ne : int
         edge number
-    gtype : string 
+    gtype : string
         graph type (default is "unknown")
-    directed : bool 
+    directed : bool
         whether the graph is directed (default depending of the previous values)
-    lap_type : string 
+    lap_type : string
         laplacian type (default = 'combinatorial')
     L : Ndarray
         laplacian
@@ -322,22 +322,22 @@ class NNGraph(Graph):
 
     Parameters
     ----------
-    Xin : ndarray 
+    Xin : ndarray
         Input Points
     use_flann : bool
         Whether flann method should be used (knn is otherwise used) (default is False)
         (not implemented yet)
-    center : bool 
+    center : bool
         Center the data (default is True)
-    rescale : bool 
+    rescale : bool
         Rescale the data (in a 1-ball) (default is True)
-    k : int 
+    k : int
         Number of neighbors for knn (default is 10)
-    sigma : float 
+    sigma : float
         Variance of the distance kernel (default is 0.1)
-    epsilon : float 
+    epsilon : float
         RRdius for the range search (default is 0.01)
-    gtype : string 
+    gtype : string
         The type of graph (default is "knn")
 
     Examples
@@ -498,13 +498,13 @@ class Cube(NNGraph):
 
     Parameters
     ----------
-    radius : float 
+    radius : float
         Edge lenght (default = 1)
-    nb_pts : int 
+    nb_pts : int
         Number of vertices (default = 300)
-    nb_dim : int 
+    nb_dim : int
         Dimension (default = 3)
-    sampling : string 
+    sampling : string
         Variance of the distance kernel (default = 'random')
         (Can now only be 'random')
 
@@ -570,13 +570,13 @@ class Sphere(NNGraph):
 
     Parameters
     ----------
-    radius : flaot 
+    radius : flaot
         Radius of the sphere (default = 1)
-    nb_pts : int 
+    nb_pts : int
         Number of vertices (default = 300)
-    nb_dim : int 
+    nb_dim : int
         Dimension (default = 3)
-    sampling : sting 
+    sampling : sting
         Variance of the distance kernel (default = 'random')
         (Can now only be 'random')
 
@@ -621,13 +621,13 @@ class TwoMoons(NNGraph):
         'standard' : Create a two_moons graph from a based graph.
         'synthetised' : Create a synthetised two_moon
 
-    sigmag : float 
+    sigmag : float
         Variance of the distance kernel (default is 0.05)
-    N : int 
+    N : int
         Number of vertices (default is 2000)
-    sigmad : float 
+    sigmad : float
         variance of the data (do not set it to high or you won't see anything) (default is 0.05)
-    d : float 
+    d : float
         distance of the two moons (default is 0.5)
 
     Examples
@@ -702,9 +702,9 @@ class Grid2d(Graph):
 
     Parameters
     ----------
-    Nv : int 
+    Nv : int
         Number of vertices along the first dimension (default is 16)
-    Mv : int 
+    Mv : int
         Number of vertices along the second dimension (default is Nv)
 
     Examples
@@ -762,9 +762,9 @@ class Torus(Graph):
 
     Parameters
     ----------
-    Nv : int 
+    Nv : int
         Number of vertices along the first dimension (default is 16)
-    Mv : int 
+    Mv : int
         Number of vertices along the second dimension (default is Nv)
 
     Examples
@@ -833,9 +833,9 @@ class Comet(Graph):
 
     Parameters
     ----------
-    Nv : int 
+    Nv : int
         Number of vertices along the first dimension (default is 16)
-    Mv : int 
+    Mv : int
         Number of vertices along the second dimension (default is Nv)
 
     Examples
@@ -884,7 +884,7 @@ class LowStretchTree(Graph):
 
     Parameters
     ----------
-    k : int 
+    k : int
         2^k points on each side of the grid of vertices (default 6)
 
     Examples
@@ -948,9 +948,9 @@ class RandomRegular(Graph):
 
     Parameters
     ----------
-    N : int 
+    N : int
         Number of nodes (default is 64)
-    k : int 
+    k : int
         Number of connections of each nodes (default is 6)
 
     Examples
@@ -1016,7 +1016,7 @@ class RandomRegular(Graph):
 
             Returns
             -------
-            A : sparse 
+            A : sparse
                 representation of the graph
 
             Algorithm
@@ -1102,9 +1102,9 @@ class Ring(Graph):
 
     Parameters
     ----------
-    N : int 
+    N : int
         Number of vertices (default is 64)
-    k : int 
+    k : int
         Number of neighbors in each directions (default is 1)
 
     Examples
@@ -1168,21 +1168,21 @@ class Community(Graph):
 
     Parameters
     ----------
-    N : int 
+    N : int
         Number of nodes (default = 256)
-    Nc : int 
+    Nc : int
         Number of communities (default = round(sqrt(N)/2))
-    com_sizes : int 
+    com_sizes : int
         Size of the communities (default = random)
-    min_comm : int 
+    min_comm : int
         Minimum size of the communities (default = round(N/Nc/3))
-    min_deg : int 
+    min_deg : int
         Minimum degree of each node (default = round(min_comm/2) (not implemented yet))
-    verbose : int 
+    verbose : int
         Verbosity output (default = 1)
-    size_ratio : float 
+    size_ratio : float
         Ratio between the radius of world and the radius of communities (default = 1)
-    world_density : float 
+    world_density : float
         Probability of a random edge between any pair of edges (default = 1/N)
 
     Examples
@@ -1293,7 +1293,7 @@ class Minnesota(Graph):
 
     Parameters
     ----------
-    connect : bool 
+    connect : bool
         change the graph to be connected. (default = True)
 
     Examples
@@ -1354,17 +1354,17 @@ class Sensor(Graph):
 
     Parameters
     ----------
-    N : int 
+    N : int
         Number of nodes (default = 64)
-    Nc : int 
+    Nc : int
         Minimum number of connections (default = 1)
-    regular : bool 
+    regular : bool
         Flag to fix the number of connections to nc (default = False)
-    verbose : bool 
+    verbose : bool
         Verbosity parameter (default = True)
-    n_try : int 
+    n_try : int
         Number of attempt to create the graph (default = 50)
-    distribute : bool 
+    distribute : bool
         To distribute the points more evenly (default = False)
     connected : bool
         To force the graph to be connected (default = True)
@@ -1569,7 +1569,7 @@ class FullConnected(Graph):
 
     Parameters
     ----------
-    N : int 
+    N : int
         Number of vertices (default = 10)
 
     Examples
@@ -1632,7 +1632,7 @@ class Path(Graph):
 
     Parameters
     ----------
-    N : int 
+    N : int
         Number of vertices (default = 32)
 
     Examples
@@ -1667,7 +1667,7 @@ class RandomRing(Graph):
 
     Parameters
     ----------
-    N : int 
+    N : int
         Number of vertices (default = 64)
 
     Examples
@@ -1713,7 +1713,7 @@ class SwissRoll(Graph):
 
     Parameters
     ----------
-    N : int 
+    N : int
         Number of vertices (default = 400)
     a : int
         (default = 1)
@@ -1723,7 +1723,7 @@ class SwissRoll(Graph):
         (default = 3)
     thresh : float
         (default = 1e-6)
-    s : float 
+    s : float
         sigma (default =  sqrt(2./N))
     noise : bool
         Wether to add noise or not (default = False)

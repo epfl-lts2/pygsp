@@ -9,15 +9,15 @@ Reconstruction of missing sample on a graph using TV
 
 In this demo, we try to reconstruct missing sample of a piece-wise smooth signal on a graph. To do so, we will minimize the well-known TV norm defined on the graph.
 
-For this example, you need the pyunlocbox. You can download it: https://github.com/epfl-lts2/pyunlocbox
+For this example, you need the pyunlocbox. You can download it from https://github.com/epfl-lts2/pyunlocbox and installing it.
 
 We express the recovery problem as a convex optimization problem of the following form:
 
 .. math:: arg \min_x  \|\nabla(x)\|_1 \text{ s. t. } \|Mx-b\|_2 \leq \epsilon
 
-Where b represents the known measurements, M is an operator representing the mask and \epsilon is the radius of the l2 ball.
+Where *b* represents the known measurements, *M* is an operator representing the mask and \epsilon is the radius of the l2 ball.
 
-We set
+We set:
 
 * $f_1(x)=||\nabla x ||_1$
 We define the prox of $f_1$ as:
