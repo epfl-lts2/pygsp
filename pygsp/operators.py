@@ -164,7 +164,7 @@ def gft(G, f, verbose=True):
     else:
         U = G
 
-    return np.dot(np.conjugate(U).T, f)
+    return np.dot(np.conjugate(U.T), f)
 
 
 def gwft(G, g, f, lowmemory=True, verbose=True):
@@ -174,7 +174,7 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     Parameters
     ----------
     G : Graph
-    g : 
+    g :
         Window (graph signal or kernel)
     f : ndarray
         Graph signal
@@ -509,8 +509,7 @@ def cheby_op(G, c, signal, **kwargs):
         Nv = np.shape(signal)[1]
         r = np.zeros((G.N * Nscales, Nv))
     except IndexError:
-        r = np.zeros((G.N * Nscales, 1))
-        signal = np.expand_dims(signal, axis=1)
+        r = np.zeros((G.N * Nscales))
 
     a_arange = [0, G.lmax]
 
@@ -518,12 +517,12 @@ def cheby_op(G, c, signal, **kwargs):
     a2 = float(a_arange[1]+a_arange[0])/2
 
     twf_old = signal
-    twf_cur = (np.dot(G.L.todense(), signal) - a2 * signal)/a1
+    twf_cur = (np.dot(G.L.toarray(), signal) - a2 * signal)/a1
 
     for i in range(Nscales):
         r[np.arange(G.N) + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
     for k in range(2, M+1):
-        twf_new = (2./a1) * (np.dot(G.L.todense(), twf_cur) - a2*twf_cur) - twf_old
+        twf_new = (2./a1) * (np.dot(G.L.toarray(), twf_cur) - a2*twf_cur) - twf_old
         for i in range(Nscales):
             if k + 1 <= M:
                 r[np.arange(G.N) + G.N*i] += c[i][k]*twf_new
@@ -702,8 +701,7 @@ def localize(G, g, i):
     return gt
 
 
-def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
-                 filters=None):
+def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None):
     r"""
     Compute a pyramid of graphs using the kron reduction
 
@@ -719,8 +717,6 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
         Sparsify the graph after the Kron reduction. (default is True)
     epsilon : float
         Sparsification parameter if the sparsification is used. (default = min(2/sqrt(G.N), 0.1))
-    filters : ndarray
-        A Ndarray of filter that will be used for the analysis and sythesis operator. If only one filter is given, it will be used for all levels. You may change that later on.
 
     Returns
     -------
@@ -730,29 +726,6 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
     # TODO @ function
     if not epsilon:
         epsilon = min(10./sqrt(G.N), .1)
-
-    # check if the type of filters is right.
-    if filters:
-        if type(filters) != list:
-            print('filters is not a list. I will convert it for you.')
-            if hasattr(filters, '__call__'):
-                filters = [filters]
-            else:
-                print('filters must be a list of function.')
-
-                # I don't know if i want to put a restriction on the filter
-                # raise TypeError('filters must be a list of function.')
-        if len(filters) == 1:
-            for _ in range(Nlevels-1):
-                filters.append(filters[0])
-
-        elif 1 < len(filters) or len(filters) < Nlevels or Nlevels < len(filters):
-            raise ValueError('The numbers of filters can must be one or equal to Nlevels')
-
-    elif not filters:
-        filters = []
-        for i in range(Nlevels):
-            filters.append(lambda x: .5/(.5+x))
 
     Gs = [G]
     for i in range(Nlevels):
@@ -774,8 +747,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
             Gs.append(kron_reduction(Gs[i], ind))
 
         Gs[i+1].pyramid = {'ind': ind,
-                           'green_kernel': lambda x: 1./(lamda + x),
-                           'filter': filters[i],
+                           'green_kernel': pygsp.filters.Filter(Gs[i + 1], filters=[lambda x: 1./(lamda + x)]),
                            'level': i+1,
                            'K_reg': kron_reduction(L_reg, ind)}
 
@@ -838,6 +810,74 @@ def kron_reduction(G, ind):
     return Gnew
 
 
+def pyramid_analysis(Gs, f, filters=None, **kwargs):
+    r"""
+    Compute the graph pyramid transform coefficients
+
+    Parameters
+    ----------
+    Gs : list of graph
+        A multiresolution sequence of graph structures.
+    f : ndarray
+        Graph signal to analyze.
+    kwargs : Dict
+        Optional parameters that will be used
+    filters : list
+        A list of filter that will be used for the analysis and sythesis operator. If only one filter is given, it will be used for all levels. You may change that later on.
+
+    Returns
+    -------
+    ca : ndarray
+        Array with the coarse approximation at each level
+    pe : ndarray
+        Array with the prediction errors at each level
+    """
+    if np.shape(f)[0] != Gs[0].N:
+        raise ValueError("The signal to analyze should have the same dimension as the first graph")
+
+    Nlevels = len(Gs) - 1
+    # check if the type of filters is right.
+    if filters:
+        if type(filters) != list:
+            print('filters is not a list. I will convert it for you.')
+            if hasattr(filters, '__call__'):
+                filters = [filters]
+            else:
+                print('filters must be a list of function.')
+
+        if len(filters) == 1:
+            for _ in range(Nlevels-1):
+                filters.append(filters[0])
+
+        elif 1 < len(filters) or len(filters) < Nlevels or Nlevels < len(filters):
+            raise ValueError('The numbers of filters can must be one or equal to Nlevels')
+
+    elif not filters:
+        filters = []
+        for i in range(Nlevels):
+            filters.append(lambda x: .5/(.5+x))
+
+    for i in range(Nlevels):
+        Gs[i + 1].pyramid['filters'] = pygsp.filters.Filter(Gs[i + 1], filters=[filters[i]])
+
+    ca = [np.ravel(f)]
+    pe = []
+
+    for i in range(Nlevels):
+        # Low pass the signal
+        s_low = Gs[i+1].pyramid['filters'].analysis(Gs[i], ca[i], **kwargs)
+        # Keep only the coefficient on the selected nodes
+        ca.append(s_low[Gs[i+1].pyramid['ind']])
+        # Compute prediction
+        s_pred = interpolate(Gs[i], Gs[i+1], ca[i+1], **kwargs)
+        # Compute errors
+        pe.append(ca[i] - s_pred)
+
+    pe.append(np.zeros((Gs[Nlevels].N)))
+
+    return ca, pe
+
+
 def pyramid_cell2coeff(ca, pe):
     r"""
     Cell array to vector transform for the pyramid
@@ -853,7 +893,6 @@ def pyramid_cell2coeff(ca, pe):
     -------
     coeff : ndarray
         Array of coefficient
-
     """
     Nl = len(ca) - 1
     N = 0
@@ -933,12 +972,11 @@ def interpolate(Gh, Gl, coeff, order=100, **kwargs):
     s_pred : Predicted signal
 
     """
-    alpha = Gl.pyramid['k_reg']
+    alpha = Gl.pyramid['K_reg']
     s_pred = np.zeros((Gh.N))
-    s_pred[Gl.pyramid['ind']-1] = alpha
-    s_pred = pygsp.filters.analysis(Gh, Gl.pyramid['green_kernel'], s_pred,
-                                    order=order, **kwargs)
-
+    s_pred[Gl.pyramid['ind']] = alpha
+    s_pred = Gl.pyramid['green_kernel'].analysis(Gh, s_pred, order=order,
+                                                 **kwargs)
     return s_pred
 
 
