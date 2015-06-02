@@ -110,8 +110,6 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
 
-    print(plid)
-
     if not plot_name:
         plot_name = "Plot of " + G.gtype
 
