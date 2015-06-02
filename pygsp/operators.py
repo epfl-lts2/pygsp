@@ -24,10 +24,6 @@ def adj2vec(G):
     Parameters
     ----------
     G : Graph structure
-
-    Returns
-    -------
-    G : Graph structure
     """
     if G.directed:
         raise NotImplementedError("Not implemented yet")
@@ -178,7 +174,7 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     Parameters
     ----------
     G : Graph
-    g : 
+    g :
         Window (graph signal or kernel)
     f : ndarray
         Graph signal
@@ -716,7 +712,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
     G : Graph structure
     Nlevels : int
         Number of level of decomposition
-    lambda : float 
+    lambda : float
         Stability parameter. It add self loop to the graph to give the alorithm some stability.
         (default = 0.025)
     sparsify : bool
@@ -1115,3 +1111,66 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         root = new_root
 
     return Gs, subsampled_vertex_indices
+
+
+def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, verbose=1, maxit=200, use_matrix=True):
+    r"""
+    Short description.
+
+    Long description.
+
+    Parameters
+    ----------
+    x: int
+        Description.
+    gamma: array_like
+        Description.
+    G: graph object
+        Description.
+    A: lambda function
+        Description.
+    At: lambda function
+        Description.
+    nu: float
+        Description.
+    tol: float
+        Description.
+    verbose: int
+        Description.
+    maxit: int
+        Description.
+    use_matrix: bool
+        Description.
+
+    Returns
+    -------
+    d: ndarray
+        Description.
+
+    Examples
+    --------
+    >>> import pygsp
+    >>> pygsp.graphs.dummy(0, [1, 2, 3], True)
+    array([1, 2, 3])
+
+    """
+
+    if A is None:
+        A = lambda x: x
+    if At is None:
+        At = lambda x: x
+
+    if not hasattr(G, 'v_in'):
+        adj2vec(G)
+
+    tight = 0
+    l1_nu = 2 * G.lmax * nu
+
+    if use_matrix:
+        l1_a = lambda x: G.Diff * A(x)
+        l1_at = lambda x: G.Diff * At(D.T * x)
+    else:
+        l1_a = lambda x: grad(G, A(x))
+        l1_at = lambda x: div(G, x)
+
+    pyunlocbox.prox_l1(x, gamma, A=l1_a, At=l1_at, tight=tight, maxit=maxit, verbose=verbose, tol=tol)
