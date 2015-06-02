@@ -25,7 +25,7 @@ class Filter(object):
         self.verbose = verbose
         if not hasattr(G, 'lmax'):
             if self.verbose:
-                print(type(self), ': has to compute lmax')
+                print(self.__class__.__name__, ': has to compute lmax')
             G.lmax = utils.estimate_lmax(G)
         self.G = G
 
@@ -54,7 +54,7 @@ class Filter(object):
         >>> from pygsp import graphs, filters
         >>> G = graphs.Logo()
         >>> MH = filters.MexicanHat(G)
-        <class 'pygsp.filters.MexicanHat'> : has to compute lmax
+        MexicanHat : has to compute lmax
         >>> x = np.arange(G.N**2).reshape(G.N, G.N)
         >>> co = MH.analysis(G, x)
 
@@ -151,7 +151,7 @@ class Filter(object):
         >>> from pygsp import graphs, filters
         >>> G = graphs.Logo()
         >>> MH = filters.MexicanHat(G)
-        <class 'pygsp.filters.MexicanHat'> : has to compute lmax
+        MexicanHat : has to compute lmax
         >>> x = np.arange(2)
         >>> eva = MH.evaluate(x)
 
@@ -428,6 +428,7 @@ class Abspline(Filter):
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.Abspline(G)
+    Abspline : has to compute lmax
 
     """
 
@@ -514,6 +515,7 @@ class Expwin(Filter):
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.Expwin(G)
+    Expwin : has to compute lmax
 
     """
     def __init__(self, G, bmax=0.2, a=1., **kwargs):
@@ -558,6 +560,7 @@ class HalfCosine(Filter):
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.HalfCosine(G)
+    HalfCosine : has to compute lmax
 
     """
 
@@ -603,6 +606,7 @@ class Itersine(Filter):
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.Itersine(G)
+    Itersine : has to compute lmax
 
     """
     def __init__(self, G, Nf=6, overlap=2., **kwargs):
@@ -649,6 +653,7 @@ class MexicanHat(Filter):
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.MexicanHat(G)
+    MexicanHat : has to compute lmax
 
     """
 
@@ -700,6 +705,8 @@ class Meyer(Filter):
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.Meyer(G)
+    Meyer : has to compute lmax
+    You have specified more scales than  the number of scales minus 1
 
     """
 
@@ -788,6 +795,7 @@ class SimpleTf(Filter):
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.SimpleTf(G)
+    SimpleTf : has to compute lmax
 
     """
 
@@ -872,7 +880,7 @@ class WarpedTranslates(Filter):
 
     """
 
-    def __init__(self, G, Nf, **kwargs):
+    def __init__(self, G, Nf=6, **kwargs):
         super(WarpedTranslates, self).__init__(G, **kwargs)
         raise NotImplementedError
 
@@ -899,6 +907,7 @@ class Papadakis(Filter):
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.Papadakis(G)
+    Papadakis : has to compute lmax
 
     """
     def __init__(self, G, a=0.75, **kwargs):
@@ -948,6 +957,7 @@ class Regular(Filter):
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.Regular(G)
+    Regular : has to compute lmax
 
     """
     def __init__(self, G, d=3, **kwargs):
@@ -993,6 +1003,7 @@ class Simoncelli(Filter):
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.Simoncelli(G)
+    Simoncelli : has to compute lmax
 
     """
 
@@ -1044,6 +1055,7 @@ class Held(Filter):
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.Held(G)
+    Held : has to compute lmax
 
     """
 
@@ -1097,6 +1109,7 @@ class Heat(Filter):
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.Heat(G)
+    Heat : has to compute lmax
 
     """
 
