@@ -253,9 +253,9 @@ class Graph(object):
         # if no Gn given
         if not Gn:
             if ctype:
-                Gn = Graph(lap_type=self.lap_type, plotting=self.plotting, limits=self.limits)
+                Gn = Graph(W=G.W, lap_type=self.lap_type, plotting=self.plotting, limits=self.limits)
             else:
-                Gn = Graph(lap_type=self.lap_type, plotting=self.plotting)
+                Gn = Graph(W=G.W, slap_type=self.lap_type, plotting=self.plotting)
 
             return Gn
 
