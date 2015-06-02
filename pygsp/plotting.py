@@ -5,19 +5,24 @@ This module implements plotting functions for the pygsp main objects
 
 import numpy as np
 try:
+    import matplotlib.pyplot as plt
+except:
+    pass
+try:
     import pyqtgraph as pg
     import pyqtgraph.opengl as gl
     from pyqtgraph.Qt import QtCore, QtGui
-    import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 except:
     pass
 import pygsp
-import threading
 import uuid
 
 
 class plid():
+    r"""
+    Not so clean way of generating plot_ids
+    """
 
     def __init__(self):
         self.plot_id = 0
@@ -30,7 +35,9 @@ def show():
     r"""
     To show created figures
 
-    Strictly equivalent to plt.show() excepted you don't have to import matplotlib by youself.
+    Strictly equivalent to plt.show() excepted you don't have to import
+    matplotlib by youself.
+
     """
     plt.show()
 
@@ -39,7 +46,8 @@ def plot(O, **kwargs):
     r"""
     Main plotting function
 
-    This function should be able to determine the appropriated plot for the object
+    This function should be able to determine the appropriated plot for
+    the object
     Additionnal kwargs may be given in case of filter plotting
 
     Parameters
@@ -65,7 +73,8 @@ def plot(O, **kwargs):
     elif issubclass(type(O), pygsp.filters.Filter):
         plot_filter(O, **kwargs)
     else:
-        raise TypeError('Your object type is incorrect, be sure it is a PointCloud, a Filter or a Graph')
+        raise TypeError('Your object type is incorrect, be sure it is a '
+                        'PointCloud, a Filter or a Graph')
 
 
 def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
@@ -130,15 +139,24 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
         else:
             if G.coords.shape[1] == 2:
                 ki, kj = np.nonzero(G.A)
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
+                                    np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
+                                    np.expand_dims(G.coords[kj, 1], axis=0)))
                 # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
-                ax.plot(x, y, linewidth=G.plotting['edge_width'], color=G.plotting['edge_color'], linestyle=G.plotting['edge_style'], marker='o', markersize=G.plotting['vertex_size'], markerfacecolor=G.plotting['vertex_color'])
+                ax.plot(x, y, linewidth=G.plotting['edge_width'],
+                        color=G.plotting['edge_color'],
+                        linestyle=G.plotting['edge_style'],
+                        marker='o', markersize=G.plotting['vertex_size'],
+                        markerfacecolor=G.plotting['vertex_color'])
             if G.coords.shape[1] == 3:
                 # Very dirty way to display a 3d graph
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
-                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
+                                    np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
+                                    np.expand_dims(G.coords[kj, 1], axis=0)))
+                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0),
+                                    np.expand_dims(G.coords[kj, 2], axis=0)))
                 ii = range(0, x.shape[1])
                 x2 = np.ndarray((0, 1))
                 y2 = np.ndarray((0, 1))
@@ -153,13 +171,21 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
                     x3 = x2[i:i + 2]
                     y3 = y2[i:i + 2]
                     z3 = z2[i:i + 2]
-                    ax.plot(x3, y3, z3, linewidth=G.plotting['edge_width'], color=G.plotting['edge_color'], linestyle=G.plotting['edge_style'], marker='o', markersize=G.plotting['vertex_size'], markerfacecolor=G.plotting['vertex_color'])
+                    ax.plot(x3, y3, z3, linewidth=G.plotting['edge_width'],
+                            color=G.plotting['edge_color'],
+                            linestyle=G.plotting['edge_style'],
+                            marker='o', markersize=G.plotting['vertex_size'],
+                            markerfacecolor=G.plotting['vertex_color'])
                     # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
     else:
         if G.coords.shape[1] == 2:
-            ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o', s=G.plotting['vertex_size'], c=G.plotting['vertex_color'])
+            ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
+                       s=G.plotting['vertex_size'],
+                       c=G.plotting['vertex_color'])
         if G.coords.shape[1] == 3:
-            ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], marker='o', s=G.plotting['vertex_size'], c=G.plotting['vertex_color'])
+            ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
+                       marker='o', s=G.plotting['vertex_size'],
+                       c=G.plotting['vertex_color'])
 
     # Save plot as PNG or show it in a window
     if savefig:
@@ -212,7 +238,8 @@ def pg_plot_graph(G, show_edges=None):
                 raise NotImplementedError('TODO')
         else:
             if G.coords.shape[1] == 2:
-                adj = np.concatenate((np.expand_dims(ki, axis=1), np.expand_dims(kj, axis=1)), axis=1)
+                adj = np.concatenate((np.expand_dims(ki, axis=1),
+                                      np.expand_dims(kj, axis=1)), axis=1)
                 w = pg.GraphicsWindow()
                 w.setWindowTitle(G.gtype)
                 v = w.addViewBox()
@@ -231,9 +258,12 @@ def pg_plot_graph(G, show_edges=None):
                 w.setWindowTitle(G.gtype)
 
                 # Very dirty way to display a 3d graph
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
-                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
+                                    np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
+                                    np.expand_dims(G.coords[kj, 1], axis=0)))
+                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0),
+                                    np.expand_dims(G.coords[kj, 2], axis=0)))
                 ii = range(0, x.shape[1])
                 x2 = np.ndarray((0, 1))
                 y2 = np.ndarray((0, 1))
@@ -245,7 +275,9 @@ def pg_plot_graph(G, show_edges=None):
                 for i in ii:
                     z2 = np.append(z2, z[:, i])
 
-                pts = np.concatenate((np.expand_dims(x2, axis=1), np.expand_dims(y2, axis=1), np.expand_dims(z2, axis=1)), axis=1)
+                pts = np.concatenate((np.expand_dims(x2, axis=1),
+                                      np.expand_dims(y2, axis=1),
+                                      np.expand_dims(z2, axis=1)), axis=1)
 
                 g = gl.GLLinePlotItem(pos=pts, mode='lines')
 
@@ -296,8 +328,9 @@ def plot_pointcloud(P):
         # plt.show()
 
 
-def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=10,
-                plot_eigenvalues=None, show_sum=None, savefig=False, plot_name=None):
+def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3,
+                x_size=10, plot_eigenvalues=None, show_sum=None,
+                savefig=False, plot_name=None):
     r"""
     Plot a system of graph spectral filters.
 
@@ -368,7 +401,8 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
 
     # Plot eigenvalues
     if plot_eigenvalues:
-        ax.plot(G.e, np.zeros(G.N), 'xk', markeredgewidth=x_width, markersize=x_size)
+        ax.plot(G.e, np.zeros(G.N), 'xk', markeredgewidth=x_width,
+                markersize=x_size)
 
     # Plot highlighted eigenvalues TODO
 
@@ -386,7 +420,10 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3, x_size=1
     #     plt.show()
 
 
-def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, vertex_highlight=False, climits=None, colorbar=True, bar=False, bar_width=1, savefig=False, plot_name=None):
+def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
+                vertex_size=None, vertex_highlight=False, climits=None,
+                colorbar=True, bar=False, bar_width=1, savefig=False,
+                plot_name=None):
     r"""
     Plot a graph signal in 2D or 3D.
 
@@ -410,7 +447,8 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
         To plot an extra line showing the sum of the squared magnitudes\
          of the filters (default True if there is multiple filters).
     bar : int
-        NOT IMPLEMENTED: 0 display color, 1 display bar for the graph (default 0).
+        NOT IMPLEMENTED: 0 display color, 1 display bar for the graph
+        (default 0).
     bar_width : int
         Width of the bar (default 1).
     savefig : boolean
@@ -472,16 +510,21 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
 
         else:
             if G.coords.shape[1] == 2:
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
+                                    np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
+                                    np.expand_dims(G.coords[kj, 1], axis=0)))
                 # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
                 ax.plot(x, y, color='grey', zorder=1)
                 # plt.show()
             if G.coords.shape[1] == 3:
                 # Very dirty way to display 3D graph edges
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
-                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
+                                    np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
+                                    np.expand_dims(G.coords[kj, 1], axis=0)))
+                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0),
+                                    np.expand_dims(G.coords[kj, 2], axis=0)))
                 ii = range(0, x.shape[1])
                 x2 = np.ndarray((0, 1))
                 y2 = np.ndarray((0, 1))
@@ -496,14 +539,17 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
                     x3 = x2[i:i + 2]
                     y3 = y2[i:i + 2]
                     z3 = z2[i:i + 2]
-                    ax.plot(x3, y3, z3, color='grey', marker='o', markerfacecolor='blue', zorder=1)
+                    ax.plot(x3, y3, z3, color='grey', marker='o',
+                            markerfacecolor='blue', zorder=1)
                     # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
 
     # Plot signal
     if G.coords.shape[1] == 2:
-        ax.scatter(G.coords[:, 0], G.coords[:, 1], s=vertex_size, c=signal, zorder=2)
+        ax.scatter(G.coords[:, 0], G.coords[:, 1], s=vertex_size, c=signal,
+                   zorder=2)
     if G.coords.shape[1] == 3:
-        ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], s=vertex_size, c=signal, zorder=2)
+        ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
+                   s=vertex_size, c=signal, zorder=2)
 
     # Save plot as PNG or show it in a window
     if savefig:
@@ -514,7 +560,9 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, 
     #     plt.show()
 
 
-def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=None, vertex_highlight=False, climits=None, colorbar=True, bar=False, bar_width=1):
+def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
+                   vertex_size=None, vertex_highlight=False, climits=None,
+                   colorbar=True, bar=False, bar_width=1):
     r"""
     Plot a graph signal in 2D or 3D, with pyqtgraph.
 
@@ -577,7 +625,8 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=Non
 
     # Plot signal
     pos = np.array([0., 1., 0.5, 0.25, 0.75])
-    color = np.array([[0, 255, 255, 255], [255, 255, 0, 255], [0, 0, 0, 255], (0, 0, 255, 255), (255, 0, 0, 255)], dtype=np.ubyte)
+    color = np.array([[0, 255, 255, 255], [255, 255, 0, 255], [0, 0, 0, 255],
+                      (0, 0, 255, 255), (255, 0, 0, 255)], dtype=np.ubyte)
     cmap = pg.ColorMap(pos, color)
 
     mininum = min(signal)
@@ -589,7 +638,8 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=Non
         gp = pg.ScatterPlotItem(G.coords[:, 0], G.coords[:, 1], size=vertex_size, brush=cmap.map(normalized_signal, 'qcolor'))
         v.addItem(gp)
     if G.coords.shape[1] == 3:
-        gp = gl.GLScatterPlotItem(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], size=vertex_size, c=signal)
+        gp = gl.GLScatterPlotItem(G.coords[:, 0], G.coords[:, 1],
+                                  G.coords[:, 2], size=vertex_size, c=signal)
         w.addItem(gp)
 
     # Plot edges
@@ -603,9 +653,11 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=Non
                 raise NotImplementedError('TODO')
         else:
             if G.coords.shape[1] == 2:
-                adj = np.concatenate((np.expand_dims(ki, axis=1), np.expand_dims(kj, axis=1)), axis=1)
+                adj = np.concatenate((np.expand_dims(ki, axis=1),
+                                      np.expand_dims(kj, axis=1)), axis=1)
 
-                g = pg.GraphItem(pos=G.coords, adj=adj, symbolBrush=None, symbolPen=None)
+                g = pg.GraphItem(pos=G.coords, adj=adj, symbolBrush=None,
+                                 symbolPen=None)
                 v.addItem(g)
 
             if G.coords.shape[1] == 3:
@@ -616,9 +668,12 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=Non
                 w.setWindowTitle(G.gtype)
 
                 # Very dirty way to display a 3d graph
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0), np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0), np.expand_dims(G.coords[kj, 1], axis=0)))
-                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0), np.expand_dims(G.coords[kj, 2], axis=0)))
+                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
+                                    np.expand_dims(G.coords[kj, 0], axis=0)))
+                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
+                                    np.expand_dims(G.coords[kj, 1], axis=0)))
+                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0),
+                                    np.expand_dims(G.coords[kj, 2], axis=0)))
                 ii = range(0, x.shape[1])
                 x2 = np.ndarray((0, 1))
                 y2 = np.ndarray((0, 1))
@@ -630,7 +685,9 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160}, vertex_size=Non
                 for i in ii:
                     z2 = np.append(z2, z[:, i])
 
-                pts = np.concatenate((np.expand_dims(x2, axis=1), np.expand_dims(y2, axis=1), np.expand_dims(z2, axis=1)), axis=1)
+                pts = np.concatenate((np.expand_dims(x2, axis=1),
+                                      np.expand_dims(y2, axis=1),
+                                      np.expand_dims(z2, axis=1)), axis=1)
 
                 g = gl.GLLinePlotItem(pos=pts, mode='lines')
 
@@ -670,8 +727,10 @@ def rescale_center(x):
 
     """
     N = x.shape[1]
+    # TODO virer d?
     d = x.shape[0]
-    y = x - np.kron(np.ones((1, N)), np.expand_dims(np.mean(x, axis=1), axis=1))
+    y = x - np.kron(np.ones((1, N)), np.expand_dims(np.mean(x, axis=1),
+                                                    axis=1))
     c = np.amax(y)
     r = y / c
 
