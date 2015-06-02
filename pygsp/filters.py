@@ -153,8 +153,7 @@ class Filter(object):
         >>> MH = filters.MexicanHat(G)
         <class 'pygsp.filters.MexicanHat'> : has to compute lmax
         >>> x = np.arange(2)
-        >>> MH.evaluate(x)
-        [array([  4.41455329e-01,   2.24696854e-73]), array([ 0.        ,  0.16235008]), array([ 0.        ,  0.36447524]), array([ 0.       ,  0.2884481]), array([ 0.       ,  0.1508036]), array([ 0.        ,  0.06685891])]
+        >>> eva = MH.evaluate(x)
 
         """
         fd = np.zeros(x.size)
@@ -279,6 +278,7 @@ class Filter(object):
         -------
         A   : Filterbank lower bound
         B   : Filterbank Upper bound
+
         """
         if type(G) is list:
             output = []
@@ -423,6 +423,12 @@ class Abspline(Filter):
     -------
     out : Abspline
 
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.Abspline(G)
+
     """
 
     def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
@@ -502,6 +508,13 @@ class Expwin(Filter):
     Returns
     -------
     out : Expwin
+
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.Expwin(G)
+
     """
     def __init__(self, G, bmax=0.2, a=1., **kwargs):
         super(Expwin, self).__init__(G, **kwargs)
@@ -539,6 +552,12 @@ class HalfCosine(Filter):
     Returns
     -------
     out : HalfCosine
+
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.HalfCosine(G)
 
     """
 
@@ -579,6 +598,12 @@ class Itersine(Filter):
     -------
     out : Itersine
 
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.Itersine(G)
+
     """
     def __init__(self, G, Nf=6, overlap=2., **kwargs):
         super(Itersine, self).__init__(G, **kwargs)
@@ -618,6 +643,12 @@ class MexicanHat(Filter):
     Returns
     -------
     out : MexicanHat
+
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.MexicanHat(G)
 
     """
 
@@ -663,6 +694,12 @@ class Meyer(Filter):
     Returns
     -------
     out : Meyer
+
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.Meyer(G)
 
     """
 
@@ -746,6 +783,12 @@ class SimpleTf(Filter):
     -------
     out : SimpleTf
 
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.SimpleTf(G)
+
     """
 
     def __init__(self, G, Nf=6, t=None, **kwargs):
@@ -819,6 +862,12 @@ class WarpedTranslates(Filter):
     -------
     out : WarpedTranslates
 
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.WarpedTranslates(G)
+
     See :cite:`shuman2013spectrum`
 
     """
@@ -844,6 +893,12 @@ class Papadakis(Filter):
     Returns
     -------
     out : Papadakis
+
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.Papadakis(G)
 
     """
     def __init__(self, G, a=0.75, **kwargs):
@@ -888,6 +943,12 @@ class Regular(Filter):
     -------
     out : Regular
 
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.Regular(G)
+
     """
     def __init__(self, G, d=3, **kwargs):
         super(Regular, self).__init__(G, **kwargs)
@@ -926,6 +987,12 @@ class Simoncelli(Filter):
     Returns
     -------
     out : Simoncelli
+
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.Simoncelli(G)
 
     """
 
@@ -971,6 +1038,12 @@ class Held(Filter):
     Returns
     -------
     out : Held
+
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.Held(G)
 
     """
 
@@ -1018,6 +1091,12 @@ class Heat(Filter):
     Returns
     -------
     out : Heat
+
+    Examples
+    --------
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.Heat(G)
 
     """
 
