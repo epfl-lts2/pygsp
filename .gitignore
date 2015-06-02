@@ -41,7 +41,8 @@ output/*/index.html
 
 # Sphinx
 doc/_build
-
+doc/tutorials/img/*\.pdf
+doc/tutorials/img/*\.png
 # Vim swap files
 .*.swp
 .*.swo
