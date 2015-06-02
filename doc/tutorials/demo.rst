@@ -18,7 +18,7 @@ The first step is to create a graph, there's a general class that can be used to
 You have now a graph structure ready to be used everywhere in the box! If you want to know more about the Graph class and it's subclasses you can check the online doc at : #TODO
 You can also check the included methods for all graphs with the usual help function.
 
-For the nexts steps of the demo, we will be using the logo graph bundled with the toolbox :
+For the next steps of the demo, we will be using the logo graph bundled with the toolbox :
 
 >>> G = pygsp.graphs.Logo()
 
@@ -52,7 +52,7 @@ First let's define a filter object:
 
 >>> F = pygsp.filters.Filter(G)
 
-And we can assign this function 
+And we can assign this function
 
 .. math:: \begin{equation*} g(x) =\frac{1}{1+\tau x} \end{equation*}
 

@@ -2,7 +2,7 @@
 GSP Wavelet Demo
 ================
 
-* Introduction to spectral graph wavelet whith the PyGSP
+* Introduction to spectral graph wavelet with the PyGSP
 
 Description
 -----------
@@ -16,9 +16,9 @@ First let's import the toolbox, numpy and load a graph.
 >>> import numpy as np
 >>> G = pygsp.graphs.Bunny()
 
-This graph is a nearest-neighbor graph of a pointcloud of the Stanford bunny. It will allow us ot get interesting visual results using wavelets.
+This graph is a nearest-neighbor graph of a pointcloud of the Stanford bunny. It will allow us to get interesting visual results using wavelets.
 
-At this stage we could compute the full Fourier basis using 
+At this stage we could compute the full Fourier basis using
 
 >>> pygsp.operators.compute_fourier_basis(G)
 

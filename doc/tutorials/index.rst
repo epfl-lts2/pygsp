@@ -11,3 +11,4 @@ to solve some real problems.
     simple
     demo
     demo_wavelet
+    demo_graph_tv
