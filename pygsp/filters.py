@@ -21,13 +21,19 @@ class Filter(object):
     methods for those classes.
     """
 
-    def __init__(self, G, verbose=True, **kwargs):
+    def __init__(self, G, verbose=True, filters=None, **kwargs):
         self.verbose = verbose
         if not hasattr(G, 'lmax'):
             if self.verbose:
                 print(type(self), ': has to compute lmax')
             G.lmax = utils.estimate_lmax(G)
         self.G = G
+        if filters:
+            if isinstance(filters, list):
+                self.g = filters
+            else:
+                print('filters should be a list, even if it has only one filter.')
+                self.g = [filters]
 
     def analysis(self, G, s, method=None, cheb_order=30, **kwargs):
         r"""
