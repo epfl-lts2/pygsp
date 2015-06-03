@@ -643,7 +643,7 @@ class TwoMoons(NNGraph):
     --------
     >>> from pygsp import graphs
     >>> G1 = graphs.TwoMoons(moontype='standard')
-    >>> G2 =  graphs.TwoMoons(moontype='synthetised', N=1000, sigmad=0.1, d=1)
+    >>> G2 = graphs.TwoMoons(moontype='synthetised', N=1000, sigmad=0.1, d=1)
 
     """
 
