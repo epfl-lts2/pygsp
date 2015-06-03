@@ -113,15 +113,15 @@ We can visualize the filtering by one atom the same way the did for the Heat ker
 >>> s_map = G.coords
 
 >>> s_map_out = Wk.analysis(G, s_map)
->>> s_map_out = s_map_out.reshape(s_map_out, (G.N, Nf, 3))
+>>> s_map_out = np.reshape(s_map_out, (G.N, Nf, 3))
 
 >>> d = s_map_out[:, :, 0]**2 + s_map_out[:, :, 1]**2 + s_map_out[:, :, 2]**2
 >>> d = np.sqrt(d)
 
->>> pygsp.plotting.plot_signal(G, d[:, 1], vertex_size=20, plot_name='curv_scale_1')
->>> pygsp.plotting.plot_signal(G, d[:, 2], vertex_size=20, plot_name='curv_scale_2')
->>> pygsp.plotting.plot_signal(G, d[:, 3], vertex_size=20, plot_name='curv_scale_3')
->>> pygsp.plotting.plot_signal(G, d[:, 4], vertex_size=20, plot_name='curv_scale_4')
+>>> pygsp.plotting.plot_signal(G, d[:, 1], vertex_size=20, savefig=True, plot_name='curv_scale_1')
+>>> pygsp.plotting.plot_signal(G, d[:, 2], vertex_size=20, savefig=True, plot_name='curv_scale_2')
+>>> pygsp.plotting.plot_signal(G, d[:, 3], vertex_size=20, savefig=True, plot_name='curv_scale_3')
+>>> pygsp.plotting.plot_signal(G, d[:, 4], vertex_size=20, savefig=True, plot_name='curv_scale_4')
 
 .. figure:: img/curv_scale_1.*
 .. figure:: img/curv_scale_2.*

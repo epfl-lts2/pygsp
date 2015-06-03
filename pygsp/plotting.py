@@ -363,7 +363,7 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3,
     >>> from pygsp import filters, plotting, graphs
     >>> G = graphs.Logo()
     >>> mh = filters.MexicanHat(G)
-    <class 'pygsp.filters.MexicanHat'> : has to compute lmax
+    MexicanHat : has to compute lmax
     >>> try:
     ...     plotting.plot_filter(mh)
     ... except:

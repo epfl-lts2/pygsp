@@ -15,7 +15,7 @@ from math import ceil, sqrt, log, exp, floor, pi
 from copy import deepcopy
 from scipy import sparse, io, spatial
 
-from pygsp import utils, plotting, operators
+from pygsp import utils, operators
 
 
 class PointsCloud(object):
