@@ -86,6 +86,9 @@ class Filter(object):
 
         Nf = len(self.g)
 
+        if self.verbose:
+            print('The analysis method is ', method)
+
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
                 if self.verbose:
@@ -95,23 +98,23 @@ class Filter(object):
             try:
                 Nv = np.shape(s)[1]
                 c = np.zeros((G.N * Nf, Nv))
+                is2d = True
             except IndexError:
-                Nv = 1
-                c = np.zeros((G.N * Nf))
+                is2d = False
 
             fie = self.evaluate(G.e)
 
             if Nf == 1:
-                if Nv == 1:
-                    c = operators.igft(G, fie*operators.gft(G, s))
+                if is2d:
+                    return operators.igft(G, np.tile(fie, (Nv, 1)).T*operators.gft(G, s))
                 else:
-                    c = operators.igft(G, np.tile(fie, (1, Nv))*operators.gft(G, s))
+                    return operators.igft(G, fie*operators.gft(G, s))
             else:
                 for i in range(Nf):
-                    if Nv == 1:
-                        c[np.arange(G.N) + G.N*i] = operators.igft(G, fie[:][i]*operators.gft(G, s))
+                    if is2d:
+                        c[np.arange(G.N) + G.N*i] = operators.igft(G, np.tile(fie[:][i], (Nv, 1)).T*operators.gft(G, s))
                     else:
-                        c[np.arange(G.N) + G.N*i] = operators.igft(G, np.tile(fie[:][i], (1, Nv))*operators.gft(G, s))
+                        c[np.arange(G.N) + G.N*i] = operators.igft(G, fie[:][i]*operators.gft(G, s))
 
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
