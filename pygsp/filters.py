@@ -100,6 +100,7 @@ class Filter(object):
                 c = np.zeros((G.N * Nf, Nv))
                 is2d = True
             except IndexError:
+                c = np.zeros((G.N * Nf))
                 is2d = False
 
             fie = self.evaluate(G.e)
