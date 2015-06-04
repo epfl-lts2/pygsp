@@ -30,7 +30,7 @@ Simple filtering
 Before tackling wavelets, we can see the effect of one filter localized on the graph. So we can first design a few heat kernel filters
 
 >>> taus = [1, 10, 25, 50]
->>> Hk = pygsp.filters.Heat(G, taus)
+>>> Hk = pygsp.filters.Heat(G, taus, normalize=False)
 
 Let's now create a signal as a Kronecker located on one vertex (e.g. the vertex 83)
 
@@ -38,7 +38,7 @@ Let's now create a signal as a Kronecker located on one vertex (e.g. the vertex 
 >>> vertex_delta = 83
 >>> S[vertex_delta] = 1
 >>> Sf_vec = Hk.analysis(G, S)
->>> Sf = Sf_vec.reshape(Sf_vec.size/len(taus), len(taus))
+>>> Sf = Sf_vec.reshape((Sf_vec.size/len(taus), len(taus)), order='F')
 
 Let's plot the signal:
 
@@ -92,6 +92,11 @@ We can now plot the filter bank spectrum :
 As we can see, the wavelets atoms are stacked on the low frequency part of the spectrum.
 If we want to get a better coverage of the graph spectrum, we could have used the WarpedTranslates filter bank.
 
+>>> S_vec = Wk.analysis(G, S)
+>>> S = S_vec.reshape((S_vec.size/Nf, Nf), order='F')
+>>> pygsp.plotting.plot_signal(G, S[:, 0], savefig=True, plot_name='Wavelet filtering')
+
+
 We can visualize the filtering by one atom the same way the did for the Heat kernel, by placing a Kronecker delta at one specific vertex.
 
 >>> S = np.zeros((G.N * Nf, Nf))
@@ -110,6 +115,9 @@ We can visualize the filtering by one atom the same way the did for the Heat ker
 .. figure:: img/wavelet_3.*
 .. figure:: img/wavelet_4.*
 
+>>> G = pygsp.graphs.Bunny()
+>>> Wk = pygsp.filters.MexicanHat(G, Nf)
+MexicanHat : has to compute lmax
 >>> s_map = G.coords
 
 >>> s_map_out = Wk.analysis(G, s_map)
@@ -118,10 +126,10 @@ We can visualize the filtering by one atom the same way the did for the Heat ker
 >>> d = s_map_out[:, :, 0]**2 + s_map_out[:, :, 1]**2 + s_map_out[:, :, 2]**2
 >>> d = np.sqrt(d)
 
->>> pygsp.plotting.plot_signal(G, d[:, 1], vertex_size=20, savefig=True, plot_name='curv_scale_1')
->>> pygsp.plotting.plot_signal(G, d[:, 2], vertex_size=20, savefig=True, plot_name='curv_scale_2')
->>> pygsp.plotting.plot_signal(G, d[:, 3], vertex_size=20, savefig=True, plot_name='curv_scale_3')
->>> pygsp.plotting.plot_signal(G, d[:, 4], vertex_size=20, savefig=True, plot_name='curv_scale_4')
+>>> pygsp.plotting.plot_signal(G, d[:, 1], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/curv_scale_1')
+>>> pygsp.plotting.plot_signal(G, d[:, 2], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/curv_scale_2')
+>>> pygsp.plotting.plot_signal(G, d[:, 3], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/curv_scale_3')
+>>> pygsp.plotting.plot_signal(G, d[:, 4], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/curv_scale_4')
 
 .. figure:: img/curv_scale_1.*
 .. figure:: img/curv_scale_2.*

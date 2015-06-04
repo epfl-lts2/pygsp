@@ -1750,6 +1750,8 @@ class SwissRoll(Graph):
     def __init__(self, N=400, a=1, b=4, dim=3, thresh=1e-6, s=None,
                  noise=False, srtype='uniform'):
 
+        from pygsp import plotting
+
         self.dim = dim
         self.N = N
         if s is None:

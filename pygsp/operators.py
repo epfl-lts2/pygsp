@@ -1141,7 +1141,7 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, verbose=1, maxit=200,
 
     Examples
     --------
-    >>> TODO
+    TODO
 
     """
 
