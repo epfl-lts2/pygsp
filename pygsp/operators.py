@@ -41,6 +41,32 @@ def adj2vec(G):
         G.Diff = grad_mat(G)
 
 
+def vec2mat(d, Nf):
+    r"""
+    Vector to matrix transfor
+
+    Parameters
+    ----------
+    d : Ndarray
+        Data
+    Nf : int
+        Number of filter
+
+    Returns
+    -------
+    d : list of ndarray
+        Data
+
+    """
+    if len(np.shape(d)) == 1:
+        M = np.shape(d)[0]
+        return np.reshape(d, (M/Nf, Nf), order='F')
+
+    if len(np.shape(d)) == 2:
+        M, N = np.shape(d)
+        return np.reshape(d, (M/Nf, Nf, N), order='F')
+
+
 def div(G, s):
     r"""
     Parameters
@@ -208,7 +234,7 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
         Frame = gwft_frame_matrix(G, g, verbose=verbose)
 
         C = np.dot(Frame.T, f)
-        C = C.reshape(G.N, G.N, Nf)
+        C = np.reshape(C, (G.N, G.N, Nf), order='F')
 
     else:
         # Compute the translate of g
@@ -344,7 +370,7 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
         # Compute the Frame into a big matrix
         Frame = ngwft_frame_matrix(G, g, verbose=verbose)
         C = np.dot(Frame.T, f)
-        C = C.reshape(G.N, G.N)
+        C = np.reshape(C, (G.N, G.N), order='F')
 
     else:
         # Compute the translate of g
@@ -849,7 +875,7 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
             for _ in range(Nlevels-1):
                 filters.append(filters[0])
 
-        elif 1 < len(filters) or len(filters) < Nlevels or Nlevels < len(filters):
+        elif (1 < len(filters) and len(filters) < Nlevels) or Nlevels < len(filters):
             raise ValueError('The numbers of filters can must be one or equal to Nlevels')
 
     elif not filters:
@@ -860,7 +886,8 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
     for i in range(Nlevels):
         Gs[i + 1].pyramid['filters'] = pygsp.filters.Filter(Gs[i + 1], filters=[filters[i]])
 
-    ca = [np.ravel(f)]
+    # ca = [np.ravel(f)]
+    ca = [f]
     pe = []
 
     for i in range(Nlevels):
@@ -897,20 +924,20 @@ def pyramid_cell2coeff(ca, pe):
     Nl = len(ca) - 1
     N = 0
 
-    for i in range(Nl+1):
-        N = N + len(ca[i])
+    for ele in ca:
+        N += np.shape(ele)[0]
 
-    coeff = np.zeroes((N))
-    Nt = len(ca[Nl - 1])
+    coeff = np.zeros((N))
+    Nt = np.shape(ca[Nl])[0]
     coeff[:Nt] = ca[Nl]
 
     ind = Nt
     for i in range(Nl):
-        Nt = len(ca[Nl-i+1])
-        coeff[ind:ind+Nt+1] = pe[Nl+1-i]
+        Nt = np.shape(ca[Nl - 1 - i])[0]
+        coeff[ind+np.arange(Nt)] = pe[Nl - 1 - i]
         ind += Nt
 
-    if ind - 1 != N:
+    if ind != N:
         raise ValueError('Something is wrong here: contact the gspbox team.')
 
     return coeff
@@ -923,7 +950,8 @@ def pyramid_synthesis(Gs, coeff, order=100, **kwargs):
     Parameters
     ----------
     Gs : A multiresolution sequence of graph structures.
-    coeff : The coefficients to perform the reconstruction
+    coeff : ndarray
+        The coefficients to perform the reconstruction
     order : int
         Degree of the Chebyshev approximation. (default = 100)
 
@@ -936,20 +964,21 @@ def pyramid_synthesis(Gs, coeff, order=100, **kwargs):
 
     # Initisalization
     Nt = Gs[Nl].N
-    ca[Nl] = coeff[:Nt]
+    ca = [coeff[:Nt]]
 
     ind = Nt
     # Reconstruct each level
     for i in range(Nl):
         # Compute prediction
-        Nt = Gs[Nl + 1 - i].N
+        Nt = Gs[Nl - 1 - i].N
         # Compute the ca coeff
-        s_pred = interpolate(Gs[Nl + 1 - i], Gs[Nl + 2 - i], ca[Nl + 2 - i],
-                             order=order, **kwargs)
+        s_pred = interpolate(Gs[Nl - 1 - i], Gs[Nl - i], ca[i], order=order,
+                             **kwargs)
 
-        ca[Nl+1-i] = s_pred + coeff[ind + np.arange(Nt)]
-        ind = ind + Nt
+        ca.append(s_pred + coeff[ind + np.arange(Nt)])
+        ind += Nt
 
+    ca.reverse()
     signal = ca[0]
 
     return signal, ca
@@ -973,8 +1002,19 @@ def interpolate(Gh, Gl, coeff, order=100, **kwargs):
 
     """
     alpha = Gl.pyramid['K_reg']
+    """
+    try:
+        Nv = np.shape(coeff)[1]
+        s_pred = np.zeros((Gh.N, Nv))
+        print('alpha ', alpha.shape)
+        print('s_pred ', s_pred[Gl.pyramid['ind']].shape)
+        print('ind ', Gl.pyramid['ind'].shape)
+        s_pred[Gl.pyramid['ind']] = np.expand_dims(alpha, axis=1)
+    except IndexError:
+    """
     s_pred = np.zeros((Gh.N))
     s_pred[Gl.pyramid['ind']] = alpha
+
     s_pred = Gl.pyramid['green_kernel'].analysis(Gh, s_pred, order=order,
                                                  **kwargs)
     return s_pred
