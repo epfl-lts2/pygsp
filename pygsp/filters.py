@@ -35,7 +35,7 @@ class Filter(object):
                 print('filters should be a list, even if it has only one filter.')
                 self.g = [filters]
 
-    def analysis(self, G, s, method=None, cheb_order=30, **kwargs):
+    def analysis(self, G, s, method=None, cheb_order=30, verbose=True, **kwargs):
         r"""
         Operator to analyse a filterbank
 
@@ -48,6 +48,8 @@ class Filter(object):
             wether using an exact method, cheby approx or lanczos
         cheb_order : int
             Order for chebyshev
+        verbose : Verbosity level (False no log - True display warnings)
+            Default is True
 
         Returns
         -------
@@ -86,7 +88,7 @@ class Filter(object):
 
         Nf = len(self.g)
 
-        if self.verbose:
+        if verbose:
             print('The analysis method is ', method)
 
         if method == 'exact':
