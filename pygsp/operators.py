@@ -66,6 +66,9 @@ def vec2mat(d, Nf):
         M, N = np.shape(d)
         return np.reshape(d, (M/Nf, Nf, N), order='F')
 
+def mat2vec(d):
+    raise NotImplementedError
+
 
 def div(G, s):
     r"""
@@ -900,7 +903,10 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
         # Compute errors
         pe.append(ca[i] - s_pred)
 
-    pe.append(np.zeros((Gs[Nlevels].N)))
+    try:
+        pe.append(np.zeros((Gs[Nlevels].N, np.shape(f)[1])))
+    except IndexError:
+        pe.append(np.zeros((Gs[Nlevels].N)))
 
     return ca, pe
 
@@ -927,8 +933,13 @@ def pyramid_cell2coeff(ca, pe):
     for ele in ca:
         N += np.shape(ele)[0]
 
-    coeff = np.zeros((N))
-    Nt = np.shape(ca[Nl])[0]
+    try:
+        Nt, Nv = np.shape(ca[Nl])
+        coeff = coeff = np.zeros((N, Nv))
+    except ValueError:
+        Nt = np.shape(ca[Nl])[0]
+        coeff = np.zeros((N))
+
     coeff[:Nt] = ca[Nl]
 
     ind = Nt
@@ -1001,23 +1012,18 @@ def interpolate(Gh, Gl, coeff, order=100, **kwargs):
     s_pred : Predicted signal
 
     """
-    alpha = Gl.pyramid['K_reg']
-    """
+    alpha = np.dot(Gl.pyramid['K_reg'], coeff)
+
     try:
         Nv = np.shape(coeff)[1]
         s_pred = np.zeros((Gh.N, Nv))
-        print('alpha ', alpha.shape)
-        print('s_pred ', s_pred[Gl.pyramid['ind']].shape)
-        print('ind ', Gl.pyramid['ind'].shape)
-        s_pred[Gl.pyramid['ind']] = np.expand_dims(alpha, axis=1)
     except IndexError:
-    """
-    s_pred = np.zeros((Gh.N))
+        s_pred = np.zeros((Gh.N))
+
     s_pred[Gl.pyramid['ind']] = alpha
 
-    s_pred = Gl.pyramid['green_kernel'].analysis(Gh, s_pred, order=order,
-                                                 **kwargs)
-    return s_pred
+    return Gl.pyramid['green_kernel'].analysis(Gh, s_pred, order=order,
+                                               **kwargs)
 
 
 def modulate(G, f, k):

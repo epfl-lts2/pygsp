@@ -1046,36 +1046,6 @@ class Heat(Filter):
         self.g = g
 
 
-def vec2mat(d, Nf):
-    r"""
-    Vector to matrix transfor
-
-    Parameters
-    ----------
-    d : Ndarray
-        Data
-    Nf : int
-        Number of filter
-
-    Returns
-    -------
-    d : list of ndarray
-        Data
-
-    """
-    N = np.shape(d)[0]
-    c = []
-
-    for i in range(Nf):
-        c.append(d[np.arange(N/Nf) + i*N/Nf, :])
-
-    return c
-
-
-def mat2vec(d):
-    raise NotImplementedError
-
-
 def dummy(a, b, c):
     r"""
     Short description.
