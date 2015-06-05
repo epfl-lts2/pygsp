@@ -25,7 +25,7 @@ class Filter(object):
         self.verbose = verbose
         if not hasattr(G, 'lmax'):
             if self.verbose:
-                print(self.__class__.__name__, ': has to compute lmax')
+                print('{} : has to compute lmax'.format(self.__class__.__name__))
             G.lmax = utils.estimate_lmax(G)
         self.G = G
 
@@ -872,9 +872,10 @@ class WarpedTranslates(Filter):
 
     Examples
     --------
-    >>> from pygsp import graphs, filters
-    >>> G = graphs.Logo()
-    >>> F = filters.WarpedTranslates(G)
+    Not Implemented for now
+    # >>> from pygsp import graphs, filters
+    # >>> G = graphs.Logo()
+    # >>> F = filters.WarpedTranslates(G)
 
     See :cite:`shuman2013spectrum`
 

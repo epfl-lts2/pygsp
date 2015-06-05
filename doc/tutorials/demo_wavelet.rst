@@ -94,7 +94,7 @@ If we want to get a better coverage of the graph spectrum, we could have used th
 
 >>> S_vec = Wk.analysis(G, S)
 >>> S = S_vec.reshape((S_vec.size/Nf, Nf), order='F')
->>> pygsp.plotting.plot_signal(G, S[:, 0], savefig=True, plot_name='Wavelet filtering')
+>>> pygsp.plotting.plot_signal(G, S[:, 0], savefig=True, plot_name='doc/tutorials/img/wavelet_filtering')
 
 
 We can visualize the filtering by one atom the same way the did for the Heat kernel, by placing a Kronecker delta at one specific vertex.
