@@ -28,9 +28,9 @@ class FunctionsTestCase(unittest.TestCase):
         pass
 
     def test_utils(self):
-        W = np.arange(64).reshape((8, 8))
+        W = np.arange(16).reshape((4, 4))
         W = sparse.lil_matrix(W)
-        G = graphs.Graph(W, directed=False)
+        G = graphs.Graph(W)
         # TODO choose values
         x = None
         y = None
@@ -41,16 +41,18 @@ class FunctionsTestCase(unittest.TestCase):
 
         def test_estimate_lmax(G):
             # TODO test with matlab
-            mat_answser = None
-            self.assertEqual(utils.estimate_lmax(G), np.max(G.L)).all()
+            # mat_answser = None
+            # self.assertAlmostEqual(utils.estimate_lmax(G), np.max(G.L))
+            np.assert_almost_equal(utils.estimate_lmax(G), np.max(G.L))
 
         def test_check_weights(W):
-            mat_answser = [False, False, False, True]
-            self.assertEqual(utils.check_weights(W), mat_answser)
+            # mat_answser = [False, False, False, True]
+            # self.assertEqual(utils.check_weights(W), mat_answser)
+            pass
 
         # TODO move test_create_laplacian in Operator
         def test_create_laplacian(G):
-            mat_answser = None
+            # mat_answser = None
             self.assertEqual(utils.create_laplacian(G), mat_answser)
 
         def test_check_connectivity(G, **kwargs):
@@ -62,11 +64,11 @@ class FunctionsTestCase(unittest.TestCase):
             self.assertEqual(utils.distanz(x, y))
 
         def test_symetrize(W, sy_type):
-            mat_answser = None
+            # mat_answser = None
             self.assertAlmostEqual(mat_answser, utils.symetrize(W, sy_type))
 
         def test_tree_depths(A, root):
-            mat_answser = None
+            # mat_answser = None
             self.assertEqual(mat_answser, utils.tree_depths(A, root))
 
         # Doesn't work bc of python bug

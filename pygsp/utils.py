@@ -137,18 +137,20 @@ def estimate_lmax(G):
     return np.real(lmax)
 
 
-def check_weights(W):
+def check_weights(W, verbose=0):
     r"""
-    Check the charasteristics of the weights matrix
+    Check the characteristics of the weights matrix
 
     Parameters
     ----------
     W : weights matrix
         The weights matrix to check
+    verbose : int
+        Verbosity : 0 no output, 1 prints characteristics (default = 0)
 
     Returns
     -------
-    An array of bool containing informations about the matrix
+    A dict of bools containing informations about the matrix
 
     has_inf_val : bool
         True if the matrix has infinite values else false
@@ -192,11 +194,11 @@ def check_weights(W):
         is_not_square = True
 
     if isnan(W.sum()):
-        print("GSP_TEST_WEIGHTS: There is an infinite "
+        print("GSP_TEST_WEIGHTS: There is an NaN "
               "value in the weight matrix")
         has_nan_value = True
 
-    return [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero]
+    return {'has_inf_val': has_inf_val, 'has_nan_value': has_nan_value, 'is_not_square': is_not_square, 'diag_is_not_zero': diag_is_not_zero}
 
 
 def check_connectivity(G, **kwargs):
@@ -424,7 +426,7 @@ def resistance_distance(G):
 
 def symetrize(W, symetrize_type='average'):
     r"""
-    symetrize a matrix
+    Symetrize a matrix
 
     Parameters
     ----------
