@@ -13,10 +13,6 @@ import pygsp
 from pygsp import utils
 
 
-class operators(object):
-    pass
-
-
 def adj2vec(G):
     r"""
     Prepare the graph for the gradient computation
@@ -164,7 +160,7 @@ def gft(G, f, verbose=True):
     else:
         U = G
 
-    return np.dot(np.transpose(np.conjugate(U)), f)
+    return np.dot(np.conjugate(U).T, f)
 
 
 def gwft(G, g, f, lowmemory=True, verbose=True):
@@ -207,18 +203,18 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
         # Compute the Frame into a big matrix
         Frame = gwft_frame_matrix(G, g, verbose=verbose)
 
-        C = np.dot(Frame.transpose(), f)
+        C = np.dot(Frame.T, f)
         C = C.reshape(G.N, G.N, Nf)
 
     else:
         # Compute the translate of g
-        ghat = np.dot(G.U.transpose(), g)
-        Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.transpose()))
+        ghat = np.dot(G.U.T, g)
+        Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.T))
         C = zeros((G.N, G.N))
 
         for j in range(Nf):
             for i in range(G.N):
-                C[:, i, j] = (np.kron(np.ones((G.N)), 1./G.U[:, 0])*G.U*np.dot(np.transpose(np.kron(np.ones((G.N)), Ftrans[:, i]))), f[:, j])
+                C[:, i, j] = (np.kron(np.ones((G.N)), 1./G.U[:, 0])*G.U*np.dot(np.kron(np.ones((G.N)), Ftrans[:, i])).T, f[:, j])
 
     return C
 
@@ -249,7 +245,7 @@ def gwft2(G, f, k, verbose=True):
     g = filters.gabor_filterbank(G, k)
 
     C = filters.analysis(G, g, f, verbose=verbose)
-    C = np.transpose(vec2mat(C, G.N))
+    C = filters.vec2mat(C, G.N).T
 
     return C
 
@@ -273,8 +269,8 @@ def gwft_frame_matrix(G, g, verbose=True):
     if verbose and G.N > 256:
         print("It will create a big matrix. You can use other methods.")
 
-    ghat = np.dot(np.transpose(G.U), g)
-    Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*np.transpose(G.U)))
+    ghat = np.dot(G.U.T, g)
+    Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*G.U.T))
 
     F = utils.repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
 
@@ -343,17 +339,17 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
     if lowmemory:
         # Compute the Frame into a big matrix
         Frame = ngwft_frame_matrix(G, g, verbose=verbose)
-        C = np.dot(np.transpose(Frame), f)
+        C = np.dot(Frame.T, f)
         C = C.reshape(G.N, G.N)
 
     else:
         # Compute the translate of g
-        ghat = np.dot(np.transpose(G.U), g)
-        Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*np.transpose(G.U)))
+        ghat = np.dot(G.U.T, g)
+        Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*G.U.T))
         C = np.zeros((G.N, G.N))
 
         for i in range(G.N):
-            atoms = np.kron(np.ones((G.N)), 1./G.U[:, 0])*G.U*np.kron(np.ones((G.N)), Ftrans[:, i]).transpose()
+            atoms = np.kron(np.ones((G.N)), 1./G.U[:, 0])*G.U*np.kron(np.ones((G.N)), Ftrans[:, i]).T
 
             # normalization
             atoms /= np.kron((np.ones((G.N))), np.sqrt(np.sum(np.abs(atoms),
@@ -382,8 +378,8 @@ def ngwft_frame_matrix(G, g, verbose=True):
     if verbose and G.N > 256:
         print('It will create a big matrix, you can use other methods.')
 
-    ghat = np.dot(np.transpose(G.U), g)
-    Ftrans = np.sqrt(g.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*np.transpose(G.U)))
+    ghat = np.dot(G.U.T, g)
+    Ftrans = np.sqrt(g.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.T))
 
     F = repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
 
@@ -670,7 +666,7 @@ def lanczos_op(fi, s, G=None, order=30, verbose=True):
         fie = fi.evaluate(Eh)
 
         for i in range(Nf):
-            c[range(G.N) + i*G.N, j] = np.dot(V, fie[:, i] * np.dot(np.transpose(V), s[:, j]))
+            c[np.range(G.N) + i*G.N, j] = np.dot(V, fie[:][i] * np.dot(V.T, s[:, j]))
 
     return c
 
@@ -729,7 +725,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
     """
     # TODO @ function
     if not epsilon:
-        epsilon = min(10/sqrt(G.N), 1)
+        epsilon = min(10./sqrt(G.N), .1)
 
     # check if the type of filters is right.
     if filters:
@@ -742,7 +738,6 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
 
                 # I don't know if i want to put a restriction on the filter
                 # raise TypeError('filters must be a list of function.')
-
         if len(filters) == 1:
             for _ in range(Nlevels-1):
                 filters.append(filters[0])
@@ -753,22 +748,20 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
     elif not filters:
         filters = []
         for i in range(Nlevels):
-            filters.append(lambda x: 5./(5+x))
+            filters.append(lambda x: .5/(.5+x))
 
     Gs = [G]
     for i in range(Nlevels):
         L_reg = Gs[i].L.todense() + lamda*np.eye(Gs[i].N)
         _, Vtemp = np.linalg.eig(L_reg)
-        print(Vtemp.shape)
-        V = Vtemp[:, 0]
-        print(V.shape)
+        V = np.ravel(Vtemp[:, 0])
+
         # Select the bigger group
         V = np.where(V >= 0, 1, 0)
-        print(V.shape)
         if np.sum(V) >= Gs[i].N/2.:
-            ind = np.nonzero(V)
+            ind = (V).nonzero()[0]
         else:
-            ind = np.nonzero(1-V)
+            ind = (1-V).nonzero()[0]
 
         if sparsify:
             Gtemp = kron_reduction(Gs[i], ind)
@@ -779,7 +772,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None,
         Gs[i+1].pyramid = {'ind': ind,
                            'green_kernel': lambda x: 1./(lamda + x),
                            'filter': filters[i],
-                           'level': i,
+                           'level': i+1,
                            'K_reg': kron_reduction(L_reg, ind)}
 
     return Gs
@@ -805,7 +798,7 @@ def kron_reduction(G, ind):
 
         if G.directed:
             raise ValueError('This method only work for undirected graphs.')
-        L = G.L
+        L = G.L.todense()
 
     else:
         L = G
@@ -813,30 +806,27 @@ def kron_reduction(G, ind):
     N = np.shape(L)[0]
     ind_comp = np.setdiff1d(np.arange(N), ind)
 
-    print(ind.shape)
-    L_red = L[ind, ind]
-    L_in_out = L[ind, ind_comp]
-    L_out_in = L[ind_com, ind]
-    L_com = L[ind_com, ind_com]
+    L_red = L[np.ix_(ind, ind)]
+    L_in_out = L[np.ix_(ind, ind_comp)]
+    L_out_in = L[np.ix_(ind_comp, ind)]
+    L_comp = L[np.ix_(ind_comp, ind_comp)]
 
-    Lnew = L_red - L_in_out * (L_com/L_out_in)
+    Lnew = L_red - np.dot(L_in_out, np.linalg.solve(L_comp, L_out_in))
 
     # Make the laplacian symetric if it is almost symetric!
-    if np.sum(np.sum(np.abs(Lnew-Lnew.transpose()), axis=0), axis=0) < eps*np.sum(np.sum(np.abs(Lnew), axis=0), axis=0):
-        Lnew = (Lnew + Lnew.transpose())/2.
+    if np.sum(np.abs(Lnew-Lnew.T)) < np.spacing(1)*np.sum(np.abs(Lnew)):
+        Lnew = (Lnew + Lnew.T)/2.
 
     if isinstance(G, pygsp.graphs.Graph):
         # Suppress the diagonal ? This is a good question?
-        Wnew = np.diagonal(np.diagonal(Lnew)) - Lnew
-        Snew = np.diagonal(Lnew) - np.sum(Wnew).transpose()
-        if np.linalg.nomr(Snew, 2) < eps(1000):
+        Wnew = np.diag(np.diag(Lnew)) - Lnew
+        Snew = np.diag(Lnew) - np.sum(Wnew, axis=0).T
+        if np.linalg.norm(Snew, 2) < np.spacing(1000):
             Snew = 0
         Wnew = Wnew + np.diagonal(Wnew)
-
-        Gnew = pygsp.graphs.Graph.copy_graph_attr(G)
-        Gnew.coords = G.coords[ind, :]
-        Gnew.W = Wnew
-        Gnew.type = 'Kron reduction'
+        Gnew = pygsp.graphs.Graph(W=Wnew, coords=G.coords[ind, :],
+                                  type='Kron reduction')
+        G.copy_graph_attributes(ctype=False, Gn=Gnew)
 
     else:
         Gnew = Lnew
@@ -1151,7 +1141,7 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, verbose=1, maxit=200,
 
     Examples
     --------
-    >>> TODO
+    TODO
 
     """
 

@@ -32,6 +32,8 @@ def graph_array_handler(func):
 def filterbank_handler(func):
 
     def inner(f, *args, **kwargs):
+        if hasattr(f.g, '__call__'):
+            return func([f], *args, **kwargs)
         if len(f.g) <= 1:
             return func(f, *args, **kwargs)
         elif len(f.g) > 1:
@@ -89,7 +91,7 @@ def is_directed(M):
 
     # Python Bug Can't use this in tests
     if np.shape(W) != (1, 1):
-        is_dir = (W - W.transpose()).sum() != 0
+        is_dir = (W - W.T).sum() != 0
 
     else:
         is_dir = False
@@ -328,9 +330,9 @@ def distanz(x, y=None):
 
     xx = (x*x).sum(axis=0)
     yy = (y*y).sum(axis=0)
-    xy = np.dot(np.transpose(x), y)
+    xy = np.dot(x.T, y)
 
-    d = abs(sp.kron(sp.ones((cy, 1)), xx).transpose() +
+    d = abs(sp.kron(sp.ones((cy, 1)), xx).T +
             sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
 
     return np.sqrt(d)
@@ -415,7 +417,7 @@ def resistance_distance(G):
     N = np.shape(L)[0]
 
     d = np.diagonal(pseudo)
-    rd = np.kron(np.ones((1, N)), d) + np.kron(np.ones((N, 1)), d) - pseudo - pseudo.transpose()
+    rd = np.kron(np.ones((1, N)), d) + np.kron(np.ones((N, 1)), d) - pseudo - pseudo.T
 
     return rd
 
