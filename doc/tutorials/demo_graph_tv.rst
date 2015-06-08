@@ -43,6 +43,7 @@ Results and code
 
 >>> import pygsp
 >>> from pygsp import graphs, filters, operators, plotting
+>>> import numpy as np
 >>>
 >>> # Create a random sensor graph
 >>> G = graphs.Sensor(N=256, distribute=True)
@@ -51,34 +52,30 @@ Results and code
 >>> # Create signal
 >>> graph_value = np.copysign(np.ones(np.shape(G.U[:, 3])[0]), G.U[:, 3])
 >>>
->>> plotting.plot_signal(G, graph_value, savefig=True, plot_name=original_signal)
+>>> plotting.plot_signal(G, graph_value, savefig=True, plot_name='doc/tutorials/img/original_signal')
 
-.. image:: img/signal_graph.*
-
-Original signal on graph
+.. figure:: img/original_signal.*
 
 This figure shows the original signal on graph.
 
 >>> # Create the mask
->>> import numpy as np
 >>> M = np.random.rand(G.U.shape[0], 1)
 >>> M = M > 0.6  # Probability of having no label on a vertex.
 >>>
 >>> # Applying the mask to the data
 >>> sigma = 0.0
->>> depleted_graph_value = M * (graph_value + sigma * np.random.standard_normal((1, G.N)))
+>>> depleted_graph_value = M * (graph_value.reshape(graph_value.size, 1) + sigma * np.random.standard_normal((G.N, 1)))
 >>>
->>> plotting.plot_signal(G, depleted_graph_value, show_edges=True, savefig=True, plot_name=depleted_signal)
+>>> plotting.plot_signal(G, depleted_graph_value, show_edges=True, savefig=True, plot_name='doc/tutorials/img/depleted_signal')
 
-.. image:: img/depleted_signal.*
-
-Depleted signal on graph
+.. figure:: img/depleted_signal.*
 
 This figure shows the signal on graph after the application of the
-mask and addition of noise. Half of the vertices are set to 0.
+mask and addition of noise. More than half of the vertices are set to 0.
 
 >>> # Setting the function f2 (see pyunlocbox for help)
 >>> import pyunlocbox
+>>> import math
 >>>
 >>> epsilon = sigma * math.sqrt(np.sum(M[:]))
 >>> operatorA = lambda x: A * x
@@ -90,17 +87,15 @@ mask and addition of noise. Half of the vertices are set to 0.
 >>> f1._eval = lambda x: operators.norm_tv(G, x)
 >>>
 >>> # Solve the problem
->>> solver = solvers.douglas_rachford()
+>>> solver = pyunlocbox.solvers.douglas_rachford()
 >>> param = {'x0': depleted_graph_value, 'solver': solver, 'atol': 1e-7, 'maxit': 50, 'verbosity': 'LOW'}
 >>> # With prox_tv
->>> ret = solvers.solve([f2, f1], **param)
+>>> ret = pyunlocboxsolvers.solve([f2, f1], **param)
 >>> prox_tv_reconstructed_graph = ret['sol']
 >>>
->>> plotting.plot_signal(G, prox_tv_reconstructed_graph, show_edges=True, savefig=True, plot_name=depleted_signal)
+>>> plotting.plot_signal(G, prox_tv_reconstructed_graph, show_edges=True, savefig=True, plot_name='doc/tutorials/img/tv_recons_signal')
 
-.. image:: img/tv_recons_signal.*
-
-Reconstructed signal on graph using TV
+.. figure:: img/tv_recons_signal.*
 
 This figure shows the reconstructed signal thanks to the algorithm.
 
@@ -116,13 +111,11 @@ In this case, we solve:
 The result is presented as following:
 
 >>> # Solve the problem with the same solver as before but with a prox_tik function
->>> ret2 = solvers.solve([f3, f1], **param)
+>>> ret2 = pyunlocbox.solvers.solve([f3, f1], **param)
 >>> prox_tik_reconstructed_graph = ret['sol']
 >>>
->>> plotting.plot_signal(G, prox_tik_reconstructed_graph, show_edges=True, savefig=True, plot_name=depleted_signal)
+>>> plotting.plot_signal(G, prox_tik_reconstructed_graph, show_edges=True, savefig=True, plot_name='doc/tutorials/img/tik_recons_signal')
 
-.. image:: img/tv_recons_signal.*
-
-Reconstructed signal on graph using Tikhonov
+.. figure:: img/tik_recons_signal.*
 
 This figure shows the reconstructed signal thanks to the algorithm.
