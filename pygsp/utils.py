@@ -91,8 +91,7 @@ def is_directed(M):
 
     # Python Bug Can't use this in tests
     if np.shape(W) != (1, 1):
-        is_dir = (W - W.T).sum() != 0
-
+        is_dir = np.abs((W - W.T)).sum() != 0
     else:
         is_dir = False
 
@@ -137,18 +136,20 @@ def estimate_lmax(G):
     return np.real(lmax)
 
 
-def check_weights(W):
+def check_weights(W, verbose=0):
     r"""
-    Check the charasteristics of the weights matrix
+    Check the characteristics of the weights matrix
 
     Parameters
     ----------
     W : weights matrix
         The weights matrix to check
+    verbose : int
+        Verbosity : 0 no output, 1 prints characteristics (default = 0)
 
     Returns
     -------
-    An array of bool containing informations about the matrix
+    A dict of bools containing informations about the matrix
 
     has_inf_val : bool
         True if the matrix has infinite values else false
@@ -192,11 +193,11 @@ def check_weights(W):
         is_not_square = True
 
     if isnan(W.sum()):
-        print("GSP_TEST_WEIGHTS: There is an infinite "
+        print("GSP_TEST_WEIGHTS: There is an NaN "
               "value in the weight matrix")
         has_nan_value = True
 
-    return [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero]
+    return {'has_inf_val': has_inf_val, 'has_nan_value': has_nan_value, 'is_not_square': is_not_square, 'diag_is_not_zero': diag_is_not_zero}
 
 
 def check_connectivity(G, **kwargs):
@@ -216,6 +217,8 @@ def check_connectivity(G, **kwargs):
     -------
     is_connected : bool
         A bool value telling if the graph is connected
+    in_conn : int
+        Number 
 
     """
 
@@ -235,6 +238,12 @@ def check_connectivity(G, **kwargs):
 
 
 def _check_connectivity_directed(A, **kwargs):
+    r"""
+    Subfunc to check connec in the directed case
+
+    
+
+    """
     is_connected = (A <= 0).all()
     c = 0
 
@@ -252,7 +261,7 @@ def _check_connectivity_directed(A, **kwargs):
         if r_is_connected:
             break
 
-    # TODO check axises
+    # TODO check axis
     in_conn = (A.sum(axis=1) > 0).nonzero()
     out_conn = (A.sum(axis=2) > 0).nonzero()
 
@@ -263,6 +272,8 @@ def _check_connectivity_directed(A, **kwargs):
 
 
 def _check_connectivity_undirected(A, **kwargs):
+    r"""
+    """
 
     is_connected = (A <= 0).all()
     c = 0
@@ -307,7 +318,6 @@ def distanz(x, y=None):
     """
     try:
         x.shape[1]
-
     except IndexError:
         x = x.reshape(1, x.shape[0])
 
@@ -317,7 +327,6 @@ def distanz(x, y=None):
     else:
         try:
             y.shape[1]
-
         except IndexError:
             y = y.reshape(1, y.shape[0])
 
@@ -424,7 +433,7 @@ def resistance_distance(G):
 
 def symetrize(W, symetrize_type='average'):
     r"""
-    symetrize a matrix
+    Symetrize a matrix
 
     Parameters
     ----------
