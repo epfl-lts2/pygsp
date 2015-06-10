@@ -32,42 +32,46 @@ class FunctionsTestCase(unittest.TestCase):
         W1 = np.arange(16).reshape((4, 4)) - 8
         W1 = sparse.lil_matrix(W)
         G1 = graphs.Graph(W)
-        t1 = {'G': G1, 'lap': None, 'is_dir': True, 'diag_is_not_zero': True}
+        weight_check1 = {'has_inf_val': False, 'has_nan_value': False,
+                         'is_not_square': False, 'diag_is_not_zero': True}
+        rep1 = {'lap': None, 'is_dir': True,'weight_check': weight_check1}
+        t1 = {'G': G1,'rep': rep1}
 
         W2 = np.empty((4, 5))
         W2[0,1] = float('NaN')
         W2[0,2] = float('Inf')
         G2 = graphs.Graph(W2)
-        t2 = {'G': G2, 'lap': None, 'is_dir': True, 'has_nan_val': True, 'has_inf_val': True}
+        weight_check2 = {'has_inf_val': True, 'has_nan_value': True,
+                         'is_not_square': True, 'diag_is_not_zero': False}
+        rep2 = {'lap': None, 'is_dir': True,'weight_check': weight_check2}
+        t2 = {'G': G2,'rep': rep2}
 
         W3 = np.zeros((4, 4))
         G3 = graphs.Graph(W3)
-        t3 = {'G': G3, 'lap': None, 'is_dir': True}
+        weight_check3 = {'has_inf_val': False, 'has_nan_value': False,
+                         'is_not_square': False, 'diag_is_not_zero': False}
+        rep3 = {'lap': None, 'is_dir': True, 'weight_check': weight_check3}
+        t3 = {'G': G3,'rep': rep3}
 
         W4 = np.empty((4, 4))
         np.fill_diagonal(W4, 1)
         G4 = graphs.Graph(W4)
-        t4 = {'G': G4, 'lap': None, 'is_dir': True, 'diag_is_not_zero': True}
+        weight_check4 = {'has_inf_val': False, 'has_nan_value': False,
+                         'is_not_square': False, 'diag_is_not_zero': True}
+        rep4 = {'lap': None, 'is_dir': True, 'weight_check': weight_check4}
+        t4 = {'G': G4,'rep': rep4}
 
-        graphs_test = [t1, t2, t3, t4]
-        for t in graphs_test:
-            t['lmax'] = np.max(t.G.lmax)
+        test_graphs = [t1, t2, t3, t4]
 
-        # TODO choose values
-        x = None
-        y = None
-        stype = ['average', 'full']
-
-        def test_is_directed(t):
-            self.assertEqual(utils.is_directed(G), t.is_dir)
+        def test_is_directed(G, rep):
+            self.assertEqual(utils.is_directed(G), rep.is_dir)
 
         def test_estimate_lmax(G):
             operators.compute_fourier_basis(G)
             np.assert_almost_equal(utils.estimate_lmax(G)[0], G.lmax)
 
-        def test_check_weights(t):
-            # self.assertAlmostEqual(utils.check_weights(t.G.W), t)
-            pass
+        def test_check_weights(G, w_c):
+            self.assertEqual(utils.check_weights(G.W), w_c)
 
         # TODO move test_create_laplacian in Operator
         def test_create_laplacian(t):
@@ -90,10 +94,10 @@ class FunctionsTestCase(unittest.TestCase):
             self.assertEqual(mat_answser, utils.tree_depths(A, root))
 
         # Doesn't work bc of python bug
-        for t in graphs_test:
-            test_is_directed(t)
+        for t in test_graphs:
+            test_is_directed(t.G, t.rep)
             test_estimate_lmax(t.G)
-            test_check_weights(t)
+            test_check_weights(t.G, t.rep.check_weights)
             test_create_laplacian(t)
             test_check_connectivity(t)
 
