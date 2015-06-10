@@ -73,7 +73,7 @@ This figure shows the original signal on graph.
 This figure shows the signal on graph after the application of the
 mask and addition of noise. More than half of the vertices are set to 0.
 
->>> # Setting the function f2 (see pyunlocbox for help)
+>>> # Setting the function f1 (see pyunlocbox for help)
 >>> import pyunlocbox
 >>> import math
 >>>
