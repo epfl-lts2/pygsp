@@ -30,36 +30,43 @@ class FunctionsTestCase(unittest.TestCase):
     def test_utils(self):
         # Data init
         W1 = np.arange(16).reshape((4, 4)) - 8
-        W1 = sparse.lil_matrix(W)
-        G1 = graphs.Graph(W)
+        W1 = sparse.lil_matrix(W1)
+        G1 = graphs.Graph(W1)
+        lap1 = np.array([[-9.,  5.5,  3.,  0.5],
+                         [5.5, -4.,  0.5, -2.],
+                         [3.,  0.5,  1., -4.5],
+                         [0.5, -2., -4.5,  6.]])
+        lap1 = sparse.lil_matrix(lap1)
         weight_check1 = {'has_inf_val': False, 'has_nan_value': False,
                          'is_not_square': False, 'diag_is_not_zero': True}
-        rep1 = {'lap': None, 'is_dir': True,'weight_check': weight_check1}
-        t1 = {'G': G1,'rep': rep1}
+        rep1 = {'lap': lap1, 'is_dir': True, 'weight_check': weight_check1}
+        t1 = {'G': G1, 'rep': rep1}
 
-        W2 = np.empty((4, 5))
-        W2[0,1] = float('NaN')
-        W2[0,2] = float('Inf')
+        W2 = np.empty((4, 4))
+        W2[0, 1] = float('NaN')
+        W2[0, 2] = float('Inf')
         G2 = graphs.Graph(W2)
         weight_check2 = {'has_inf_val': True, 'has_nan_value': True,
                          'is_not_square': True, 'diag_is_not_zero': False}
-        rep2 = {'lap': None, 'is_dir': True,'weight_check': weight_check2}
-        t2 = {'G': G2,'rep': rep2}
+        rep2 = {'lap': None, 'is_dir': True, 'weight_check': weight_check2}
+        t2 = {'G': G2, 'rep': rep2}
 
         W3 = np.zeros((4, 4))
         G3 = graphs.Graph(W3)
+        lap3 = G3.W
         weight_check3 = {'has_inf_val': False, 'has_nan_value': False,
                          'is_not_square': False, 'diag_is_not_zero': False}
-        rep3 = {'lap': None, 'is_dir': True, 'weight_check': weight_check3}
-        t3 = {'G': G3,'rep': rep3}
+        rep3 = {'lap': lap3, 'is_dir': True, 'weight_check': weight_check3}
+        t3 = {'G': G3, 'rep': rep3}
 
         W4 = np.empty((4, 4))
         np.fill_diagonal(W4, 1)
         G4 = graphs.Graph(W4)
+        lap4 = sparse.lil_matrix(W4)
         weight_check4 = {'has_inf_val': False, 'has_nan_value': False,
                          'is_not_square': False, 'diag_is_not_zero': True}
-        rep4 = {'lap': None, 'is_dir': True, 'weight_check': weight_check4}
-        t4 = {'G': G4,'rep': rep4}
+        rep4 = {'lap': lap4, 'is_dir': True, 'weight_check': weight_check4}
+        t4 = {'G': G4, 'rep': rep4}
 
         test_graphs = [t1, t2, t3, t4]
 
