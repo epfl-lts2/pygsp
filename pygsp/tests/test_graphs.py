@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Test suite for the modulename module of the pygsp package.
+Test suite for the graphs module of the pygsp package.
 """
 
 import sys

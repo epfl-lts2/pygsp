@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Test suite for the modulename module of the pygsp package.
+Test suite for the utils module of the pygsp package.
 """
 
 import sys
@@ -35,8 +35,8 @@ class FunctionsTestCase(unittest.TestCase):
         t1 = {'G': G1, 'lap': None, 'is_dir': True, 'diag_is_not_zero': True}
 
         W2 = np.empty((4, 5))
-        W2[0,1] = float('NaN')
-        W2[0,2] = float('Inf')
+        W2[0, 1] = float('NaN')
+        W2[0, 2] = float('Inf')
         G2 = graphs.Graph(W2)
         t2 = {'G': G2, 'lap': None, 'is_dir': True, 'has_nan_val': True, 'has_inf_val': True}
 
