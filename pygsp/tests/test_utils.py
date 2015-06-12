@@ -30,8 +30,8 @@ class FunctionsTestCase(unittest.TestCase):
     def test_utils(self):
         # Data init
         W1 = np.arange(16).reshape((4, 4)) - 8
-        W1 = sparse.lil_matrix(W)
-        G1 = graphs.Graph(W)
+        W1 = sparse.lil_matrix(W1)
+        G1 = graphs.Graph(W1)
         t1 = {'G': G1, 'lap': None, 'is_dir': True, 'diag_is_not_zero': True}
 
         W2 = np.empty((4, 5))
