@@ -19,4 +19,5 @@ assert operators
 assert filters
 
 __version__ = '0.0.1'
+__email__ = 'LTS2Graph@groupes.epfl.ch'
 __release_date__ = '2014-10-06'
