@@ -41,35 +41,6 @@ def adj2vec(G):
         G.Diff = grad_mat(G)
 
 
-def vec2mat(d, Nf):
-    r"""
-    Vector to matrix transfor
-
-    Parameters
-    ----------
-    d : Ndarray
-        Data
-    Nf : int
-        Number of filter
-
-    Returns
-    -------
-    d : list of ndarray
-        Data
-
-    """
-    if len(np.shape(d)) == 1:
-        M = np.shape(d)[0]
-        return np.reshape(d, (M/Nf, Nf), order='F')
-
-    if len(np.shape(d)) == 2:
-        M, N = np.shape(d)
-        return np.reshape(d, (M/Nf, Nf, N), order='F')
-
-def mat2vec(d):
-    raise NotImplementedError
-
-
 def div(G, s):
     r"""
     Parameters
@@ -203,7 +174,7 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     Parameters
     ----------
     G : Graph
-    g :
+    g : ndarray
         Window (graph signal or kernel)
     f : ndarray
         Graph signal
@@ -278,7 +249,7 @@ def gwft2(G, f, k, verbose=True):
     g = filters.gabor_filterbank(G, k)
 
     C = filters.analysis(G, g, f, verbose=verbose)
-    C = filters.vec2mat(C, G.N).T
+    C = utils.vec2mat(C, G.N).T
 
     return C
 

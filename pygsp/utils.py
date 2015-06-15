@@ -377,6 +377,36 @@ def repmatline(A, ncol=1, nrow=1):
     return np.repeat(np.repeat(x, ncol, axis=1), nrow, axis=0)
 
 
+def vec2mat(d, Nf):
+    r"""
+    Vector to matrix transfor
+
+    Parameters
+    ----------
+    d : Ndarray
+        Data
+    Nf : int
+        Number of filter
+
+    Returns
+    -------
+    d : list of ndarray
+        Data
+
+    """
+    if len(np.shape(d)) == 1:
+        M = np.shape(d)[0]
+        return np.reshape(d, (M/Nf, Nf), order='F')
+
+    if len(np.shape(d)) == 2:
+        M, N = np.shape(d)
+        return np.reshape(d, (M/Nf, Nf, N), order='F')
+
+
+def mat2vec(d):
+    raise NotImplementedError
+
+
 def resistance_distance(G):
     r"""
     Compute the resitance distances of a graph
