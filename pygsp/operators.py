@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # -*- coding: utf-8 -*-
 r"""
 This module implements the main operators for the pygsp box
