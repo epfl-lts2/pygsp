@@ -102,7 +102,7 @@ class FunctionsTestCase(unittest.TestCase):
 
         # Doesn't work bc of python bug
         for t in test_graphs:
-            test_is_directed(t.G, t.rep)
+            test_is_directed(t['G'], t.rep)
             test_estimate_lmax(t.G)
             test_check_weights(t.G, t.rep.check_weights)
             test_create_laplacian(t)
