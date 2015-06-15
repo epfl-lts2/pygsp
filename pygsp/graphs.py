@@ -255,7 +255,7 @@ class Graph(object):
             if ctype:
                 Gn = Graph(W=G.W, lap_type=self.lap_type, plotting=self.plotting, limits=self.limits)
             else:
-                Gn = Graph(W=G.W, slap_type=self.lap_type, plotting=self.plotting)
+                Gn = Graph(W=G.W, lap_type=self.lap_type, plotting=self.plotting)
 
             return Gn
 

@@ -32,7 +32,7 @@ class Filter(object):
             if isinstance(filters, list):
                 self.g = filters
             else:
-                print('filters should be a list, even if it has only one filter.')
+                # print('filters should be a list, even if it has only one filter.')
                 self.g = [filters]
 
     def analysis(self, G, s, method=None, cheb_order=30, verbose=True, **kwargs):
@@ -89,7 +89,7 @@ class Filter(object):
         Nf = len(self.g)
 
         if verbose:
-            print('The analysis method is ', method)
+            print('The analysis method is {s}'.format(method))
 
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
