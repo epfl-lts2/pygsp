@@ -73,7 +73,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = pygsp.__name__
-copyright = '2014, EPFL LTS2'
+copyright = '2015, EPFL LTS2'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -283,4 +283,3 @@ texinfo_documents = [
 # -- numpydoc configuration ----------------------------------------------------
 
 numpydoc_show_class_members = False
-
