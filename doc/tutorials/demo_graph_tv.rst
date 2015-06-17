@@ -25,7 +25,7 @@ We define the prox of :math:`f_1` as:
 
 .. math:: prox_{f1,\gamma} (z) = arg \min_{x} \frac{1}{2} \|x-z\|_2^2 +  \gamma \| \nabla z \|_1
 
-* :math:`f_2` is the indicator function of the set S define by $||Mx-b||_2 < \epsilon
+* :math:`f_2` is the indicator function of the set S define by :math:||Mx-b||_2 < \epsilon
 
 We define the prox of :math:`f_2` as
 
