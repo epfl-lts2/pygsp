@@ -21,15 +21,21 @@ class Filter(object):
     methods for those classes.
     """
 
-    def __init__(self, G, verbose=True, **kwargs):
+    def __init__(self, G, verbose=True, filters=None, **kwargs):
         self.verbose = verbose
         if not hasattr(G, 'lmax'):
             if self.verbose:
                 print('{} : has to compute lmax'.format(self.__class__.__name__))
             G.lmax = utils.estimate_lmax(G)
         self.G = G
+        if filters:
+            if isinstance(filters, list):
+                self.g = filters
+            else:
+                # print('filters should be a list, even if it has only one filter.')
+                self.g = [filters]
 
-    def analysis(self, G, s, method=None, cheb_order=30, **kwargs):
+    def analysis(self, G, s, method=None, cheb_order=30, verbose=True, **kwargs):
         r"""
         Operator to analyse a filterbank
 
@@ -42,6 +48,8 @@ class Filter(object):
             wether using an exact method, cheby approx or lanczos
         cheb_order : int
             Order for chebyshev
+        verbose : Verbosity level (False no log - True display warnings)
+            Default is True
 
         Returns
         -------
@@ -81,6 +89,9 @@ class Filter(object):
 
         Nf = len(self.g)
 
+        if verbose:
+            print('The analysis method is {s}'.format(method))
+
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
                 if self.verbose:
@@ -91,24 +102,29 @@ class Filter(object):
             try:
                 Nv = np.shape(s)[1]
                 c = np.zeros((G.N * Nf, Nv))
+                is2d = True
             except IndexError:
-                Nv = 1
                 c = np.zeros((G.N * Nf))
+                is2d = False
 
             fie = self.evaluate(G.e)
 
             if Nf == 1:
-                if Nv == 1:
-                    c = operators.igft(G, fie*operators.gft(G, s))
+                if is2d:
+                    return operators.igft(G, np.tile(fie, (Nv, 1)).T*operators.gft(G, s))
                 else:
+<<<<<<< HEAD
                     c = operators.igft(G, np.tile(fie, (1, Nv)) *
                                        operators.gft(G, s))
+=======
+                    return operators.igft(G, fie*operators.gft(G, s))
+>>>>>>> analysis
             else:
                 for i in range(Nf):
-                    if Nv == 1:
-                        c[np.arange(G.N) + G.N*i] = operators.igft(G, fie[:][i]*operators.gft(G, s))
+                    if is2d:
+                        c[np.arange(G.N) + G.N*i] = operators.igft(G, np.tile(fie[:][i], (Nv, 1)).T*operators.gft(G, s))
                     else:
-                        c[np.arange(G.N) + G.N*i] = operators.igft(G, np.tile(fie[:][i], (1, Nv))*operators.gft(G, s))
+                        c[np.arange(G.N) + G.N*i] = operators.igft(G, fie[:][i]*operators.gft(G, s))
 
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
@@ -1144,36 +1160,6 @@ class Heat(Filter):
                 g.append(lambda x: np.exp(-tau * x/G.lmax))
 
         self.g = g
-
-
-def vec2mat(d, Nf):
-    r"""
-    Vector to matrix transfor
-
-    Parameters
-    ----------
-    d : Ndarray
-        Data
-    Nf : int
-        Number of filter
-
-    Returns
-    -------
-    d : list of ndarray
-        Data
-
-    """
-    N = np.shape(d)[0]
-    c = []
-
-    for i in range(Nf):
-        c.append(d[np.arange(N/Nf) + i*N/Nf, :])
-
-    return c
-
-
-def mat2vec(d):
-    raise NotImplementedError
 
 
 def dummy(a, b, c):
