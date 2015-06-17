@@ -90,7 +90,7 @@ class Filter(object):
         Nf = len(self.g)
 
         if verbose:
-            print('The analysis method is {s}'.format(method))
+            print('The analysis method is {}'.format(method))
 
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
@@ -113,12 +113,7 @@ class Filter(object):
                 if is2d:
                     return operators.igft(G, np.tile(fie, (Nv, 1)).T*operators.gft(G, s))
                 else:
-<<<<<<< HEAD
-                    c = operators.igft(G, np.tile(fie, (1, Nv)) *
-                                       operators.gft(G, s))
-=======
                     return operators.igft(G, fie*operators.gft(G, s))
->>>>>>> analysis
             else:
                 for i in range(Nf):
                     if is2d:
