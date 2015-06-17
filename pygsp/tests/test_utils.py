@@ -71,21 +71,18 @@ class FunctionsTestCase(unittest.TestCase):
         test_graphs = [t1, t2, t3, t4]
 
         def test_is_directed(G, rep):
-            self.assertEqual(utils.is_directed(G), rep.is_dir)
+            self.assertEqual(utils.is_directed(G), rep['is_dir'])
 
         def test_estimate_lmax(G):
             operators.compute_fourier_basis(G)
-            np.assert_almost_equal(utils.estimate_lmax(G)[0], G.lmax)
+            nptest.assert_almost_equal(utils.estimate_lmax(G)[0], G.lmax)
 
         def test_check_weights(G, w_c):
             self.assertEqual(utils.check_weights(G.W), w_c)
 
         # TODO move test_create_laplacian in Operator
-        def test_create_laplacian(t):
-            self.assertEqual(utils.create_laplacian(G), mat_answser)
-
         def test_check_connectivity(t, **kwargs):
-            self.assertTrue(utils.check_connectivity(G))
+            self.assertTrue(utils.check_connectivity(t['G'])[0])
 
         def test_distanz(x, y):
             # TODO test with matlab
@@ -104,8 +101,7 @@ class FunctionsTestCase(unittest.TestCase):
         for t in test_graphs:
             test_is_directed(t['G'], t['rep'])
             test_estimate_lmax(t['G'])
-            test_check_weights(t['G'], t['rep']['check_weights'])
-            test_create_laplacian(t)
+            test_check_weights(t['G'], t['rep']['weight_check'])
             test_check_connectivity(t)
 
         test_tree_depths(A, root)
