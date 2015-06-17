@@ -81,6 +81,7 @@ class FunctionsTestCase(unittest.TestCase):
             self.assertEqual(utils.check_weights(G.W), w_c)
 
         # TODO move test_create_laplacian in Operator
+
         def test_check_connectivity(t, **kwargs):
             self.assertTrue(utils.check_connectivity(t['G'])[0])
 

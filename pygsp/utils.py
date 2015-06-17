@@ -218,15 +218,16 @@ def check_connectivity(G, **kwargs):
     is_connected : bool
         A bool value telling if the graph is connected
     in_conn : int
-        Number 
+        Number of in connections
+    out_conn : int
+        Number of out connections
 
     """
 
-    A = G.W
     if not hasattr(G, 'directed'):
         G.directed = is_directed(G)
     # Removing the diagonal
-    A -= A.diagonal()
+    A = G.W - G.W.diagonal()
 
     if G.directed:
         return _check_connectivity_directed(A, **kwargs)
@@ -240,42 +241,41 @@ def check_connectivity(G, **kwargs):
 def _check_connectivity_directed(A, **kwargs):
     r"""
     Subfunc to check connec in the directed case
-
-    
-
     """
-    is_connected = (A <= 0).all()
-    c = 0
+    is_connected = (A < 0).any()
+    hard_check = (1 - (A.sum(axis=0) > 0)) +\
+        (1 - (A.sum(axis=1) > 0)).reshape(1, A.size)
 
+    print('HC')
+    print(hard_check)
+
+    c = 0
     while c <= sp.shape(A)[0]:
-        c_is_connected = (c == 0).all()
+        c_is_connected = (c == 0)
         c += 1
         if c_is_connected:
             break
 
     r = 0
-
     while r <= sp.shape(A)[1]:
-        r_is_connected = (c == 0).all()
+        r_is_connected = (c == 0)
         r += 1
         if r_is_connected:
             break
 
     # TODO check axis
-    in_conn = (A.sum(axis=1) > 0).nonzero()
-    out_conn = (A.sum(axis=2) > 0).nonzero()
-
-    if c_is_connected and r_is_connected:
-        is_connected = True
+    in_conn = (1 - (A.sum(axis=0) > 0))
+    out_conn = (1 - (A.sum(axis=1) > 0))
 
     return is_connected, in_conn, out_conn
 
 
 def _check_connectivity_undirected(A, **kwargs):
     r"""
+    Subfunc to check connec in the undirected case
     """
 
-    is_connected = (A <= 0).all()
+    is_connected = (A < 0).any()
     c = 0
     while c <= sp.shape(A)[0]:
         c_is_connected = (c == 0)
@@ -288,7 +288,7 @@ def _check_connectivity_undirected(A, **kwargs):
     out_conn = in_conn
 
     if c_is_connected:
-        return True, in_conn, out_conn
+        return is_connected, in_conn, out_conn
 
 
 def distanz(x, y=None):
