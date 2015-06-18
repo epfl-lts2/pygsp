@@ -65,6 +65,7 @@ class Filter(object):
         MexicanHat : has to compute lmax
         >>> x = np.arange(G.N**2).reshape(G.N, G.N)
         >>> co = MH.analysis(G, x)
+        The analysis method is cheby
 
         Matlab Authors
         --------------
