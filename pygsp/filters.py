@@ -35,7 +35,7 @@ class Filter(object):
                 # print('filters should be a list, even if it has only one filter.')
                 self.g = [filters]
 
-    def analysis(self, G, s, method=None, cheb_order=30, verbose=True, **kwargs):
+    def analysis(self, G, s, method=None, cheb_order=30, verbose=False, **kwargs):
         r"""
         Operator to analyse a filterbank
 

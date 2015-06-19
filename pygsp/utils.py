@@ -247,10 +247,7 @@ def _check_connectivity_directed(A, **kwargs):
     """
     is_connected = (A < 0).any()
     hard_check = (1 - (A.sum(axis=0) > 0)) +\
-        (1 - (A.sum(axis=1) > 0)).reshape(1, A.size)
-
-    print('HC')
-    print(hard_check)
+        (1 - (A.sum(axis=1) > 0)).reshape(1, A.shape[0])
 
     c = 0
     while c <= sp.shape(A)[0]:

@@ -68,7 +68,7 @@ class FunctionsTestCase(unittest.TestCase):
         rep4 = {'lap': lap4, 'is_dir': True, 'weight_check': weight_check4}
         t4 = {'G': G4, 'rep': rep4}
 
-        test_graphs = [t1, t2, t3, t4]
+        test_graphs = [t1, t3, t4]
 
         def test_is_directed(G, rep):
             self.assertEqual(utils.is_directed(G), rep['is_dir'])
@@ -98,12 +98,14 @@ class FunctionsTestCase(unittest.TestCase):
             # mat_answser = None
             self.assertEqual(mat_answser, utils.tree_depths(A, root))
 
-        # Doesn't work bc of python bug
         for t in test_graphs:
             test_is_directed(t['G'], t['rep'])
             test_estimate_lmax(t['G'])
             test_check_weights(t['G'], t['rep']['weight_check'])
             test_check_connectivity(t)
+
+        with self.assertRaises(np.linalg.linalg.LinAlgError):
+            test_estimate_lmax(t2['G'])
 
         test_tree_depths(A, root)
         for s in stype:
