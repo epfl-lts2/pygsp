@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+r"""
+This module implements some utilitary functions used throughout the PyGSP box.
+"""
 
 import numpy as np
 import scipy as sp

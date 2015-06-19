@@ -2,7 +2,7 @@
 r"""
 This module implements the main filter class and all the filters subclasses
 
-* :class: `Filter` Main filter class
+:class: `Filter` Main filter class
 """
 
 from math import exp, log, pi
@@ -584,7 +584,7 @@ class HalfCosine(Filter):
 
         dila_fact = G.lmax * (3./(Nf - 2))
 
-        main_window = lambda x: np.multiply(np.multiply((.5 + .5*np.cos(2.*pi*(x/dila_fact - 1./2))), (x >= 0)),(x <= dila_fact))
+        main_window = lambda x: np.multiply(np.multiply((.5 + .5*np.cos(2.*pi*(x/dila_fact - 1./2))), (x >= 0)), (x <= dila_fact))
 
         g = []
 
@@ -1109,9 +1109,9 @@ class Heat(Filter):
     G : Graph
     tau : int or list of ints
         Scaling parameter. (default = 10)
-    normalize (bool) : Normalize the kernel (works only if the eigenvalues are
-        present in the graph)
-        Default is 0
+    normalize : bool
+        Normalize the kernel (works only if the eigenvalues are
+        present in the graph). (default = 0)
 
     Returns
     -------

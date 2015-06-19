@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-This module implements plotting functions for the pygsp main objects
+This module implements plotting functions for the PyGSP main objects.
 """
 
 import numpy as np
@@ -89,7 +89,7 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
         Set to False to only draw the vertices (default G.Ne < 10000).
     savefig : boolean
         Determine wether the plot is saved as a PNG file in your\
-         current directory (True) or shown in a window (False) (default False).
+        current directory (True) or shown in a window (False) (default False).
     plot_name : str
         To give custom names to plots
 
@@ -347,14 +347,14 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3,
         Size of the X marks representing the eigenvalues.
     plot_eigenvalues : boolean
         To plot black X marks at all eigenvalues of the graph (You need to \
-            compute the Fourier basis to use this option). By default the \
-            eigenvalues are plot if they are contained in the Graph.
+        compute the Fourier basis to use this option). By default the \
+        eigenvalues are plot if they are contained in the Graph.
     show_sum : boolean
         To plot an extra line showing the sum of the squared magnitudes\
-         of the filters (default True if there is multiple filters).
+        of the filters (default True if there is multiple filters).
     savefig : boolean
         Determine wether the plot is saved as a PNG file in your\
-         current directory (True) or shown in a window (False) (default False).
+        current directory (True) or shown in a window (False) (default False).
     plot_name : str
         To give custom names to plots
 
@@ -443,7 +443,7 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
         Limits of the colorbar.
     colorbar : boolean
         To plot an extra line showing the sum of the squared magnitudes\
-         of the filters (default True if there is multiple filters).
+        of the filters (default True if there is multiple filters).
     bar : int
         NOT IMPLEMENTED: 0 display color, 1 display bar for the graph
         (default 0).
@@ -451,7 +451,7 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
         Width of the bar (default 1).
     savefig : boolean
         Determine wether the plot is saved as a PNG file in your\
-         current directory (True) or shown in a window (False) (default False).
+        current directory (True) or shown in a window (False) (default False).
     plot_name : str
         To give custom names to plots
 
@@ -582,7 +582,7 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
         Limits of the colorbar.
     colorbar : boolean
         To plot an extra line showing the sum of the squared magnitudes\
-         of the filters (default True if there is multiple filters).
+        of the filters (default True if there is multiple filters).
     bar : int
         0 display color, 1 display bar for the graph (default 0).
     bar_width : int
