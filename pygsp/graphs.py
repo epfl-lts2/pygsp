@@ -159,7 +159,7 @@ class Graph(object):
 
     # All the parameters that needs calculation to be set
     # or not needed are set to None
-    def __init__(self, W, A=None, N=None, d=None, Ne=None,
+    def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
                  gtype='unknown', directed=None, coords=None,
                  lap_type='combinatorial', L=None, verbose=False,
                  plotting={}, **kwargs):
@@ -230,9 +230,9 @@ class Graph(object):
         """
         return deepcopy(self)
 
-    def copy_graph_attributes(self, ctype=True, Gn=None):
+    def copy_graph_attributes(self, Gn, ctype=True, ):
         r"""
-        copy graph attributes copy the parameter of the graph
+        copy_graph_attributes copy some parameters of the graph into a given one
 
         Parameters
         ----------:
@@ -240,7 +240,7 @@ class Graph(object):
         ctype : bool
             flag to select what to copy (Default is True)
         Gn : Graph structure
-            (optional)
+            The graph where the parameters will be copied
 
         Returns
         -------
@@ -254,22 +254,6 @@ class Graph(object):
         >>> G.copy_graph_attributes(ctype=False, Gn=Torus);
 
         """
-        # if no Gn given
-        if not Gn:
-            if ctype:
-                Gn = Graph(lap_type=self.lap_type, plotting=self.plotting,
-                           W=G.W, limits=self.limits)
-
-            else:
-                Gn = Graph(lap_type=self.lap_type, plotting=self.plotting,
-                           W=G.W)
-
-            return Gn
-
-        # if Gn given.
-        if hasattr(self, 'lap_type'):
-            Gn.lap_type = self.lap_type
-
         if hasattr(self, 'plotting'):
             Gn.plotting = self.plotting
 
@@ -279,6 +263,10 @@ class Graph(object):
         else:
             if hasattr(Gn.plotting, 'limits'):
                 del Gn.plotting['limits']
+
+        if hasattr(self, 'lap_type'):
+            Gn.lap_type = self.lap_type
+            Gn.L = operators.create_laplacian(Gn)
 
     def separate_graph(self):
         r"""
