@@ -230,7 +230,7 @@ class Graph(object):
         """
         return deepcopy(self)
 
-    def copy_graph_attributes(self, Gn, ctype=True, ):
+    def copy_graph_attributes(self, Gn, ctype=True):
         r"""
         copy_graph_attributes copy some parameters of the graph into a given one
 

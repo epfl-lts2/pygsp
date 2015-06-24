@@ -777,7 +777,7 @@ def kron_reduction(G, ind):
     N = np.shape(L)[0]
     ind_comp = np.setdiff1d(np.arange(N), ind)
 
-    L_red = L[np.ix_(ind, ind)].tocsc()
+    L_red = L[np.ix_(ind, ind)]
     L_in_out = L[np.ix_(ind, ind_comp)].tocsc()
     L_out_in = L[np.ix_(ind_comp, ind)].tocsc()
     L_comp = L[np.ix_(ind_comp, ind_comp)].tocsc()
@@ -978,7 +978,7 @@ def interpolate(Gh, Gl, coeff, order=100, **kwargs):
     s_pred : Predicted signal
 
     """
-    alpha = np.dot(Gl.pyramid['K_reg'], coeff)
+    alpha = np.dot(Gl.pyramid['K_reg'].toarray(), coeff)
 
     try:
         Nv = np.shape(coeff)[1]
