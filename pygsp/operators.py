@@ -697,7 +697,7 @@ def localize(G, g, i):
     return gt
 
 
-def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None):
+def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None):
     r"""
     Compute a pyramid of graphs using the kron reduction
 
@@ -719,18 +719,16 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None):
     Cs : ndarray
 
     """
-    # TODO @ function
     if not epsilon:
         epsilon = min(10./sqrt(G.N), .1)
 
     Gs = [G]
     for i in range(Nlevels):
-        L_reg = Gs[i].L.todense() + lamda*np.eye(Gs[i].N)
-        _, Vtemp = np.linalg.eig(L_reg)
-        V = np.ravel(Vtemp[:, 0])
+        L_reg = Gs[i].L + lamda*sparse.eye(Gs[i].N)
+        V = sparse.linalg.eigs(L_reg, 1)[1][:, 0]
 
         # Select the bigger group
-        V = np.where(V >= 0, 1, 0)
+        V = np.where(V >= 0, 0, 1)
         if np.sum(V) >= Gs[i].N/2.:
             ind = (V).nonzero()[0]
         else:
@@ -756,7 +754,8 @@ def kron_reduction(G, ind):
 
     Parameters
     ----------
-    G : Graph structure or weight matrix
+    G : Graph or sparse matrix
+        Graph structure or weight matrix
     ind : indices of the nodes to keep
 
     Returns
@@ -770,35 +769,35 @@ def kron_reduction(G, ind):
 
         if G.directed:
             raise ValueError('This method only work for undirected graphs.')
-        L = G.L.todense()
+        L = G.L.tocsc()
 
     else:
-        L = G
+        L = G.tocsc()
 
     N = np.shape(L)[0]
     ind_comp = np.setdiff1d(np.arange(N), ind)
 
-    L_red = L[np.ix_(ind, ind)]
-    L_in_out = L[np.ix_(ind, ind_comp)]
-    L_out_in = L[np.ix_(ind_comp, ind)]
-    L_comp = L[np.ix_(ind_comp, ind_comp)]
+    L_red = L[np.ix_(ind, ind)].tocsc()
+    L_in_out = L[np.ix_(ind, ind_comp)].tocsc()
+    L_out_in = L[np.ix_(ind_comp, ind)].tocsc()
+    L_comp = L[np.ix_(ind_comp, ind_comp)].tocsc()
 
-    Lnew = L_red - np.dot(L_in_out, np.linalg.solve(L_comp, L_out_in))
+    Lnew = L_red - L_in_out.dot(sparse.linalg.spsolve(L_comp, L_out_in))
 
     # Make the laplacian symetric if it is almost symetric!
-    if np.sum(np.abs(Lnew-Lnew.T)) < np.spacing(1)*np.sum(np.abs(Lnew)):
-        Lnew = (Lnew + Lnew.T)/2.
+    if np.abs(Lnew-Lnew.getH()).sum() < np.spacing(1)*np.abs(Lnew).sum():
+        Lnew = (Lnew + Lnew.getH())/2.
 
     if isinstance(G, pygsp.graphs.Graph):
         # Suppress the diagonal ? This is a good question?
-        Wnew = np.diag(np.diag(Lnew)) - Lnew
-        Snew = np.diag(Lnew) - np.sum(Wnew, axis=0).T
-        if np.linalg.norm(Snew, 2) < np.spacing(1000):
-            Snew = 0
-        Wnew = Wnew + np.diagonal(Wnew)
+        Wnew = sparse.diags(Lnew.diagonal(), 0) - Lnew
+        Snew = Lnew.diagonal() - np.sum(Wnew.toarray(), axis=0)
+        if np.linalg.norm(Snew, 2) >= np.spacing(1000):
+            Wnew = Wnew + sparse.diags(Snew, 0)
+
         Gnew = pygsp.graphs.Graph(W=Wnew, coords=G.coords[ind, :],
                                   type='Kron reduction')
-        G.copy_graph_attributes(ctype=False, Gn=Gnew)
+        G.copy_graph_attributes(Gnew, ctype=False)
 
     else:
         Gnew = Lnew
