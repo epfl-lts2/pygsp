@@ -37,9 +37,15 @@ class FunctionsTestCase(unittest.TestCase):
                          [3.,  0.5,  1., -4.5],
                          [0.5, -2., -4.5,  6.]])
         lap1 = sparse.lil_matrix(lap1)
+        sym1 = np.matrix([[-8. , -5.5, -3. , -0.5],
+                          [-5.5, -3. , -0.5,  2. ],
+                          [-3. , -0.5,  2. ,  4.5],
+                          [-0.5,  2. ,  4.5,  7. ]])
+        sym1 = sparse.lil_matrix(sym1)
         weight_check1 = {'has_inf_val': False, 'has_nan_value': False,
                          'is_not_square': False, 'diag_is_not_zero': True}
-        rep1 = {'lap': lap1, 'is_dir': True, 'weight_check': weight_check1}
+        rep1 = {'lap': lap1, 'is_dir': True, 'weight_check': weight_check1,
+                'is_conn': True, 'sym': sym1}
         t1 = {'G': G1, 'rep': rep1}
 
         W2 = np.empty((4, 4))
@@ -48,32 +54,39 @@ class FunctionsTestCase(unittest.TestCase):
         G2 = graphs.Graph(W2)
         weight_check2 = {'has_inf_val': True, 'has_nan_value': True,
                          'is_not_square': True, 'diag_is_not_zero': False}
-        rep2 = {'lap': None, 'is_dir': True, 'weight_check': weight_check2}
+        rep2 = {'lap': None, 'is_dir': True, 'weight_check': weight_check2,
+                'is_conn': True}
         t2 = {'G': G2, 'rep': rep2}
 
         W3 = np.zeros((4, 4))
         G3 = graphs.Graph(W3)
         lap3 = G3.W
+        sym3 = G3.W
         weight_check3 = {'has_inf_val': False, 'has_nan_value': False,
                          'is_not_square': False, 'diag_is_not_zero': False}
-        rep3 = {'lap': lap3, 'is_dir': True, 'weight_check': weight_check3}
+        rep3 = {'lap': lap3, 'is_dir': False, 'weight_check': weight_check3,
+                'is_conn': False, 'sym': sym3}
         t3 = {'G': G3, 'rep': rep3}
 
         W4 = np.empty((4, 4))
         np.fill_diagonal(W4, 1)
         G4 = graphs.Graph(W4)
         lap4 = sparse.lil_matrix(W4)
+        sym4 = sparse.lil_matrix(W4)
         weight_check4 = {'has_inf_val': False, 'has_nan_value': False,
                          'is_not_square': False, 'diag_is_not_zero': True}
-        rep4 = {'lap': lap4, 'is_dir': True, 'weight_check': weight_check4}
+        rep4 = {'lap': lap4, 'is_dir': False, 'weight_check': weight_check4,
+                'is_conn': True, 'sym': sym4}
         t4 = {'G': G4, 'rep': rep4}
 
         test_graphs = [t1, t3, t4]
+
 
         def test_is_directed(G, rep):
             self.assertEqual(utils.is_directed(G), rep['is_dir'])
 
         def test_estimate_lmax(G):
+            print(G.W)
             operators.compute_fourier_basis(G)
             nptest.assert_almost_equal(utils.estimate_lmax(G)[0], G.lmax)
 
@@ -82,36 +95,37 @@ class FunctionsTestCase(unittest.TestCase):
 
         # TODO move test_create_laplacian in Operator
 
-        def test_check_connectivity(t, **kwargs):
-            self.assertTrue(utils.check_connectivity(t['G'])[0])
+        def test_check_connectivity(G, is_conn, **kwargs):
+            self.assertEqual(utils.check_connectivity(G)[0], is_conn)
 
         def test_distanz(x, y):
             # TODO test with matlab
-            mat_answser = None
             self.assertEqual(utils.distanz(x, y))
 
-        def test_symetrize(W, sy_type):
+        def test_symetrize(W, ans):
             # mat_answser = None
-            self.assertAlmostEqual(mat_answser, utils.symetrize(W, sy_type))
+            check = np.all((ans == utils.symetrize(W)).todense())
+            self.assertTrue(check)
 
-        def test_tree_depths(A, root):
-            # mat_answser = None
-            self.assertEqual(mat_answser, utils.tree_depths(A, root))
+        # Not ready yet
+        # def test_tree_depths(A, root):
+        #     # mat_answser = None
+        #     self.assertEqual(mat_answser, utils.tree_depths(A, root))
 
         for t in test_graphs:
             test_is_directed(t['G'], t['rep'])
             test_estimate_lmax(t['G'])
             test_check_weights(t['G'], t['rep']['weight_check'])
-            test_check_connectivity(t)
+            test_check_connectivity(t['G'], t['rep']['is_conn'])
+            test_symetrize(t['G'].W, t['rep']['sym'])
 
         with self.assertRaises(np.linalg.linalg.LinAlgError):
             test_estimate_lmax(t2['G'])
 
-        test_tree_depths(A, root)
-        for s in stype:
-            test_symetrize(W, s)
+        # Not ready yet
+        # test_tree_depths(A, root)
 
-        test_distanz(x, y)
+        # test_distanz(x, y)
 
     def test_dummy(self):
         """

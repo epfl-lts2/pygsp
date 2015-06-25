@@ -83,7 +83,6 @@ The filter is plotted all along the spectrum of the graph, the cross at the bott
 To apply it to a given signal, you only need to run:
 
 >>> f2 = F.analysis(G, f)
-The analysis method is exact
 
 Finally here's the noisy signal and the denoised version right under.
 

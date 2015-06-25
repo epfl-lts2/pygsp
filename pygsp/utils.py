@@ -495,8 +495,8 @@ def symetrize(W, symetrize_type='average'):
 
     elif symetrize_type == 'full':
         A = W > 0
-        M = (A - (A.T.multiply(A)))
-        W = sparse.csr_matrix(W)
+        M = (A - (A.T * A))
+        W = sparse.csr_matrix(W.T)
         W[M.T] = W.T[M.T]
 
         return W

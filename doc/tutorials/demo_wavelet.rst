@@ -38,7 +38,6 @@ Let's now create a signal as a Kronecker located on one vertex (e.g. the vertex 
 >>> vertex_delta = 83
 >>> S[vertex_delta] = 1
 >>> Sf_vec = Hk.analysis(G, S)
-The analysis method is exact
 >>> Sf = Sf_vec.reshape((Sf_vec.size/len(taus), len(taus)), order='F')
 
 Let's plot the signal:
@@ -94,7 +93,6 @@ As we can see, the wavelets atoms are stacked on the low frequency part of the s
 If we want to get a better coverage of the graph spectrum, we could have used the WarpedTranslates filter bank.
 
 >>> S_vec = Wk.analysis(G, S)
-The analysis method is exact
 >>> S = S_vec.reshape((S_vec.size/Nf, Nf), order='F')
 >>> pygsp.plotting.plot_signal(G, S[:, 0], savefig=True, plot_name='doc/tutorials/img/wavelet_filtering')
 
@@ -123,7 +121,6 @@ MexicanHat : has to compute lmax
 >>> s_map = G.coords
 
 >>> s_map_out = Wk.analysis(G, s_map)
-The analysis method is cheby
 >>> s_map_out = np.reshape(s_map_out, (G.N, Nf, 3))
 
 >>> d = s_map_out[:, :, 0]**2 + s_map_out[:, :, 1]**2 + s_map_out[:, :, 2]**2

@@ -9,4 +9,3 @@ This example demonstrates how to create a graph, a filter and analyse a signal o
 >>> f = pygsp.filters.Heat(G)
 Heat : has to compute lmax
 >>> Sl = f.analysis(G, G.L.todense(), method='cheby')
-The analysis method is cheby
