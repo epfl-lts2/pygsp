@@ -5,9 +5,9 @@ This module implements some utilitary functions used throughout the PyGSP box.
 
 import numpy as np
 import scipy as sp
-from scipy import sparse
+from scipy import sparse, stats
 from scipy.sparse import linalg
-from math import isinf, isnan
+from math import isinf, isnan, log, sqrt
 
 import pygsp
 
@@ -423,7 +423,8 @@ def resistance_distance(G):
     Parameters
     ----------
     G : Graph structure or Laplacian matrix (L)
-    verbose (bool) : Display parameter - False no log - True display warnings
+    verbose : bool
+        Display parameter - False no log - True display warnings
         Default is True
 
     Returns
@@ -452,11 +453,11 @@ def resistance_distance(G):
     else:
         L = G
 
-    pseudo = np.linalg.pinv(L.todense())
+    pseudo = np.linalg.pinv(L.toarray())
     N = np.shape(L)[0]
 
     d = np.diagonal(pseudo)
-    rd = np.kron(np.ones((1, N)), d) + np.kron(np.ones((N, 1)), d) - pseudo - pseudo.T
+    rd = np.tile(d, (N, 1)).T + np.tile(d, (N, 1)) - pseudo - pseudo.T
 
     return rd
 
@@ -467,10 +468,10 @@ def symetrize(W, symetrize_type='average'):
 
     Parameters
     ----------
-        W : sparse matrix
-            Weight matrix
-        symetrize_type : string
-            type of symetrization (default 'average')
+    W : sparse matrix
+        Weight matrix
+    symetrize_type : string
+        type of symetrization (default 'average')
         The availlable symetrization_types are:
             'average' : average of W and W^T (default)
             'full'    : copy the missing entries
@@ -478,7 +479,8 @@ def symetrize(W, symetrize_type='average'):
 
     Returns
     -------
-        W : symetrized matrix
+    W : sparse matrix
+        symetrized matrix
 
 
     Examples
@@ -536,6 +538,101 @@ def tree_depths(A, root):
         next_to_expand = new_entries_whole_round
 
     return depths, parents
+
+
+def graph_sparsify(G, epsilon):
+    r"""
+    Sparsify a graph using Spielman-Srivastava algorithm
+
+    Parameters
+    ----------
+    G : Graph or sparse matrix
+        Graph structure or sparse matrix
+    epsilon : int
+        Sparsification parameter
+
+    Returns
+    -------
+    Gnew : Graph or sparse matrix
+        New graph structure or sparse matrix
+
+    Note
+    ----
+    Epsilon should be between 1/sqrt(N) and 1
+
+    Examples
+    --------
+    >>> from pygsp import graphs, utils
+    >>> G = graphs.Sensor(256, Nc=20, distribute=True)
+    >>> epsilon = 0.4
+    >>> G2 = utils.graph_sparsify(G, epsilon)
+
+    Reference
+    ---------
+    See :cite: `spielman2011graph` `rudelson1999random` `rudelson2007sampling` for more informations
+    """
+    # Test the input parameters
+    if isinstance(G, pygsp.graphs.Graph):
+        if not G.lap_type == 'combinatorial':
+            raise NotImplementedError
+        L = G.L
+    else:
+        L = G
+
+    N = np.shape(L)[0]
+
+    if epsilon <= 1./sqrt(N) or epsilon > 1:
+        raise ValueError('GRAPH_SPARSIFY: Epsilon out of required range')
+
+    resistance_distances = resistance_distance(L) # pas sparse
+
+    # Get the Weight matrix
+    if isinstance(G, pygsp.graphs.Graph):
+        W = G.W
+    else:
+        W = np.diag(L.diagonal()) - L.toarray()
+        W = np.where(W < 1e-10, 0, W)
+        W = sparse.csc_matrix(W)
+
+    start_nodes, end_nodes, weights = sparse.find(sparse.tril(W))
+
+    # Calculate the new weights.
+    weights = np.maximum(0, weights)
+    Re = np.maximum(0, resistance_distances[start_nodes, end_nodes])
+    Pe = weights*Re
+    Pe = Pe/np.sum(Pe)
+
+    # Rudelson, 1996 Random Vectors in the Isotropic Position (too hard to figure out actual C0)
+    C0 = 1/30.
+    # Rudelson and Vershynin, 2007, Thm. 3.1
+    C = 4*C0
+    q = round(N*log(N)*9*C**2/(epsilon**2))
+
+    results = stats.rv_discrete(values=(np.arange(np.shape(Pe)[0]), Pe)).rvs(size=q)
+    spin_counts = stats.itemfreq(results)
+    per_spin_weights = weights/(q*Pe)
+
+    counts = np.zeros(np.shape(weights)[0])
+    counts[spin_counts[:, 0]] = spin_counts[:, 1]
+    new_weights = counts*per_spin_weights
+
+    sparserW = sparse.csc_matrix((new_weights, (start_nodes, end_nodes)),
+                                 shape=(N, N))
+    sparserW = sparserW + sparserW.getH()
+    sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
+
+    if isinstance(G, pygsp.graphs.Graph):
+        sparserW = sparse.diags(sparserL.diagonal(), 0) - sparserL
+        if not G.directed:
+            sparserW = (sparserW + sparserW.getH())/2.
+            sparserL = (sparserL + sparserL.getH())/2.
+
+        Gnew = pygsp.graphs.Graph(W=sparserW, L=sparserL)
+        G.copy_graph_attributes(Gnew)
+    else:
+        Gnew = sparse.lil_matrix(L)
+
+    return Gnew
 
 
 def dummy(a, b, c):

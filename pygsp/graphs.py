@@ -157,7 +157,7 @@ class Graph(object):
 
     # All the parameters that needs calculation to be set
     # or not needed are set to None
-    def __init__(self, W, A=None, N=None, d=None, Ne=None,
+    def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
                  gtype='unknown', directed=None, coords=None,
                  lap_type='combinatorial', L=None, verbose=False,
                  plotting={}, **kwargs):
@@ -222,15 +222,67 @@ class Graph(object):
         else:
             self.plotting['vertex_color'] = 'b'
 
+    def update_graph_attr(self, *args, **kwargs):
+        r"""
+        update_graph_attr will recompute the some attribute of the graph:
+
+        Parameters
+        ----------
+        args: list of string
+            the arguments, that will be not changed and not re-compute.
+        kwargs: Dictionnary
+            The arguments with their new value.
+
+        Return
+        ------
+        The same Graph with some modified values.
+
+        Note
+        ----
+        This method is usefull if you want to give a new weight matrix (W) and compute the adjacency matrix (A) and more again.
+        The valid attributes are ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'verbose', 'plotting']
+
+        Examples
+        --------
+        >>> form pygsp import graphs
+        >>> G = graphs.Ring(N=10)
+        >>> newW = G.W
+        >>> newW[1] = 1
+        >>> G.update_graph_attr('N', 'd', W=newW) # All attribute of G  ecpeted 'N' and 'd' will be compute with the newW
+        """
+        graph_attr = {}
+        valid_attributes = ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'verbose', 'plotting']
+
+        for i in args:
+            if i in valid_attributes:
+                graph_attr[i] = getattr(self, i)
+            else:
+                print('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
+
+        for i in kwargs:
+            if i in valid_attributes:
+                if i in graph_attr:
+                    print('You already give this attribute in the args. Therefore, it will not be recaculate.')
+                else:
+                    graph_attr[i] = kwargs[i]
+            else:
+                print('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
+
+        if isinstance(self, NNGraph):
+            super(NNGraph, self).__init__(**graph_attr)
+
+        else:
+            super(type(self), self).__init__(**graph_attr)
+
     def deep_copy_graph(self):
         r"""
         TODO write doc
         """
         return deepcopy(self)
 
-    def copy_graph_attributes(self, ctype=True, Gn=None):
+    def copy_graph_attributes(self, Gn, ctype=True):
         r"""
-        Copy graph attributes copy the parameter of the graph
+        Copy_graph_attributes copies some parameters of the graph into a given one
 
         Parameters
         ----------:
@@ -238,7 +290,7 @@ class Graph(object):
         ctype : bool
             Flag to select what to copy (Default is True)
         Gn : Graph structure
-            (optional)
+            The graph where the parameters will be copied
 
         Returns
         -------
@@ -252,22 +304,6 @@ class Graph(object):
         >>> G.copy_graph_attributes(ctype=False, Gn=Torus);
 
         """
-        # if no Gn given
-        if not Gn:
-            if ctype:
-                Gn = Graph(lap_type=self.lap_type, plotting=self.plotting,
-                           W=G.W, limits=self.limits)
-
-            else:
-                Gn = Graph(lap_type=self.lap_type, plotting=self.plotting,
-                           W=G.W)
-
-            return Gn
-
-        # if Gn given.
-        if hasattr(self, 'lap_type'):
-            Gn.lap_type = self.lap_type
-
         if hasattr(self, 'plotting'):
             Gn.plotting = self.plotting
 
@@ -277,6 +313,10 @@ class Graph(object):
         else:
             if hasattr(Gn.plotting, 'limits'):
                 del Gn.plotting['limits']
+
+        if hasattr(self, 'lap_type'):
+            Gn.lap_type = self.lap_type
+            Gn.L = operators.create_laplacian(Gn)
 
     def separate_graph(self):
         r"""
