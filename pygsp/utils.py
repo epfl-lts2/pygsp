@@ -20,6 +20,7 @@ def build_logger(name):
     steam_handler.setLevel(logging.DEBUG)
     steam_handler.setFormatter(formatter)
 
+    logger.setLevel(logging.DEBUG)
     logger.addHandler(steam_handler)
 
     return logger
