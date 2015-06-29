@@ -769,16 +769,16 @@ def kron_reduction(G, ind):
 
         if G.directed:
             raise ValueError('This method only work for undirected graphs.')
-        L = G.L.tocsc()
+        L = G.L
 
     else:
-        L = G.tocsc()
+        L = G
 
     N = np.shape(L)[0]
     ind_comp = np.setdiff1d(np.arange(N), ind)
 
     L_red = L[np.ix_(ind, ind)]
-    L_in_out = L[np.ix_(ind, ind_comp)].tocsc()
+    L_in_out = L[np.ix_(ind, ind_comp)]
     L_out_in = L[np.ix_(ind_comp, ind)].tocsc()
     L_comp = L[np.ix_(ind_comp, ind_comp)].tocsc()
 

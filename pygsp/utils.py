@@ -618,7 +618,7 @@ def graph_sparsify(G, epsilon):
 
     sparserW = sparse.csc_matrix((new_weights, (start_nodes, end_nodes)),
                                  shape=(N, N))
-    sparserW += sparserW.getH()
+    sparserW = sparserW + sparserW.getH()
     sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
 
     if isinstance(G, pygsp.graphs.Graph):
