@@ -291,9 +291,7 @@ def igft(G, f_hat):
         if not hasattr(G, 'U'):
             logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
             compute_fourier_basis(G)
-
-        else:
-            U = G.U
+        U = G.U
 
     else:
         U = G
