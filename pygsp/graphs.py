@@ -3,9 +3,9 @@
 r"""
 This module implements principally graphs and some PointsClouds
 
-* :class: `Graph` Main graph class
+:class: `Graph`  Main graph class
 
-* :class: `PointsCloud` Class countaining all the PointsClouds
+:class: `PointsCloud`  Class countaining all the PointsClouds
 """
 
 from os import path
@@ -34,7 +34,7 @@ class PointsCloud(object):
 
     Returns
     -------
-    The differents informations of the PointsCloud Loaded.
+    The differents informations of the loaded PointsCloud.
 
 
     Examples
@@ -119,34 +119,32 @@ class Graph(object):
     The main graph object
 
     It is used to initialize by default every missing field of the subgraphs
-    It can also be used alone to initialize customs graphs
+    It can also be used alone to initialize customs graphs.
 
     Parameters
     ----------
-    W : sparse
-        weights matrix (default is empty)
+    W : sparse matrix or ndarray
+        Weights matrix (default is empty)
     A : sparse adjacency matrix
         default is constructed with W
-    N int : number of nodes
-        default is the lenght of the first dimension of W
+    N : int
+        Number of nodes. Default is the lenght of the first dimension of W.
     d : float
-        degree vector
-        default
+        Degree of the vectors
     Ne : int
-        edge number
+        Edge numbers
     gtype : string
-        graph type (default is "unknown")
+        Graph type (default is "unknown")
     directed : bool
-        whether the graph is directed
-        (default depending of the previous values)
+        Whether the graph is directed (default depending of the previous values)
     lap_type : string
-        laplacian type (default = 'combinatorial')
+        Laplacian type (default = 'combinatorial')
     L : Ndarray
-        laplacian
+        Laplacian matrix
     coords : ndarray
         Coordinates of the vertices (default = np.array([0, 0]))
     plotting : Dict
-        dictionnary containing the plotting parameters
+        Dictionnary containing the plotting parameters
 
     Examples
     --------
@@ -238,7 +236,7 @@ class Graph(object):
         ----------:
         G : Graph structure
         ctype : bool
-            flag to select what to copy (Default is True)
+            Flag to select what to copy (Default is True)
         Gn : Graph structure
             The graph where the parameters will be copied
 
@@ -276,16 +274,19 @@ class Graph(object):
 
     def subgraph(self, c):
         r"""
-        Create a subgraph from G
+        Create a subgraph from G.
 
         Parameters
         ----------
-        G (graph) : Original graph
-        c (int) : Node to keep
+        G : graph
+            Original graph
+        c : int
+            Node to keep
 
         Returns
         -------
-        subG (graph) : Subgraph
+        subG : graph
+            Subgraph
 
         Examples
         --------
@@ -314,16 +315,15 @@ class Graph(object):
 
 class NNGraph(Graph):
     r"""
-    Creates a graph from a pointcloud
+    Creates a graph from a pointcloud.
 
     Parameters
     ----------
     Xin : ndarray
-        Input Points
+        Input points
     use_flann : bool
-        Whether flann method should be used (knn is otherwise used)
-        (default is False)
-        (not implemented yet)
+        Whether flann method should be used (knn is otherwise used). Default is False.
+        (this option is not implemented yet)
     center : bool
         Center the data (default is True)
     rescale : bool
@@ -457,7 +457,7 @@ class NNGraph(Graph):
 
 class Bunny(NNGraph):
     r"""
-    Create a graph of the stanford bunny
+    Create a graph of the stanford bunny.
 
     Examples
     --------
@@ -491,7 +491,7 @@ class Bunny(NNGraph):
 
 class Cube(NNGraph):
     r"""
-    Creates the graph of an hyper-cube
+    Creates the graph of an hyper-cube.
 
     Parameters
     ----------
@@ -563,7 +563,7 @@ class Cube(NNGraph):
 
 class Sphere(NNGraph):
     r"""
-    Creates a spherical-shaped graph
+    Creates a spherical-shaped graph.
 
     Parameters
     ----------
@@ -609,7 +609,7 @@ class Sphere(NNGraph):
 
 class TwoMoons(NNGraph):
     r"""
-    Creates a 2 dimensional graph of the Two Moons
+    Create a 2 dimensional graph of the Two Moons.
 
     Parameters
     ----------
@@ -618,16 +618,15 @@ class TwoMoons(NNGraph):
         two_moons graph or a synthetised one (default is 'standard').
         'standard' : Create a two_moons graph from a based graph.
         'synthetised' : Create a synthetised two_moon
-
     sigmag : float
-        Variance of the distance kernel (default is 0.05)
+        Variance of the distance kernel (default = 0.05)
     N : int
-        Number of vertices (default is 2000)
+        Number of vertices (default = 2000)
     sigmad : float
-        variance of the data (do not set it to high or you won't see anything)
-        (default is 0.05)
+        Variance of the data (do not set it too high or you won't see anything)
+        (default = 0.05)
     d : float
-        distance of the two moons (default is 0.5)
+        Distance of the two moons (default = 0.5)
 
     Examples
     --------
@@ -697,7 +696,7 @@ class TwoMoons(NNGraph):
 # Need M
 class Grid2d(Graph):
     r"""
-    Creates a 2 dimensional grid graph
+    Create a 2 dimensional grid graph.
 
     Parameters
     ----------
@@ -758,7 +757,7 @@ class Grid2d(Graph):
 
 class Torus(Graph):
     r"""
-    Creates a Torus graph
+    Create a Torus graph.
 
     Parameters
     ----------
@@ -829,7 +828,7 @@ class Torus(Graph):
 # Need K
 class Comet(Graph):
     r"""
-    Creates a Comet graph
+    Create a Comet graph.
 
     Parameters
     ----------
@@ -880,7 +879,7 @@ class Comet(Graph):
 
 class LowStretchTree(Graph):
     r"""
-    Creates a low stretch tree graph
+    Create a low stretch tree graph.
 
     Parameters
     ----------
@@ -942,7 +941,8 @@ class LowStretchTree(Graph):
 
 class RandomRegular(Graph):
     r"""
-    Creates a random regular graph
+    Create a random regular graphs
+
     The random regular graph has the property that every nodes is connected to
     'k' other nodes.
 
@@ -965,11 +965,11 @@ class RandomRegular(Graph):
         def isRegularGraph(A):
             r"""
             This fonction prints a message describing the problem of a given
-            sparse matrix
+            sparse matrix.
 
-            Inputs
-            ------
-            A (Sparse matrix)
+            Parameters
+            ----------
+            A : sparse matrix
 
             """
 
@@ -1005,24 +1005,26 @@ class RandomRegular(Graph):
 
         def createRandRegGraph(vertNum, deg):
             r"""
-            creates a simple d-regular undirected graph
+            Create a simple d-regular undirected graph
             simple = without loops or double edges
             d-reglar = each vertex is adjecent to d edges
 
             Parameters
             ----------
-            vertNum : number of vertices
-            deg : the degree of each vertex
+            vertNum : int
+                Number of vertices
+            deg : int
+                The degree of each vertex
 
             Returns
             -------
             A : sparse
-                representation of the graph
+                Representation of the graph
 
             Algorithm
             ---------
             "The pairing model": create n*d 'half edges'.
-            repeat as long as possible: pick a pair of half edges
+            Repeat as long as possible: pick a pair of half edges
             and if it's legal (doesn't creat a loop nor a double edge)
             add it to the graph
 
@@ -1098,7 +1100,7 @@ class RandomRegular(Graph):
 
 class Ring(Graph):
     r"""
-    Creates a ring graph
+    Create a ring graph.
 
     Parameters
     ----------
@@ -1164,7 +1166,7 @@ class Ring(Graph):
 # Need params
 class Community(Graph):
     r"""
-    Create a community graph
+    Create a community graph.
 
     Parameters
     ----------
@@ -1289,12 +1291,12 @@ class Community(Graph):
 
 class Minnesota(Graph):
     r"""
-    Create a community graph
+    Create a community graph.
 
     Parameters
     ----------
     connect : bool
-        change the graph to be connected. (default = True)
+        Change the graph to be connected. (default = True)
 
     Examples
     --------
@@ -1350,7 +1352,7 @@ class Minnesota(Graph):
 
 class Sensor(Graph):
     r"""
-    Creates a random sensor graph
+    Create a random sensor graph.
 
     Parameters
     ----------
@@ -1479,7 +1481,7 @@ class Sensor(Graph):
 # Need nothing
 class Airfoil(Graph):
     r"""
-    Creates the aifoil graph
+    Create the airfoil graph.
 
     Examples
     --------
@@ -1514,7 +1516,7 @@ class Airfoil(Graph):
 
 class DavidSensorNet(Graph):
     r"""
-    Creates a sensor network
+    Create a sensor network.
 
     Parameters
     ----------
@@ -1565,7 +1567,7 @@ class DavidSensorNet(Graph):
 
 class FullConnected(Graph):
     r"""
-    Creates a fully connected graph
+    Create a fully connected graph.
 
     Parameters
     ----------
@@ -1598,7 +1600,7 @@ class FullConnected(Graph):
 
 class Logo(Graph):
     r"""
-    Creates a graph with the GSP Logo
+    Create a graph with the GSP Logo.
 
     Examples
     --------
@@ -1628,7 +1630,7 @@ class Logo(Graph):
 
 class Path(Graph):
     r"""
-    Creates a path graph
+    Create a path graph.
 
     Parameters
     ----------
@@ -1663,7 +1665,7 @@ class Path(Graph):
 
 class RandomRing(Graph):
     r"""
-    Creates a ring graph
+    Create a ring graph.
 
     Parameters
     ----------
@@ -1709,7 +1711,7 @@ class RandomRing(Graph):
 
 class SwissRoll(Graph):
     r"""
-    Creates a a swiss roll graph
+    Create a swiss roll graph.
 
     Parameters
     ----------
@@ -1728,7 +1730,7 @@ class SwissRoll(Graph):
     noise : bool
         Wether to add noise or not (default = False)
     srtype : str
-    Swiss roll Type, possible arguments are 'uniform' or 'classic' (default = 'uniform')
+        Swiss roll Type, possible arguments are 'uniform' or 'classic' (default = 'uniform')
 
     Examples
     --------

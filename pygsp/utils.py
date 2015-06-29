@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+r"""
+This module implements some utilitary functions used throughout the PyGSP box.
+"""
 
 import numpy as np
 import scipy as sp
@@ -244,10 +247,7 @@ def _check_connectivity_directed(A, **kwargs):
     """
     is_connected = (A < 0).any()
     hard_check = (1 - (A.sum(axis=0) > 0)) +\
-        (1 - (A.sum(axis=1) > 0)).reshape(1, A.size)
-
-    print('HC')
-    print(hard_check)
+        (1 - (A.sum(axis=1) > 0)).reshape(1, A.shape[0])
 
     c = 0
     while c <= sp.shape(A)[0]:
@@ -497,8 +497,8 @@ def symetrize(W, symetrize_type='average'):
 
     elif symetrize_type == 'full':
         A = W > 0
-        M = (A - (A.T.multiply(A)))
-        W = sparse.csr_matrix(W)
+        M = (A - (A.T * A))
+        W = sparse.csr_matrix(W.T)
         W[M.T] = W.T[M.T]
 
         return W

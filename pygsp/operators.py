@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-This module implements the main operators for the pygsp box
+This module implements the main operators for the PyGSP box.
 """
 
 import numpy as np

@@ -73,27 +73,27 @@ This figure shows the original signal on graph.
 This figure shows the signal on graph after the application of the
 mask and addition of noise. More than half of the vertices are set to 0.
 
->>> # Setting the function f1 (see pyunlocbox for help)
->>> import pyunlocbox
->>> import math
->>>
->>> epsilon = sigma * math.sqrt(np.sum(M[:]))
->>> operatorA = lambda x: A * x
->>> f1 = pyunlocbox.functions.proj_b2(y=depleted_graph_value, A=operatorA, At=operatorA, tight=True, epsilon=epsilon)
->>>
->>> # Setting the function ftv
->>> f2 = pyunlocbox.functions.func()
->>> f1._prox = lambda x, T: operators.prox_tv(x, T, G, verbose=verbose-1)
->>> f1._eval = lambda x: operators.norm_tv(G, x)
->>>
->>> # Solve the problem
->>> solver = pyunlocbox.solvers.douglas_rachford()
->>> param = {'x0': depleted_graph_value, 'solver': solver, 'atol': 1e-7, 'maxit': 50, 'verbosity': 'LOW'}
->>> # With prox_tv
->>> ret = pyunlocboxsolvers.solve([f2, f1], **param)
->>> prox_tv_reconstructed_graph = ret['sol']
->>>
->>> plotting.plot_signal(G, prox_tv_reconstructed_graph, show_edges=True, savefig=True, plot_name='doc/tutorials/img/tv_recons_signal')
+.. >>> # Setting the function f1 (see pyunlocbox for help)
+.. >>> import pyunlocbox
+.. >>> import math
+.. >>>
+.. >>> epsilon = sigma * math.sqrt(np.sum(M[:]))
+.. >>> operatorA = lambda x: A * x
+.. >>> f1 = pyunlocbox.functions.proj_b2(y=depleted_graph_value, A=operatorA, At=operatorA, tight=True, epsilon=epsilon)
+.. >>>
+.. >>> # Setting the function ftv
+.. >>> f2 = pyunlocbox.functions.func()
+.. >>> f1._prox = lambda x, T: operators.prox_tv(x, T, G, verbose=verbose-1)
+.. >>> f1._eval = lambda x: operators.norm_tv(G, x)
+.. >>>
+.. >>> # Solve the problem
+.. >>> solver = pyunlocbox.solvers.douglas_rachford()
+.. >>> param = {'x0': depleted_graph_value, 'solver': solver, 'atol': 1e-7, 'maxit': 50, 'verbosity': 'LOW'}
+.. >>> # With prox_tv
+.. >>> ret = pyunlocboxsolvers.solve([f2, f1], **param)
+.. >>> prox_tv_reconstructed_graph = ret['sol']
+.. >>>
+.. >>> plotting.plot_signal(G, prox_tv_reconstructed_graph, show_edges=True, savefig=True, plot_name='doc/tutorials/img/tv_recons_signal')
 
 .. figure:: img/tv_recons_signal.*
 
@@ -110,11 +110,11 @@ In this case, we solve:
 
 The result is presented as following:
 
->>> # Solve the problem with the same solver as before but with a prox_tik function
->>> ret2 = pyunlocbox.solvers.solve([f3, f1], **param)
->>> prox_tik_reconstructed_graph = ret['sol']
->>>
->>> plotting.plot_signal(G, prox_tik_reconstructed_graph, show_edges=True, savefig=True, plot_name='doc/tutorials/img/tik_recons_signal')
+.. >>> # Solve the problem with the same solver as before but with a prox_tik function
+.. >>> ret2 = pyunlocbox.solvers.solve([f3, f1], **param)
+.. >>> prox_tik_reconstructed_graph = ret['sol']
+.. >>>
+.. >>> plotting.plot_signal(G, prox_tik_reconstructed_graph, show_edges=True, savefig=True, plot_name='doc/tutorials/img/tik_recons_signal')
 
 .. figure:: img/tik_recons_signal.*
 
