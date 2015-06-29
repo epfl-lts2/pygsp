@@ -110,7 +110,7 @@ def grad_mat(G):
     """
     if not hasattr(G, 'v_in'):
         G = adj2vec(G)
-        print('To be more efficient you should run: G = adj2vec(G); \
+        logger.info('To be more efficient you should run: G = adj2vec(G); \
               before using this proximal operator.')
 
     if hasattr(G, 'Diff'):
@@ -382,11 +382,11 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
     """
 
     if hasattr(G, 'e') or hasattr(G, 'U'):
-        print("This graph already has Laplacian eigenvectors or eigenvalues")
+        logger.error("This graph already has Laplacian eigenvectors or eigenvalues")
         return
 
     if G.N > 3000:
-        print("Performing full eigendecomposition of a large matrix\
+        logger.warning("Performing full eigendecomposition of a large matrix\
               may take some time.")
 
     if False:
@@ -435,7 +435,7 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
 
     if not hasattr(G, 'lmax'):
         G.lmax = utils.estimate_lmax(G)
-        print('The variable lmax has not been computed yet, it will be done.)')
+        logger.info('The variable lmax has not been computed yet, it will be done.)')
 
     a_arange = [0, G.lmax]
 
@@ -477,7 +477,7 @@ def cheby_op(G, c, signal, **kwargs):
     try:
         M >= 2
     except:
-        print("The signal has an invalid shape")
+        logger.error("The signal has an invalid shape")
 
     if not hasattr(G, 'lmax'):
         G.lmax = utils.estimate_lmax(G)
@@ -827,11 +827,11 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
     # check if the type of filters is right.
     if filters:
         if type(filters) != list:
-            print('filters is not a list. I will convert it for you.')
+            logger.warning('filters is not a list. I will convert it for you.')
             if hasattr(filters, '__call__'):
                 filters = [filters]
             else:
-                print('filters must be a list of function.')
+                logger.error('filters must be a list of function.')
 
         if len(filters) == 1:
             for _ in range(Nlevels-1):

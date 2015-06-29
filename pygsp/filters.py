@@ -295,7 +295,7 @@ class Filter(object):
         if isinstance(G, pygsp.graphs.Graph):
             if not hasattr(G, 'lmax'):
                 utils.estimate_lmax(G)
-                print('FILTERBANK_BOUNDS: Had to estimate lmax.')
+                self.logger.info('FILTERBANK_BOUNDS: Had to estimate lmax.')
             xmin = 0
             xmax = G.lmax
 
@@ -1121,7 +1121,7 @@ class Heat(Filter):
 
         if normalize:
             if not hasattr(G, 'e'):
-                print('Filter Heat will calculate and set the eigenvalues to '
+                self.logger.info('Filter Heat will calculate and set the eigenvalues to '
                       'normalize the kernel')
                 operators.compute_fourier_basis(G)
 

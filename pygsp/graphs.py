@@ -234,7 +234,7 @@ class Graph(object):
         Note
         ----
         This method is usefull if you want to give a new weight matrix (W) and compute the adjacency matrix (A) and more again.
-        The valid attributes are ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'verbose', 'plotting']
+        The valid attributes are ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'plotting']
 
         Examples
         --------
@@ -245,22 +245,22 @@ class Graph(object):
         >>> G.update_graph_attr('N', 'd', W=newW) # All attribute of G  ecpeted 'N' and 'd' will be compute with the newW
         """
         graph_attr = {}
-        valid_attributes = ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'verbose', 'plotting']
+        valid_attributes = ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'plotting']
 
         for i in args:
             if i in valid_attributes:
                 graph_attr[i] = getattr(self, i)
             else:
-                print('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
+                self.logger.warning('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
 
         for i in kwargs:
             if i in valid_attributes:
                 if i in graph_attr:
-                    print('You already give this attribute in the args. Therefore, it will not be recaculate.')
+                    self.logger.info('You already give this attribute in the args. Therefore, it will not be recaculate.')
                 else:
                     graph_attr[i] = kwargs[i]
             else:
-                print('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
+                self.logger.warning('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
 
         if isinstance(self, NNGraph):
             super(NNGraph, self).__init__(**graph_attr)
@@ -1103,7 +1103,7 @@ class RandomRegular(Graph):
 
                 # print progess
                 if edgesTested % 5000 == 0:
-                    print("createRandRegGraph() progress: edges=%d/%d\n" %
+                    self.logger.debug("createRandRegGraph() progress: edges=%d/%d\n" %
                           (edgesTested, n*d))
 
                 # chose at random 2 half edges
@@ -1495,7 +1495,7 @@ class Sensor(Graph):
                     break
 
                 elif x == self.n_try-1:
-                    print("Warning! Graph is not connected")
+                    self.logger.warning("Graph is not connected")
 
         else:
             W, Coords = create_weight_matrix(self.N, self.distribute,
