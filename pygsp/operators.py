@@ -320,7 +320,7 @@ def ngwft(G, f, g, lowmemory=True):
     """
 
     if not hasattr(G, 'U'):
-        logger.ingo('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
         compute_fourier_basis(G)
 
     if lowmemory:
