@@ -57,8 +57,7 @@ class PointsCloud(object):
 
     def __init__(self, pointcloudname, max_dim=2):
         if pointcloudname == "airfoil":
-            airfoilmat = io.loadmat(path.dirname(path.realpath(__file__))
-                                    + '/misc/airfoil.mat')
+            airfoilmat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'airfoil.mat'))
             self.i_inds = airfoilmat['i_inds']
             self.j_inds = airfoilmat['j_inds']
             self.x = airfoilmat['x']
@@ -66,27 +65,23 @@ class PointsCloud(object):
             self.coords = np.concatenate((self.x, self.y), axis=1)
 
         elif pointcloudname == "bunny":
-            bunnymat = io.loadmat(path.dirname(path.realpath(__file__)) +
-                                  '/misc/bunny.mat')
+            bunnymat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'bunny.mat'))
             self.Xin = bunnymat["bunny"]
 
         elif pointcloudname == "david64":
-            david64mat = io.loadmat(path.dirname(path.realpath(__file__))
-                                    + '/misc/david64.mat')
+            david64mat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'david64.mat'))
             self.W = david64mat["W"]
             self.N = david64mat["N"][0, 0]
             self.coords = david64mat["coords"]
 
         elif pointcloudname == "david500":
-            david500mat = io.loadmat(path.dirname(path.realpath(__file__))
-                                     + '/misc/david500.mat')
+            david500mat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'david500.mat'))
             self.W = david500mat["W"]
             self.N = david500mat["N"][0, 0]
             self.coords = david500mat["coords"]
 
         elif pointcloudname == "logo":
-            logomat = io.loadmat(path.dirname(path.realpath(__file__)) +
-                                 '/misc/logogsp.mat')
+            logomat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'logogsp.mat'))
             self.W = logomat["W"]
             self.coords = logomat["coords"]
             self.limits = np.array([0, 640, -400, 0])
@@ -96,15 +91,13 @@ class PointsCloud(object):
                          "idx_p": logomat["idx_p"]}
 
         elif pointcloudname == "minnesota":
-            minnesotamat = io.loadmat(path.dirname(path.realpath(__file__)) +
-                                      '/misc/minnesota.mat')
+            minnesotamat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'minnesota.mat'))
             self.A = minnesotamat["A"]
             self.labels = minnesotamat["labels"]
             self.coords = minnesotamat["xy"]
 
         elif pointcloudname == "two_moons":
-            twomoonsmat = io.loadmat(path.dirname(path.realpath(__file__)) +
-                                     '/misc/two_moons.mat')
+            twomoonsmat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'two_moons.mat'))
             if max_dim == -1:
                 max_dim == 2
             self.Xin = twomoonsmat["features"][:max_dim].T
