@@ -227,8 +227,6 @@ def gwft2(G, f, k):
         Graph signal
     k : #TODO
         kernel
-    verbose : bool
-        Verbosity level (False no log - True display warnings) (default = True)
 
     Returns
     -------
@@ -254,8 +252,6 @@ def gwft_frame_matrix(G, g):
     ----------
     G : Graph
     g : window
-    verbose : bool
-        Verbosity level (False no log - True display warnings)
 
     Returns
     -------
@@ -282,8 +278,6 @@ def igft(G, f_hat):
     G : Graph or Fourier basis
     f_hat : ndarray
         Signal
-    verbose : bool
-        Verbosity level (False no log - True display warnings) (default = True)
 
     Returns
     -------
@@ -315,8 +309,6 @@ def ngwft(G, f, g, lowmemory=True):
         Graph signal
     g : TODO
         window
-    verbose : bool
-        Verbosity level (False no log - True display warnings) (default = True)
     lowmemory : bool
         use less memory. (default = True)
 
