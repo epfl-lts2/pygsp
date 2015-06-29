@@ -10,17 +10,15 @@ from scipy.sparse import linalg
 from math import isinf, isnan
 import logging
 
-import pygsp
-
 
 def build_logger(name):
     logger = logging.getLogger(name)
 
+    formatter = logging.Formatter("%(asctime)s:[%(levelname)s](%(module)s.%(funcName)s): %(message)s")
+
     steam_handler = logging.StreamHandler()
     steam_handler.setLevel(logging.DEBUG)
     steam_handler.setFormatter(formatter)
-
-    formatter = logging.Formatter("%(asctime)s:[%(levelname)s](%(module)s.%(funcName)s): %(message)s")
 
     logger.addHandler(steam_handler)
 
@@ -34,7 +32,9 @@ def graph_array_handler(func):
 
     def inner(G, *args, **kwargs):
 
-        if isinstance(G, pygsp.graphs.Graph):
+        from pygsp.graphs import Graph
+
+        if isinstance(G, Graph):
             return func(G, *args, **kwargs)
 
         elif type(G) is list:
@@ -104,8 +104,11 @@ def is_directed(M):
     >>> is_directed = utils.is_directed(G.W)
 
     """
+
+    from pygsp.graphs import Graph
+
     # To pass a graph or a weight matrix as an argument
-    if isinstance(M, pygsp.graphs.Graph):
+    if isinstance(M, Graph):
         W = M.W
     else:
         W = M
@@ -455,10 +458,14 @@ def resistance_distance(G):
 
 
     """
-    if isinstance(G, pygsp.graphs.Graph):
+
+    from pygsp.graphs import Graph
+    from pygsp.operators import create_laplacian
+
+    if isinstance(G, Graph):
         if not G.lap_type == 'combinatorial':
             logger.info('Compute the combinatorial laplacian for the resitance distance')
-            pygsp.operators.create_laplacian(G, lap_type='combinatorial', get_laplacian_only=False)
+            create_laplacian(G, lap_type='combinatorial', get_laplacian_only=False)
         L = G.L
 
     else:

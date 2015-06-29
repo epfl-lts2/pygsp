@@ -10,8 +10,6 @@ from scipy import sparse
 from scipy import linalg
 
 from pygsp import utils
-from pygsp.graphs import Graph
-from pygps.filters import Filter, analysis, gabor_filterbank
 
 
 logger = utils.build_logger(__name__)
@@ -149,6 +147,8 @@ def gft(G, f):
         Graph Fourier transform of *f*
     """
 
+    from pygsp.graphs import Graph
+
     if isinstance(G, Graph):
         if not hasattr(G, 'U'):
             logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
@@ -232,6 +232,8 @@ def gwft2(G, f, k):
     -------
     C : Coefficient.
     """
+    from pygsp.filters import analysis, gabor_filterbank
+
     if not hasattr(G, 'e'):
         logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
         compute_fourier_basis(G)
@@ -284,6 +286,9 @@ def igft(G, f_hat):
     f : Inverse graph Fourier transform of *f_hat*
 
     """
+
+    from pygsp.graphs import Graph
+
     if isinstance(G, Graph):
         if not hasattr(G, 'U'):
             logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
@@ -701,6 +706,8 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None):
     Cs : ndarray
 
     """
+    from pygsp.filters import Filter
+
     # TODO @ function
     if not epsilon:
         epsilon = min(10./sqrt(G.N), .1)
@@ -745,6 +752,9 @@ def kron_reduction(G, ind):
     -------
     Gnew : New graph structure or weight matrix
     """
+
+    from pygsp.graphs import Graph
+
     if isinstance(G, Graph):
         if hasattr(G, 'lap_type'):
             if not G.lap_type == 'combinatorial':
@@ -810,6 +820,9 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
     pe : ndarray
         Array with the prediction errors at each level
     """
+
+    from pygsp.filters import Filter
+
     if np.shape(f)[0] != Gs[0].N:
         raise ValueError("The signal to analyze should have the same dimension as the first graph")
 
@@ -1049,6 +1062,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         Indices of the vertices of the previous tree that are kept for the subsequent tree.
 
     """
+    from pygsp.graphs import Graph
 
     if not root:
         if hasattr(G, 'root'):
