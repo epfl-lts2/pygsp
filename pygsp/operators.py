@@ -704,8 +704,6 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None):
     """
     from pygsp.filters import Filter
 
-    # TODO @ function
-
     if not epsilon:
         epsilon = min(10./sqrt(G.N), .1)
 
