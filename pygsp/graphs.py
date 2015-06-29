@@ -152,12 +152,13 @@ class Graph(object):
     # or not needed are set to None
     def __init__(self, W, A=None, N=None, d=None, Ne=None,
                  gtype='unknown', directed=None, coords=None,
-                 lap_type='combinatorial', L=None, verbose=False,
+                 lap_type='combinatorial', L=None,
                  plotting={}, **kwargs):
+
+        self.logger = utils.build_logger(__name__)
 
         self.gtype = gtype
         self.lap_type = lap_type
-        self.verbose = verbose
 
         if W is not None:
             self.W = sparse.lil_matrix(W)
@@ -965,7 +966,7 @@ class RandomRegular(Graph):
 
     """
 
-    def __init__(self, N=64, k=6, verbose=False, **kwargs):
+    def __init__(self, N=64, k=6, **kwargs):
 
         def isRegularGraph(A):
             r"""
@@ -1005,8 +1006,7 @@ class RandomRegular(Graph):
             else:
                 msg += "is ok"
 
-            if verbose:
-                print(msg)
+            self.logger.info(msg)
 
         def createRandRegGraph(vertNum, deg):
             r"""
@@ -1185,8 +1185,6 @@ class Community(Graph):
         Minimum size of the communities (default = round(N/Nc/3))
     min_deg : int
         Minimum degree of each node (default = round(min_comm/2) (not implemented yet))
-    verbose : int
-        Verbosity output (default = 1)
     size_ratio : float
         Ratio between the radius of world and the radius of communities (default = 1)
     world_density : float
@@ -1200,7 +1198,7 @@ class Community(Graph):
     """
 
     def __init__(self, N=256, Nc=None, com_sizes=np.array([]), min_com=None,
-                 min_deg=None, verbose=1, size_ratio=1, world_density=None):
+                 min_deg=None, size_ratio=1, world_density=None):
         # Initialisation of the parameters
         if not Nc:
             Nc = int(round(sqrt(N)/2.))
@@ -1227,19 +1225,19 @@ class Community(Graph):
             com_lims = np.concatenate((np.array([0]), com_lims, np.array([N])))
             com_sizes = np.diff(com_lims)
 
-        if verbose > 2:
-                X = np.zeros((10000, Nc + 1))
-                # pick randomly param.Nc-1 points to cut the rows in communtities:
-                for i in range(10000):
-                    com_lims_tmp = np.sort(np.resize(np.random.permutation(int(x)), (Nc-1.))) + 1
-                    com_lims_tmp += np.cumsum((min_com-1)*np.ones(np.shape(com_lims_temp)))
-                    X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([N])))
-                dX = np.diff(X.T).T
-                for i in range(int(Nc)):
-                    # TODO figure; hist(dX(:,i), 100); title('histogram of row community size'); end
-                    pass
-                del X
-                del com_lims_tmp
+        if False:  # Verbose > 2 ?
+            X = np.zeros((10000, Nc + 1))
+            # pick randomly param.Nc-1 points to cut the rows in communtities:
+            for i in range(10000):
+                com_lims_tmp = np.sort(np.resize(np.random.permutation(int(x)), (Nc-1.))) + 1
+                com_lims_tmp += np.cumsum((min_com-1)*np.ones(np.shape(com_lims_temp)))
+                X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([N])))
+            dX = np.diff(X.T).T
+            for i in range(int(Nc)):
+                # TODO figure; hist(dX(:,i), 100); title('histogram of row community size'); end
+                pass
+            del X
+            del com_lims_tmp
 
         rad_world = size_ratio*sqrt(N)
         com_coords = rad_world*np.concatenate((-np.expand_dims(np.cos(2*np.pi*(np.arange(Nc) + 1)/Nc), axis=1),
@@ -1367,8 +1365,6 @@ class Sensor(Graph):
         Minimum number of connections (default = 1)
     regular : bool
         Flag to fix the number of connections to nc (default = False)
-    verbose : bool
-        Verbosity parameter (default = True)
     n_try : int
         Number of attempt to create the graph (default = 50)
     distribute : bool
@@ -1383,13 +1379,12 @@ class Sensor(Graph):
 
     """
 
-    def __init__(self, N=64, Nc=2, regular=False, verbose=1, n_try=50,
+    def __init__(self, N=64, Nc=2, regular=False, n_try=50,
                  distribute=False, connected=True, **kwargs):
 
         self.N = N
         self.Nc = Nc
         self.regular = regular
-        self.verbose = verbose
         self.n_try = n_try
         self.distribute = distribute
         self.connected = connected
