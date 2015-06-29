@@ -25,10 +25,7 @@ pip-log.txt
 .coverage
 .tox
 nosetests.xml
-<<<<<<< HEAD
 htmlcov
-=======
->>>>>>> 132762c403a9f93294874238968f77e8c41da789
 
 # Translations
 *.mo
@@ -43,13 +40,12 @@ output/*.html
 output/*/index.html
 
 # Sphinx
-<<<<<<< HEAD
 doc/_build
 doc/tutorials/img/*\.pdf
 doc/tutorials/img/*\.png
 # Vim swap files
 .*.swp
 .*.swo
-=======
 docs/_build
->>>>>>> 132762c403a9f93294874238968f77e8c41da789
+
+.ropeproject

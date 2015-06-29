@@ -9,9 +9,10 @@ from math import pi, sqrt
 from scipy import sparse
 from scipy import linalg
 
-import pygsp
 from pygsp import utils
 
+
+logger = utils.build_logger(__name__)
 
 def adj2vec(G):
     r"""
@@ -109,7 +110,7 @@ def grad_mat(G):
     """
     if not hasattr(G, 'v_in'):
         G = adj2vec(G)
-        print('To be more efficient you should run: G = adj2vec(G); \
+        logger.info('To be more efficient you should run: G = adj2vec(G); \
               before using this proximal operator.')
 
     if hasattr(G, 'Diff'):
@@ -130,7 +131,7 @@ def grad_mat(G):
     return D
 
 
-def gft(G, f, verbose=True):
+def gft(G, f):
     r"""
     Graph Fourier transform
 
@@ -139,8 +140,6 @@ def gft(G, f, verbose=True):
     G : Graph or Fourier basis
     f : ndarray
         must be in 2d, even if the second dim is 1 signal
-    verbose : bool
-        Verbosity level (False no log - True display warnings) (default = True)
 
     Returns
     -------
@@ -148,22 +147,21 @@ def gft(G, f, verbose=True):
         Graph Fourier transform of *f*
     """
 
-    if isinstance(G, pygsp.graphs.Graph):
+    from pygsp.graphs import Graph
+
+    if isinstance(G, Graph):
         if not hasattr(G, 'U'):
-            if verbose:
-                print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+            logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
             compute_fourier_basis(G)
 
-        else:
-            U = G.U
-
+        U = G.U
     else:
         U = G
 
     return np.dot(np.conjugate(U.T), f)
 
 
-def gwft(G, g, f, lowmemory=True, verbose=True):
+def gwft(G, g, f, lowmemory=True):
     r"""
     Graph windowed Fourier transform
 
@@ -177,8 +175,6 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     lowmemory : bool
         use less memory
         Default is True
-    verbose : bool
-        Verbosity level (False no log - True display warnings) (default = True)
 
     Returns
     -------
@@ -189,8 +185,7 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     Nf = np.shape(f)[1]
 
     if not hasattr(G, 'U'):
-        if verbose:
-            print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
         compute_fourier_basis(G)
 
     # if iscell(g)
@@ -201,7 +196,7 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
 
     if not lowmemory:
         # Compute the Frame into a big matrix
-        Frame = gwft_frame_matrix(G, g, verbose=verbose)
+        Frame = gwft_frame_matrix(G, g)
 
         C = np.dot(Frame.T, f)
         C = np.reshape(C, (G.N, G.N, Nf), order='F')
@@ -219,7 +214,7 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     return C
 
 
-def gwft2(G, f, k, verbose=True):
+def gwft2(G, f, k):
     r"""
     Graph windowed Fourier transform
 
@@ -230,27 +225,26 @@ def gwft2(G, f, k, verbose=True):
         Graph signal
     k : #TODO
         kernel
-    verbose : bool
-        Verbosity level (False no log - True display warnings) (default = True)
 
     Returns
     -------
     C : Coefficient.
     """
+    from pygsp.filters import analysis, gabor_filterbank
+
     if not hasattr(G, 'e'):
-        if verbose:
-            print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
         compute_fourier_basis(G)
 
-    g = filters.gabor_filterbank(G, k)
+    g = gabor_filterbank(G, k)
 
-    C = filters.analysis(G, g, f, verbose=verbose)
+    C = analysis(G, g, f)
     C = utils.vec2mat(C, G.N).T
 
     return C
 
 
-def gwft_frame_matrix(G, g, verbose=True):
+def gwft_frame_matrix(G, g):
     r"""
     Create the matrix of the GWFT frame
 
@@ -258,16 +252,14 @@ def gwft_frame_matrix(G, g, verbose=True):
     ----------
     G : Graph
     g : window
-    verbose : bool
-        Verbosity level (False no log - True display warnings)
 
     Returns
     -------
         F : TODO
             Frame
     """
-    if verbose and G.N > 256:
-        print("It will create a big matrix. You can use other methods.")
+    if G.N > 256:
+        logger.warning("It will create a big matrix. You can use other methods.")
 
     ghat = np.dot(G.U.T, g)
     Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*G.U.T))
@@ -277,7 +269,7 @@ def gwft_frame_matrix(G, g, verbose=True):
     return F
 
 
-def igft(G, f_hat, verbose=True):
+def igft(G, f_hat):
     r"""
     Inverse graph Fourier transform
 
@@ -286,22 +278,20 @@ def igft(G, f_hat, verbose=True):
     G : Graph or Fourier basis
     f_hat : ndarray
         Signal
-    verbose : bool
-        Verbosity level (False no log - True display warnings) (default = True)
 
     Returns
     -------
     f : Inverse graph Fourier transform of *f_hat*
 
     """
-    if isinstance(G, pygsp.graphs.Graph):
-        if not hasattr(G, 'U'):
-            if verbose:
-                print('analysis filter has to compute the eigenvalues and the eigenvectors.')
-            compute_fourier_basis(G)
 
-        else:
-            U = G.U
+    from pygsp.graphs import Graph
+
+    if isinstance(G, Graph):
+        if not hasattr(G, 'U'):
+            logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
+            compute_fourier_basis(G)
+        U = G.U
 
     else:
         U = G
@@ -309,7 +299,7 @@ def igft(G, f_hat, verbose=True):
     return np.dot(U, f_hat)
 
 
-def ngwft(G, f, g, lowmemory=True, verbose=True):
+def ngwft(G, f, g, lowmemory=True):
     r"""
     Normalized graph windowed Fourier transform
 
@@ -320,8 +310,6 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
         Graph signal
     g : TODO
         window
-    verbose : bool
-        Verbosity level (False no log - True display warnings) (default = True)
     lowmemory : bool
         use less memory. (default = True)
 
@@ -332,13 +320,12 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
     """
 
     if not hasattr(G, 'U'):
-        if verbose:
-            print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
         compute_fourier_basis(G)
 
     if lowmemory:
         # Compute the Frame into a big matrix
-        Frame = ngwft_frame_matrix(G, g, verbose=verbose)
+        Frame = ngwft_frame_matrix(G, g)
         C = np.dot(Frame.T, f)
         C = np.reshape(C, (G.N, G.N), order='F')
 
@@ -359,7 +346,7 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
     return C
 
 
-def ngwft_frame_matrix(G, g, verbose=True):
+def ngwft_frame_matrix(G, g):
     r"""
     Create the matrix of the GWFT frame
 
@@ -368,15 +355,13 @@ def ngwft_frame_matrix(G, g, verbose=True):
     G : Graph
     g : TODO
         window
-    verbose : bool
-        Verbosity level (False no log - True display warnings) (default = True)
 
     Output parameters:
     F : TODO
         Frame
     """
-    if verbose and G.N > 256:
-        print('It will create a big matrix, you can use other methods.')
+    if G.N > 256:
+        logger.warning('It will create a big matrix, you can use other methods.')
 
     ghat = np.dot(G.U.T, g)
     Ftrans = np.sqrt(g.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.T))
@@ -397,11 +382,11 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
     """
 
     if hasattr(G, 'e') or hasattr(G, 'U'):
-        print("This graph already has Laplacian eigenvectors or eigenvalues")
+        logger.error("This graph already has Laplacian eigenvectors or eigenvalues")
         return
 
     if G.N > 3000:
-        print("Performing full eigendecomposition of a large matrix\
+        logger.warning("Performing full eigendecomposition of a large matrix\
               may take some time.")
 
     if False:
@@ -450,7 +435,7 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
 
     if not hasattr(G, 'lmax'):
         G.lmax = utils.estimate_lmax(G)
-        print('The variable lmax has not been computed yet, it will be done.)')
+        logger.info('The variable lmax has not been computed yet, it will be done.)')
 
     a_arange = [0, G.lmax]
 
@@ -492,7 +477,7 @@ def cheby_op(G, c, signal, **kwargs):
     try:
         M >= 2
     except:
-        print("The signal has an invalid shape")
+        logger.error("The signal has an invalid shape")
 
     if not hasattr(G, 'lmax'):
         G.lmax = utils.estimate_lmax(G)
@@ -625,7 +610,7 @@ def create_laplacian(G, lap_type=None, get_laplacian_only=True):
         G.L = L
 
 
-def lanczos_op(fi, s, G=None, order=30, verbose=True):
+def lanczos_op(fi, s, G=None, order=30):
     r"""
     Perform the lanczos approximation of the signal s
 
@@ -637,8 +622,6 @@ def lanczos_op(fi, s, G=None, order=30, verbose=True):
     G : Graph
     order : int
         Degree of the lanczos approximation. (default = 30)
-    verbose : bool
-        Verbosity level (False no log - True display warnings). (default = True)
 
 
 
@@ -692,7 +675,7 @@ def localize(G, g, i):
     f = np.zeros((G.N))
     f[i-1] = 1
 
-    gt = sqrt(G.N)*filters.filters_analysis(G, g, f)
+    gt = sqrt(G.N) * filters_analysis(G, g, f)
 
     return gt
 
@@ -719,6 +702,8 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None):
     Cs : ndarray
 
     """
+    from pygsp.filters import Filter
+
     if not epsilon:
         epsilon = min(10./sqrt(G.N), .1)
 
@@ -741,7 +726,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None):
             Gs.append(kron_reduction(Gs[i], ind))
 
         Gs[i+1].pyramid = {'ind': ind,
-                           'green_kernel': pygsp.filters.Filter(Gs[i + 1], filters=[lambda x: 1./(lamda + x)]),
+                           'green_kernel': Filter(Gs[i + 1], filters=[lambda x: 1./(lamda + x)]),
                            'level': i+1,
                            'K_reg': kron_reduction(L_reg, ind)}
 
@@ -762,7 +747,10 @@ def kron_reduction(G, ind):
     -------
     Gnew : New graph structure or weight matrix
     """
-    if isinstance(G, pygsp.graphs.Graph):
+
+    from pygsp.graphs import Graph
+
+    if isinstance(G, Graph):
         if hasattr(G, 'lap_type'):
             if not G.lap_type == 'combinatorial':
                 raise ValueError('Not implemented.')
@@ -788,7 +776,7 @@ def kron_reduction(G, ind):
     if np.abs(Lnew-Lnew.getH()).sum() < np.spacing(1)*np.abs(Lnew).sum():
         Lnew = (Lnew + Lnew.getH())/2.
 
-    if isinstance(G, pygsp.graphs.Graph):
+    if isinstance(G, Graph):
         # Suppress the diagonal ? This is a good question?
         Wnew = sparse.diags(Lnew.diagonal(), 0) - Lnew
         Snew = Lnew.diagonal() - np.sum(Wnew.toarray(), axis=0)
@@ -827,6 +815,9 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
     pe : ndarray
         Array with the prediction errors at each level
     """
+
+    from pygsp.filters import Filter
+
     if np.shape(f)[0] != Gs[0].N:
         raise ValueError("The signal to analyze should have the same dimension as the first graph")
 
@@ -834,11 +825,11 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
     # check if the type of filters is right.
     if filters:
         if type(filters) != list:
-            print('filters is not a list. I will convert it for you.')
+            logger.warning('filters is not a list. I will convert it for you.')
             if hasattr(filters, '__call__'):
                 filters = [filters]
             else:
-                print('filters must be a list of function.')
+                logger.error('filters must be a list of function.')
 
         if len(filters) == 1:
             for _ in range(Nlevels-1):
@@ -853,7 +844,7 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
             filters.append(lambda x: .5/(.5+x))
 
     for i in range(Nlevels):
-        Gs[i + 1].pyramid['filters'] = pygsp.filters.Filter(Gs[i + 1], filters=[filters[i]])
+        Gs[i + 1].pyramid['filters'] = Filter(Gs[i + 1], filters=[filters[i]])
 
     # ca = [np.ravel(f)]
     ca = [f]
@@ -1066,6 +1057,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         Indices of the vertices of the previous tree that are kept for the subsequent tree.
 
     """
+    from pygsp.graphs import Graph
 
     if not root:
         if hasattr(G, 'root'):
@@ -1140,7 +1132,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         depths = depths/2.
 
         # Store new tree
-        Gtemp = pygsp.graphs.Graph(new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, gtype='tree',)
+        Gtemp = Graph(new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, gtype='tree',)
         Gtemp.L = create_laplacian(Gs[lev + 1], G.lap_type)
         Gtemp.root = new_root
         Gtemp = gsp_copy_graph_attributes(Gs[lev], False, Gs[lev + 1])

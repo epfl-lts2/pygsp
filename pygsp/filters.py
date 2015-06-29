@@ -21,13 +21,15 @@ class Filter(object):
     methods for those classes.
     """
 
-    def __init__(self, G, verbose=True, filters=None, **kwargs):
-        self.verbose = verbose
+    def __init__(self, G, filters=None, **kwargs):
+        self.logger = utils.build_logger(__name__)
+
         if not hasattr(G, 'lmax'):
-            if self.verbose:
-                print('{} : has to compute lmax'.format(self.__class__.__name__))
+            self.logger.info('{} : has to compute lmax'.format(self.__class__.__name__))
             G.lmax = utils.estimate_lmax(G)
+
         self.G = G
+
         if filters:
             if isinstance(filters, list):
                 self.g = filters
@@ -35,7 +37,7 @@ class Filter(object):
                 # print('filters should be a list, even if it has only one filter.')
                 self.g = [filters]
 
-    def analysis(self, G, s, method=None, cheb_order=30, verbose=False, **kwargs):
+    def analysis(self, G, s, method=None, cheb_order=30, **kwargs):
         r"""
         Operator to analyse a filterbank
 
@@ -48,8 +50,6 @@ class Filter(object):
             wether using an exact method, cheby approx or lanczos
         cheb_order : int
             Order for chebyshev
-        verbose : Verbosity level (False no log - True display warnings)
-            Default is True
 
         Returns
         -------
@@ -89,14 +89,12 @@ class Filter(object):
 
         Nf = len(self.g)
 
-        if verbose:
-            print('The analysis method is {}'.format(method))
+        self.logger.info('The analysis method is {}'.format(method))
 
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
-                if self.verbose:
-                    print('The Fourier matrix is not available. '
-                          'The function will compute it for you.')
+                self.logger.info('The Fourier matrix is not available. '
+                    'The function will compute it for you.')
                 operators.compute_fourier_basis(G)
 
             try:
@@ -123,9 +121,8 @@ class Filter(object):
 
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
-                if self.verbose:
-                    print('FILTER_ANALYSIS: The variable lmax is not available.'
-                          ' The function will compute it for you.')
+                self.logger.info('FILTER_ANALYSIS: The variable lmax is not available.'
+                    ' The function will compute it for you.')
                 utils.estimate_lmax(G)
 
             cheb_coef = operators.compute_cheby_coeff(self, G, m=cheb_order)
@@ -190,8 +187,6 @@ class Filter(object):
             'cheby'
         order : Degree of the Chebyshev approximation
             Default is 30
-        verbose : Verbosity level (False no log - True display warnings)
-            Default is True
 
         Returns
         -------
@@ -222,9 +217,8 @@ class Filter(object):
 
         if method == 'exact':
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
-                if self.verbose:
-                    print("The Fourier matrix is not available. "
-                          "The function will compute it for you.")
+                self.logger.info("The Fourier matrix is not available. "
+                    "The function will compute it for you.")
                 operators.compute_fourier_basis(G)
 
             fie = self.evaluate(G.e)
@@ -241,8 +235,7 @@ class Filter(object):
 
         elif method == 'cheby':
             if hasattr(G, 'lmax'):
-                if self.verbose:
-                    print('The variable lmax is not available. The function will compute it for you.')
+                self.logger.info('The variable lmax is not available. The function will compute it for you.')
                 utils.estimate_lmax(G)
 
             cheb_coeffs = operators.compute_cheby_coeff(self, G, m=order,
@@ -258,7 +251,7 @@ class Filter(object):
             s = np.zeros((G.N, np.shape(c)[1]))
 
             for i in range(Nf):
-                s += utils.lanczos_op(G, self.g[i], c[i*G.N + np.range(G.N)], order=order, verbose=self.verbose)
+                s += utils.lanczos_op(G, self.g[i], c[i*G.N + np.range(G.N)], order=order)
 
             return s
 
@@ -302,7 +295,7 @@ class Filter(object):
         if isinstance(G, pygsp.graphs.Graph):
             if not hasattr(G, 'lmax'):
                 utils.estimate_lmax(G)
-                print('FILTERBANK_BOUNDS: Had to estimate lmax.')
+                self.logger.info('FILTERBANK_BOUNDS: Had to estimate lmax.')
             xmin = 0
             xmax = G.lmax
 
@@ -339,15 +332,13 @@ class Filter(object):
         Parameters
         ----------
         G : Graph
-        verbose : bool
-            False = no log, True = print all steps. (Default = True)
 
         Returns
         -------
         F : Frame
         """
-        if self.verbose and G.N > 2000:
-            print('Warning: Create a big matrix, you can use other methods.')
+        if G.N > 2000:
+            self.logger.warning('Warning: Create a big matrix, you can use other methods.')
 
         Nf = len(self.g)
         Ft = self.analysis(G, np.identity(G.N))
@@ -727,10 +718,9 @@ class Meyer(Filter):
         if not hasattr(G, 't'):
             G.t = (4./(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
 
-        if self.verbose:
-            if len(G.t) >= Nf-1:
-                print('You have specified more scales than  the number of '
-                      'scales minus 1')
+        if len(G.t) >= Nf-1:
+            self.logger.warning('You have specified more scales than  the number of '
+                    'scales minus 1')
 
         t = G.t
 
@@ -854,10 +844,9 @@ class SimpleTf(Filter):
         if not t:
             t = (1./(2.*G.lmax) * np.power(2, np.arange(Nf-2, -1, -1)))
 
-        if self.verbose:
-            if len(t) != Nf - 1:
-                print('You have specified more scales than Number if filters '
-                      'minus 1.')
+        if len(t) != Nf - 1:
+            self.logger.warning('You have specified more scales than Number if filters '
+                    'minus 1.')
 
         g = [lambda x: kernel_simple_tf(t[0] * x, 'sf')]
 
@@ -1132,7 +1121,7 @@ class Heat(Filter):
 
         if normalize:
             if not hasattr(G, 'e'):
-                print('Filter Heat will calculate and set the eigenvalues to '
+                self.logger.info('Filter Heat will calculate and set the eigenvalues to '
                       'normalize the kernel')
                 operators.compute_fourier_basis(G)
 

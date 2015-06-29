@@ -8,15 +8,34 @@ import scipy as sp
 from scipy import sparse, stats
 from scipy.sparse import linalg
 from math import isinf, isnan, log, sqrt
+import logging
 
-import pygsp
+
+def build_logger(name):
+    logger = logging.getLogger(name)
+
+    formatter = logging.Formatter("%(asctime)s:[%(levelname)s](%(module)s.%(funcName)s): %(message)s")
+
+    steam_handler = logging.StreamHandler()
+    steam_handler.setLevel(logging.DEBUG)
+    steam_handler.setFormatter(formatter)
+
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(steam_handler)
+
+    return logger
+
+
+logger = build_logger(__name__)
 
 
 def graph_array_handler(func):
 
     def inner(G, *args, **kwargs):
 
-        if isinstance(G, pygsp.graphs.Graph):
+        from pygsp.graphs import Graph
+
+        if isinstance(G, Graph):
             return func(G, *args, **kwargs)
 
         elif type(G) is list:
@@ -86,8 +105,11 @@ def is_directed(M):
     >>> is_directed = utils.is_directed(G.W)
 
     """
+
+    from pygsp.graphs import Graph
+
     # To pass a graph or a weight matrix as an argument
-    if isinstance(M, pygsp.graphs.Graph):
+    if isinstance(M, Graph):
         W = M.W
     else:
         W = M
@@ -132,14 +154,13 @@ def estimate_lmax(G):
         # On robustness purposes, increasing the error by 1 percent
         lmax *= 1.01
     except ValueError:
-        if G.verbose:
-            print('GSP_ESTIMATE_LMAX: Cannot use default method')
+        logger.warning('GSP_ESTIMATE_LMAX: Cannot use default method')
         lmax = np.max(G.d)
     G.lmax = np.real(lmax)
     return np.real(lmax)
 
 
-def check_weights(W, verbose=0):
+def check_weights(W):
     r"""
     Check the characteristics of the weights matrix
 
@@ -147,8 +168,6 @@ def check_weights(W, verbose=0):
     ----------
     W : weights matrix
         The weights matrix to check
-    verbose : int
-        Verbosity : 0 no output, 1 prints characteristics (default = 0)
 
     Returns
     -------
@@ -181,22 +200,22 @@ def check_weights(W, verbose=0):
     has_nan_value = False
 
     if isinf(W.sum()):
-        print("GSP_TEST_WEIGHTS: There is an infinite "
+        logger.warning("GSP_TEST_WEIGHTS: There is an infinite "
               "value in the weight matrix")
         has_inf_val = True
 
     if abs(W.diagonal()).sum() != 0:
-        print("GSP_TEST_WEIGHTS: The main diagonal of "
+        logger.warning("GSP_TEST_WEIGHTS: The main diagonal of "
               "the weight matrix is not 0!")
         diag_is_not_zero = True
 
     if W.get_shape()[0] != W.get_shape()[1]:
-        print("GSP_TEST_WEIGHTS: The weight matrix is "
+        logger.warning("GSP_TEST_WEIGHTS: The weight matrix is "
               "not square!")
         is_not_square = True
 
     if isnan(W.sum()):
-        print("GSP_TEST_WEIGHTS: There is an NaN "
+        logger.warning("GSP_TEST_WEIGHTS: There is an NaN "
               "value in the weight matrix")
         has_nan_value = True
 
@@ -423,9 +442,6 @@ def resistance_distance(G):
     Parameters
     ----------
     G : Graph structure or Laplacian matrix (L)
-    verbose : bool
-        Display parameter - False no log - True display warnings
-        Default is True
 
     Returns
     -------
@@ -443,11 +459,14 @@ def resistance_distance(G):
 
 
     """
-    if isinstance(G, pygsp.graphs.Graph):
+
+    from pygsp.graphs import Graph
+    from pygsp.operators import create_laplacian
+
+    if isinstance(G, Graph):
         if not G.lap_type == 'combinatorial':
-            pygsp.operators.create_laplacian(G, lap_type='combinatorial', get_laplacian_only=False)
-            if verbose:
-                print('Compute the combinatorial laplacian for the resitance distance')
+            logger.info('Compute the combinatorial laplacian for the resitance distance')
+            create_laplacian(G, lap_type='combinatorial', get_laplacian_only=False)
         L = G.L
 
     else:

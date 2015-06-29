@@ -57,8 +57,7 @@ class PointsCloud(object):
 
     def __init__(self, pointcloudname, max_dim=2):
         if pointcloudname == "airfoil":
-            airfoilmat = io.loadmat(path.dirname(path.realpath(__file__))
-                                    + '/misc/airfoil.mat')
+            airfoilmat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'airfoil.mat'))
             self.i_inds = airfoilmat['i_inds']
             self.j_inds = airfoilmat['j_inds']
             self.x = airfoilmat['x']
@@ -66,27 +65,23 @@ class PointsCloud(object):
             self.coords = np.concatenate((self.x, self.y), axis=1)
 
         elif pointcloudname == "bunny":
-            bunnymat = io.loadmat(path.dirname(path.realpath(__file__)) +
-                                  '/misc/bunny.mat')
+            bunnymat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'bunny.mat'))
             self.Xin = bunnymat["bunny"]
 
         elif pointcloudname == "david64":
-            david64mat = io.loadmat(path.dirname(path.realpath(__file__))
-                                    + '/misc/david64.mat')
+            david64mat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'david64.mat'))
             self.W = david64mat["W"]
             self.N = david64mat["N"][0, 0]
             self.coords = david64mat["coords"]
 
         elif pointcloudname == "david500":
-            david500mat = io.loadmat(path.dirname(path.realpath(__file__))
-                                     + '/misc/david500.mat')
+            david500mat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'david500.mat'))
             self.W = david500mat["W"]
             self.N = david500mat["N"][0, 0]
             self.coords = david500mat["coords"]
 
         elif pointcloudname == "logo":
-            logomat = io.loadmat(path.dirname(path.realpath(__file__)) +
-                                 '/misc/logogsp.mat')
+            logomat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'logogsp.mat'))
             self.W = logomat["W"]
             self.coords = logomat["coords"]
             self.limits = np.array([0, 640, -400, 0])
@@ -96,15 +91,13 @@ class PointsCloud(object):
                          "idx_p": logomat["idx_p"]}
 
         elif pointcloudname == "minnesota":
-            minnesotamat = io.loadmat(path.dirname(path.realpath(__file__)) +
-                                      '/misc/minnesota.mat')
+            minnesotamat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'minnesota.mat'))
             self.A = minnesotamat["A"]
             self.labels = minnesotamat["labels"]
             self.coords = minnesotamat["xy"]
 
         elif pointcloudname == "two_moons":
-            twomoonsmat = io.loadmat(path.dirname(path.realpath(__file__)) +
-                                     '/misc/two_moons.mat')
+            twomoonsmat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'two_moons.mat'))
             if max_dim == -1:
                 max_dim == 2
             self.Xin = twomoonsmat["features"][:max_dim].T
@@ -159,12 +152,13 @@ class Graph(object):
     # or not needed are set to None
     def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
                  gtype='unknown', directed=None, coords=None,
-                 lap_type='combinatorial', L=None, verbose=False,
+                 lap_type='combinatorial', L=None,
                  plotting={}, **kwargs):
+
+        self.logger = utils.build_logger(__name__)
 
         self.gtype = gtype
         self.lap_type = lap_type
-        self.verbose = verbose
 
         if W is not None:
             self.W = sparse.lil_matrix(W)
@@ -240,7 +234,7 @@ class Graph(object):
         Note
         ----
         This method is usefull if you want to give a new weight matrix (W) and compute the adjacency matrix (A) and more again.
-        The valid attributes are ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'verbose', 'plotting']
+        The valid attributes are ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'plotting']
 
         Examples
         --------
@@ -251,22 +245,22 @@ class Graph(object):
         >>> G.update_graph_attr('N', 'd', W=newW) # All attribute of G  ecpeted 'N' and 'd' will be compute with the newW
         """
         graph_attr = {}
-        valid_attributes = ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'verbose', 'plotting']
+        valid_attributes = ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'plotting']
 
         for i in args:
             if i in valid_attributes:
                 graph_attr[i] = getattr(self, i)
             else:
-                print('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
+                self.logger.warning('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
 
         for i in kwargs:
             if i in valid_attributes:
                 if i in graph_attr:
-                    print('You already give this attribute in the args. Therefore, it will not be recaculate.')
+                    self.logger.info('You already give this attribute in the args. Therefore, it will not be recaculate.')
                 else:
                     graph_attr[i] = kwargs[i]
             else:
-                print('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
+                self.logger.warning('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
 
         if isinstance(self, NNGraph):
             super(NNGraph, self).__init__(**graph_attr)
@@ -1012,7 +1006,7 @@ class RandomRegular(Graph):
 
     """
 
-    def __init__(self, N=64, k=6, verbose=False, **kwargs):
+    def __init__(self, N=64, k=6, **kwargs):
 
         def isRegularGraph(A):
             r"""
@@ -1052,8 +1046,7 @@ class RandomRegular(Graph):
             else:
                 msg += "is ok"
 
-            if verbose:
-                print(msg)
+            self.logger.info(msg)
 
         def createRandRegGraph(vertNum, deg):
             r"""
@@ -1110,7 +1103,7 @@ class RandomRegular(Graph):
 
                 # print progess
                 if edgesTested % 5000 == 0:
-                    print("createRandRegGraph() progress: edges=%d/%d\n" %
+                    self.logger.debug("createRandRegGraph() progress: edges=%d/%d\n" %
                           (edgesTested, n*d))
 
                 # chose at random 2 half edges
@@ -1232,8 +1225,6 @@ class Community(Graph):
         Minimum size of the communities (default = round(N/Nc/3))
     min_deg : int
         Minimum degree of each node (default = round(min_comm/2) (not implemented yet))
-    verbose : int
-        Verbosity output (default = 1)
     size_ratio : float
         Ratio between the radius of world and the radius of communities (default = 1)
     world_density : float
@@ -1247,7 +1238,7 @@ class Community(Graph):
     """
 
     def __init__(self, N=256, Nc=None, com_sizes=np.array([]), min_com=None,
-                 min_deg=None, verbose=1, size_ratio=1, world_density=None):
+                 min_deg=None, size_ratio=1, world_density=None):
         # Initialisation of the parameters
         if not Nc:
             Nc = int(round(sqrt(N)/2.))
@@ -1274,19 +1265,19 @@ class Community(Graph):
             com_lims = np.concatenate((np.array([0]), com_lims, np.array([N])))
             com_sizes = np.diff(com_lims)
 
-        if verbose > 2:
-                X = np.zeros((10000, Nc + 1))
-                # pick randomly param.Nc-1 points to cut the rows in communtities:
-                for i in range(10000):
-                    com_lims_tmp = np.sort(np.resize(np.random.permutation(int(x)), (Nc-1.))) + 1
-                    com_lims_tmp += np.cumsum((min_com-1)*np.ones(np.shape(com_lims_temp)))
-                    X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([N])))
-                dX = np.diff(X.T).T
-                for i in range(int(Nc)):
-                    # TODO figure; hist(dX(:,i), 100); title('histogram of row community size'); end
-                    pass
-                del X
-                del com_lims_tmp
+        if False:  # Verbose > 2 ?
+            X = np.zeros((10000, Nc + 1))
+            # pick randomly param.Nc-1 points to cut the rows in communtities:
+            for i in range(10000):
+                com_lims_tmp = np.sort(np.resize(np.random.permutation(int(x)), (Nc-1.))) + 1
+                com_lims_tmp += np.cumsum((min_com-1)*np.ones(np.shape(com_lims_temp)))
+                X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([N])))
+            dX = np.diff(X.T).T
+            for i in range(int(Nc)):
+                # TODO figure; hist(dX(:,i), 100); title('histogram of row community size'); end
+                pass
+            del X
+            del com_lims_tmp
 
         rad_world = size_ratio*sqrt(N)
         com_coords = rad_world*np.concatenate((-np.expand_dims(np.cos(2*np.pi*(np.arange(Nc) + 1)/Nc), axis=1),
@@ -1414,8 +1405,6 @@ class Sensor(Graph):
         Minimum number of connections (default = 1)
     regular : bool
         Flag to fix the number of connections to nc (default = False)
-    verbose : bool
-        Verbosity parameter (default = True)
     n_try : int
         Number of attempt to create the graph (default = 50)
     distribute : bool
@@ -1430,13 +1419,12 @@ class Sensor(Graph):
 
     """
 
-    def __init__(self, N=64, Nc=2, regular=False, verbose=1, n_try=50,
+    def __init__(self, N=64, Nc=2, regular=False, n_try=50,
                  distribute=False, connected=True, **kwargs):
 
         self.N = N
         self.Nc = Nc
         self.regular = regular
-        self.verbose = verbose
         self.n_try = n_try
         self.distribute = distribute
         self.connected = connected
@@ -1507,7 +1495,7 @@ class Sensor(Graph):
                     break
 
                 elif x == self.n_try-1:
-                    print("Warning! Graph is not connected")
+                    self.logger.warning("Graph is not connected")
 
         else:
             W, Coords = create_weight_matrix(self.N, self.distribute,
