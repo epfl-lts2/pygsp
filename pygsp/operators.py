@@ -14,6 +14,8 @@ from pygsp.graphs import Graph
 from pygps.filters import Filter, analysis, gabor_filterbank
 
 
+logger = utils.build_logger(__name__)
+
 def adj2vec(G):
     r"""
     Prepare the graph for the gradient computation
@@ -131,7 +133,7 @@ def grad_mat(G):
     return D
 
 
-def gft(G, f, verbose=True):
+def gft(G, f):
     r"""
     Graph Fourier transform
 
@@ -140,8 +142,6 @@ def gft(G, f, verbose=True):
     G : Graph or Fourier basis
     f : ndarray
         must be in 2d, even if the second dim is 1 signal
-    verbose : bool
-        Verbosity level (False no log - True display warnings) (default = True)
 
     Returns
     -------
@@ -151,8 +151,7 @@ def gft(G, f, verbose=True):
 
     if isinstance(G, Graph):
         if not hasattr(G, 'U'):
-            if verbose:
-                print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+            logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
             compute_fourier_basis(G)
 
         else:
@@ -164,7 +163,7 @@ def gft(G, f, verbose=True):
     return np.dot(np.conjugate(U.T), f)
 
 
-def gwft(G, g, f, lowmemory=True, verbose=True):
+def gwft(G, g, f, lowmemory=True):
     r"""
     Graph windowed Fourier transform
 
@@ -178,8 +177,6 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     lowmemory : bool
         use less memory
         Default is True
-    verbose : bool
-        Verbosity level (False no log - True display warnings) (default = True)
 
     Returns
     -------
@@ -190,8 +187,7 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     Nf = np.shape(f)[1]
 
     if not hasattr(G, 'U'):
-        if verbose:
-            print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
         compute_fourier_basis(G)
 
     # if iscell(g)
@@ -202,7 +198,7 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
 
     if not lowmemory:
         # Compute the Frame into a big matrix
-        Frame = gwft_frame_matrix(G, g, verbose=verbose)
+        Frame = gwft_frame_matrix(G, g)
 
         C = np.dot(Frame.T, f)
         C = np.reshape(C, (G.N, G.N, Nf), order='F')
@@ -220,7 +216,7 @@ def gwft(G, g, f, lowmemory=True, verbose=True):
     return C
 
 
-def gwft2(G, f, k, verbose=True):
+def gwft2(G, f, k):
     r"""
     Graph windowed Fourier transform
 
@@ -239,19 +235,18 @@ def gwft2(G, f, k, verbose=True):
     C : Coefficient.
     """
     if not hasattr(G, 'e'):
-        if verbose:
-            print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
         compute_fourier_basis(G)
 
     g = gabor_filterbank(G, k)
 
-    C = analysis(G, g, f, verbose=verbose)
+    C = analysis(G, g, f)
     C = utils.vec2mat(C, G.N).T
 
     return C
 
 
-def gwft_frame_matrix(G, g, verbose=True):
+def gwft_frame_matrix(G, g):
     r"""
     Create the matrix of the GWFT frame
 
@@ -267,8 +262,8 @@ def gwft_frame_matrix(G, g, verbose=True):
         F : TODO
             Frame
     """
-    if verbose and G.N > 256:
-        print("It will create a big matrix. You can use other methods.")
+    if G.N > 256:
+        logger.warning("It will create a big matrix. You can use other methods.")
 
     ghat = np.dot(G.U.T, g)
     Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*G.U.T))
@@ -278,7 +273,7 @@ def gwft_frame_matrix(G, g, verbose=True):
     return F
 
 
-def igft(G, f_hat, verbose=True):
+def igft(G, f_hat):
     r"""
     Inverse graph Fourier transform
 
@@ -297,8 +292,7 @@ def igft(G, f_hat, verbose=True):
     """
     if isinstance(G, Graph):
         if not hasattr(G, 'U'):
-            if verbose:
-                print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+            logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
             compute_fourier_basis(G)
 
         else:
@@ -310,7 +304,7 @@ def igft(G, f_hat, verbose=True):
     return np.dot(U, f_hat)
 
 
-def ngwft(G, f, g, lowmemory=True, verbose=True):
+def ngwft(G, f, g, lowmemory=True):
     r"""
     Normalized graph windowed Fourier transform
 
@@ -333,13 +327,12 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
     """
 
     if not hasattr(G, 'U'):
-        if verbose:
-            print('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        logger.ingo('analysis filter has to compute the eigenvalues and the eigenvectors.')
         compute_fourier_basis(G)
 
     if lowmemory:
         # Compute the Frame into a big matrix
-        Frame = ngwft_frame_matrix(G, g, verbose=verbose)
+        Frame = ngwft_frame_matrix(G, g)
         C = np.dot(Frame.T, f)
         C = np.reshape(C, (G.N, G.N), order='F')
 
@@ -360,7 +353,7 @@ def ngwft(G, f, g, lowmemory=True, verbose=True):
     return C
 
 
-def ngwft_frame_matrix(G, g, verbose=True):
+def ngwft_frame_matrix(G, g):
     r"""
     Create the matrix of the GWFT frame
 
@@ -369,15 +362,13 @@ def ngwft_frame_matrix(G, g, verbose=True):
     G : Graph
     g : TODO
         window
-    verbose : bool
-        Verbosity level (False no log - True display warnings) (default = True)
 
     Output parameters:
     F : TODO
         Frame
     """
-    if verbose and G.N > 256:
-        print('It will create a big matrix, you can use other methods.')
+    if G.N > 256:
+        logger.warning('It will create a big matrix, you can use other methods.')
 
     ghat = np.dot(G.U.T, g)
     Ftrans = np.sqrt(g.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.T))
@@ -626,7 +617,7 @@ def create_laplacian(G, lap_type=None, get_laplacian_only=True):
         G.L = L
 
 
-def lanczos_op(fi, s, G=None, order=30, verbose=True):
+def lanczos_op(fi, s, G=None, order=30):
     r"""
     Perform the lanczos approximation of the signal s
 
@@ -638,8 +629,6 @@ def lanczos_op(fi, s, G=None, order=30, verbose=True):
     G : Graph
     order : int
         Degree of the lanczos approximation. (default = 30)
-    verbose : bool
-        Verbosity level (False no log - True display warnings). (default = True)
 
 
 

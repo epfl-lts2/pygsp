@@ -27,7 +27,7 @@ def build_logger(name):
     return logger
 
 
-utils_logger = build_logger(__name__)
+logger = build_logger(__name__)
 
 
 def graph_array_handler(func):
@@ -150,7 +150,7 @@ def estimate_lmax(G):
         # On robustness purposes, increasing the error by 1 percent
         lmax *= 1.01
     except ValueError:
-        utils_logger.warning('GSP_ESTIMATE_LMAX: Cannot use default method')
+        logger.warning('GSP_ESTIMATE_LMAX: Cannot use default method')
         lmax = np.max(G.d)
     G.lmax = np.real(lmax)
     return np.real(lmax)
@@ -196,22 +196,22 @@ def check_weights(W):
     has_nan_value = False
 
     if isinf(W.sum()):
-        utils_logger.warning("GSP_TEST_WEIGHTS: There is an infinite "
+        logger.warning("GSP_TEST_WEIGHTS: There is an infinite "
               "value in the weight matrix")
         has_inf_val = True
 
     if abs(W.diagonal()).sum() != 0:
-        utils_logger.warning("GSP_TEST_WEIGHTS: The main diagonal of "
+        logger.warning("GSP_TEST_WEIGHTS: The main diagonal of "
               "the weight matrix is not 0!")
         diag_is_not_zero = True
 
     if W.get_shape()[0] != W.get_shape()[1]:
-        utils_logger.warning("GSP_TEST_WEIGHTS: The weight matrix is "
+        logger.warning("GSP_TEST_WEIGHTS: The weight matrix is "
               "not square!")
         is_not_square = True
 
     if isnan(W.sum()):
-        utils_logger.warning("GSP_TEST_WEIGHTS: There is an NaN "
+        logger.warning("GSP_TEST_WEIGHTS: There is an NaN "
               "value in the weight matrix")
         has_nan_value = True
 
@@ -457,7 +457,7 @@ def resistance_distance(G):
     """
     if isinstance(G, pygsp.graphs.Graph):
         if not G.lap_type == 'combinatorial':
-            utils_logger.info('Compute the combinatorial laplacian for the resitance distance')
+            logger.info('Compute the combinatorial laplacian for the resitance distance')
             pygsp.operators.create_laplacian(G, lap_type='combinatorial', get_laplacian_only=False)
         L = G.L
 
