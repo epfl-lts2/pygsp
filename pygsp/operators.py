@@ -9,8 +9,9 @@ from math import pi, sqrt
 from scipy import sparse
 from scipy import linalg
 
-import pygsp
 from pygsp import utils
+from pygsp.graphs import Graph
+from pygps.filters import Filter, analysis, gabor_filterbank
 
 
 def adj2vec(G):
@@ -148,7 +149,7 @@ def gft(G, f, verbose=True):
         Graph Fourier transform of *f*
     """
 
-    if isinstance(G, pygsp.graphs.Graph):
+    if isinstance(G, Graph):
         if not hasattr(G, 'U'):
             if verbose:
                 print('analysis filter has to compute the eigenvalues and the eigenvectors.')
@@ -242,9 +243,9 @@ def gwft2(G, f, k, verbose=True):
             print('analysis filter has to compute the eigenvalues and the eigenvectors.')
         compute_fourier_basis(G)
 
-    g = filters.gabor_filterbank(G, k)
+    g = gabor_filterbank(G, k)
 
-    C = filters.analysis(G, g, f, verbose=verbose)
+    C = analysis(G, g, f, verbose=verbose)
     C = utils.vec2mat(C, G.N).T
 
     return C
@@ -294,7 +295,7 @@ def igft(G, f_hat, verbose=True):
     f : Inverse graph Fourier transform of *f_hat*
 
     """
-    if isinstance(G, pygsp.graphs.Graph):
+    if isinstance(G, Graph):
         if not hasattr(G, 'U'):
             if verbose:
                 print('analysis filter has to compute the eigenvalues and the eigenvectors.')
@@ -692,7 +693,7 @@ def localize(G, g, i):
     f = np.zeros((G.N))
     f[i-1] = 1
 
-    gt = sqrt(G.N)*filters.filters_analysis(G, g, f)
+    gt = sqrt(G.N) * filters_analysis(G, g, f)
 
     return gt
 
@@ -743,7 +744,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=False, epsilon=None):
             Gs.append(kron_reduction(Gs[i], ind))
 
         Gs[i+1].pyramid = {'ind': ind,
-                           'green_kernel': pygsp.filters.Filter(Gs[i + 1], filters=[lambda x: 1./(lamda + x)]),
+                           'green_kernel': Filter(Gs[i + 1], filters=[lambda x: 1./(lamda + x)]),
                            'level': i+1,
                            'K_reg': kron_reduction(L_reg, ind)}
 
@@ -763,7 +764,7 @@ def kron_reduction(G, ind):
     -------
     Gnew : New graph structure or weight matrix
     """
-    if isinstance(G, pygsp.graphs.Graph):
+    if isinstance(G, Graph):
         if hasattr(G, 'lap_type'):
             if not G.lap_type == 'combinatorial':
                 raise ValueError('Not implemented.')
@@ -789,14 +790,14 @@ def kron_reduction(G, ind):
     if np.sum(np.abs(Lnew-Lnew.T)) < np.spacing(1)*np.sum(np.abs(Lnew)):
         Lnew = (Lnew + Lnew.T)/2.
 
-    if isinstance(G, pygsp.graphs.Graph):
+    if isinstance(G, Graph):
         # Suppress the diagonal ? This is a good question?
         Wnew = np.diag(np.diag(Lnew)) - Lnew
         Snew = np.diag(Lnew) - np.sum(Wnew, axis=0).T
         if np.linalg.norm(Snew, 2) < np.spacing(1000):
             Snew = 0
         Wnew = Wnew + np.diagonal(Wnew)
-        Gnew = pygsp.graphs.Graph(W=Wnew, coords=G.coords[ind, :],
+        Gnew = Graph(W=Wnew, coords=G.coords[ind, :],
                                   type='Kron reduction')
         G.copy_graph_attributes(ctype=False, Gn=Gnew)
 
@@ -854,7 +855,7 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
             filters.append(lambda x: .5/(.5+x))
 
     for i in range(Nlevels):
-        Gs[i + 1].pyramid['filters'] = pygsp.filters.Filter(Gs[i + 1], filters=[filters[i]])
+        Gs[i + 1].pyramid['filters'] = Filter(Gs[i + 1], filters=[filters[i]])
 
     # ca = [np.ravel(f)]
     ca = [f]
@@ -1141,7 +1142,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         depths = depths/2.
 
         # Store new tree
-        Gtemp = pygsp.graphs.Graph(new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, gtype='tree',)
+        Gtemp = Graph(new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, gtype='tree',)
         Gtemp.L = create_laplacian(Gs[lev + 1], G.lap_type)
         Gtemp.root = new_root
         Gtemp = gsp_copy_graph_attributes(Gs[lev], False, Gs[lev + 1])
