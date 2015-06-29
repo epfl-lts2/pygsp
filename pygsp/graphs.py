@@ -222,6 +222,58 @@ class Graph(object):
         else:
             self.plotting['vertex_color'] = 'b'
 
+    def update_graph_attr(self, *args, **kwargs):
+        r"""
+        update_graph_attr will recompute the some attribute of the graph:
+
+        Parameters
+        ----------
+        args: list of string
+            the arguments, that will be not changed and not re-compute.
+        kwargs: Dictionnary
+            The arguments with their new value.
+
+        Return
+        ------
+        The same Graph with some modified values.
+
+        Note
+        ----
+        This method is usefull if you want to give a new weight matrix (W) and compute the adjacency matrix (A) and more again.
+        The valid attributes are ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'verbose', 'plotting']
+
+        Examples
+        --------
+        >>> form pygsp import graphs
+        >>> G = graphs.Ring(N=10)
+        >>> newW = G.W
+        >>> newW[1] = 1
+        >>> G.update_graph_attr('N', 'd', W=newW) # All attribute of G  ecpeted 'N' and 'd' will be compute with the newW
+        """
+        graph_attr = {}
+        valid_attributes = ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'verbose', 'plotting']
+
+        for i in args:
+            if i in valid_attributes:
+                graph_attr[i] = getattr(self, i)
+            else:
+                print('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
+
+        for i in kwargs:
+            if i in valid_attributes:
+                if i in graph_attr:
+                    print('You already give this attribute in the args. Therefore, it will not be recaculate.')
+                else:
+                    graph_attr[i] = kwargs[i]
+            else:
+                print('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
+
+        if isinstance(self, NNGraph):
+            super(NNGraph, self).__init__(**graph_attr)
+
+        else:
+            super(type(self), self).__init__(**graph_attr)
+
     def deep_copy_graph(self):
         r"""
         TODO write doc
