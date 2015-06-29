@@ -86,7 +86,6 @@ class FunctionsTestCase(unittest.TestCase):
             self.assertEqual(utils.is_directed(G), rep['is_dir'])
 
         def test_estimate_lmax(G):
-            print(G.W)
             operators.compute_fourier_basis(G)
             nptest.assert_almost_equal(utils.estimate_lmax(G)[0], G.lmax)
 
