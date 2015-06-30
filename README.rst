@@ -11,42 +11,42 @@ Features
 --------
 
 * Graphs
-  * Basic Graph structure
-  * NNGraph
-  * Bunny
-  * Cube
-  * Sphere
-  * TwoMoons
-  * Grid2d
-  * Torus
-  * Comet
-  * LowStretchTree
-  * RandomRegular
-  * Ring
-  * Community
-  * Minnesota
-  * Sensor
-  * Airfoil
-  * DavidSensorNet
-  * FullConnected
-  * Logo
-  * Path
-  * RandomRing
+  - Basic Graph structure
+  - NNGraph
+  - Bunny
+  - Cube
+  - Sphere
+  - TwoMoons
+  - Grid2d
+  - Torus
+  - Comet
+  - LowStretchTree
+  - RandomRegular
+  - Ring
+  - Community
+  - Minnesota
+  - Sensor
+  - Airfoil
+  - DavidSensorNet
+  - FullConnected
+  - Logo
+  - Path
+  - RandomRing
 
 * Filters
-  * Basic Filter structure
-  * Abspline
-  * Expwin
-  * HalfCosine
-  * Itersine
-  * MexicanHat
-  * Meyer
-  * SimpleTf
-  * Papadakis
-  * Regular
-  * Simoncelli
-  * Held
-  * Heat
+  - Basic Filter structure
+  - Abspline
+  - Expwin
+  - HalfCosine
+  - Itersine
+  - MexicanHat
+  - Meyer
+  - SimpleTf
+  - Papadakis
+  - Regular
+  - Simoncelli
+  - Held
+  - Heat
 
 Installation
 ------------
