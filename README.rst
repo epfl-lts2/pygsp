@@ -11,6 +11,7 @@ Features
 --------
 
 * Graphs
+
   - Basic Graph structure
   - NNGraph
   - Bunny
@@ -34,6 +35,7 @@ Features
   - RandomRing
 
 * Filters
+
   - Basic Filter structure
   - Abspline
   - Expwin
