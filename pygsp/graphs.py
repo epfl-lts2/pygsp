@@ -1105,7 +1105,7 @@ class RandomRegular(Graph):
                 # print progess
                 if edgesTested % 5000 == 0:
                     self.logger.debug("createRandRegGraph() progress: edges= "
-                                      "{}/{}n".fomrat(edgesTested, n*d))
+                                      "{}/{}n".format(edgesTested, n*d))
 
                 # chose at random 2 half edges
                 i1 = floor(rd.random()*np.shape(U)[0])

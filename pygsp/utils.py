@@ -590,7 +590,7 @@ def graph_sparsify(G, epsilon):
     ---------
     See :cite: `spielman2011graph` `rudelson1999random` `rudelson2007sampling` for more informations
     """
-    from pygsp.graphs import Graphs
+    from pygsp.graphs import Graph
     # Test the input parameters
     if isinstance(G, pygsp.graphs.Graph):
         if not G.lap_type == 'combinatorial':
