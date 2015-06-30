@@ -186,11 +186,9 @@ def check_weights(W):
     --------
     >>> from scipy import sparse
     >>> from pygsp import graphs, utils
+    >>> np.random.seed(42)
     >>> W = sparse.rand(10,10,0.2)
-    >>> [has_inf_val, has_nan_value, is_not_square, diag_is_not_zero] = utils.check_weights(W)
-    GSP_TEST_WEIGHTS: The main diagonal of the weight matrix is not 0!
     >>> weights_chara = utils.check_weights(W)
-    GSP_TEST_WEIGHTS: The main diagonal of the weight matrix is not 0!
 
     """
 
@@ -219,7 +217,10 @@ def check_weights(W):
                        "value in the weight matrix")
         has_nan_value = True
 
-    return {'has_inf_val': has_inf_val, 'has_nan_value': has_nan_value, 'is_not_square': is_not_square, 'diag_is_not_zero': diag_is_not_zero}
+    return {'has_inf_val': has_inf_val,
+            'has_nan_value': has_nan_value,
+            'is_not_square': is_not_square,
+            'diag_is_not_zero': diag_is_not_zero}
 
 
 def check_connectivity(G, **kwargs):
@@ -402,7 +403,7 @@ def repmatline(A, ncol=1, nrow=1):
         raise ValueError("The number of lines and rows must be greater or\
                          equal to one, or you will get an empty array.")
 
-    return np.repeat(np.repeat(x, ncol, axis=1), nrow, axis=0)
+    return np.repeat(np.repeat(A, ncol, axis=1), nrow, axis=0)
 
 
 def vec2mat(d, Nf):
@@ -465,8 +466,10 @@ def resistance_distance(G):
 
     if isinstance(G, Graph):
         if not G.lap_type == 'combinatorial':
-            logger.info('Compute the combinatorial laplacian for the resitance distance')
-            create_laplacian(G, lap_type='combinatorial', get_laplacian_only=False)
+            logger.info('Compute the combinatorial laplacian for the resitance'
+                        ' distance')
+            create_laplacian(G, lap_type='combinatorial',
+                             get_laplacian_only=False)
         L = G.L
 
     else:
@@ -588,11 +591,13 @@ def graph_sparsify(G, epsilon):
 
     Reference
     ---------
-    See :cite: `spielman2011graph` `rudelson1999random` `rudelson2007sampling` for more informations
+    See :cite: `spielman2011graph` `rudelson1999random` `rudelson2007sampling`
+    for more informations
+
     """
-    from pygsp.graphs import Graphs
+    from pygsp.graphs import Graph
     # Test the input parameters
-    if isinstance(G, pygsp.graphs.Graph):
+    if isinstance(G, Graph):
         if not G.lap_type == 'combinatorial':
             raise NotImplementedError
         L = G.L
@@ -604,10 +609,11 @@ def graph_sparsify(G, epsilon):
     if epsilon <= 1./sqrt(N) or epsilon > 1:
         raise ValueError('GRAPH_SPARSIFY: Epsilon out of required range')
 
-    resistance_distances = resistance_distance(L) # pas sparse
+    # pas sparse
+    resistance_distances = resistance_distance(L)
 
     # Get the Weight matrix
-    if isinstance(G, pygsp.graphs.Graph):
+    if isinstance(G, Graph):
         W = G.W
     else:
         W = np.diag(L.diagonal()) - L.toarray()
@@ -622,7 +628,8 @@ def graph_sparsify(G, epsilon):
     Pe = weights*Re
     Pe = Pe/np.sum(Pe)
 
-    # Rudelson, 1996 Random Vectors in the Isotropic Position (too hard to figure out actual C0)
+    # Rudelson, 1996 Random Vectors in the Isotropic Position
+    # (too hard to figure out actual C0)
     C0 = 1/30.
     # Rudelson and Vershynin, 2007, Thm. 3.1
     C = 4*C0
@@ -641,13 +648,13 @@ def graph_sparsify(G, epsilon):
     sparserW = sparserW + sparserW.getH()
     sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
 
-    if isinstance(G, pygsp.graphs.Graph):
+    if isinstance(G, Graph):
         sparserW = sparse.diags(sparserL.diagonal(), 0) - sparserL
         if not G.directed:
             sparserW = (sparserW + sparserW.getH())/2.
             sparserL = (sparserL + sparserL.getH())/2.
 
-        Gnew = pygsp.graphs.Graph(W=sparserW, L=sparserL)
+        Gnew = Graph(W=sparserW, L=sparserL)
         G.copy_graph_attributes(Gnew)
     else:
         Gnew = sparse.lil_matrix(L)

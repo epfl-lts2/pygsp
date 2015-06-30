@@ -11,7 +11,7 @@ This module implements principally graphs and some PointsClouds
 from os import path
 import numpy as np
 import random as rd
-from math import ceil, sqrt, log, exp, floor, pi
+from math import ceil, sqrt, log, floor, pi
 from copy import deepcopy
 from scipy import sparse, io, spatial
 
@@ -57,7 +57,8 @@ class PointsCloud(object):
 
     def __init__(self, pointcloudname, max_dim=2):
         if pointcloudname == "airfoil":
-            airfoilmat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'airfoil.mat'))
+            airfoilmat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'airfoil.mat'))
             self.i_inds = airfoilmat['i_inds']
             self.j_inds = airfoilmat['j_inds']
             self.x = airfoilmat['x']
@@ -65,23 +66,27 @@ class PointsCloud(object):
             self.coords = np.concatenate((self.x, self.y), axis=1)
 
         elif pointcloudname == "bunny":
-            bunnymat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'bunny.mat'))
+            bunnymat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'bunny.mat'))
             self.Xin = bunnymat["bunny"]
 
         elif pointcloudname == "david64":
-            david64mat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'david64.mat'))
+            david64mat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'david64.mat'))
             self.W = david64mat["W"]
             self.N = david64mat["N"][0, 0]
             self.coords = david64mat["coords"]
 
         elif pointcloudname == "david500":
-            david500mat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'david500.mat'))
+            david500mat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'david500.mat'))
             self.W = david500mat["W"]
             self.N = david500mat["N"][0, 0]
             self.coords = david500mat["coords"]
 
         elif pointcloudname == "logo":
-            logomat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'logogsp.mat'))
+            logomat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'logogsp.mat'))
             self.W = logomat["W"]
             self.coords = logomat["coords"]
             self.limits = np.array([0, 640, -400, 0])
@@ -91,13 +96,15 @@ class PointsCloud(object):
                          "idx_p": logomat["idx_p"]}
 
         elif pointcloudname == "minnesota":
-            minnesotamat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'minnesota.mat'))
+            minnesotamat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'minnesota.mat'))
             self.A = minnesotamat["A"]
             self.labels = minnesotamat["labels"]
             self.coords = minnesotamat["xy"]
 
         elif pointcloudname == "two_moons":
-            twomoonsmat = io.loadmat(path.join(path.dirname(path.realpath(__file__)), 'misc', 'two_moons.mat'))
+            twomoonsmat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'two_moons.mat'))
             if max_dim == -1:
                 max_dim == 2
             self.Xin = twomoonsmat["features"][:max_dim].T
@@ -129,7 +136,8 @@ class Graph(object):
     gtype : string
         Graph type (default is "unknown")
     directed : bool
-        Whether the graph is directed (default depending of the previous values)
+        Whether the graph is directed
+        (default depending of the previous values)
     lap_type : string
         Laplacian type (default = 'combinatorial')
     L : Ndarray
@@ -229,12 +237,14 @@ class Graph(object):
 
         Return
         ------
-        The same Graph with some modified values.
+        The same Graph with some updated values.
 
         Note
         ----
-        This method is usefull if you want to give a new weight matrix (W) and compute the adjacency matrix (A) and more again.
-        The valid attributes are ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'plotting']
+        This method is usefull if you want to give a new weight matrix
+        (W) and compute the adjacency matrix (A) and more again.
+        The valid attributes are ['W', 'A', 'N', 'd', 'Ne', 'gtype',
+        'directed', 'coords', 'lap_type', 'L', 'plotting']
 
         Examples
         --------
@@ -242,11 +252,13 @@ class Graph(object):
         >>> G = graphs.Ring(N=10)
         >>> newW = G.W
         >>> newW[1] = 1
-        >>> G.update_graph_attr('N', 'd', W=newW) # All attribute of G  ecpeted 'N' and 'd' will be compute with the newW
+        >>> G.update_graph_attr('N', 'd', W=newW)
 
+        Updates all attributes of G excepted 'N' and 'd'
         """
         graph_attr = {}
-        valid_attributes = ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'plotting']
+        valid_attributes = ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed',
+                            'coords', 'lap_type', 'L', 'plotting']
 
         for i in args:
             if i in valid_attributes:
@@ -277,7 +289,8 @@ class Graph(object):
 
     def copy_graph_attributes(self, Gn, ctype=True):
         r"""
-        Copy_graph_attributes copies some parameters of the graph into a given one
+        Copy_graph_attributes copies some parameters of the graph into
+        a given one
 
         Parameters
         ----------:
@@ -369,7 +382,8 @@ class NNGraph(Graph):
     Xin : ndarray
         Input points
     use_flann : bool
-        Whether flann method should be used (knn is otherwise used). Default is False.
+        Whether flann method should be used (knn is otherwise used).
+        (default is False)
         (this option is not implemented yet)
     center : bool
         Center the data (default is True)
@@ -771,12 +785,19 @@ class Grid2d(Graph):
         j_inds = np.zeros((K*Mv + J*Nv), dtype=float)
 
         for i in range(Mv):
-            i_inds[i*K + np.arange(K)] = i*Nv + np.concatenate((np.arange(Nv-1), np.arange(1, Nv)))
-            j_inds[i*K + np.arange(K)] = i*Nv + np.concatenate((np.arange(1, Nv), np.arange(Nv-1)))
+            i_inds[i*K + np.arange(K)] = i*Nv + \
+                np.concatenate((np.arange(Nv-1), np.arange(1, Nv)))
+            j_inds[i*K + np.arange(K)] = i*Nv + \
+                np.concatenate((np.arange(1, Nv), np.arange(Nv-1)))
 
         for i in range(Mv-1):
-            i_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = np.concatenate((i*Nv + np.arange(Nv), (i+1)*Nv + np.arange(Nv)))
-            j_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = np.concatenate(((i+1)*Nv + np.arange(Nv), i*Nv + np.arange(Nv)))
+            i_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = \
+                np.concatenate((i*Nv + np.arange(Nv),
+                                (i+1)*Nv + np.arange(Nv)))
+
+            j_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = \
+                np.concatenate(((i+1)*Nv + np.arange(Nv),
+                                i*Nv + np.arange(Nv)))
 
         self.W = sparse.csc_matrix((np.ones((K*Mv+J*Nv)), (i_inds, j_inds)),
                                    shape=(Mv*Nv, Mv*Nv))
@@ -837,15 +858,28 @@ class Torus(Graph):
         j_inds = np.zeros((K*Mv + J*Nv), dtype=float)
 
         for i in range(Mv):
-            i_inds[i*K + np.arange(K)] = i*Nv + np.concatenate((np.array([Nv-1]), np.arange(Nv-1), np.arange(Nv)))
-            j_inds[i*K + np.arange(K)] = i*Nv + np.concatenate((np.arange(Nv), np.array([Nv-1]), np.arange(Nv-1)))
+            i_inds[i*K + np.arange(K)] = i*Nv + \
+                np.concatenate((np.array([Nv-1]), np.arange(Nv-1),
+                                np.arange(Nv)))
+
+            j_inds[i*K + np.arange(K)] = i*Nv + \
+                np.concatenate((np.arange(Nv), np.array([Nv-1]),
+                                np.arange(Nv-1)))
 
         for i in range(Mv-1):
-            i_inds[K*Mv + i*2*Nv + np.arange(2*Nv)] = np.concatenate((i*Nv + np.arange(Nv), (i+1)*Nv + np.arange(Nv)))
-            j_inds[K*Mv + i*2*Nv + np.arange(2*Nv)] = np.concatenate(((i+1)*Nv + np.arange(Nv), i*Nv + np.arange(Nv)))
+            i_inds[K*Mv + i*2*Nv + np.arange(2*Nv)] = \
+                np.concatenate((i*Nv + np.arange(Nv),
+                                (i+1)*Nv + np.arange(Nv)))
 
-        i_inds[K*Mv + (Mv-1)*2*Nv + np.arange(2*Nv)] = np.concatenate((np.arange(Nv), (Mv-1)*Nv + np.arange(Nv)))
-        j_inds[K*Mv + (Mv-1)*2*Nv + np.arange(2*Nv)] = np.concatenate(((Mv-1)*Nv + np.arange(Nv), np.arange(Nv)))
+            j_inds[K*Mv + i*2*Nv + np.arange(2*Nv)] = \
+                np.concatenate(((i+1)*Nv + np.arange(Nv),
+                                i*Nv + np.arange(Nv)))
+
+        i_inds[K*Mv + (Mv-1)*2*Nv + np.arange(2*Nv)] = \
+            np.concatenate((np.arange(Nv), (Mv-1)*Nv + np.arange(Nv)))
+
+        j_inds[K*Mv + (Mv-1)*2*Nv + np.arange(2*Nv)] = \
+            np.concatenate(((Mv-1)*Nv + np.arange(Nv), np.arange(Nv)))
 
         self.W = sparse.csc_matrix((np.ones((K*Mv+J*Nv)), (i_inds, j_inds)),
                                    shape=(Mv*Nv, Mv*Nv))
@@ -1007,138 +1041,142 @@ class RandomRegular(Graph):
 
     """
 
-    def __init__(self, N=64, k=6, **kwargs):
 
-        def isRegularGraph(A):
-            r"""
-            This fonction prints a message describing the problem of a given
-            sparse matrix.
+    def isRegularGraph(self, A):
+        r"""
+        This fonction prints a message describing the problem of a given
+        sparse matrix.
 
-            Parameters
-            ----------
-            A : sparse matrix
+        Parameters
+        ----------
+        A : sparse matrix
 
-            """
+        """
 
-            msg = "The given matrix "
+        msg = "The given matrix "
 
-            # check if the sparse matrix is in a good format
-            if A.getformat() == 'lil' or A.getformat() == 'dia' or A.getformat() == 'bok':
-                A = A.tocsc()
+        # check if the sparse matrix is in a good format
+        if A.getformat() == 'lil' or \
+                A.getformat() == 'dia' or \
+                A.getformat() == 'bok':
+            A = A.tocsc()
 
-            # check symmetry
-            tmp = (A-A.getH())
-            if np.sum((tmp.getH()*tmp).diagonal()) > 0:
-                msg += "is not symetric, "
+        # check symmetry
+        tmp = (A-A.getH())
+        if np.sum((tmp.getH()*tmp).diagonal()) > 0:
+            msg += "is not symetric, "
 
-            # check parallel edged
-            if A.max(axis=None) > 1:
-                msg += "has parallel edges, "
+        # check parallel edged
+        if A.max(axis=None) > 1:
+            msg += "has parallel edges, "
 
-            # check that d is d-regular
-            d_vec = A.sum(axis=0)
-            if np.min(d_vec) < d_vec[:, 0] and np.max(d_vec) > d_vec[:, 0]:
-                msg += "not d-regular, "
+        # check that d is d-regular
+        d_vec = A.sum(axis=0)
+        if np.min(d_vec) < d_vec[:, 0] and np.max(d_vec) > d_vec[:, 0]:
+            msg += "not d-regular, "
 
-            # check that g doesn't contain any loops
-            if A.diagonal().any() > 0:
-                msg += "has self loops, "
+        # check that g doesn't contain any loops
+        if A.diagonal().any() > 0:
+            msg += "has self loops, "
 
-            else:
-                msg += "is ok"
+        else:
+            msg += "is ok"
+        self.logger.info(msg)
 
-            self.logger.info(msg)
+    def createRandRegGraph(self, vertNum, deg):
+        r"""
+        Create a simple d-regular undirected graph
+        simple = without loops or double edges
+        d-reglar = each vertex is adjecent to d edges
 
-        def createRandRegGraph(vertNum, deg):
-            r"""
-            Create a simple d-regular undirected graph
-            simple = without loops or double edges
-            d-reglar = each vertex is adjecent to d edges
+        Parameters
+        ----------
+        vertNum : int
+            Number of vertices
+        deg : int
+            The degree of each vertex
 
-            Parameters
-            ----------
-            vertNum : int
-                Number of vertices
-            deg : int
-                The degree of each vertex
+        Returns
+        -------
+        A : sparse
+            Representation of the graph
 
-            Returns
-            -------
-            A : sparse
-                Representation of the graph
+        Algorithm
+        ---------
+        "The pairing model": create n*d 'half edges'.
+        Repeat as long as possible: pick a pair of half edges
+        and if it's legal (doesn't creat a loop nor a double edge)
+        add it to the graph
 
-            Algorithm
-            ---------
-            "The pairing model": create n*d 'half edges'.
-            Repeat as long as possible: pick a pair of half edges
-            and if it's legal (doesn't creat a loop nor a double edge)
-            add it to the graph
+        Reference
+        ---------
+        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.67.7957&rep=rep1&type=pdf
+        (This code has been adapted from matlab to python)
+        """
 
-            Reference
-            ---------
-            http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.67.7957&rep=rep1&type=pdf
-            (This code has been adapted from matlab to python)
-            """
+        n = vertNum
+        d = deg
+        matIter = 10
 
-            n = vertNum
-            d = deg
-            matIter = 10
+        # continue until a proper graph is formed
+        if (n*d) % 2 == 1:
+            raise ValueError("createRandRegGraph input err:\
+                                n*d must be even!")
 
-            # continue until a proper graph is formed
-            if (n*d) % 2 == 1:
-                raise ValueError("createRandRegGraph input err:\
-                                 n*d must be even!")
+        # a list of open half-edges
+        U = np.kron(np.ones((d)), np.arange(n))
 
-            # a list of open half-edges
-            U = np.kron(np.ones((d)), np.arange(n))
+        # the graphs adajency matrix
+        A = sparse.lil_matrix(np.zeros((n, n)))
 
-            # the graphs adajency matrix
-            A = sparse.lil_matrix(np.zeros((n, n)))
+        edgesTested = 0
+        repetition = 1
 
-            edgesTested = 0
-            repetition = 1
+        # check that there are no loops nor parallel edges
+        while np.size(U) != 0 and repetition < matIter:
+            edgesTested += 1
+
+            # print progess
+            if edgesTested % 5000 == 0:
+                self.logger.debug("createRandRegGraph() progress: edges= "
+                                    "{}/{}n".format(edgesTested, n*d))
+
+            # chose at random 2 half edges
+            i1 = floor(rd.random()*np.shape(U)[0])
+            i2 = floor(rd.random()*np.shape(U)[0])
+            v1 = U[i1]
+            v2 = U[i2]
 
             # check that there are no loops nor parallel edges
-            while np.size(U) != 0 and repetition < matIter:
-                edgesTested += 1
+            if v1 == v2 or A[v1, v2] == 1:
+                # restart process if needed
+                if edgesTested == n*d:
+                    repetition = repetition + 1
+                    edgesTested = 0
+                    U = np.kron(np.ones((d)), np.arange(n))
+                    A = sparse.lil_matrix(np.zeros((n, n)))
+            else:
+                # add edge to graph
+                A[v1, v2] = 1
+                A[v2, v1] = 1
 
-                # print progess
-                if edgesTested % 5000 == 0:
-                    self.logger.debug("createRandRegGraph() progress: edges= "
-                                      "{}/{}n".format(edgesTested, n*d))
+                # remove used half-edges
+                v = sorted([i1, i2])
+                U = np.concatenate((U[1:v[0]], U[v[0]+1:v[1]], U[v[1]+1:]))
 
-                # chose at random 2 half edges
-                i1 = floor(rd.random()*np.shape(U)[0])
-                i2 = floor(rd.random()*np.shape(U)[0])
-                v1 = U[i1]
-                v2 = U[i2]
+        self.isRegularGraph(A)
 
-                # check that there are no loops nor parallel edges
-                if v1 == v2 or A[v1, v2] == 1:
-                    # restart process if needed
-                    if edgesTested == n*d:
-                        repetition = repetition + 1
-                        edgesTested = 0
-                        U = np.kron(np.ones((d)), np.arange(n))
-                        A = sparse.lil_matrix(np.zeros((n, n)))
-                else:
-                    # add edge to graph
-                    A[v1, v2] = 1
-                    A[v2, v1] = 1
+        return A
 
-                    # remove used half-edges
-                    v = sorted([i1, i2])
-                    U = np.concatenate((U[1:v[0]], U[v[0]+1:v[1]], U[v[1]+1:]))
-
-            isRegularGraph(A)
-
-            return A
-
+    def __init__(self, N=64, k=6, **kwargs):
         self.N = N
         self.k = k
 
         self.gtype = "random_regular"
-        self.W = createRandRegGraph(self.N, self.k)
+
+        self.logger = utils.build_logger(__name__)  # Build the logger as createRandRegGraph needit
+
+        self.W = self.createRandRegGraph(self.N, self.k)
 
         super(RandomRegular, self).__init__(W=self.W, gtype=self.gtype,
                                             N=self.N, **kwargs)
@@ -1180,18 +1218,22 @@ class Ring(Graph):
         for i in range(min(k, floor((N-1)/2.))):
             i_inds[i*2*N + np.arange(N)] = all_inds
             j_inds[i*2*N + np.arange(N)] = np.remainder(all_inds + i + 1, N)
-            i_inds[(i*2+1)*N + np.arange(N)] = np.remainder(all_inds + i + 1, N)
+            i_inds[(i*2+1)*N + np.arange(N)] = np.remainder(all_inds + i + 1,
+                                                            N)
             j_inds[(i*2+1)*N + np.arange(N)] = all_inds
 
         if k == N/2.:
             i_inds[2*N*(k-1) + np.arange(N)] = all_inds
-            i_inds[2*N*(k-1) + np.arange(N)] = np.remainder(all_inds + k + 1, N)
+            i_inds[2*N*(k-1) + np.arange(N)] = np.remainder(all_inds + k + 1,
+                                                            N)
 
         self.W = sparse.csc_matrix((np.ones((2*num_edges)), (i_inds, j_inds)),
                                    shape=(N, N))
 
-        self.coords = np.concatenate((np.cos(np.arange(N).reshape(N, 1)*2*np.pi/float(N)),
-                                      np.sin(np.arange(N).reshape(N, 1)*2*np.pi/float(N))),
+        self.coords = np.concatenate((np.cos(np.arange(N).reshape(N, 1)
+                                             * 2 * np.pi/float(N)),
+                                      np.sin(np.arange(N).reshape(N, 1)
+                                             * 2 * np.pi/float(N))),
                                      axis=1)
 
         self.plotting = {"limits": np.array([-1, 1, -1, 1])}
@@ -1225,9 +1267,11 @@ class Community(Graph):
     min_comm : int
         Minimum size of the communities (default = round(N/Nc/3))
     min_deg : int
-        Minimum degree of each node (default = round(min_comm/2) (not implemented yet))
+        Minimum degree of each node (default = round(min_comm/2)
+        (not implemented yet))
     size_ratio : float
-        Ratio between the radius of world and the radius of communities (default = 1)
+        Ratio between the radius of world and the radius of communities
+        (default = 1)
     world_density : float
         Probability of a random edge between any pair of edges (default = 1/N)
 
@@ -1270,33 +1314,42 @@ class Community(Graph):
             X = np.zeros((10000, Nc + 1))
             # pick randomly param.Nc-1 points to cut the rows in communtities:
             for i in range(10000):
-                com_lims_tmp = np.sort(np.resize(np.random.permutation(int(x)), (Nc-1.))) + 1
-                com_lims_tmp += np.cumsum((min_com-1)*np.ones(np.shape(com_lims_temp)))
-                X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([N])))
+                com_lims_tmp = np.sort(np.resize(np.random.permutation(int(x)),
+                                                 (Nc-1.))) + 1
+                com_lims_tmp += np.cumsum((min_com-1) *
+                                          np.ones(np.shape(com_lims_tmp)))
+                X[i, :] = np.concatenate((np.array([0]), com_lims_tmp,
+                                          np.array([N])))
+
             dX = np.diff(X.T).T
+
             for i in range(int(Nc)):
-                # TODO figure; hist(dX(:,i), 100); title('histogram of row community size'); end
+                # TODO figure; hist(dX(:,i), 100); title('histogram of
+                # row community size'); end
                 pass
             del X
             del com_lims_tmp
 
         rad_world = size_ratio*sqrt(N)
-        com_coords = rad_world*np.concatenate((-np.expand_dims(np.cos(2*np.pi*(np.arange(Nc) + 1)/Nc), axis=1),
-                                               np.expand_dims(np.sin(2*np.pi*(np.arange(Nc) + 1)/Nc), axis=1)),
+        com_coords = rad_world*np.concatenate((
+            -np.expand_dims(np.cos(2*np.pi*(np.arange(Nc) + 1)/Nc), axis=1),
+            np.expand_dims(np.sin(2*np.pi*(np.arange(Nc) + 1)/Nc), axis=1)),
                                               axis=1)
 
         coords = np.ones((N, 2))
 
         # create uniformly random points in the unit disc
         for i in range(N):
-            # use rejection sampling to sample from a unit disc (probability = pi/4)
+            # use rejection sampling to sample from a unit disc
+            # (probability = pi/4)
             while np.linalg.norm(coords[i], 2) >= 0.5:
                 # sample from the square and reject anything outside the circle
                 coords[i] = rd.random()-0.5, rd.random()-0.5
 
         info = {"node_com": np.zeros((N, 1))}
 
-        # add the offset for each node depending on which community it belongs to
+        # add the offset for each node depending on which community
+        # it belongs to
         for i in range(int(Nc)):
             com_size = com_sizes[i]
             rad_com = sqrt(com_size)
@@ -1309,12 +1362,13 @@ class Community(Graph):
         W = np.exp(-np.power(D, 2))
         W = np.where(W < 1e-3, 0, W)
 
-        # When we make W symetric, the density get bigger (because we add a ramdom number of values)
+        # When we make W symetric, the density get bigger (because we add
+        # a ramdom number of values)
         world_density = world_density/float(2-1./N)
 
         W = W + np.abs(sparse.rand(N, N, density=world_density))
         # W need to be symetric.
-        w = (W + W.getH())/2.
+        # Basile 30.06.2015 : W = (W + W.getH())/2.
         W = np.where(np.abs(W) > 0, 1, W).astype(float)
 
         self.W = sparse.coo_matrix(W)
@@ -1439,8 +1493,12 @@ class Sensor(Graph):
                 for i in range(mdim):
                     for j in range(mdim):
                         if i*mdim + j < N:
-                            XCoords[i*mdim + j] = np.array(1./float(mdim)*np.random.rand() + i/float(mdim))
-                            YCoords[i*mdim + j] = np.array(1./float(mdim)*np.random.rand() + j/float(mdim))
+                            XCoords[i*mdim + j] = \
+                                np.array(1./float(mdim)*np.random.rand()
+                                         + i/float(mdim))
+                            YCoords[i*mdim + j] = \
+                                np.array(1./float(mdim)*np.random.rand()
+                                         + j/float(mdim))
 
             # take random coordinates in a 1 by 1 square
             else:
@@ -1548,7 +1606,8 @@ class Airfoil(Graph):
 
         self.coords = airfoil.coords
         self.gtype = 'Airfoil'
-        self.plotting = {"limits": np.array([-1e-4, 1.01*np.max(x), -1e-4, 1.01*np.max(y)]),
+        self.plotting = {"limits": np.array([-1e-4, 1.01*np.max(x),
+                                             -1e-4, 1.01*np.max(y)]),
                          "vertex_size": 30}
 
         super(Airfoil, self).__init__(W=self.W, coords=self.coords,
@@ -1660,7 +1719,9 @@ class Logo(Graph):
         self.limits = np.array([0, 640, -400, 0])
         self.gtype = 'LogoGSP'
 
-        self.plotting = {"vertex_color": np.array([200./255, 136./255, 204./255]),
+        self.plotting = {"vertex_color": np.array([200./255,
+                                                   136./255,
+                                                   204./255]),
                          "edge_color": np.array([0, 136./255, 204./255]),
                          "vertex_size": 8}
 
@@ -1746,8 +1807,10 @@ class RandomRing(Graph):
         self.limits = np.array([-1, 1, -1, 1])
         self.gtype = 'random-ring'
 
-        super(RandomRing, self).__init__(N=self.N, W=self.W, gtype=self.gtype,
-                                         coords=self.coords, limits=self.limits)
+        super(RandomRing, self).__init__(N=self.N, W=self.W,
+                                         gtype=self.gtype,
+                                         coords=self.coords,
+                                         limits=self.limits)
 
 
 class SwissRoll(Graph):
@@ -1771,7 +1834,8 @@ class SwissRoll(Graph):
     noise : bool
         Wether to add noise or not (default = False)
     srtype : str
-        Swiss roll Type, possible arguments are 'uniform' or 'classic' (default = 'uniform')
+        Swiss roll Type, possible arguments are 'uniform' or 'classic'
+        (default = 'uniform')
 
     Examples
     --------

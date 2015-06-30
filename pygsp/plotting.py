@@ -141,7 +141,6 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
                                     np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
                                     np.expand_dims(G.coords[kj, 1], axis=0)))
-                # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
                 ax.plot(x, y, linewidth=G.plotting['edge_width'],
                         color=G.plotting['edge_color'],
                         linestyle=G.plotting['edge_style'],
@@ -174,7 +173,6 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
                             linestyle=G.plotting['edge_style'],
                             marker='o', markersize=G.plotting['vertex_size'],
                             markerfacecolor=G.plotting['vertex_color'])
-                    # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
     else:
         if G.coords.shape[1] == 2:
             ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
@@ -511,7 +509,6 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
                                     np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
                                     np.expand_dims(G.coords[kj, 1], axis=0)))
-                # ax.plot(x, y, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
                 ax.plot(x, y, color='grey', zorder=1)
                 # plt.show()
             if G.coords.shape[1] == 3:
@@ -538,7 +535,6 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
                     z3 = z2[i:i + 2]
                     ax.plot(x3, y3, z3, color='grey', marker='o',
                             markerfacecolor='blue', zorder=1)
-                    # ax.plot(x3, y3, z3, color=G.plotting['edge_color'], marker='o', markerfacecolor=G.plotting['vertex_color'])
 
     # Plot signal
     if G.coords.shape[1] == 2:
@@ -629,10 +625,14 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
     mininum = min(signal)
     maximum = max(signal)
 
-    normalized_signal = map(lambda x: (float(x) - mininum) / (maximum - mininum), signal)
+    normalized_signal = map(lambda x: (float(x) - mininum) /
+                            (maximum - mininum), signal)
 
     if G.coords.shape[1] == 2:
-        gp = pg.ScatterPlotItem(G.coords[:, 0], G.coords[:, 1], size=vertex_size, brush=cmap.map(normalized_signal, 'qcolor'))
+        gp = pg.ScatterPlotItem(G.coords[:, 0],
+                                G.coords[:, 1],
+                                size=vertex_size,
+                                brush=cmap.map(normalized_signal, 'qcolor'))
         v.addItem(gp)
     if G.coords.shape[1] == 3:
         gp = gl.GLScatterPlotItem(G.coords[:, 0], G.coords[:, 1],
@@ -724,8 +724,6 @@ def rescale_center(x):
 
     """
     N = x.shape[1]
-    # TODO virer d?
-    d = x.shape[0]
     y = x - np.kron(np.ones((1, N)), np.expand_dims(np.mean(x, axis=1),
                                                     axis=1))
     c = np.amax(y)
