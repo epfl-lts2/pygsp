@@ -238,11 +238,12 @@ class Graph(object):
 
         Examples
         --------
-        >>> form pygsp import graphs
+        >>> from pygsp import graphs
         >>> G = graphs.Ring(N=10)
         >>> newW = G.W
         >>> newW[1] = 1
         >>> G.update_graph_attr('N', 'd', W=newW) # All attribute of G  ecpeted 'N' and 'd' will be compute with the newW
+
         """
         graph_attr = {}
         valid_attributes = ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed', 'coords', 'lap_type', 'L', 'plotting']

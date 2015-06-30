@@ -117,7 +117,6 @@ We can visualize the filtering by one atom the same way the did for the Heat ker
 
 >>> G = pygsp.graphs.Bunny()
 >>> Wk = pygsp.filters.MexicanHat(G, Nf)
-MexicanHat : has to compute lmax
 >>> s_map = G.coords
 
 >>> s_map_out = Wk.analysis(G, s_map)
