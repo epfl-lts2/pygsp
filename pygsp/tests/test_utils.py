@@ -68,7 +68,7 @@ class FunctionsTestCase(unittest.TestCase):
                 'is_conn': False, 'sym': sym3}
         t3 = {'G': G3, 'rep': rep3}
 
-        W4 = sparse.lil_matrix(np.zeros((4, 4)))
+        W4 = np.zeros((4, 4))
         np.fill_diagonal(W4, 1)
         G4 = graphs.Graph(W4)
         lap4 = sparse.lil_matrix(W4)

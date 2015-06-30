@@ -629,10 +629,14 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
     mininum = min(signal)
     maximum = max(signal)
 
-    normalized_signal = map(lambda x: (float(x) - mininum) / (maximum - mininum), signal)
+    normalized_signal = map(lambda x: (float(x) - mininum) /
+                            (maximum - mininum), signal)
 
     if G.coords.shape[1] == 2:
-        gp = pg.ScatterPlotItem(G.coords[:, 0], G.coords[:, 1], size=vertex_size, brush=cmap.map(normalized_signal, 'qcolor'))
+        gp = pg.ScatterPlotItem(G.coords[:, 0],
+                                G.coords[:, 1],
+                                size=vertex_size,
+                                brush=cmap.map(normalized_signal, 'qcolor'))
         v.addItem(gp)
     if G.coords.shape[1] == 3:
         gp = gl.GLScatterPlotItem(G.coords[:, 0], G.coords[:, 1],
