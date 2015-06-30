@@ -201,22 +201,22 @@ def check_weights(W):
 
     if isinf(W.sum()):
         logger.warning("GSP_TEST_WEIGHTS: There is an infinite "
-              "value in the weight matrix")
+                       "value in the weight matrix")
         has_inf_val = True
 
     if abs(W.diagonal()).sum() != 0:
         logger.warning("GSP_TEST_WEIGHTS: The main diagonal of "
-              "the weight matrix is not 0!")
+                       "the weight matrix is not 0!")
         diag_is_not_zero = True
 
     if W.get_shape()[0] != W.get_shape()[1]:
         logger.warning("GSP_TEST_WEIGHTS: The weight matrix is "
-              "not square!")
+                       "not square!")
         is_not_square = True
 
     if isnan(W.sum()):
         logger.warning("GSP_TEST_WEIGHTS: There is an NaN "
-              "value in the weight matrix")
+                       "value in the weight matrix")
         has_nan_value = True
 
     return {'has_inf_val': has_inf_val, 'has_nan_value': has_nan_value, 'is_not_square': is_not_square, 'diag_is_not_zero': diag_is_not_zero}
@@ -590,6 +590,7 @@ def graph_sparsify(G, epsilon):
     ---------
     See :cite: `spielman2011graph` `rudelson1999random` `rudelson2007sampling` for more informations
     """
+    from pygsp.graphs import Graphs
     # Test the input parameters
     if isinstance(G, pygsp.graphs.Graph):
         if not G.lap_type == 'combinatorial':
