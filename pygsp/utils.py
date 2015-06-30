@@ -14,7 +14,7 @@ import logging
 def build_logger(name):
     logger = logging.getLogger(name)
 
-    formatter = logging.Formatter("%(asctime)s:[%(levelname)s](%(module)s.%(funcName)s): %(message)s")
+    formatter = logging.Formatter("%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s")
 
     steam_handler = logging.StreamHandler()
     steam_handler.setLevel(logging.DEBUG)
