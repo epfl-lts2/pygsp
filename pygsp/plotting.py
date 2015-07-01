@@ -68,7 +68,7 @@ def plot(O, **kwargs):
 
     if issubclass(type(O), pygsp.graphs.Graph):
         plot_graph(O)
-    elif issubclass(type(O), pygsp.graphs.PointsCloud):
+    elif issubclass(type(O), pygsp.pointsclouds.pointscloud.PointsCloud):
         plot_pointcloud(O)
     elif issubclass(type(O), pygsp.filters.Filter):
         plot_filter(O, **kwargs)
@@ -301,8 +301,8 @@ def plot_pointcloud(P):
 
     Examples
     --------
-    >>> from pygsp import graphs, plotting
-    >>> logo = graphs.PointsCloud('logo')
+    >>> from pygsp import plotting, pointsclouds
+    >>> logo = pointsclouds.PointsCloud('logo')
     >>> try:
     ...     plotting.plot_pointcloud(logo)
     ... except:

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 r"""
 This module implements the main filter class and all the filters subclasses
 
