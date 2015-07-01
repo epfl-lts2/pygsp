@@ -63,8 +63,9 @@ Installation in an isolated virtual environment::
     $ pip install pygsp
 
 You need virtualenvwrapper to run this command. The ``--system-site-packages``
-option could be useful if you want to use a shared system installation of numpy, scipy and matplotlib. Their building and installation require quite some
-dependencies.
+option could be useful if you want to use a shared system installation of numpy, scipy and matplotlib. Their building and installation require quite some dependencies.
+
+For a classic UNIX system, you will need python-dev(el) (or equivalent) installed as a system package as well as the fortran extension for your favorite compiler (gfortran for gcc). You will also need the blas/lapack implementation for your system.
 
 Another way is to manually download from PyPI, unpack the package and install
 with::
