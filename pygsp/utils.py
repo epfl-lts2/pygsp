@@ -250,7 +250,7 @@ def check_connectivity(G, **kwargs):
     if not hasattr(G, 'directed'):
         G.directed = is_directed(G)
     # Removing the diagonal
-    A = G.W - G.W.diagonal()
+    A = G.W - np.diags(G.W.diagonal())
 
     if G.directed:
         return _check_connectivity_directed(A, **kwargs)
@@ -436,13 +436,14 @@ def mat2vec(d):
     raise NotImplementedError
 
 
-def resistance_distance(G):
+def resistance_distance(M):
     r"""
     Compute the resitance distances of a graph
 
     Parameters
     ----------
-    G : Graph structure or Laplacian matrix (L)
+    M : Graph or sparse matrix
+        Graph structure or Laplacian matrix (L)
 
     Returns
     -------
@@ -464,22 +465,25 @@ def resistance_distance(G):
     from pygsp.graphs import Graph
     from pygsp.operators import create_laplacian
 
-    if isinstance(G, Graph):
-        if not G.lap_type == 'combinatorial':
+    if isinstance(M, Graph):
+        if not M.lap_type == 'combinatorial':
             logger.info('Compute the combinatorial laplacian for the resitance'
                         ' distance')
-            create_laplacian(G, lap_type='combinatorial',
+            create_laplacian(M, lap_type='combinatorial',
                              get_laplacian_only=False)
-        L = G.L
+        L = M.L.tocsc()
 
     else:
-        L = G
+        L = M.tocsc()
 
-    pseudo = np.linalg.pinv(L.toarray())
+    try:
+        pseudo = sparse.linalg.inv(L)
+    except RuntimeError:
+        pseudo = np.linalg.pinv(L.toarray())
+
     N = np.shape(L)[0]
-
-    d = np.diagonal(pseudo)
-    rd = np.tile(d, (N, 1)).T + np.tile(d, (N, 1)) - pseudo - pseudo.T
+    d = sparse.csc_matrix(pseudo.diagonal())
+    rd = sparse.kron(d, sparse.csc_matrix(np.ones((N, 1)))).T + sparse.kron(d, sparse.csc_matrix(np.ones((N, 1)))) - pseudo - pseudo.T
 
     return rd
 
@@ -562,20 +566,20 @@ def tree_depths(A, root):
     return depths, parents
 
 
-def graph_sparsify(G, epsilon):
+def graph_sparsify(M, epsilon):
     r"""
     Sparsify a graph using Spielman-Srivastava algorithm
 
     Parameters
     ----------
-    G : Graph or sparse matrix
+    M : Graph or sparse matrix
         Graph structure or sparse matrix
     epsilon : int
         Sparsification parameter
 
     Returns
     -------
-    Gnew : Graph or sparse matrix
+    Mnew : Graph or sparse matrix
         New graph structure or sparse matrix
 
     Note
@@ -597,12 +601,12 @@ def graph_sparsify(G, epsilon):
     """
     from pygsp.graphs import Graph
     # Test the input parameters
-    if isinstance(G, Graph):
-        if not G.lap_type == 'combinatorial':
+    if isinstance(M, Graph):
+        if not M.lap_type == 'combinatorial':
             raise NotImplementedError
-        L = G.L
+        L = M.L
     else:
-        L = G
+        L = M
 
     N = np.shape(L)[0]
 
@@ -613,8 +617,8 @@ def graph_sparsify(G, epsilon):
     resistance_distances = resistance_distance(L)
 
     # Get the Weight matrix
-    if isinstance(G, Graph):
-        W = G.W
+    if isinstance(M, Graph):
+        W = M.W
     else:
         W = np.diag(L.diagonal()) - L.toarray()
         W = np.where(W < 1e-10, 0, W)
@@ -648,18 +652,18 @@ def graph_sparsify(G, epsilon):
     sparserW = sparserW + sparserW.getH()
     sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
 
-    if isinstance(G, Graph):
+    if isinstance(M, Graph):
         sparserW = sparse.diags(sparserL.diagonal(), 0) - sparserL
-        if not G.directed:
+        if not M.directed:
             sparserW = (sparserW + sparserW.getH())/2.
             sparserL = (sparserL + sparserL.getH())/2.
 
-        Gnew = Graph(W=sparserW, L=sparserL)
-        G.copy_graph_attributes(Gnew)
+        Mnew = Mraph(W=sparserW, L=sparserL)
+        M.copy_graph_attributes(Mnew)
     else:
-        Gnew = sparse.lil_matrix(L)
+        Mnew = sparse.lil_matrix(L)
 
-    return Gnew
+    return Mnew
 
 
 def dummy(a, b, c):
