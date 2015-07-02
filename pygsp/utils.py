@@ -250,7 +250,7 @@ def check_connectivity(G, **kwargs):
     if not hasattr(G, 'directed'):
         G.directed = is_directed(G)
     # Removing the diagonal
-    A = G.W - G.W.diagonal()
+    A = G.W - np.diag(G.W.diagonal())
 
     if G.directed:
         return _check_connectivity_directed(A, **kwargs)
@@ -657,7 +657,7 @@ def graph_sparsify(G, epsilon):
         Gnew = Graph(W=sparserW, L=sparserL)
         G.copy_graph_attributes(Gnew)
     else:
-        Gnew = sparse.lil_matrix(L)
+        Gnew = sparse.lil_matrix(sparserL)
 
     return Gnew
 
