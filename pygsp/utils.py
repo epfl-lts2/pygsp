@@ -313,14 +313,14 @@ def _check_connectivity_undirected(A, **kwargs):
 
 def distanz(x, y=None):
     r"""
-    Calculate the distanz between two colon vectors
+    Calculate the distanz between two column vectors
 
     Parameters
     ----------
     x : ndarray
-        First colon vector
+        First column vector
     y : ndarray
-        Second colon vector
+        Second column vector
 
     Returns
     -------
