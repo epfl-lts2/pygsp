@@ -36,8 +36,8 @@ is open to whoever wants to implement it.
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-pygsp could always use more documentation, whether as part of the 
-official pygsp docs, in docstrings, or even on the web in blog posts,
+PyGSP could always use more documentation, whether as part of the 
+official PyGSP docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 Submit Feedback

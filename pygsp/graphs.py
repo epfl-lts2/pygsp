@@ -3,20 +3,19 @@
 r"""
 This module implements principally graphs and some PointsClouds
 
-* :class: `Graph` Main graph class
+:class: `Graph`  Main graph class
 
-* :class: `PointsCloud` Class countaining all the PointsClouds
+:class: `PointsCloud`  Class countaining all the PointsClouds
 """
 
-import os
-import os.path
+from os import path
 import numpy as np
 import random as rd
-from math import ceil, sqrt, log, exp, floor, pi
+from math import ceil, sqrt, log, floor, pi
 from copy import deepcopy
 from scipy import sparse, io, spatial
 
-from pygsp import utils, plotting, operators
+from pygsp import utils, operators
 
 
 class PointsCloud(object):
@@ -25,14 +24,17 @@ class PointsCloud(object):
 
     Parameters
     ----------
-    name (string) : the name of the point cloud to load
-        possible name: 'airfoil', 'bunny', 'david64', 'david500', 'logo', 'two_moons'
-    max_dim (int) : the maximum dimensionality of the points (only valid for two_moons)
-        default is 2
+    name : string
+        The name of the point cloud to load.
+        Possible arguments : 'airfoil', 'bunny', 'david64', 'david500', 'logo',
+        'two_moons'.
+    max_dim : int
+        The maximum dimensionality of the points (only valid for two_moons)
+        (default is 2)
 
     Returns
     -------
-    The differents informations of the PointsCloud Loaded.
+    The differents informations of the loaded PointsCloud.
 
 
     Examples
@@ -47,16 +49,16 @@ class PointsCloud(object):
     (see reference).
 
 
-    Reference
+    References
     ----------
-    :cite:`turk1994zippered`
+    See :cite:`turk1994zippered` for more informations.
 
     """
 
     def __init__(self, pointcloudname, max_dim=2):
         if pointcloudname == "airfoil":
-            airfoilmat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
-                                    + '/misc/airfoil.mat')
+            airfoilmat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'airfoil.mat'))
             self.i_inds = airfoilmat['i_inds']
             self.j_inds = airfoilmat['j_inds']
             self.x = airfoilmat['x']
@@ -64,27 +66,27 @@ class PointsCloud(object):
             self.coords = np.concatenate((self.x, self.y), axis=1)
 
         elif pointcloudname == "bunny":
-            bunnymat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) +
-                                  '/misc/bunny.mat')
+            bunnymat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'bunny.mat'))
             self.Xin = bunnymat["bunny"]
 
         elif pointcloudname == "david64":
-            david64mat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
-                                    + '/misc/david64.mat')
+            david64mat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'david64.mat'))
             self.W = david64mat["W"]
             self.N = david64mat["N"][0, 0]
             self.coords = david64mat["coords"]
 
         elif pointcloudname == "david500":
-            david500mat = io.loadmat(os.path.dirname(os.path.realpath(__file__))
-                                     + '/misc/david500.mat')
+            david500mat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'david500.mat'))
             self.W = david500mat["W"]
             self.N = david500mat["N"][0, 0]
             self.coords = david500mat["coords"]
 
         elif pointcloudname == "logo":
-            logomat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) +
-                                 '/misc/logogsp.mat')
+            logomat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'logogsp.mat'))
             self.W = logomat["W"]
             self.coords = logomat["coords"]
             self.limits = np.array([0, 640, -400, 0])
@@ -94,19 +96,22 @@ class PointsCloud(object):
                          "idx_p": logomat["idx_p"]}
 
         elif pointcloudname == "minnesota":
-            minnesotamat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/minnesota.mat')
+            minnesotamat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'minnesota.mat'))
             self.A = minnesotamat["A"]
             self.labels = minnesotamat["labels"]
             self.coords = minnesotamat["xy"]
 
         elif pointcloudname == "two_moons":
-            twomoonsmat = io.loadmat(os.path.dirname(os.path.realpath(__file__)) + '/misc/two_moons.mat')
+            twomoonsmat = io.loadmat(path.join(path.dirname(
+                path.realpath(__file__)), 'misc', 'two_moons.mat'))
             if max_dim == -1:
                 max_dim == 2
-            self.Xin = twomoonsmat["features"][:max_dim].transpose()
+            self.Xin = twomoonsmat["features"][:max_dim].T
 
         else:
-            raise ValueError("This PointsCloud does not exist. Please verify you wrote the right name in lower case.")
+            raise ValueError("This PointsCloud does not exist. Please verify"
+                             "you wrote the right name in lower case.")
 
 
 class Graph(object):
@@ -114,29 +119,33 @@ class Graph(object):
     The main graph object
 
     It is used to initialize by default every missing field of the subgraphs
-    It can also be used alone to initialize customs graphs
+    It can also be used alone to initialize customs graphs.
 
     Parameters
     ----------
-    W (sparse) : weights matrix
-        default is empty
-    A (sparse) : adjancency matrix
+    W : sparse matrix or ndarray
+        Weights matrix (default is empty)
+    A : sparse adjacency matrix
         default is constructed with W
-    N (int) : number of nodes
-        default is the lenght of the first dimension of W
-    d (float) : degree vector
-        default
-    Ne (int) : edge number
-    gtype (strnig) : graph type
-        default is "unknown"
-    directed (bool) : whether the graph is directed
-        default depending of the previous values
-    lap_type (string) : laplacian type
-        default is 'combinatorial'
-    L (Ndarray): laplacian
-    coords : Coordinates of the vertices
-        default is np.array([0, 0])
-    plotting (Dict): § dictionnary conataining the plotting parameters
+    N : int
+        Number of nodes. Default is the lenght of the first dimension of W.
+    d : float
+        Degree of the vectors
+    Ne : int
+        Edge numbers
+    gtype : string
+        Graph type (default is "unknown")
+    directed : bool
+        Whether the graph is directed
+        (default depending of the previous values)
+    lap_type : string
+        Laplacian type (default = 'combinatorial')
+    L : Ndarray
+        Laplacian matrix
+    coords : ndarray
+        Coordinates of the vertices (default = np.array([0, 0]))
+    plotting : Dict
+        Dictionnary containing the plotting parameters
 
     Examples
     --------
@@ -149,14 +158,15 @@ class Graph(object):
 
     # All the parameters that needs calculation to be set
     # or not needed are set to None
-    def __init__(self, W, A=None, N=None, d=None, Ne=None,
+    def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
                  gtype='unknown', directed=None, coords=None,
-                 lap_type='combinatorial', L=None, verbose=False,
+                 lap_type='combinatorial', L=None,
                  plotting={}, **kwargs):
+
+        self.logger = utils.build_logger(__name__)
 
         self.gtype = gtype
         self.lap_type = lap_type
-        self.verbose = verbose
 
         if W is not None:
             self.W = sparse.lil_matrix(W)
@@ -208,11 +218,68 @@ class Graph(object):
         if 'vertex_size' in plotting:
             self.plotting['vertex_size'] = plotting['vertex_size']
         else:
-            self.plotting['vertex_size'] = 50
+            self.plotting['vertex_size'] = 5
         if 'vertex_color' in plotting:
             self.plotting['vertex_color'] = plotting['vertex_color']
         else:
             self.plotting['vertex_color'] = 'b'
+
+    def update_graph_attr(self, *args, **kwargs):
+        r"""
+        update_graph_attr will recompute the some attribute of the graph:
+
+        Parameters
+        ----------
+        args: list of string
+            the arguments, that will be not changed and not re-compute.
+        kwargs: Dictionnary
+            The arguments with their new value.
+
+        Return
+        ------
+        The same Graph with some updated values.
+
+        Note
+        ----
+        This method is usefull if you want to give a new weight matrix
+        (W) and compute the adjacency matrix (A) and more again.
+        The valid attributes are ['W', 'A', 'N', 'd', 'Ne', 'gtype',
+        'directed', 'coords', 'lap_type', 'L', 'plotting']
+
+        Examples
+        --------
+        >>> from pygsp import graphs
+        >>> G = graphs.Ring(N=10)
+        >>> newW = G.W
+        >>> newW[1] = 1
+        >>> G.update_graph_attr('N', 'd', W=newW)
+
+        Updates all attributes of G excepted 'N' and 'd'
+        """
+        graph_attr = {}
+        valid_attributes = ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed',
+                            'coords', 'lap_type', 'L', 'plotting']
+
+        for i in args:
+            if i in valid_attributes:
+                graph_attr[i] = getattr(self, i)
+            else:
+                self.logger.warning('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
+
+        for i in kwargs:
+            if i in valid_attributes:
+                if i in graph_attr:
+                    self.logger.info('You already give this attribute in the args. Therefore, it will not be recaculate.')
+                else:
+                    graph_attr[i] = kwargs[i]
+            else:
+                self.logger.warning('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
+
+        if isinstance(self, NNGraph):
+            super(NNGraph, self).__init__(**graph_attr)
+
+        else:
+            super(type(self), self).__init__(**graph_attr)
 
     def deep_copy_graph(self):
         r"""
@@ -220,16 +287,18 @@ class Graph(object):
         """
         return deepcopy(self)
 
-    def copy_graph_attributes(self, ctype=True, Gn=None):
+    def copy_graph_attributes(self, Gn, ctype=True):
         r"""
-        copy graph attributes copy the parameter of the graph
+        Copy_graph_attributes copies some parameters of the graph into
+        a given one
 
         Parameters
         ----------:
         G : Graph structure
-        ctype (bool): flag to select what to copy
-            Default is True
-        Gn : Graph structure (optional)
+        ctype : bool
+            Flag to select what to copy (Default is True)
+        Gn : Graph structure
+            The graph where the parameters will be copied
 
         Returns
         -------
@@ -240,30 +309,22 @@ class Graph(object):
         >>> from pygsp import graphs
         >>> Torus = graphs.Torus()
         >>> G = graphs.TwoMoons()
-        >>> G.copy_graph_attributes(type=0, Gn=Torus);
+        >>> G.copy_graph_attributes(ctype=False, Gn=Torus);
+
         """
-        # if no Gn given
-        if not Gn:
-            if ctype:
-                Gn = Graph(lap_type=G.lap_type, plotting=G.plotting, limits=G.limits)
-            else:
-                Gn = Graph(lap_type=G.lap_type, plotting=G.plotting)
-
-            return Gn
-
-        # if Gn given.
-        if hasattr(G, 'lap_type'):
-            Gn.lap_type = G.lap_type
-
-        if hasattr(G, 'plotting'):
-            Gn.plotting = G.plotting
+        if hasattr(self, 'plotting'):
+            Gn.plotting = self.plotting
 
         if ctype:
-            if hasattr(G, 'coords'):
-                Gn.coords = G.coords
+            if hasattr(self, 'coords'):
+                Gn.coords = self.coords
         else:
             if hasattr(Gn.plotting, 'limits'):
-                del GN.plotting['limits']
+                del Gn.plotting['limits']
+
+        if hasattr(self, 'lap_type'):
+            Gn.lap_type = self.lap_type
+            Gn.L = operators.create_laplacian(Gn)
 
     def separate_graph(self):
         r"""
@@ -273,16 +334,19 @@ class Graph(object):
 
     def subgraph(self, c):
         r"""
-        Create a subgraph from G
+        Create a subgraph from G.
 
         Parameters
         ----------
-        G (graph) : Original graph
-        c (int) : Node to keep
+        G : graph
+            Original graph
+        c : int
+            Node to keep
 
         Returns
         -------
-        subG (graph) : Subgraph
+        subG : graph
+            Subgraph
 
         Examples
         --------
@@ -290,7 +354,7 @@ class Graph(object):
         >>> import numpy as np
         >>> W = np.arange(16).reshape(4, 4)
         >>> G = graphs.Graph(W)
-        >>> c = 10
+        >>> c = 3
         >>> subG = graphs.Graph.subgraph(G, c)
 
         This function create a subgraph from G taking only the node in c.
@@ -311,32 +375,34 @@ class Graph(object):
 
 class NNGraph(Graph):
     r"""
-    Creates a graph from a pointcloud
+    Creates a graph from a pointcloud.
 
     Parameters
     ----------
-    Xin (nunpy Array) : Input Points
-    use_flann : Whether flann method should be used (knn is otherwise used)
-        default is False
-        (not implemented yet)
-    center (bool) : center the data
-        default is True
-    rescale (bool) : rescale the data (in a 1-ball)
-        default is True
-    k (int) : number of neighbors for knn
-        default is 10
-    sigma (float) : variance of the distance kernel
-        default is 0.1
-    epsilon (float) : radius for the range search
-        default is 0.01
-    gtype (string) : the type of graph
-            default is "knn"
+    Xin : ndarray
+        Input points
+    use_flann : bool
+        Whether flann method should be used (knn is otherwise used).
+        (default is False)
+        (this option is not implemented yet)
+    center : bool
+        Center the data (default is True)
+    rescale : bool
+        Rescale the data (in a 1-ball) (default is True)
+    k : int
+        Number of neighbors for knn (default is 10)
+    sigma : float
+        Variance of the distance kernel (default is 0.1)
+    epsilon : float
+        RRdius for the range search (default is 0.01)
+    gtype : string
+        The type of graph (default is "knn")
 
     Examples
     --------
     >>> from pygsp import graphs
     >>> import numpy as np
-    >>> Xin = np.arange(9).reshape(3, 3)
+    >>> Xin = np.arange(90).reshape(30, 3)
     >>> G = graphs.NNGraph(Xin)
 
     """
@@ -452,7 +518,7 @@ class NNGraph(Graph):
 
 class Bunny(NNGraph):
     r"""
-    Create a graph of the stanford bunny
+    Create a graph of the stanford bunny.
 
     Examples
     --------
@@ -486,18 +552,18 @@ class Bunny(NNGraph):
 
 class Cube(NNGraph):
     r"""
-    Creates the graph of an hyper-cube
+    Creates the graph of an hyper-cube.
 
     Parameters
     ----------
-    radius (float) : edge lenght
-        default is 1
-    nb_pts (int) : number of vertices
-        default is 300
-    nb_dim (int) : dimension
-        default is 3
-    sampling (string) : variance of the distance kernel
-        default is 'random'
+    radius : float
+        Edge lenght (default = 1)
+    nb_pts : int
+        Number of vertices (default = 300)
+    nb_dim : int
+        Dimension (default = 3)
+    sampling : string
+        Variance of the distance kernel (default = 'random')
         (Can now only be 'random')
 
     Examples
@@ -558,18 +624,18 @@ class Cube(NNGraph):
 
 class Sphere(NNGraph):
     r"""
-    Creates a spherical-shaped graph
+    Creates a spherical-shaped graph.
 
     Parameters
     ----------
-    radius (flaot) : radius of the sphere
-        default is 1
-    nb_pts (int) : number of vertices
-        default is 300
-    nb_dim (int) : dimension
-        default is 3
-    sampling (sting) : variance of the distance kernel
-        default is 'random'
+    radius : flaot
+        Radius of the sphere (default = 1)
+    nb_pts : int
+        Number of vertices (default = 300)
+    nb_dim : int
+        Dimension (default = 3)
+    sampling : sting
+        Variance of the distance kernel (default = 'random')
         (Can now only be 'random')
 
     Examples
@@ -604,30 +670,30 @@ class Sphere(NNGraph):
 
 class TwoMoons(NNGraph):
     r"""
-    Creates a 2 dimensional graph of the Two Moons
+    Create a 2 dimensional graph of the Two Moons.
 
     Parameters
     ----------
-    moontype (string): You have the freedom to chose if you want to create a standard two_moons graph or a synthetised one (default is 'standard').
-        * 'standard' : create a two_moons graph from a based graph.
-            sigmag (flaot) : variance of the distance kernel
-                default is 0.05
-
-        * 'synthetised' : create a synthetised two_moon
-            sigmag (flaot) : variance of the distance kernel
-                default is 0.05
-            N (int) : Number of vertices
-                default is 2000
-            sigmad (flaot) : variance of the data (do not set it to high or you won't see anything)
-                default is 0.05
-            d (flaot) : distance of the two moons
-                default is 0.5
+    moontype : string
+        You have the freedom to chose if you want to create a standard
+        two_moons graph or a synthetised one (default is 'standard').
+        'standard' : Create a two_moons graph from a based graph.
+        'synthetised' : Create a synthetised two_moon
+    sigmag : float
+        Variance of the distance kernel (default = 0.05)
+    N : int
+        Number of vertices (default = 2000)
+    sigmad : float
+        Variance of the data (do not set it too high or you won't see anything)
+        (default = 0.05)
+    d : float
+        Distance of the two moons (default = 0.5)
 
     Examples
     --------
     >>> from pygsp import graphs
     >>> G1 = graphs.TwoMoons(moontype='standard')
-    >>> G2 =  graphs.TwoMoons(moontype='synthetised', N=1000, sigmad=0.1, d=1)
+    >>> G2 = graphs.TwoMoons(moontype='synthetised', N=1000, sigmad=0.1, d=1)
 
     """
 
@@ -691,14 +757,14 @@ class TwoMoons(NNGraph):
 # Need M
 class Grid2d(Graph):
     r"""
-    Creates a 2 dimensional grid graph
+    Create a 2 dimensional grid graph.
 
     Parameters
     ----------
-    Nv (int) : Number of vertices along the first dimension
-        default is 16
-    Mv (int) : Number of vertices along the second dimension
-        default is Nv
+    Nv : int
+        Number of vertices along the first dimension (default is 16)
+    Mv : int
+        Number of vertices along the second dimension (default is Nv)
 
     Examples
     --------
@@ -719,14 +785,22 @@ class Grid2d(Graph):
         j_inds = np.zeros((K*Mv + J*Nv), dtype=float)
 
         for i in range(Mv):
-            i_inds[i*K + np.arange(K)] = i*Nv + np.concatenate((np.arange(Nv-1), np.arange(1, Nv)))
-            j_inds[i*K + np.arange(K)] = i*Nv + np.concatenate((np.arange(1, Nv), np.arange(Nv-1)))
+            i_inds[i*K + np.arange(K)] = i*Nv + \
+                np.concatenate((np.arange(Nv-1), np.arange(1, Nv)))
+            j_inds[i*K + np.arange(K)] = i*Nv + \
+                np.concatenate((np.arange(1, Nv), np.arange(Nv-1)))
 
         for i in range(Mv-1):
-            i_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = np.concatenate((i*Nv + np.arange(Nv), (i+1)*Nv + np.arange(Nv)))
-            j_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = np.concatenate(((i+1)*Nv + np.arange(Nv), i*Nv + np.arange(Nv)))
+            i_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = \
+                np.concatenate((i*Nv + np.arange(Nv),
+                                (i+1)*Nv + np.arange(Nv)))
 
-        self.W = sparse.csc_matrix((np.ones((K*Mv+J*Nv)), (i_inds, j_inds)), shape=(Mv*Nv, Mv*Nv))
+            j_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = \
+                np.concatenate(((i+1)*Nv + np.arange(Nv),
+                                i*Nv + np.arange(Nv)))
+
+        self.W = sparse.csc_matrix((np.ones((K*Mv+J*Nv)), (i_inds, j_inds)),
+                                   shape=(Mv*Nv, Mv*Nv))
 
         xtmp = np.kron(np.ones((Mv, 1)), (np.arange(Nv)/float(Nv)).reshape(Nv,
                                                                            1))
@@ -751,20 +825,24 @@ class Grid2d(Graph):
 
 class Torus(Graph):
     r"""
-    Creates a Torus graph
+    Create a Torus graph.
 
     Parameters
     ----------
-    Nv (int) : Number of vertices along the first dimension
-        default is 16
-    Mv (int) : Number of vertices along the second dimension
-        default is Nv
+    Nv : int
+        Number of vertices along the first dimension (default is 16)
+    Mv : int
+        Number of vertices along the second dimension (default is Nv)
 
     Examples
     --------
     >>> from pygsp import graphs
     >>> Nv = 32
     >>> G = graphs.Torus(Nv=Nv)
+
+    References
+    ----------
+    See :cite:`strang1999discrete` for more informations.
 
     """
 
@@ -780,15 +858,28 @@ class Torus(Graph):
         j_inds = np.zeros((K*Mv + J*Nv), dtype=float)
 
         for i in range(Mv):
-            i_inds[i*K + np.arange(K)] = i*Nv + np.concatenate((np.array([Nv-1]), np.arange(Nv-1), np.arange(Nv)))
-            j_inds[i*K + np.arange(K)] = i*Nv + np.concatenate((np.arange(Nv), np.array([Nv-1]), np.arange(Nv-1)))
+            i_inds[i*K + np.arange(K)] = i*Nv + \
+                np.concatenate((np.array([Nv-1]), np.arange(Nv-1),
+                                np.arange(Nv)))
+
+            j_inds[i*K + np.arange(K)] = i*Nv + \
+                np.concatenate((np.arange(Nv), np.array([Nv-1]),
+                                np.arange(Nv-1)))
 
         for i in range(Mv-1):
-            i_inds[K*Mv + i*2*Nv + np.arange(2*Nv)] = np.concatenate((i*Nv + np.arange(Nv), (i+1)*Nv + np.arange(Nv)))
-            j_inds[K*Mv + i*2*Nv + np.arange(2*Nv)] = np.concatenate(((i+1)*Nv + np.arange(Nv), i*Nv + np.arange(Nv)))
+            i_inds[K*Mv + i*2*Nv + np.arange(2*Nv)] = \
+                np.concatenate((i*Nv + np.arange(Nv),
+                                (i+1)*Nv + np.arange(Nv)))
 
-        i_inds[K*Mv + (Mv-1)*2*Nv + np.arange(2*Nv)] = np.concatenate((np.arange(Nv), (Mv-1)*Nv + np.arange(Nv)))
-        j_inds[K*Mv + (Mv-1)*2*Nv + np.arange(2*Nv)] = np.concatenate(((Mv-1)*Nv + np.arange(Nv), np.arange(Nv)))
+            j_inds[K*Mv + i*2*Nv + np.arange(2*Nv)] = \
+                np.concatenate(((i+1)*Nv + np.arange(Nv),
+                                i*Nv + np.arange(Nv)))
+
+        i_inds[K*Mv + (Mv-1)*2*Nv + np.arange(2*Nv)] = \
+            np.concatenate((np.arange(Nv), (Mv-1)*Nv + np.arange(Nv)))
+
+        j_inds[K*Mv + (Mv-1)*2*Nv + np.arange(2*Nv)] = \
+            np.concatenate(((Mv-1)*Nv + np.arange(Nv), np.arange(Nv)))
 
         self.W = sparse.csc_matrix((np.ones((K*Mv+J*Nv)), (i_inds, j_inds)),
                                    shape=(Mv*Nv, Mv*Nv))
@@ -818,14 +909,14 @@ class Torus(Graph):
 # Need K
 class Comet(Graph):
     r"""
-    Creates a Comet graph
+    Create a Comet graph.
 
     Parameters
     ----------
-    Nv (int) : Number of vertices along the first dimension
-        default is 16
-    Mv (int) : Number of vertices along the second dimension
-        default is Nv
+    Nv : int
+        Number of vertices along the first dimension (default is 16)
+    Mv : int
+        Number of vertices along the second dimension (default is Nv)
 
     Examples
     --------
@@ -869,12 +960,12 @@ class Comet(Graph):
 
 class LowStretchTree(Graph):
     r"""
-    Creates a low stretch tree graph
+    Create a low stretch tree graph.
 
     Parameters
     ----------
-    k (int) : 2^k points on each side of the grid of vertices
-        default 6
+    k : int
+        2^k points on each side of the grid of vertices (default 6)
 
     Examples
     --------
@@ -931,16 +1022,17 @@ class LowStretchTree(Graph):
 
 class RandomRegular(Graph):
     r"""
-    Creates a random regular graph
+    Create a random regular graphs
+
     The random regular graph has the property that every nodes is connected to
     'k' other nodes.
 
     Parameters
     ----------
-    N (int) : Number of nodes
-        default is 64
-    k (int) : Number of connections of each nodes
-        default is 6
+    N : int
+        Number of nodes (default is 64)
+    k : int
+        Number of connections of each nodes (default is 6)
 
     Examples
     --------
@@ -949,151 +1041,157 @@ class RandomRegular(Graph):
 
     """
 
-    def __init__(self, N=64, k=6, verbose=False, **kwargs):
 
-        def isRegularGraph(A):
-            r"""
-            This fonction prints a message describing the problem of a given
-            sparse matrix
+    def isRegularGraph(self, A):
+        r"""
+        This fonction prints a message describing the problem of a given
+        sparse matrix.
 
-            Inputs
-            ------
-            A (Sparse matrix)
+        Parameters
+        ----------
+        A : sparse matrix
 
-            """
+        """
 
-            msg = "The given matrix "
+        msg = "The given matrix "
 
-            # check if the sparse matrix is in a good format
-            if A.getformat() == 'lil' or A.getformat() == 'dia' or A.getformat() == 'bok':
-                A = A.tocsc()
+        # check if the sparse matrix is in a good format
+        if A.getformat() == 'lil' or \
+                A.getformat() == 'dia' or \
+                A.getformat() == 'bok':
+            A = A.tocsc()
 
-            # check symmetry
-            tmp = (A-A.getH())
-            if np.sum((tmp.getH()*tmp).diagonal()) > 0:
-                msg += "is not symetric, "
+        # check symmetry
+        tmp = (A-A.getH())
+        if np.sum((tmp.getH()*tmp).diagonal()) > 0:
+            msg += "is not symetric, "
 
-            # check parallel edged
-            if A.max(axis=None) > 1:
-                msg += "has parallel edges, "
+        # check parallel edged
+        if A.max(axis=None) > 1:
+            msg += "has parallel edges, "
 
-            # check that d is d-regular
-            d_vec = A.sum(axis=0)
-            if np.min(d_vec) < d_vec[:, 0] and np.max(d_vec) > d_vec[:, 0]:
-                msg += "not d-regular, "
+        # check that d is d-regular
+        d_vec = A.sum(axis=0)
+        if np.min(d_vec) < d_vec[:, 0] and np.max(d_vec) > d_vec[:, 0]:
+            msg += "not d-regular, "
 
-            # check that g doesn't contain any loops
-            if A.diagonal().any() > 0:
-                msg += "has self loops, "
+        # check that g doesn't contain any loops
+        if A.diagonal().any() > 0:
+            msg += "has self loops, "
 
-            else:
-                msg += "is ok"
+        else:
+            msg += "is ok"
+        self.logger.info(msg)
 
-            if verbose:
-                print(msg)
+    def createRandRegGraph(self, vertNum, deg):
+        r"""
+        Create a simple d-regular undirected graph
+        simple = without loops or double edges
+        d-reglar = each vertex is adjecent to d edges
 
-        def createRandRegGraph(vertNum, deg):
-            r"""
-            creates a simple d-regular undirected graph
-            simple = without loops or double edges
-            d-reglar = each vertex is adjecent to d edges
+        Parameters
+        ----------
+        vertNum : int
+            Number of vertices
+        deg : int
+            The degree of each vertex
 
-            Parameters
-            ----------
-            vertNum : number of vertices
-            deg : the degree of each vertex
+        Returns
+        -------
+        A : sparse
+            Representation of the graph
 
-            Returns
-            -------
-            A (sparse) : representation of the graph
+        Algorithm
+        ---------
+        "The pairing model": create n*d 'half edges'.
+        Repeat as long as possible: pick a pair of half edges
+        and if it's legal (doesn't creat a loop nor a double edge)
+        add it to the graph
 
-            Algorithm
-            ---------
-            "The pairing model": create n*d 'half edges'.
-            repeat as long as possible: pick a pair of half edges
-            and if it's legal (doesn't creat a loop nor a double edge)
-            add it to the graph
+        Reference
+        ---------
+        http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.67.7957&rep=rep1&type=pdf
+        (This code has been adapted from matlab to python)
+        """
 
-            Reference
-            ---------
-            http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.67.7957&rep=rep1&type=pdf
-            (This code has been adapted from matlab to python)
-            """
+        n = vertNum
+        d = deg
+        matIter = 10
 
-            n = vertNum
-            d = deg
-            matIter = 10
+        # continue until a proper graph is formed
+        if (n*d) % 2 == 1:
+            raise ValueError("createRandRegGraph input err:\
+                                n*d must be even!")
 
-            # continue until a proper graph is formed
-            if (n*d) % 2 == 1:
-                raise ValueError("createRandRegGraph input err:\
-                                 n*d must be even!")
+        # a list of open half-edges
+        U = np.kron(np.ones((d)), np.arange(n))
 
-            # a list of open half-edges
-            U = np.kron(np.ones((d)), np.arange(n))
+        # the graphs adajency matrix
+        A = sparse.lil_matrix(np.zeros((n, n)))
 
-            # the graphs adajency matrix
-            A = sparse.lil_matrix(np.zeros((n, n)))
+        edgesTested = 0
+        repetition = 1
 
-            edgesTested = 0
-            repetition = 1
+        # check that there are no loops nor parallel edges
+        while np.size(U) != 0 and repetition < matIter:
+            edgesTested += 1
+
+            # print progess
+            if edgesTested % 5000 == 0:
+                self.logger.debug("createRandRegGraph() progress: edges= "
+                                    "{}/{}n".format(edgesTested, n*d))
+
+            # chose at random 2 half edges
+            i1 = floor(rd.random()*np.shape(U)[0])
+            i2 = floor(rd.random()*np.shape(U)[0])
+            v1 = U[i1]
+            v2 = U[i2]
 
             # check that there are no loops nor parallel edges
-            while np.size(U) != 0 and repetition < matIter:
-                edgesTested += 1
+            if v1 == v2 or A[v1, v2] == 1:
+                # restart process if needed
+                if edgesTested == n*d:
+                    repetition = repetition + 1
+                    edgesTested = 0
+                    U = np.kron(np.ones((d)), np.arange(n))
+                    A = sparse.lil_matrix(np.zeros((n, n)))
+            else:
+                # add edge to graph
+                A[v1, v2] = 1
+                A[v2, v1] = 1
 
-                # print progess
-                if edgesTested % 5000 == 0:
-                    print("createRandRegGraph() progress: edges=%d/%d\n" %
-                          (edgesTested, n*d))
+                # remove used half-edges
+                v = sorted([i1, i2])
+                U = np.concatenate((U[1:v[0]], U[v[0]+1:v[1]], U[v[1]+1:]))
 
-                # chose at random 2 half edges
-                i1 = floor(rd.random()*np.shape(U)[0])
-                i2 = floor(rd.random()*np.shape(U)[0])
-                v1 = U[i1]
-                v2 = U[i2]
+        self.isRegularGraph(A)
 
-                # check that there are no loops nor parallel edges
-                if v1 == v2 or A[v1, v2] == 1:
-                    # restart process if needed
-                    if edgesTested == n*d:
-                        repetition = repetition + 1
-                        edgesTested = 0
-                        U = np.kron(np.ones((d)), np.arange(n))
-                        A = sparse.lil_matrix(np.zeros((n, n)))
-                else:
-                    # add edge to graph
-                    A[v1, v2] = 1
-                    A[v2, v1] = 1
+        return A
 
-                    # remove used half-edges
-                    v = sorted([i1, i2])
-                    U = np.concatenate((U[1:v[0]], U[v[0]+1:v[1]], U[v[1]+1:]))
-
-            isRegularGraph(A)
-
-            return A
-
+    def __init__(self, N=64, k=6, **kwargs):
         self.N = N
         self.k = k
 
         self.gtype = "random_regular"
-        self.W = createRandRegGraph(self.N, self.k)
+
+        self.logger = utils.build_logger(__name__)  # Build the logger as createRandRegGraph needit
+
+        self.W = self.createRandRegGraph(self.N, self.k)
 
         super(RandomRegular, self).__init__(W=self.W, gtype=self.gtype,
-                                            **kwargs)
+                                            N=self.N, **kwargs)
 
 
 class Ring(Graph):
     r"""
-    Creates a ring graph
+    Create a ring graph.
 
     Parameters
     ----------
-    N (int) : Number of vertices
-        default is 64
-    k (int) : Number of neighbors in each directions
-        default is 1
+    N : int
+        Number of vertices (default is 64)
+    k : int
+        Number of neighbors in each directions (default is 1)
 
     Examples
     --------
@@ -1120,18 +1218,22 @@ class Ring(Graph):
         for i in range(min(k, floor((N-1)/2.))):
             i_inds[i*2*N + np.arange(N)] = all_inds
             j_inds[i*2*N + np.arange(N)] = np.remainder(all_inds + i + 1, N)
-            i_inds[(i*2+1)*N + np.arange(N)] = np.remainder(all_inds + i + 1, N)
+            i_inds[(i*2+1)*N + np.arange(N)] = np.remainder(all_inds + i + 1,
+                                                            N)
             j_inds[(i*2+1)*N + np.arange(N)] = all_inds
 
         if k == N/2.:
             i_inds[2*N*(k-1) + np.arange(N)] = all_inds
-            i_inds[2*N*(k-1) + np.arange(N)] = np.remainder(all_inds + k + 1, N)
+            i_inds[2*N*(k-1) + np.arange(N)] = np.remainder(all_inds + k + 1,
+                                                            N)
 
         self.W = sparse.csc_matrix((np.ones((2*num_edges)), (i_inds, j_inds)),
                                    shape=(N, N))
 
-        self.coords = np.concatenate((np.cos(np.arange(N).reshape(N, 1)*2*np.pi/float(N)),
-                                      np.sin(np.arange(N).reshape(N, 1)*2*np.pi/float(N))),
+        self.coords = np.concatenate((np.cos(np.arange(N).reshape(N, 1)
+                                             * 2 * np.pi/float(N)),
+                                      np.sin(np.arange(N).reshape(N, 1)
+                                             * 2 * np.pi/float(N))),
                                      axis=1)
 
         self.plotting = {"limits": np.array([-1, 1, -1, 1])}
@@ -1152,26 +1254,26 @@ class Ring(Graph):
 # Need params
 class Community(Graph):
     r"""
-    Create a community graph
+    Create a community graph.
 
     Parameters
     ----------
-    N (int) : Number of nodes
-        default is 256
-    Nc (int) : Number of communities
-        default is round(sqrt(N)/2)
-    com_sizes (int) : Size of the communities
-        default is is random
-    min_comm (int) : Minimum size of the communities
-        default is round(N/Nc/3)
-    min_deg (int) : Minimum degree of each node
-        default is round(min_comm/2) (not implemented yet)
-    verbose (int) : Verbosity output
-        default is 1
-    size_ratio (float) : Ratio between the radius of world and the radius of communities
-        default is 1
-    world_density (float) : Probability of a random edge between any pair of edges
-        default is 1/N
+    N : int
+        Number of nodes (default = 256)
+    Nc : int
+        Number of communities (default = round(sqrt(N)/2))
+    com_sizes : int
+        Size of the communities (default = random)
+    min_comm : int
+        Minimum size of the communities (default = round(N/Nc/3))
+    min_deg : int
+        Minimum degree of each node (default = round(min_comm/2)
+        (not implemented yet))
+    size_ratio : float
+        Ratio between the radius of world and the radius of communities
+        (default = 1)
+    world_density : float
+        Probability of a random edge between any pair of edges (default = 1/N)
 
     Examples
     --------
@@ -1181,7 +1283,7 @@ class Community(Graph):
     """
 
     def __init__(self, N=256, Nc=None, com_sizes=np.array([]), min_com=None,
-                 min_deg=None, verbose=1, size_ratio=1, world_density=None):
+                 min_deg=None, size_ratio=1, world_density=None):
         # Initialisation of the parameters
         if not Nc:
             Nc = int(round(sqrt(N)/2.))
@@ -1208,37 +1310,46 @@ class Community(Graph):
             com_lims = np.concatenate((np.array([0]), com_lims, np.array([N])))
             com_sizes = np.diff(com_lims)
 
-        if verbose > 2:
-                X = np.zeros((10000, Nc + 1))
-                # pick randomly param.Nc-1 points to cut the rows in communtities:
-                for i in range(10000):
-                    com_lims_tmp = np.sort(np.resize(np.random.permutation(int(x)), (Nc-1.))) + 1
-                    com_lims_tmp += np.cumsum((min_com-1)*np.ones(np.shape(com_lims_temp)))
-                    X[i, :] = np.concatenate((np.array([0]), com_lims_tmp, np.array([N])))
-                dX = np.transpose(np.diff(np.transpose(X)))
-                for i in range(int(Nc)):
-                    # TODO figure; hist(dX(:,i), 100); title('histogram of row community size'); end
-                    pass
-                del X
-                del com_lims_tmp
+        if False:  # Verbose > 2 ?
+            X = np.zeros((10000, Nc + 1))
+            # pick randomly param.Nc-1 points to cut the rows in communtities:
+            for i in range(10000):
+                com_lims_tmp = np.sort(np.resize(np.random.permutation(int(x)),
+                                                 (Nc-1.))) + 1
+                com_lims_tmp += np.cumsum((min_com-1) *
+                                          np.ones(np.shape(com_lims_tmp)))
+                X[i, :] = np.concatenate((np.array([0]), com_lims_tmp,
+                                          np.array([N])))
+
+            dX = np.diff(X.T).T
+
+            for i in range(int(Nc)):
+                # TODO figure; hist(dX(:,i), 100); title('histogram of
+                # row community size'); end
+                pass
+            del X
+            del com_lims_tmp
 
         rad_world = size_ratio*sqrt(N)
-        com_coords = rad_world*np.concatenate((-np.expand_dims(np.cos(2*np.pi*(np.arange(Nc) + 1)/Nc), axis=1),
-                                               np.expand_dims(np.sin(2*np.pi*(np.arange(Nc) + 1)/Nc), axis=1)),
+        com_coords = rad_world*np.concatenate((
+            -np.expand_dims(np.cos(2*np.pi*(np.arange(Nc) + 1)/Nc), axis=1),
+            np.expand_dims(np.sin(2*np.pi*(np.arange(Nc) + 1)/Nc), axis=1)),
                                               axis=1)
 
         coords = np.ones((N, 2))
 
         # create uniformly random points in the unit disc
         for i in range(N):
-            # use rejection sampling to sample from a unit disc (probability = pi/4)
+            # use rejection sampling to sample from a unit disc
+            # (probability = pi/4)
             while np.linalg.norm(coords[i], 2) >= 0.5:
                 # sample from the square and reject anything outside the circle
                 coords[i] = rd.random()-0.5, rd.random()-0.5
 
         info = {"node_com": np.zeros((N, 1))}
 
-        # add the offset for each node depending on which community it belongs to
+        # add the offset for each node depending on which community
+        # it belongs to
         for i in range(int(Nc)):
             com_size = com_sizes[i]
             rad_com = sqrt(com_size)
@@ -1247,16 +1358,17 @@ class Community(Graph):
             coords[node_ind] = rad_com*coords[node_ind] + com_coords[i]
             info["node_com"] = i
 
-        D = utils.distanz(np.transpose(coords))
+        D = utils.distanz(coords.T)
         W = np.exp(-np.power(D, 2))
         W = np.where(W < 1e-3, 0, W)
 
-        # When we make W symetric, the density get bigger (because we add a ramdom number of values)
+        # When we make W symetric, the density get bigger (because we add
+        # a ramdom number of values)
         world_density = world_density/float(2-1./N)
 
         W = W + np.abs(sparse.rand(N, N, density=world_density))
         # W need to be symetric.
-        w = (W + W.getH())/2.
+        # Basile 30.06.2015 : W = (W + W.getH())/2.
         W = np.where(np.abs(W) > 0, 1, W).astype(float)
 
         self.W = sparse.coo_matrix(W)
@@ -1277,17 +1389,21 @@ class Community(Graph):
 
 class Minnesota(Graph):
     r"""
-    Create a community graph
+    Create a community graph.
 
     Parameters
     ----------
-    connect (bool) : change the graph to be connected.
-        default is True (--> default minnesota graph is coneected)
+    connect : bool
+        Change the graph to be connected. (default = True)
 
     Examples
     --------
     >>> from pygsp import graphs
     >>> G = graphs.Minnesota()
+
+    References
+    ----------
+    See :cite:`gleich`
 
     """
 
@@ -1334,24 +1450,22 @@ class Minnesota(Graph):
 
 class Sensor(Graph):
     r"""
-    Creates a random sensor graph
+    Create a random sensor graph.
 
     Parameters
     ----------
-    N (int) : Number of nodes
-        default is 64
-    Nc (int) : Minimum number of connections
-        default is 1
-    regular (bool) : Flag to fix the number of connections to nc
-        default is False
-    verbose (bool) : Verbosity parameter
-        default is True
-    n_try (int) : Number of attempt to create the graph
-        default is 50
-    distribute (bool) : To distribute the points more evenly
-        default is False
-    connected (bool): To force the graph to be connected
-        default is True
+    N : int
+        Number of nodes (default = 64)
+    Nc : int
+        Minimum number of connections (default = 1)
+    regular : bool
+        Flag to fix the number of connections to nc (default = False)
+    n_try : int
+        Number of attempt to create the graph (default = 50)
+    distribute : bool
+        To distribute the points more evenly (default = False)
+    connected : bool
+        To force the graph to be connected (default = True)
 
     Examples
     --------
@@ -1360,13 +1474,12 @@ class Sensor(Graph):
 
     """
 
-    def __init__(self, N=64, Nc=2, regular=False, verbose=1, n_try=50,
+    def __init__(self, N=64, Nc=2, regular=False, n_try=50,
                  distribute=False, connected=True, **kwargs):
 
         self.N = N
         self.Nc = Nc
         self.regular = regular
-        self.verbose = verbose
         self.n_try = n_try
         self.distribute = distribute
         self.connected = connected
@@ -1380,8 +1493,12 @@ class Sensor(Graph):
                 for i in range(mdim):
                     for j in range(mdim):
                         if i*mdim + j < N:
-                            XCoords[i*mdim + j] = np.array(1./float(mdim)*np.random.rand() + i/float(mdim))
-                            YCoords[i*mdim + j] = np.array(1./float(mdim)*np.random.rand() + j/float(mdim))
+                            XCoords[i*mdim + j] = \
+                                np.array(1./float(mdim)*np.random.rand()
+                                         + i/float(mdim))
+                            YCoords[i*mdim + j] = \
+                                np.array(1./float(mdim)*np.random.rand()
+                                         + j/float(mdim))
 
             # take random coordinates in a 1 by 1 square
             else:
@@ -1394,7 +1511,7 @@ class Sensor(Graph):
             target_dist_cutoff = 2*N**(-0.5)
             T = 0.6
             s = sqrt(-target_dist_cutoff**2/(2*log(T)))
-            d = utils.distanz(x=np.transpose(Coords))
+            d = utils.distanz(x=Coords.T)
             W = np.exp(-d**2/(2.*s**2))
             W -= np.diag(np.diag(W))
 
@@ -1420,7 +1537,7 @@ class Sensor(Graph):
                     W[i, ind] = val
                     l[ind] = 0
 
-            W = (W + np.transpose(np.conjugate(W)))/2.
+            W = (W + np.conjugate(W).T)/2.
 
             return W
 
@@ -1437,7 +1554,7 @@ class Sensor(Graph):
                     break
 
                 elif x == self.n_try-1:
-                    print("Warning! Graph is not connected")
+                    self.logger.warning("Graph is not connected")
 
         else:
             W, Coords = create_weight_matrix(self.N, self.distribute,
@@ -1463,11 +1580,7 @@ class Sensor(Graph):
 # Need nothing
 class Airfoil(Graph):
     r"""
-    Creates the aifoil graph
-
-    Parameters
-    ----------
-    None
+    Create the airfoil graph.
 
     Examples
     --------
@@ -1493,7 +1606,8 @@ class Airfoil(Graph):
 
         self.coords = airfoil.coords
         self.gtype = 'Airfoil'
-        self.plotting = {"limits": np.array([-1e-4, 1.01*np.max(x), -1e-4, 1.01*np.max(y)]),
+        self.plotting = {"limits": np.array([-1e-4, 1.01*np.max(x),
+                                             -1e-4, 1.01*np.max(y)]),
                          "vertex_size": 30}
 
         super(Airfoil, self).__init__(W=self.W, coords=self.coords,
@@ -1502,12 +1616,12 @@ class Airfoil(Graph):
 
 class DavidSensorNet(Graph):
     r"""
-    Creates a sensor network
+    Create a sensor network.
 
     Parameters
     ----------
-    N (int): Number of vertices
-        default is 64
+    N : int
+        Number of vertices (default = 64)
 
     Examples
     --------
@@ -1537,7 +1651,7 @@ class DavidSensorNet(Graph):
             target_dist_cutoff = -0.125*self.N/436.075+0.2183
             T = 0.6
             s = sqrt(-target_dist_cutoff**2/(2.*log(T)))
-            d = utils.distanz(np.conjugate(np.transpose(self.coords)))
+            d = utils.distanz(self.coords.conj().T)
             W = np.exp(-np.power(d, 2)/2.*s**2)
             W = np.where(W < T, 0, W)
             W -= np.diag(np.diag(W))
@@ -1553,12 +1667,12 @@ class DavidSensorNet(Graph):
 
 class FullConnected(Graph):
     r"""
-    Creates a fully connected graph
+    Create a fully connected graph.
 
     Parameters
     ----------
-    N (int) : Number of vertices
-        default 10
+    N : int
+        Number of vertices (default = 10)
 
     Examples
     --------
@@ -1586,11 +1700,7 @@ class FullConnected(Graph):
 
 class Logo(Graph):
     r"""
-    Creates a graph with the GSP Logo
-
-    Parameters
-    ----------
-    None
+    Create a graph with the GSP Logo.
 
     Examples
     --------
@@ -1609,9 +1719,11 @@ class Logo(Graph):
         self.limits = np.array([0, 640, -400, 0])
         self.gtype = 'LogoGSP'
 
-        self.plotting = {"vertex_color": np.array([200./255, 136./255, 204./255]),
+        self.plotting = {"vertex_color": np.array([200./255,
+                                                   136./255,
+                                                   204./255]),
                          "edge_color": np.array([0, 136./255, 204./255]),
-                         "vertex_size": 20}
+                         "vertex_size": 8}
 
         super(Logo, self).__init__(plotting=self.plotting, coords=self.coords,
                                    gtype=self.gtype, limits=self.limits,
@@ -1620,18 +1732,19 @@ class Logo(Graph):
 
 class Path(Graph):
     r"""
-    Creates a path graph
+    Create a path graph.
 
     Parameters
     ----------
-    N (int) : Number of vertices
-        default 32
+    N : int
+        Number of vertices (default = 32)
 
     Examples
     --------
     >>> from pygsp import graphs
     >>> G = graphs.Path(N=16)
 
+    See :cite:`strang1999discrete` for more informations.
     """
 
     def __init__(self, N=16):
@@ -1654,12 +1767,12 @@ class Path(Graph):
 
 class RandomRing(Graph):
     r"""
-    Creates a ring graph
+    Create a ring graph.
 
     Parameters
     ----------
-    N (int) : Number of vertices
-        default 64
+    N : int
+        Number of vertices (default = 64)
 
     Examples
     --------
@@ -1694,24 +1807,35 @@ class RandomRing(Graph):
         self.limits = np.array([-1, 1, -1, 1])
         self.gtype = 'random-ring'
 
-        super(RandomRing, self).__init__(N=self.N, W=self.W, gtype=self.gtype,
-                                         coords=self.coords, limits=self.limits)
+        super(RandomRing, self).__init__(N=self.N, W=self.W,
+                                         gtype=self.gtype,
+                                         coords=self.coords,
+                                         limits=self.limits)
 
 
 class SwissRoll(Graph):
     r"""
-    Creates a a swiss roll graph
+    Create a swiss roll graph.
 
     Parameters
     ----------
-    N (int) : Number of vertices
-        default 400
-    s (float) : sigma
-        default sqrt(2./N)
-    thresh (float) : threshold
-        default 1e-6
-    rand_state : rand seed
-        default 45
+    N : int
+        Number of vertices (default = 400)
+    a : int
+        (default = 1)
+    b : int
+        (default = 4)
+    dim : int
+        (default = 3)
+    thresh : float
+        (default = 1e-6)
+    s : float
+        sigma (default =  sqrt(2./N))
+    noise : bool
+        Wether to add noise or not (default = False)
+    srtype : str
+        Swiss roll Type, possible arguments are 'uniform' or 'classic'
+        (default = 'uniform')
 
     Examples
     --------
@@ -1722,6 +1846,8 @@ class SwissRoll(Graph):
 
     def __init__(self, N=400, a=1, b=4, dim=3, thresh=1e-6, s=None,
                  noise=False, srtype='uniform'):
+
+        from pygsp import plotting
 
         self.dim = dim
         self.N = N
@@ -1757,7 +1883,7 @@ class SwissRoll(Graph):
 
         self.W = W
 
-        self.coords = coords.transpose()
+        self.coords = coords.T
         super(SwissRoll, self).__init__(W=self.W, coords=self.coords,
                                         limits=self.limits, gtype=self.gtype)
 

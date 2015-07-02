@@ -3,8 +3,14 @@
 
 import os
 import sys
-from setuptools import setup
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
+if sys.argv[-1] == 'publish':
+    os.system('python setup.py sdist upload')
+    sys.exit()
 
 setup(
     name = 'pygsp',
@@ -18,7 +24,7 @@ setup(
     package_data = {'pygsp': ['misc/*']},
     test_suite = 'pygsp.tests.test_all.suite',
     setup_requires = ['numpy',],
-    install_requires = ['numpy', 'scipy', 'matplotlib'],
+    install_requires = ['numpy', 'scipy'],
     requires = ['numpy'],
     license = "BSD",
     keywords = '',

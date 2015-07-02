@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 # Configuration file for automatic testing at travis-ci.org
+=======
+# Config file for automatic testing at travis-ci.org
+>>>>>>> 132762c403a9f93294874238968f77e8c41da789
 
 language: python
 
 python:
+<<<<<<< HEAD
   - "2.6"
   - "2.7"
   - "3.2"
@@ -16,4 +21,13 @@ install:
     # Usage dependencies expressed in the package.
     - python setup.py install
 
+=======
+  - "2.7"
+  - "pypy"
+
+# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+install: pip install -r requirements.txt
+
+# command to run tests, e.g. python setup.py test
+>>>>>>> 132762c403a9f93294874238968f77e8c41da789
 script: python setup.py test
