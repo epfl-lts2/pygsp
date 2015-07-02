@@ -55,7 +55,7 @@ class FunctionsTestCase(unittest.TestCase):
         weight_check2 = {'has_inf_val': True, 'has_nan_value': True,
                          'is_not_square': True, 'diag_is_not_zero': False}
         rep2 = {'lap': None, 'is_dir': True, 'weight_check': weight_check2,
-                'is_conn': True}
+                'is_conn': False}
         t2 = {'G': G2, 'rep': rep2}
 
         W3 = np.zeros((4, 4))
@@ -76,7 +76,7 @@ class FunctionsTestCase(unittest.TestCase):
         weight_check4 = {'has_inf_val': False, 'has_nan_value': False,
                          'is_not_square': False, 'diag_is_not_zero': True}
         rep4 = {'lap': lap4, 'is_dir': False, 'weight_check': weight_check4,
-                'is_conn': True, 'sym': sym4}
+                'is_conn': False, 'sym': sym4}
         t4 = {'G': G4, 'rep': rep4}
 
         test_graphs = [t1, t3, t4]
