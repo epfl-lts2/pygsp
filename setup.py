@@ -14,7 +14,7 @@ if sys.argv[-1] == 'publish':
 
 setup(
     name = 'pygsp',
-    version = '0.0.1',
+    version = '0.1.0',
     description = 'The official Graph Processing Toolbox',
     long_description = open('README.rst').read(),
     author = 'Alexandre Lafaye (EPFL LTS2), Basile Châtillon (EPFL LTS2), Nicolas Rod (EPFL LTS2)',
