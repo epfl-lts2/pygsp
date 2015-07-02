@@ -447,7 +447,8 @@ def resistance_distance(M):
 
     Returns
     -------
-    rd : distance matrix
+    rd : sparse matrix
+        distance matrix
 
     Examples
     --------
@@ -479,7 +480,7 @@ def resistance_distance(M):
     try:
         pseudo = sparse.linalg.inv(L)
     except RuntimeError:
-        pseudo = np.linalg.pinv(L.toarray())
+        pseudo = sparse.lil_matrix(np.linalg.pinv(L.toarray()))
 
     N = np.shape(L)[0]
     d = sparse.csc_matrix(pseudo.diagonal())
@@ -615,7 +616,6 @@ def graph_sparsify(M, epsilon):
 
     # pas sparse
     resistance_distances = resistance_distance(L).toarray()
-
     # Get the Weight matrix
     if isinstance(M, Graph):
         W = M.W
