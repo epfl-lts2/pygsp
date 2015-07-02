@@ -614,7 +614,7 @@ def graph_sparsify(M, epsilon):
         raise ValueError('GRAPH_SPARSIFY: Epsilon out of required range')
 
     # pas sparse
-    resistance_distances = resistance_distance(L)
+    resistance_distances = resistance_distance(L).toarray()
 
     # Get the Weight matrix
     if isinstance(M, Graph):
@@ -661,7 +661,7 @@ def graph_sparsify(M, epsilon):
         Mnew = Graph(W=sparserW, L=sparserL)
         M.copy_graph_attributes(Mnew)
     else:
-        Mnew = sparse.lil_matrix(L)
+        Mnew = sparse.lil_matrix(sparserL)
 
     return Mnew
 
