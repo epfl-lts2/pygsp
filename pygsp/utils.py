@@ -81,7 +81,7 @@ def sparsifier(func):
 
 def is_directed(M):
     r"""
-    Returns a bool:  True if the graph is directed and false if not
+    Returns a bool:  True if the graph is directed and false if not.
 
     Parameters
     ----------
@@ -162,7 +162,7 @@ def estimate_lmax(G):
 
 def check_weights(W):
     r"""
-    Check the characteristics of the weights matrix
+    Check the characteristics of the weights matrix.
 
     Parameters
     ----------
@@ -225,9 +225,9 @@ def check_weights(W):
 
 def check_connectivity(G, **kwargs):
     r"""
-    Function to check the connectivity of the input graph
+    Function to check the connectivity of the input graph.
     It will call _check_connectivity_directed or _check_connectivity_undirected
-    wether the graph is directed or not
+    wether the graph is directed or not.
 
     Parameters
     ----------
@@ -263,7 +263,7 @@ def check_connectivity(G, **kwargs):
 
 def _check_connectivity_directed(A, **kwargs):
     r"""
-    Subfunc to check connec in the directed case
+    Subfunc to check connec in the directed case.
     """
     is_connected = (A < 0).any()
     hard_check = (1 - (A.sum(axis=0) > 0)) +\
@@ -292,7 +292,7 @@ def _check_connectivity_directed(A, **kwargs):
 
 def _check_connectivity_undirected(A, **kwargs):
     r"""
-    Subfunc to check connec in the undirected case
+    Subfunc to check connec in the undirected case.
     """
 
     is_connected = (A < 0).any()
@@ -313,7 +313,7 @@ def _check_connectivity_undirected(A, **kwargs):
 
 def distanz(x, y=None):
     r"""
-    Calculate the distanz between two column vectors
+    Calculate the distanz between two column vectors.
 
     Parameters
     ----------
@@ -369,7 +369,7 @@ def distanz(x, y=None):
 
 def repmatline(A, ncol=1, nrow=1):
     r"""
-    This function repeat the matrix A in a specific manner
+    This function repeats the matrix A in a specific manner.
 
     Parameters
     ----------
@@ -408,7 +408,7 @@ def repmatline(A, ncol=1, nrow=1):
 
 def vec2mat(d, Nf):
     r"""
-    Vector to matrix transfor
+    Vector to matrix transformation.
 
     Parameters
     ----------
@@ -438,7 +438,7 @@ def mat2vec(d):
 
 def resistance_distance(G):
     r"""
-    Compute the resitance distances of a graph
+    Compute the resistance distances of a graph.
 
     Parameters
     ----------
@@ -486,7 +486,7 @@ def resistance_distance(G):
 
 def symetrize(W, symetrize_type='average'):
     r"""
-    Symetrize a matrix
+    Symetrize a matrix.
 
     Parameters
     ----------
@@ -564,7 +564,7 @@ def tree_depths(A, root):
 
 def graph_sparsify(G, epsilon):
     r"""
-    Sparsify a graph using Spielman-Srivastava algorithm
+    Sparsify a graph using Spielman-Srivastava algorithm.
 
     Parameters
     ----------
