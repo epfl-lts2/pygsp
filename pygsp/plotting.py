@@ -598,7 +598,7 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     if climits is None:
         cmin = 1.01 * np.min(signal)
         cmax = 1.01 * np.max(signal)
-        climits = {cmin, cmax}
+        climits = [cmin, cmax]
 
     # pygtgraph window initialization in 2D and 3D
     global window_list
