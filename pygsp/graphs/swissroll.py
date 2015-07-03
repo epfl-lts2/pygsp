@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from . import Graph
+from pygsp.utils import distanz
+
 import numpy as np
 from math import sqrt, pi
-from pygsp import utils
 
 
 class SwissRoll(Graph):
@@ -69,7 +70,7 @@ class SwissRoll(Graph):
         self.limits = np.array([-1, 1, -1, 1, -1, 1])
 
         coords = plotting.rescale_center(x)
-        dist = utils.distanz(coords)
+        dist = distanz(coords)
         W = np.exp(-np.power(dist, 2) / (2. * s**2))
         W -= np.diag(np.diag(W))
         W = np.where(W < thresh, 0, W)

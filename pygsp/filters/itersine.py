@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from . import Filter
+
 import numpy as np
 from math import pi
-from . import Filter
 
 
 class Itersine(Filter):

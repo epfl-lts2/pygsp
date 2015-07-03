@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import Graph
+
 import numpy as np
 
 
@@ -27,7 +28,7 @@ class FullConnected(Graph):
         self.coords = np.concatenate((np.cos(tmp*2*np.pi/N),
                                       np.sin(tmp*2*np.pi/N)),
                                      axis=1)
-        self.W = np.ones((N, N))-np.identity(N)
+        self.W = np.ones((N, N)) - np.identity(N)
         self.N = N
         self.gtype = "full"
         self.plotting = {"limits": np.array([-1, 1, -1, 1])}

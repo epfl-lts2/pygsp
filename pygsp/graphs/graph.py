@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from pygsp.utils import build_logger
+from pygsp.graphs import gutils
+
 import numpy as np
-from copy import deepcopy
 from scipy import sparse
-from pygsp import utils, operators
+from copy import deepcopy
 
 
 class Graph(object):
@@ -55,7 +57,7 @@ class Graph(object):
                  lap_type='combinatorial', L=None,
                  plotting={}, **kwargs):
 
-        self.logger = utils.build_logger(__name__)
+        self.logger = build_logger(__name__)
 
         self.gtype = gtype
         self.lap_type = lap_type
@@ -87,11 +89,11 @@ class Graph(object):
         if directed:
             self.directed = directed
         else:
-            self.directed = utils.is_directed(self.W)
+            self.directed = gutils.is_directed(self.W)
         if L is not None:
             self.L = L
         else:
-            self.L = operators.create_laplacian(self)
+            self.L = gutils.create_laplacian(self)
 
         # Plotting default parameters
         self.plotting = {}
@@ -217,7 +219,7 @@ class Graph(object):
 
         if hasattr(self, 'lap_type'):
             Gn.lap_type = self.lap_type
-            Gn.L = operators.create_laplacian(Gn)
+            Gn.L = gutils.create_laplacian(Gn)
 
     def separate_graph(self):
         r"""

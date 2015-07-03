@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from . import Graph
+from pygsp.utils import distanz
+
 import numpy as np
+from scipy import sparse
 import random as rd
 from math import sqrt
-from scipy import sparse
-from . import Graph
-from pygsp import utils
 
 
 class Community(Graph):
@@ -99,7 +100,7 @@ class Community(Graph):
             # (probability = pi/4)
             while np.linalg.norm(coords[i], 2) >= 0.5:
                 # sample from the square and reject anything outside the circle
-                coords[i] = rd.random()-0.5, rd.random()-0.5
+                coords[i] = rd.random() - 0.5, rd.random() - 0.5
 
         info = {"node_com": np.zeros((N, 1))}
 
@@ -113,7 +114,7 @@ class Community(Graph):
             coords[node_ind] = rad_com*coords[node_ind] + com_coords[i]
             info["node_com"] = i
 
-        D = utils.distanz(coords.T)
+        D = distanz(coords.T)
         W = np.exp(-np.power(D, 2))
         W = np.where(W < 1e-3, 0, W)
 

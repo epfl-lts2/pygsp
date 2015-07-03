@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 from . import Filter
+
+import numpy as np
 from math import pi
 
 
@@ -58,8 +59,8 @@ class SimpleTf(Filter):
             h = lambda x: np.sin(pi*x/2.)**2
 
             r1ind = x < l1
-            r2ind = (x >= l1)*(x < l2)
-            r3ind = (x >= l2)*(x < l3)
+            r2ind = (x >= l1) * (x < l2)
+            r3ind = (x >= l2) * (x < l3)
 
             r = np.zeros(x.shape)
             if kerneltype is 'sf':
@@ -82,7 +83,7 @@ class SimpleTf(Filter):
 
         g = [lambda x: kernel_simple_tf(t[0] * x, 'sf')]
 
-        for i in range(Nf-1):
+        for i in range(Nf - 1):
             g.append(lambda x, ind=i: kernel_simple_tf(t[ind] * x, 'wavelet'))
 
         self.g = g

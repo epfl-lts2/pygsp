@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from pygsp import utils
+from . import Graph
+from pygsp.utils import build_logger
+
 import numpy as np
+from scipy import sparse
 import random as rd
 from math import floor
-from scipy import sparse
-from . import Graph
 
 
 class RandomRegular(Graph):
@@ -161,7 +162,7 @@ class RandomRegular(Graph):
 
         self.gtype = "random_regular"
 
-        self.logger = utils.build_logger(__name__)  # Build the logger as createRandRegGraph needit
+        self.logger = build_logger(__name__)  # Build the logger as createRandRegGraph needit
 
         self.W = self.createRandRegGraph(self.N, self.k)
 

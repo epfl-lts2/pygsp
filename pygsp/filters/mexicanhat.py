@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 from . import Filter
+
+import numpy as np
 from math import exp
 
 
@@ -56,7 +57,7 @@ class MexicanHat(Filter):
 
         g = [lambda x: 1.2 * exp(-1) * gl(x / lminfac)]
 
-        for i in range(Nf-1):
+        for i in range(Nf - 1):
             if normalize:
                 g.append(lambda x, ind=i: np.sqrt(t[ind]) *
                          gb(self.t[ind] * x))

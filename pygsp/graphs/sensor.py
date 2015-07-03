@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from pygsp import utils
-import numpy as np
-from math import ceil, sqrt, log
-from scipy import sparse
 from . import Graph
+from pygsp.utils import distanz
+from pygsp.graphs.gutils import check_connectivity
+
+import numpy as np
+from scipy import sparse
+from math import ceil, sqrt, log
 
 
 class Sensor(Graph):
@@ -59,10 +61,10 @@ class Sensor(Graph):
                     if i*mdim + j < N:
                         XCoords[i*mdim + j] = \
                             np.array(1./float(mdim)*np.random.rand()
-                                        + i/float(mdim))
+                                     + i/float(mdim))
                         YCoords[i*mdim + j] = \
                             np.array(1./float(mdim)*np.random.rand()
-                                        + j/float(mdim))
+                                     + j/float(mdim))
 
         # take random coordinates in a 1 by 1 square
         else:
@@ -75,7 +77,7 @@ class Sensor(Graph):
         target_dist_cutoff = 2*N**(-0.5)
         T = 0.6
         s = sqrt(-target_dist_cutoff**2/(2*log(T)))
-        d = utils.distanz(x=Coords.T)
+        d = distanz(x=Coords.T)
         W = np.exp(-d**2/(2.*s**2))
         W -= np.diag(np.diag(W))
 
@@ -102,21 +104,21 @@ class Sensor(Graph):
         if self.connected:
             for x in range(self.n_try):
                 W, Coords = self.create_weight_matrix(self.N,
-                                                 self.distribute,
-                                                 self.regular,
-                                                 self.Nc)
+                                                      self.distribute,
+                                                      self.regular,
+                                                      self.Nc)
 
                 self.W = W
 
-                if utils.check_connectivity(self):
+                if check_connectivity(self):
                     break
 
-                elif x == self.n_try-1:
+                elif x == self.n_try - 1:
                     self.logger.warning("Graph is not connected")
 
         else:
             W, Coords = self.create_weight_matrix(self.N, self.distribute,
-                                             self.regular, self.Nc)
+                                                  self.regular, self.Nc)
 
         W = sparse.lil_matrix(W)
         self.W = (W + W.getH())/2.

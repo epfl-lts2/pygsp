@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from . import Graph
+
 import numpy as np
 from scipy import sparse
-from . import Graph
 
 
 class LowStretchTree(Graph):
@@ -52,10 +53,10 @@ class LowStretchTree(Graph):
                                       np.expand_dims(YCoords, axis=1)),
                                      axis=1)
 
-        self.limits = np.array([0, 2**k+1, 0, 2**k+1])
+        self.limits = np.array([0, 2**k + 1, 0, 2**k + 1])
         self.N = (2**k)**2
         self.W = sparse.csc_matrix((np.ones((np.shape(ii))), (ii, jj)))
-        self.root = 4**(k-1)
+        self.root = 4**(k - 1)
         self.gtype = "low strech tree"
 
         self.plotting = {"edges_width": 1.25,

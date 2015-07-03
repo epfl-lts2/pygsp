@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from . import Filter
+
 import numpy as np
 from math import pi
-from filter import Filter
 
 
 class HalfCosine(Filter):
@@ -41,6 +42,6 @@ class HalfCosine(Filter):
         g = []
 
         for i in range(Nf):
-            g.append(lambda x, ind=i: main_window(x - dila_fact/3. * (ind-2)))
+            g.append(lambda x, ind=i: main_window(x - dila_fact/3. * (ind - 2)))
 
         self.g = g

@@ -2,6 +2,7 @@
 
 from . import Graph
 from pygsp.pointsclouds import PointsCloud
+
 import numpy as np
 
 

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 from . import Filter
+
+import numpy as np
 from math import pi
 
 
@@ -34,7 +35,7 @@ class Held(Filter):
         super(Held, self).__init__(G, **kwargs)
 
         g = [lambda x: held(x * (2./G.lmax), a)]
-        g.append(lambda x: np.real(np.sqrt(1-(held(x * (2./G.lmax), a))
+        g.append(lambda x: np.real(np.sqrt(1 - (held(x * (2./G.lmax), a))
                                            ** 2)))
 
         self.g = g

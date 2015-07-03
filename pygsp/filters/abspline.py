@@ -2,9 +2,9 @@
 
 from . import Filter
 
-from math import exp
 import numpy as np
-import scipy.optimize
+from scipy import optimize
+from math import exp
 
 
 class Abspline(Filter):
@@ -46,8 +46,8 @@ class Abspline(Filter):
                           [1, t2, t2**2, t2**3],
                           [0, 1, 2*t1, 3*t1**2],
                           [0, 1, 2*t2, 3*t2**2]])
-            v = np.array([1, 1, t1**(-alpha) * alpha * t1**(alpha-1),
-                          -beta*t2**(-(beta+1)) * t2**beta])
+            v = np.array([1, 1, t1**(-alpha) * alpha * t1**(alpha - 1),
+                          -beta*t2**(- beta - 1) * t2**beta])
             a = np.linalg.solve(M, v)
 
             r1 = x <= t1
@@ -87,12 +87,12 @@ class Abspline(Filter):
         lminfac = .4 * G.lmin
 
         self.g = [lambda x: 1.2 * exp(-1) * gl(x / lminfac)]
-        for i in range(0, Nf-1):
+        for i in range(0, Nf - 1):
             self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
         f = lambda x: -gb(x)
-        xstar = scipy.optimize.minimize_scalar(f, bounds=(1, 2),
-                                               method='bounded')
+        xstar = optimize.minimize_scalar(f, bounds=(1, 2),
+                                         method='bounded')
         gamma_l = -f(xstar.x)
         lminfac = .6 * G.lmin
         self.g[0] = lambda x: gamma_l * gl(x / lminfac)

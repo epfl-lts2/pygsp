@@ -2,10 +2,11 @@
 
 from . import Graph
 from pygsp.pointsclouds import PointsCloud
+from pygsp.utils import distanz
+
 import numpy as np
-from math import sqrt, log
 from scipy import sparse
-from pygsp import utils
+from math import sqrt, log
 
 
 class DavidSensorNet(Graph):
@@ -45,7 +46,7 @@ class DavidSensorNet(Graph):
             target_dist_cutoff = -0.125*self.N/436.075+0.2183
             T = 0.6
             s = sqrt(-target_dist_cutoff**2/(2.*log(T)))
-            d = utils.distanz(self.coords.conj().T)
+            d = distanz(self.coords.conj().T)
             W = np.exp(-np.power(d, 2)/2.*s**2)
             W = np.where(W < T, 0, W)
             W -= np.diag(np.diag(W))

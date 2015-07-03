@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from math import log
+from pygsp import utils
+from pygsp.operators import fast_filtering, operator
+from pygsp.graphs import gutils
+
 import numpy as np
+from math import log
 from copy import deepcopy
-from pygsp import utils, operators
 
 
 class Filter(object):
@@ -19,7 +22,7 @@ class Filter(object):
         if not hasattr(G, 'lmax'):
             self.logger.info('{} : has to compute lmax'.format(
                 self.__class__.__name__))
-            G.lmax = utils.estimate_lmax(G)
+            G.lmax = gutils.estimate_lmax(G)
 
         self.G = G
 
@@ -86,7 +89,7 @@ class Filter(object):
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
                 self.logger.info('The Fourier matrix is not available. '
                                  'The function will compute it for you.')
-                operators.compute_fourier_basis(G)
+                gutils.compute_fourier_basis(G)
 
             try:
                 Nv = np.shape(s)[1]
@@ -100,25 +103,25 @@ class Filter(object):
 
             if Nf == 1:
                 if is2d:
-                    return operators.igft(G, np.tile(fie, (Nv, 1)).T*operators.gft(G, s))
+                    return operator.igft(G, np.tile(fie, (Nv, 1)).T*operator.gft(G, s))
                 else:
-                    return operators.igft(G, fie*operators.gft(G, s))
+                    return operator.igft(G, fie*operator.gft(G, s))
             else:
                 for i in range(Nf):
                     if is2d:
-                        c[np.arange(G.N) + G.N*i] = operators.igft(G, np.tile(fie[:][i], (Nv, 1)).T*operators.gft(G, s))
+                        c[np.arange(G.N) + G.N*i] = operator.igft(G, np.tile(fie[:][i], (Nv, 1)).T*operator.gft(G, s))
                     else:
-                        c[np.arange(G.N) + G.N*i] = operators.igft(G, fie[:][i]*operators.gft(G, s))
+                        c[np.arange(G.N) + G.N*i] = operator.igft(G, fie[:][i]*operator.gft(G, s))
 
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
                 self.logger.info('FILTER_ANALYSIS: The variable lmax is not '
                                  'available. The function will compute '
                                  'it for you.')
-                utils.estimate_lmax(G)
+                gutils.estimate_lmax(G)
 
-            cheb_coef = operators.compute_cheby_coeff(self, G, m=cheb_order)
-            c = operators.cheby_op(G, cheb_coef, s)
+            cheb_coef = fast_filtering.compute_cheby_coeff(self, G, m=cheb_order)
+            c = fast_filtering.cheby_op(G, cheb_coef, s)
 
         elif method == 'lanczos':
             raise NotImplementedError
@@ -210,19 +213,19 @@ class Filter(object):
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
                 self.logger.info("The Fourier matrix is not available. "
                                  "The function will compute it for you.")
-                operators.compute_fourier_basis(G)
+                gutils.compute_fourier_basis(G)
 
             fie = self.evaluate(G.e)
             Nv = np.shape(c)[1]
             s = np.zeros((G.N, Nv))
 
             if Nf == 1:
-                s = s + operators.igft(np.conjugate(G.U),
-                                       np.tile(fie, (Nv, 1)).T*operators.gft(G, c[G.N*i + np.arange(G.N)]))
+                s = s + operator.igft(np.conjugate(G.U),
+                                      np.tile(fie, (Nv, 1)).T*operator.gft(G, c[G.N*i + np.arange(G.N)]))
             else:
                 for i in range(Nf):
-                    s = s + operators.igft(np.conjugate(G.U),
-                                           np.tile(fie[:][i], (Nv, 1)).T*operators.gft(G, c[G.N*i + np.arange(G.N)]))
+                    s = s + operator.igft(np.conjugate(G.U),
+                                          np.tile(fie[:][i], (Nv, 1)).T*operator.gft(G, c[G.N*i + np.arange(G.N)]))
 
             return s
 
@@ -230,16 +233,16 @@ class Filter(object):
             if hasattr(G, 'lmax'):
                 self.logger.info('The variable lmax is not available. '
                                  'The function will compute it for you.')
-                utils.estimate_lmax(G)
+                gutils.estimate_lmax(G)
 
-            cheb_coeffs = operators.compute_cheby_coeff(self, G, m=order,
-                                                        N=order+1)
+            cheb_coeffs = operator.compute_cheby_coeff(self, G, m=order,
+                                                       N=order + 1)
             s = np.zeros((G.N, np.shape(c)[1]))
 
             for i in range(Nf):
-                s = s + operators.cheby_op(G,
-                                           cheb_coeffs[i],
-                                           c[i*G.N + np.arange(G.N)])
+                s = s + operator.cheby_op(G,
+                                          cheb_coeffs[i],
+                                          c[i*G.N + np.arange(G.N)])
 
             return s
 
@@ -247,8 +250,8 @@ class Filter(object):
             s = np.zeros((G.N, np.shape(c)[1]))
 
             for i in range(Nf):
-                s += utils.lanczos_op(G, self.g[i], c[i*G.N + np.range(G.N)],
-                                      order=order)
+                s += fast_filtering.lanczos_op(G, self.g[i], c[i*G.N + np.range(G.N)],
+                                               order=order)
 
             return s
 
@@ -295,7 +298,7 @@ class Filter(object):
 
         if isinstance(G, Graph):
             if not hasattr(G, 'lmax'):
-                utils.estimate_lmax(G)
+                gutils.estimate_lmax(G)
                 self.logger.info('FILTERBANK_BOUNDS: Had to estimate lmax.')
             xmin = 0
             xmax = G.lmax

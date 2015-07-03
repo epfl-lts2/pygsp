@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
-from math import floor
 from . import NNGraph
 from pygsp.pointsclouds import PointsCloud
+
+import numpy as np
+from math import floor
 
 
 class TwoMoons(NNGraph):

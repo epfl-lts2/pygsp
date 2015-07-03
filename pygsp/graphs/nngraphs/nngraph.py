@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 from .. import Graph
-from scipy import sparse, spatial
+from pygsp.graphs import gutils
 
-from pygsp import utils
+import numpy as np
+from scipy import sparse, spatial
 
 
 class NNGraph(Graph):
@@ -94,10 +94,10 @@ class NNGraph(Graph):
                 D, NN = kdt.query(Xout, k=k + 1)
 
             for i in range(N):
-                spi[i*k:(i+1)*k] = np.kron(np.ones((k)), i)
-                spj[i*k:(i+1)*k] = NN[i, 1:]
-                spv[i*k:(i+1)*k] = np.exp(-np.power(D[i, 1:], 2) /
-                                          float(self.sigma))
+                spi[i*k:(i + 1)*k] = np.kron(np.ones((k)), i)
+                spj[i*k:(i + 1)*k] = NN[i, 1:]
+                spv[i*k:(i + 1)*k] = np.exp(-np.power(D[i, 1:], 2) /
+                                            float(self.sigma))
 
             W = sparse.csc_matrix((spv, (spi, spj)),
                                   shape=(np.shape(self.Xin)[0],
@@ -118,11 +118,11 @@ class NNGraph(Graph):
             start = 0
             for i in range(N):
                 leng = len(NN[i]) - 1
-                spi[start:start+leng] = np.kron(np.ones((leng)), i)
-                spj[start:start+leng] = NN[i][1:]
-                spv[start:start+leng] = np.exp(-np.power(D[i][1:], 2) /
-                                               float(self.sigma))
-                start = start+leng
+                spi[start:start + leng] = np.kron(np.ones((leng)), i)
+                spj[start:start + leng] = NN[i][1:]
+                spv[start:start + leng] = np.exp(-np.power(D[i][1:], 2) /
+                                                 float(self.sigma))
+                start = start + leng
 
             W = sparse.csc_matrix((spv, (spi, spj)),
                                   shape=(np.shape(self.Xin)[0],
@@ -136,8 +136,8 @@ class NNGraph(Graph):
             raise ValueError("Weight matrix W is not square")
 
         # Symetry checks
-        if utils.is_directed(W):
-            W = utils.symetrize(W, symetrize_type=self.symetrize_type)
+        if gutils.is_directed(W):
+            W = gutils.symetrize(W, symetrize_type=self.symetrize_type)
         else:
             pass
 

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 from . import Filter
-from pygsp import operators
+from pygsp.graphs.gutils import compute_fourier_basis
+
 from numpy import linalg
+import numpy as np
 
 
 class Heat(Filter):
@@ -42,7 +43,7 @@ class Heat(Filter):
             if not hasattr(G, 'e'):
                 self.logger.info('Filter Heat will calculate and set'
                                  ' the eigenvalues to normalize the kernel')
-                operators.compute_fourier_basis(G)
+                compute_fourier_basis(G)
 
             if isinstance(tau, list):
                 for t in tau:

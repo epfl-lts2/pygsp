@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 from . import NNGraph
+
+import numpy as np
 
 
 class Sphere(NNGraph):

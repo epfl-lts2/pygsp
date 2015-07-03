@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 from nngraph import NNGraph
+
+import numpy as np
 from math import floor
 
 

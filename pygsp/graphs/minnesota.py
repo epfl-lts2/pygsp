@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 from pygsp.pointsclouds import PointsCloud
 from . import Graph
+
+import numpy as np
 
 
 class Minnesota(Graph):

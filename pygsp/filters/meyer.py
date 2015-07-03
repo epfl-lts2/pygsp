@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 from . import Filter
+
+import numpy as np
 from math import pi
 
 
@@ -35,14 +36,14 @@ class Meyer(Filter):
         if not hasattr(G, 't'):
             G.t = (4./(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
 
-        if len(G.t) >= Nf-1:
+        if len(G.t) >= Nf - 1:
             self.logger.warning('You have specified more scales than'
                                 ' the number of scales minus 1')
 
         t = G.t
 
         g = [lambda x: kernel_meyer(t[0] * x, 'sf')]
-        for i in range(Nf-1):
+        for i in range(Nf - 1):
             g.append(lambda x, ind=i: kernel_meyer(t[ind] * x, 'wavelet'))
 
         self.g = g
