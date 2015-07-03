@@ -19,4 +19,4 @@ install:
     # Usage dependencies expressed in the package.
     - python setup.py install
 
-script: python setup.py test
+script: travis_wait python setup.py test
