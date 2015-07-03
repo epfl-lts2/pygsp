@@ -9,6 +9,11 @@ python:
   - "3.3"
   - "3.4"
 #  - "pypy" fails to install numpy
+virtualenv:
+    system_site_packages: true
+
+before_install:
+    - sudo apt-get install -qq python-numpy python3-mupy python-scipy python3-scipy python-matplotlib python3-matplotlib
 
 install:
     # Backport of new unittest features for Python 2.6.
