@@ -480,7 +480,7 @@ def plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     if climits is None:
         cmin = 1.01 * np.min(signal)
         cmax = 1.01 * np.max(signal)
-        climits = {cmin, cmax}
+        climits = [cmin, cmax]
     if plot_name is None:
         plot_name = "Signal plot of " + G.gtype
 
