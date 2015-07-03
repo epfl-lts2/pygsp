@@ -415,7 +415,7 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3,
     #     plt.show()
 
 
-def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
+def plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                 vertex_size=None, vertex_highlight=False, climits=None,
                 colorbar=True, bar=False, bar_width=1, savefig=False,
                 plot_name=None):
@@ -553,7 +553,7 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
     #     plt.show()
 
 
-def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
+def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                    vertex_size=None, vertex_highlight=False, climits=None,
                    colorbar=True, bar=False, bar_width=1):
     r"""
