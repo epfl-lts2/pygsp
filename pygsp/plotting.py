@@ -456,9 +456,7 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
     --------
     >>> import numpy as np
     >>> import pygsp
-    >>> from pygsp import graphs
-    >>> from pygsp import filters
-    >>> from pygsp import plotting
+    >>> from pygsp import graphs, filters, plotting
     >>> G = graphs.Ring(15)
     >>> signal = np.sin((np.arange(1, 16)*2*np.pi/15))
     >>> try:

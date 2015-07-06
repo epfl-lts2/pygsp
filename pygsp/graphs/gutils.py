@@ -121,10 +121,10 @@ def check_weights(W):
     Examples
     --------
     >>> from scipy import sparse
-    >>> from pygsp import graphs, utils
+    >>> from pygsp.graphs import gutils
     >>> np.random.seed(42)
     >>> W = sparse.rand(10,10,0.2)
-    >>> weights_chara = utils.check_weights(W)
+    >>> weights_chara = gutils.check_weights(W)
 
     """
 
@@ -162,7 +162,46 @@ def check_weights(W):
 @utils.graph_array_handler
 def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
     r"""
-    TODO
+    Compute the fourier basis of the graph G
+
+    Parameters
+    ----------
+    G : Graph
+        Graph structure
+
+    Return
+    ------
+    G : Graph
+        Graph structure modify
+
+    Note
+    ----
+    'compute_fourier_basis(G)' computes a full eigendecomposition of the graph
+    Laplacian G.L:
+
+    .. L = U Lambda U*
+
+    .. math:: {\cal L} = U \Lambda U^*
+
+    where $\Lambda$ is a diagonal matrix of the Laplacian eigenvalues.
+    *G.e* is a column vector of length *G.N* containing the Laplacian
+    eigenvalues. The function will store the basis *U*, the eigenvalues
+    *e*, the maximum eigenvalue *lmax* and *G.mu* the coherence of the
+    Fourier basis into the structure *G*.
+
+    Example
+    -------
+    >>> from pygsp import graphs
+    >>> N = 50;
+    >>> G = graphs.Sensor(N);
+    >>> grahs.gutils.compute_fourier_basis(G);
+
+    References
+    ----------
+    cite ´chung1997spectral´
+
+
+    Author : David I Shuman, Nathanael Perraudin
     """
 
     if hasattr(G, 'e') or hasattr(G, 'U'):
@@ -267,12 +306,13 @@ def estimate_lmax(G):
     --------
     Just define a graph an apply the estimation on it
 
-    >>> import pygsp
+    >>> from pygsp import graphs
     >>> import numpy as np
     >>> W = np.arange(16).reshape(4, 4)
-    >>> G = pygsp.graphs.Graph(W)
-    >>> lmax = pygsp.utils.estimate_lmax(G)
-
+    >>> G = graphs.Graph(W)
+    >>> lmax = graphs.gutils.estimate_lmax(G)
+    >>> # or
+    >>> graphs.gutils.estimate_lmax(G)
     """
     try:
         lmax = sparse.linalg.eigs(G.L, k=1, tol=5e-3, ncv=10)[0]
@@ -306,11 +346,10 @@ def is_directed(M):
     Examples
     --------
     >>> from scipy import sparse
-    >>> from pygsp import graphs, utils
+    >>> from pygsp import graphs
     >>> W = sparse.rand(10,10,0.2)
     >>> G = graphs.Graph(W=W)
-    >>> is_directed = utils.is_directed(G.W)
-
+    >>> is_directed = graphs.gutils.is_directed(G.W)
     """
 
     from pygsp.graphs import Graph
@@ -353,10 +392,12 @@ def symetrize(W, symetrize_type='average'):
 
     Examples
     --------
-    >>> from pygsp import utils
-    >>> W = utils.symetrize(W)
-    >>> W = utils.symetrize(W, symetrize_type='average')
-
+    >>> from pygsp.graphs import gutils
+    >>> import numpy as np
+    >>> from scipy import sparse
+    >>> x = sparse.coo_matrix(np.array([[1, 1, 0, 0], [0, 0, 1, 1], [1, 0, 1, 0], [0, 1, 0, 1]]))
+    >>> W2 = gutils.symetrize(x)
+    >>> W1 = gutils.symetrize(x, symetrize_type='average')
     """
 
     if symetrize_type == 'average':

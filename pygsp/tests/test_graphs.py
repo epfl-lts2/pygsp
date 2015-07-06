@@ -7,7 +7,6 @@ Test suite for the graphs module of the pygsp package.
 
 import sys
 import numpy as np
-import scipy as sp
 import numpy.testing as nptest
 from scipy import sparse
 import pygsp

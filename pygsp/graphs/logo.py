@@ -14,7 +14,6 @@ class Logo(Graph):
     --------
     >>> from pygsp import graphs
     >>> G = graphs.Logo()
-
     """
 
     def __init__(self):

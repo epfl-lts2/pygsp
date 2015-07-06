@@ -196,7 +196,7 @@ def resistance_distance(M):
     """
 
     from pygsp.graphs import Graph
-    from pygsp.operators import create_laplacian
+    from pygsp.graphs.gutils import create_laplacian
 
     if isinstance(M, Graph):
         if not M.lap_type == 'combinatorial':

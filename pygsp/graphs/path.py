@@ -20,7 +20,10 @@ class Path(Graph):
     >>> from pygsp import graphs
     >>> G = graphs.Path(N=16)
 
+    Reference
+    ---------
     See :cite:`strang1999discrete` for more informations.
+
     """
 
     def __init__(self, N=16):

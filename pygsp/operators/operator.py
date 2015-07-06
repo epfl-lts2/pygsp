@@ -183,7 +183,7 @@ def localize(G, g, i):
 
     """
     f = np.zeros((G.N))
-    f[i-1] = 1
+    f[i - 1] = 1
 
     gt = sqrt(G.N) * g.analysis(G, f)
 
