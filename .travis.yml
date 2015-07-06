@@ -11,7 +11,9 @@ python:
 #  - "pypy" fails to install numpy
 
 before_install:
-    - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran python-matplotlib
+    - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran
+    - if [[ $TRAVIS_PYTHON_VERSION <= '3' ]]; then sudo apt-get install -qq  python-matplotlib; fi
+    - if [[ $TRAVIS_PYTHON_VERSION >= '3' ]]; then pip install matplotlib; fi
 
 install:
     # Backport of new unittest features for Python 2.6.
