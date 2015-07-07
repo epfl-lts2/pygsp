@@ -162,7 +162,6 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None):
     Cs : ndarray
 
     """
-    from pygsp.filters import Filter
 
     if not epsilon:
         epsilon = min(10./sqrt(G.N), .1)
@@ -186,7 +185,8 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None):
             Gs.append(kron_reduction(Gs[i], ind))
 
         Gs[i + 1].pyramid = {'ind': ind,
-                             'green_kernel': Filter(Gs[i + 1], filters=[lambda x: 1./(lamda + x)]),
+                             'green_kernel': Filter(Gs[i + 1],
+                                                    filters=[lambda x: 1./(lamda + x)]),
                              'level': i + 1,
                              'K_reg': kron_reduction(L_reg, ind)}
 
