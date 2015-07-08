@@ -65,11 +65,13 @@ def plot(O, **kwargs):
 
     """
 
-    if issubclass(type(O), pygsp.graphs.Graph):
+    from pygsp import graphs, pointsclouds, filters
+
+    if issubclass(type(O), graphs.Graph):
         plot_graph(O)
-    elif issubclass(type(O), pygsp.pointsclouds.pointscloud.PointsCloud):
+    elif issubclass(type(O), pointsclouds.pointscloud.PointsCloud):
         plot_pointcloud(O)
-    elif issubclass(type(O), pygsp.filters.Filter):
+    elif issubclass(type(O), filters.Filter):
         plot_filter(O, **kwargs)
     else:
         raise TypeError('Your object type is incorrect, be sure it is a '
