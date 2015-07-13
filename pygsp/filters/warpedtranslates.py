@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from numpy import log, spacing
+import numpy as np
 from . import Filter, HalfCosine, Itersine
 from pygsp import gutils
 
@@ -92,8 +92,8 @@ class WarpedTranslates(Filter):
         # if log calculate recalculate the warped fucntion
         if use_log:
             xmax = wf(lmax)
-            wf = lambda s: log(1 + wf(s) /
-                                  xmax * lmax * logmax + spacing(1))
+            wf = lambda s: np.log(1 + wf(s) /
+                               xmax * lmax * logmax + np.spacing(1))
 
         # We have to generate uniform translates covering for half_cosine or itersine
         if isinstance(base_filter, list):
@@ -109,8 +109,54 @@ class WarpedTranslates(Filter):
 
         return uniform_filters
 
-    def _pwl_warp_fn(self, x, y, s):
+    def _pwl_warp_fn(self, x, y, x0):
         pass
 
-    def _mono_cubic_warp_fn(self, x, y, s):
-        pass
+    def _mono_cubic_warp_fn(self, x, y, x0):
+        r"""
+        Returns interpolated values
+        """
+        cut = 1e-4
+
+        # Monotonic cubix interpolation using the Fritsch-Carlson method
+        if not x.size == y.size:
+            raise RuntimeError('x and y vectors have to be the same size.')
+
+        # To make sure the data is sorted and monotonic
+        if np.sort(x) == x and np.sort(y) == y:
+            raise RuntimeError('Data points are not monotonic.')
+
+        # Compute the slopes of secant lines
+        n_pts = x.size
+        Delta = (y[1:] - y[:n_pts])/(x[1:] - x[:n_pts])
+
+        # Initialize tangents m at every data points
+        m = (Delta[:n_pts - 1] + Delta[1:n_pts])/2
+        # To mitigate side effects
+        m = Delta[0].append(m).append(Delta[-1])
+
+        # Check for equal y's to set slope equal to zero
+        for k, i in enumerate(Delta):
+            if k == 0:
+                m[i] = 0
+                m[i + 1] = 0
+
+        # alpha and beta initialization
+        alpha = m[:n_pts]/Delta
+        beta = m[1:-1]/Delta
+
+        # Make monotonic
+        for k in range(n_pts):
+            if alpha[k] ** 2 + beta[k] ** 2 > 9:
+                tau = 3/np.sqrt((alpha[k]**2 + beta[k]**2))
+                m[k] = tau * alpha[k] * Delta[k]
+                m[k + 1] = tau * beta[k] * Delta[k]
+
+        # Cubic interpolation
+        n_pts_inter = x0.size
+        inter_val =  np.zeros(x0.shape)
+
+        for i in range(n_pts_inter):
+            close_ind = np.min(np.abs(x - x0[i]))
+            if x[close_ind] - x0[i] < -cut or np.abs(x[close_ind] - x0[i] < cut) and close_ind < n_pts:
+                pass
