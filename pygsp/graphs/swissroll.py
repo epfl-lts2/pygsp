@@ -69,7 +69,7 @@ class SwissRoll(Graph):
 
         self.limits = np.array([-1, 1, -1, 1, -1, 1])
 
-        coords = plotting.rescale_center(x)
+        coords = self.rescale_center(x)
         dist = distanz(coords)
         W = np.exp(-np.power(dist, 2) / (2. * s**2))
         W -= np.diag(np.diag(W))
@@ -80,3 +80,35 @@ class SwissRoll(Graph):
         self.coords = coords.T
         super(SwissRoll, self).__init__(W=self.W, coords=self.coords,
                                         limits=self.limits, gtype=self.gtype)
+
+    def rescale_center(self, x):
+        r"""
+        Rescaling the dataset.
+
+        Rescaling the dataset, previously and mainly used in the SwissRoll
+        graph.
+
+        Parameters
+        ----------
+        x : ndarray
+            Dataset to be rescaled.
+
+        Returns
+        -------
+        r : ndarray
+            Rescaled dataset.
+
+        Examples
+        --------
+        >>> from pygsp import utils
+        >>> utils.dummy(0, [1, 2, 3], True)
+        array([1, 2, 3])
+
+        """
+        N = x.shape[1]
+        y = x - np.kron(np.ones((1, N)), np.expand_dims(np.mean(x, axis=1),
+                                                        axis=1))
+        c = np.amax(y)
+        r = y / c
+
+        return r
