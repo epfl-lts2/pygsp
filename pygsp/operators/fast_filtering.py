@@ -125,7 +125,7 @@ def lanczos_op(fi, s, G=None, order=30):
 
     Parameters
     ----------
-    fi: Filter or list of filters
+    fi: Filter
     s : ndarray
         Signal to approximate.
     G : Graph
@@ -143,16 +143,16 @@ def lanczos_op(fi, s, G=None, order=30):
 
     Nf = len(fi.g)
     Nv = np.shape(s)[1]
-    c = np.zeros((G.N))
+    c = np.zeros((G.N*Nf, Nv))
 
     for j in range(Nv):
         V, H = lanczos(G.L, order, s[:, j])
         Uh, Eh = np.linalg.eig(H)
-        V = np.dot(V, Uh)
 
         Eh = np.diagonal(Eh)
         Eh = np.where(Eh < 0, 0, Eh)
         fie = fi.evaluate(Eh)
+        V = np.dot(V, Uh)
 
         for i in range(Nf):
             c[np.range(G.N) + i*G.N, j] = np.dot(V, fie[:][i] * np.dot(V.T, s[:, j]))
@@ -160,5 +160,58 @@ def lanczos_op(fi, s, G=None, order=30):
     return c
 
 
-def lanczos():
-    raise NotImplementedError
+def lanczos(A, order, x):
+    try:
+        N, M = np.shape(x)
+        check1d = False
+    except ValueError:
+        N = np.shape(x)[0]
+        M = 1
+        check1d = True
+
+    # normalization
+    norm2vec = lambda x: np.sum(x**2., axis=0)**0.5
+    q = x/np.kron(np.ones((N, 1)), norm2vec(x))
+
+    # initialization
+    hiv = np.arange(0, order*M, order)
+    V = np.zeros((N, M*order))
+    V[:, hiv] = q
+
+    H = np.zeros((N + 1, M*order))
+    r = np.dot(A, q)
+    H[0, hiv] = np.sum(q*r, axis=0)
+    r -= np.kron(np.ones((N, 1)), H(1, hiv))*q
+    H[1, hiv] = norm2vec(r)
+
+    orth = np.zeros((M, 1))
+    orth[0] = np.linalg.norm(np.dot(V.T*V) - M, 2)
+
+    for k in range(1, order):
+        if np.sum(np.abs(H[k, hiv + k - 1])) <= np.spacing(1):
+            H = H[:k - 1, sum_ind(np.arange(k), hiv)]
+            V = V[:, sum_ind(np.arange(k), hiv)]
+            orth = orth[:k]
+
+            return V, H, orth
+
+        H[k - 1, hiv + k] = H[k, hiv + k - 1]
+        v = q
+        q = r/np.kron(np.ones((N, 1)), H[k - 1, k + hiv])
+        v[:, k + hiv] = q
+
+        r = np.dot(A, q)
+        r -= np.kron(np.ones((N, 1)), H[k - 1, k + hiv])*v
+        H[k, k + hiv] = np.sum(q*r, axis=0)
+        r -= np.kron(np.ones((N, 1)), H[k, k + hiv])*q
+
+        # The next line has to be checked
+        r -= np.dot(V, np.dot(V.T, r)) # full reorthogonalization
+        H[k + 1, k + hiv] = norm2vec(r)
+        orth[k] = np.append(orth, np.linalg.norm(np.dot(V.t, V) - M, 2))
+
+    return V, H, orth
+
+
+def _sum_ind(ind1, ind2):
+    pass
