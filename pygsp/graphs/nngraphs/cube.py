@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from nngraph import NNGraph
+from . import NNGraph
 
 import numpy as np
 from math import floor

@@ -31,12 +31,7 @@ def graph_array_handler(func):
 
     def inner(G, *args, **kwargs):
 
-        from pygsp.graphs import Graph
-
-        if isinstance(G, Graph):
-            return func(G, *args, **kwargs)
-
-        elif type(G) is list:
+        if type(G) is list:
             output = []
             for g in G:
                 output.append(func(g, *args, **kwargs))
@@ -44,7 +39,7 @@ def graph_array_handler(func):
             return output
 
         else:
-            raise TypeError("This function only accept Graphs or Graphs lists")
+            return func(G, *args, **kwargs)
 
     return inner
 
@@ -195,19 +190,18 @@ def resistance_distance(M):
 
     """
 
-    from pygsp.graphs import Graph
     from pygsp.graphs.gutils import create_laplacian
 
-    if isinstance(M, Graph):
+    if sparse.issparse(M):
+        L = M.tocsc()
+
+    else:
         if not M.lap_type == 'combinatorial':
             logger.info('Compute the combinatorial laplacian for the resitance'
                         ' distance')
             create_laplacian(M, lap_type='combinatorial',
                              get_laplacian_only=False)
         L = M.L.tocsc()
-
-    else:
-        L = M.tocsc()
 
     try:
         pseudo = sparse.linalg.inv(L)
@@ -216,7 +210,9 @@ def resistance_distance(M):
 
     N = np.shape(L)[0]
     d = sparse.csc_matrix(pseudo.diagonal())
-    rd = sparse.kron(d, sparse.csc_matrix(np.ones((N, 1)))).T + sparse.kron(d, sparse.csc_matrix(np.ones((N, 1)))) - pseudo - pseudo.T
+    rd = sparse.kron(d, sparse.csc_matrix(np.ones((N, 1)))).T \
+        + sparse.kron(d, sparse.csc_matrix(np.ones((N, 1)))) \
+        - pseudo - pseudo.T
 
     return rd
 

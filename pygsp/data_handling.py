@@ -12,7 +12,6 @@ def adj2vec(G):
     ----------
     G : Graph structure
     """
-    from operators.operator import grad_mat
 
     if G.directed:
         raise NotImplementedError("Not implemented yet")
@@ -26,8 +25,6 @@ def adj2vec(G):
         G.v_out = v_j
         G.weights = weights
         G.Ne = np.shape(v_i)[0]
-
-        G.Diff = grad_mat(G)
 
 
 def mat2vec(d):
