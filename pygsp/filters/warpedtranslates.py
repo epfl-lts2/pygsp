@@ -159,4 +159,12 @@ class WarpedTranslates(Filter):
         for i in range(n_pts_inter):
             close_ind = np.min(np.abs(x - x0[i]))
             if x[close_ind] - x0[i] < -cut or np.abs(x[close_ind] - x0[i] < cut) and close_ind < n_pts:
-                pass
+                low_ind = close_ind - 1
+            else:
+                low_ind = close_ind - 1
+            h = x[low_ind + 1] - x[low_ind]
+            t = (x[i] - x[low_ind]) / h
+
+            inter_val[i] = y[low_ind] * (2 * t ** 3 - 3 * t ** 2 + 1)\
+                + h * m[low_ind] * (t ** 3 - 2 * t ** 2 + t)\
+                + h * m[low_ind] * (t ** 3 - t ** 2)
