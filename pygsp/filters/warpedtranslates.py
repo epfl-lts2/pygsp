@@ -3,6 +3,7 @@
 import numpy as np
 from . import Filter, HalfCosine, Itersine
 from pygsp import gutils, utils
+from scipy import sparse
 
 logger = utils.build_logger(__name__)
 
@@ -202,3 +203,14 @@ class WarpedTranslates(Filter):
                 + h * m[low_ind] * (t ** 3 - t ** 2)
 
         return inter_val
+
+
+    def _spectrum_cdf_approx(self, G, n_pts=25, use_perm=True):
+        r"""
+        """
+
+        interp_x = np.arange(n_pts) * G.lmax/n_pts
+        identity = sparse.eye(G.N)
+
+        if use_perm:
+            pass
