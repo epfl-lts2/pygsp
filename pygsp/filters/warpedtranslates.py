@@ -2,7 +2,9 @@
 
 import numpy as np
 from . import Filter, HalfCosine, Itersine
-from pygsp import gutils
+from pygsp import gutils, utils
+
+logger = utils.build_logger(__name__)
 
 
 class WarpedTranslates(Filter):
@@ -110,7 +112,37 @@ class WarpedTranslates(Filter):
         return uniform_filters
 
     def _pwl_warp_fn(self, x, y, x0):
-        pass
+        cut = 1e-4
+        if np.max(x0) > np.max(x) + cut or min(x0) < min(x) - cut:
+            logger.error('This function does not allow you to interpolate outside x and y')
+
+        mat_x_y = []
+        for ele, ind in enumerate(x):
+            mat_x_y.append((x[ind], y[ind]))
+
+        for ele  in mat_x_y:
+            sorted_x_y = np.sort(mat_x_y[:][0])
+            x = sorted_x_y[:][0]
+            y = sorted_x_y[:][1]
+
+        # To make sure the data is sorted and monotonic
+        if np.sort(x) == x and np.sort(y) == y:
+            logger.error('Data points are not monotonic.')
+
+        n_pts = x.size
+        inter_val = np.zeros(x0.size)
+
+        for i in range(x0.size):
+            close_ind = np.min(np.abs(x - x0[i]))
+            if x[close_ind] - x0[i] < (-cut) or np.abs(x[close_ind] - x0[i] < cut and close_ind < n_pts):
+                low_ind = close_ind
+            else:
+                low_ind = close_ind - 1
+
+            inter_val[i] = y[low_ind] * (x[low_ind + 1] - x0[i])/(x[low_ind + 1] - x[low_ind]) + y[low_ind + 1] * (x0[i] - x[low_ind])/(x[low_ind + 1] - x[low_ind])
+
+            return inter_val.reshape(inter_val, x0.size)
+
 
     def _mono_cubic_warp_fn(self, x, y, x0):
         r"""
@@ -120,11 +152,11 @@ class WarpedTranslates(Filter):
 
         # Monotonic cubix interpolation using the Fritsch-Carlson method
         if not x.size == y.size:
-            raise RuntimeError('x and y vectors have to be the same size.')
+            logger.error('x and y vectors have to be the same size.')
 
         # To make sure the data is sorted and monotonic
         if np.sort(x) == x and np.sort(y) == y:
-            raise RuntimeError('Data points are not monotonic.')
+            logger.error('Data points are not monotonic.')
 
         # Compute the slopes of secant lines
         n_pts = x.size
@@ -168,3 +200,5 @@ class WarpedTranslates(Filter):
             inter_val[i] = y[low_ind] * (2 * t ** 3 - 3 * t ** 2 + 1)\
                 + h * m[low_ind] * (t ** 3 - 2 * t ** 2 + t)\
                 + h * m[low_ind] * (t ** 3 - t ** 2)
+
+        return inter_val
