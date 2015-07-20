@@ -4,6 +4,7 @@ from pygsp.graphs.gutils import estimate_lmax
 from pygsp import utils
 
 import numpy as np
+import scipy as sp
 from math import pi
 
 logger = utils.build_logger(__name__)
@@ -142,20 +143,34 @@ def lanczos_op(fi, s, G=None, order=30):
         G = fi.G
 
     Nf = len(fi.g)
-    Nv = np.shape(s)[1]
-    c = np.zeros((G.N*Nf, Nv))
+
+    try:
+        Nv = np.shape(s)[1]
+        is2d = True
+        c = np.zeros((G.N*Nf, Nv))
+    except IndexError:
+        Nv = 1
+        is2d = False
+        c = np.zeros((G.N*Nf))
 
     for j in range(Nv):
-        V, H = lanczos(G.L, order, s[:, j])
-        Uh, Eh = np.linalg.eig(H)
+        if is2d:
+            V, H, _ = lanczos(G.L.toarray(), order, s[:, j])
+        else:
+            V, H, _ = lanczos(G.L.toarray(), order, s)
 
-        Eh = np.diagonal(Eh)
+        Eh, Uh = np.linalg.eig(H)
+
+        # Eh = np.diagonal(Eh)
         Eh = np.where(Eh < 0, 0, Eh)
         fie = fi.evaluate(Eh)
         V = np.dot(V, Uh)
 
         for i in range(Nf):
-            c[np.range(G.N) + i*G.N, j] = np.dot(V, fie[:][i] * np.dot(V.T, s[:, j]))
+            if is2d:
+                c[np.arange(G.N) + i*G.N, j] = np.dot(V, fie[:][i] * np.dot(V.T, s[:, j]))
+            else:
+                c[np.arange(G.N) + i*G.N] = np.dot(V, fie[:][i] * np.dot(V.T, s))
 
     return c
 
@@ -163,52 +178,52 @@ def lanczos_op(fi, s, G=None, order=30):
 def lanczos(A, order, x):
     try:
         N, M = np.shape(x)
-        check1d = False
     except ValueError:
         N = np.shape(x)[0]
         M = 1
-        check1d = True
+        x = x[:, np.newaxis]
 
     # normalization
-    norm2vec = lambda x: np.sum(x**2., axis=0)**0.5
-    q = x/np.kron(np.ones((N, 1)), norm2vec(x))
+    q = np.divide(x, np.kron(np.ones((N, 1)), np.linalg.norm(x, axis=0)))
 
     # initialization
     hiv = np.arange(0, order*M, order)
     V = np.zeros((N, M*order))
     V[:, hiv] = q
 
-    H = np.zeros((N + 1, M*order))
+    H = np.zeros((order + 1, M*order))
     r = np.dot(A, q)
     H[0, hiv] = np.sum(q*r, axis=0)
-    r -= np.kron(np.ones((N, 1)), H(1, hiv))*q
-    H[1, hiv] = norm2vec(r)
+    r -= np.kron(np.ones((N, 1)), H[0, hiv])*q
+    H[1, hiv] = np.linalg.norm(r, axis=0)
 
-    orth = np.zeros((M, 1))
-    orth[0] = np.linalg.norm(np.dot(V.T*V) - M, 2)
+    orth = np.zeros((order))
+    orth[0] = np.linalg.norm(np.dot(V.T, V) - M)
 
     for k in range(1, order):
         if np.sum(np.abs(H[k, hiv + k - 1])) <= np.spacing(1):
-            H = H[:k - 1, sum_ind(np.arange(k), hiv)]
-            V = V[:, sum_ind(np.arange(k), hiv)]
+            H = H[:k - 1, _sum_ind(np.arange(k), hiv)]
+            V = V[:, _sum_ind(np.arange(k), hiv)]
             orth = orth[:k]
 
             return V, H, orth
 
         H[k - 1, hiv + k] = H[k, hiv + k - 1]
         v = q
-        q = r/np.kron(np.ones((N, 1)), H[k - 1, k + hiv])
-        v[:, k + hiv] = q
+        q = r/np.tile(H[k - 1, k + hiv], (N, 1))
+        V[:, k + hiv] = q
 
         r = np.dot(A, q)
-        r -= np.kron(np.ones((N, 1)), H[k - 1, k + hiv])*v
-        H[k, k + hiv] = np.sum(q*r, axis=0)
-        r -= np.kron(np.ones((N, 1)), H[k, k + hiv])*q
+        r -= np.tile(H[k - 1, k + hiv], (N, 1))*v
+        H[k, k + hiv] = np.sum(np.multiply(q, r), axis=0)
+        r -= np.tile(H[k, k + hiv], (N, 1))*q
 
         # The next line has to be checked
         r -= np.dot(V, np.dot(V.T, r)) # full reorthogonalization
-        H[k + 1, k + hiv] = norm2vec(r)
-        orth[k] = np.append(orth, np.linalg.norm(np.dot(V.t, V) - M, 2))
+        H[k + 1, k + hiv] = np.linalg.norm(r, axis=0)
+        orth[k] = np.linalg.norm(np.dot(V.T, V) - M)
+
+    H = H[np.ix_(np.arange(order), np.arange(order))]
 
     return V, H, orth
 
