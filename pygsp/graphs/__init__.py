@@ -48,5 +48,5 @@ __all__ = ['Graph', 'Airfoil', 'Comet', 'Community', 'DavidSensorNet', 'FullConn
 for class_to_import in __all__:
     setattr(sys.modules[__name__], class_to_import, getattr(importlib.import_module('.' + class_to_import.lower(), 'pygsp.graphs'), class_to_import))
 
-from nngraphs import *
-from gutils import *
+from .nngraphs import *
+from .gutils import *
