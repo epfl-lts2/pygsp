@@ -214,3 +214,7 @@ class WarpedTranslates(Filter):
 
         if use_perm:
             pass
+
+        if hasattr(G, 'lmax'):
+            logger.warning('Calculating lmax')
+            gutils.estimate_lmax(G)
