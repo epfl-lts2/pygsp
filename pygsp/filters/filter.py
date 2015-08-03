@@ -31,6 +31,8 @@ class Filter(object):
                 self.g = filters
             else:
                 self.g = [filters]
+        else:
+            self.g = []
 
     def analysis(self, G, s, method=None, cheb_order=30, lanczos_order=30, **kwargs):
         r"""

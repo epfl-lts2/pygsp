@@ -17,7 +17,7 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
 
     Paramters
     ---------
-    f : Filter or list of filters
+    f : List of filters
     G : Graph
     m : int
         Maximum order of Chebyshev coeff to compute (default = 30)
@@ -229,4 +229,5 @@ def lanczos(A, order, x):
 
 
 def _sum_ind(ind1, ind2):
-    pass
+    ind = np.tile(np.ravel(ind1), (np.size(ind2), 1)).T + np.ravel(ind2)
+    return np.ravel(ind)
