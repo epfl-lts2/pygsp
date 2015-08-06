@@ -263,7 +263,7 @@ def create_laplacian(G, lap_type=None, get_laplacian_only=True):
 
     if G.directed:
         if lap_type == 'combinatorial':
-            L = 0.5*sparse.lil_matrix(np.diagflat(G.W.sum(0)) + np.diagflat(G.W.sum(1)) - G.W - G.W.getH())
+            L = 0.5*(sparse.diags(np.ravel(G.W.sum(0)), 0) + sparse.diags(np.ravel(G.W.sum(1)), 0) - G.W - G.W.getH()).tocsc()
         elif lap_type == 'normalized':
             raise NotImplementedError('Yet. Ask Nathanael.')
         elif lap_type == 'none':
@@ -273,9 +273,9 @@ def create_laplacian(G, lap_type=None, get_laplacian_only=True):
 
     else:
         if lap_type == 'combinatorial':
-            L = sparse.lil_matrix(np.diagflat(G.W.sum(1)) - G.W)
+            L = (sparse.diags(np.ravel(G.W.sum(1)), 0) - G.W).tocsc()
         elif lap_type == 'normalized':
-            D = sparse.lil_matrix(np.diaflat(np.power(G.W.sum(1), -0.5)))
+            D = sparse.diags(np.ravel(np.power(G.W.sum(1), -0.5)), 0).tocsc()
             L = sparse.identity(G.N) - D * G.W * D
         elif lap_type == 'none':
             L = sparse.lil_matrix(0)
