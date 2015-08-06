@@ -12,14 +12,15 @@ import logging
 def build_logger(name):
     logger = logging.getLogger(name)
 
-    formatter = logging.Formatter("%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s")
+    if not logger.handlers:
+        formatter = logging.Formatter("%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s")
 
-    steam_handler = logging.StreamHandler()
-    steam_handler.setLevel(logging.DEBUG)
-    steam_handler.setFormatter(formatter)
+        steam_handler = logging.StreamHandler()
+        steam_handler.setLevel(logging.DEBUG)
+        steam_handler.setFormatter(formatter)
 
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(steam_handler)
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(steam_handler)
 
     return logger
 
