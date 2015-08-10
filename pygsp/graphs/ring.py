@@ -39,18 +39,16 @@ class Ring(Graph):
         i_inds = np.zeros((2*num_edges))
         j_inds = np.zeros((2*num_edges))
 
-        all_inds = np.arange(N)
+        tmpN = np.arange(N, dtype=int)
         for i in range(min(k, floor((N - 1)/2.))):
-            i_inds[i*2*N + np.arange(N)] = all_inds
-            j_inds[i*2*N + np.arange(N)] = np.remainder(all_inds + i + 1, N)
-            i_inds[(i*2 + 1)*N + np.arange(N)] = np.remainder(all_inds + i + 1,
-                                                              N)
-            j_inds[(i*2+1)*N + np.arange(N)] = all_inds
+            i_inds[i*2*N + tmpN] = tmpN
+            j_inds[i*2*N + tmpN] = np.remainder(tmpN + i + 1, N)
+            i_inds[(i*2 + 1)*N + tmpN] = np.remainder(tmpN + i + 1, N)
+            j_inds[(i*2 + 1)*N + tmpN] = tmpN
 
         if k == N/2.:
-            i_inds[2*N*(k - 1) + np.arange(N)] = all_inds
-            i_inds[2*N*(k - 1) + np.arange(N)] = np.remainder(all_inds + k + 1,
-                                                              N)
+            i_inds[2*N*(k - 1) + tmpN] = tmpN
+            i_inds[2*N*(k - 1) + tmpN] = np.remainder(tmpN + k + 1, N)
 
         self.W = sparse.csc_matrix((np.ones((2*num_edges)), (i_inds, j_inds)),
                                    shape=(N, N))

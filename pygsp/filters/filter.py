@@ -107,11 +107,12 @@ class Filter(object):
                 else:
                     return operator.igft(G, fie*operator.gft(G, s))
             else:
+                tmpN = np.arange(G.N, dtype=int)
                 for i in range(Nf):
                     if is2d:
-                        c[np.arange(G.N) + G.N*i] = operator.igft(G, np.tile(fie[:][i], (Nv, 1)).T*operator.gft(G, s))
+                        c[tmpN + G.N*i] = operator.igft(G, np.tile(fie[:][i], (Nv, 1)).T*operator.gft(G, s))
                     else:
-                        c[np.arange(G.N) + G.N*i] = operator.igft(G, fie[:][i]*operator.gft(G, s))
+                        c[tmpN + G.N*i] = operator.igft(G, fie[:][i]*operator.gft(G, s))
 
         elif method == 'cheby':  # Chebyshev approx
             if not hasattr(G, 'lmax'):
@@ -218,14 +219,15 @@ class Filter(object):
             fie = self.evaluate(G.e)
             Nv = np.shape(c)[1]
             s = np.zeros((G.N, Nv))
+            tmpN = np.arange(G.N, dtype=int)
 
             if Nf == 1:
                 s = s + operator.igft(np.conjugate(G.U),
-                                      np.tile(fie, (Nv, 1)).T*operator.gft(G, c[G.N*i + np.arange(G.N)]))
+                                      np.tile(fie, (Nv, 1)).T*operator.gft(G, c[G.N*i + tmpN]))
             else:
                 for i in range(Nf):
                     s = s + operator.igft(np.conjugate(G.U),
-                                          np.tile(fie[:][i], (Nv, 1)).T*operator.gft(G, c[G.N*i + np.arange(G.N)]))
+                                          np.tile(fie[:][i], (Nv, 1)).T*operator.gft(G, c[G.N*i + tmpN]))
 
             return s
 
@@ -238,19 +240,19 @@ class Filter(object):
             cheb_coeffs = operator.compute_cheby_coeff(self, G, m=order,
                                                        N=order + 1)
             s = np.zeros((G.N, np.shape(c)[1]))
+            tmpN = np.arange(G.N, dtype=int)
 
             for i in range(Nf):
-                s = s + operator.cheby_op(G,
-                                          cheb_coeffs[i],
-                                          c[i*G.N + np.arange(G.N)])
+                s = s + operator.cheby_op(G, cheb_coeffs[i], c[i*G.N + tmpN])
 
             return s
 
         elif method == 'lanczos':
             s = np.zeros((G.N, np.shape(c)[1]))
+            tmpN = np.arange(G.N, dtype=int)
 
             for i in range(Nf):
-                s += fast_filtering.lanczos_op(G, self.g[i], c[i*G.N + np.range(G.N)],
+                s += fast_filtering.lanczos_op(G, self.g[i], c[i*G.N + tmpN],
                                                order=order)
 
             return s
@@ -347,9 +349,10 @@ class Filter(object):
         Nf = len(self.g)
         Ft = self.analysis(G, np.identity(G.N))
         F = np.zeros(np.shape(Ft.T))
+        tmpN = np.arange(G.N, dtype=int)
 
         for i in range(Nf):
-            F[:, G.N*i + np.arange(G.N)] = Ft[G.N*i + np.arange(G.N)]
+            F[:, G.N*i + tmp] = Ft[G.N*i + tmpN]
 
         return F
 

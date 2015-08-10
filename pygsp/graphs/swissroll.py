@@ -40,9 +40,6 @@ class SwissRoll(Graph):
 
     def __init__(self, N=400, a=1, b=4, dim=3, thresh=1e-6, s=None,
                  noise=False, srtype='uniform'):
-
-        from pygsp import plotting
-
         self.dim = dim
         self.N = N
         if s is None:
@@ -106,8 +103,7 @@ class SwissRoll(Graph):
 
         """
         N = x.shape[1]
-        y = x - np.kron(np.ones((1, N)), np.expand_dims(np.mean(x, axis=1),
-                                                        axis=1))
+        y = x - np.kron(np.ones((1, N)), np.mean(x, axis=1)[:, np.newaxis])
         c = np.amax(y)
         r = y / c
 

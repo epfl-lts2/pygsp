@@ -48,8 +48,9 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
     a2 = (a_arange[1] + a_arange[0])/2
     c = np.zeros((m + 1))
 
+    tmpN = np.arange(N)
     for o in range(m + 1):
-        c[o] = np.sum(f.g[i](a1*np.cos(pi*(np.arange(N) + 0.5)/N) + a2)*np.cos(pi*o*(np.arange(N) + 0.5)/N)) * 2./N
+        c[o] = np.sum(f.g[i](a1*np.cos(pi*(tmpN + 0.5)/N) + a2)*np.cos(pi*o*(tmpN + 0.5)/N)) * 2./N
 
     return c
 
@@ -105,13 +106,14 @@ def cheby_op(G, c, signal, **kwargs):
     twf_old = signal
     twf_cur = (G.L.dot(signal) - a2 * signal)/a1
 
+    tmpN = np.arange(G.N, dtype=int)
     for i in range(Nscales):
-        r[np.arange(G.N) + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
+        r[tmpN + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
     for k in range(2, M + 1):
         twf_new = (2./a1) * (G.L.dot(twf_cur) - a2*twf_cur) - twf_old
         for i in range(Nscales):
             if k + 1 <= M:
-                r[np.arange(G.N) + G.N*i] += c[i][k]*twf_new
+                r[tmpN + G.N*i] += c[i][k]*twf_new
 
         twf_old = twf_cur
         twf_cur = twf_new
@@ -145,6 +147,7 @@ def lanczos_op(fi, s, G=None, order=30):
     Nv = np.shape(s)[1]
     c = np.zeros((G.N))
 
+    tmpN = np.arange(G.N, dtype=int)
     for j in range(Nv):
         V, H = lanczos(G.L, order, s[:, j])
         Uh, Eh = np.linalg.eig(H)
@@ -155,7 +158,7 @@ def lanczos_op(fi, s, G=None, order=30):
         fie = fi.evaluate(Eh)
 
         for i in range(Nf):
-            c[np.range(G.N) + i*G.N, j] = np.dot(V, fie[:][i] * np.dot(V.T, s[:, j]))
+            c[tmpN + i*G.N, j] = np.dot(V, fie[:][i] * np.dot(V.T, s[:, j]))
 
     return c
 

@@ -288,6 +288,7 @@ def create_laplacian(G, lap_type=None, get_laplacian_only=True):
         G.L = L
 
 
+@utils.graph_array_handler
 def estimate_lmax(G):
     r"""
     This function estimates lmax from a Graph object and stores it into the
