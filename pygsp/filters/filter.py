@@ -31,8 +31,10 @@ class Filter(object):
                 self.g = filters
             else:
                 self.g = [filters]
+        else:
+            self.g = []
 
-    def analysis(self, G, s, method=None, cheb_order=30, **kwargs):
+    def analysis(self, G, s, method=None, cheb_order=30, lanczos_order=30, **kwargs):
         r"""
         Operator to analyse a filterbank
 
@@ -125,7 +127,7 @@ class Filter(object):
             c = fast_filtering.cheby_op(G, cheb_coef, s)
 
         elif method == 'lanczos':
-            raise NotImplementedError
+            c = fast_filtering.lanczos_op(self, s, G, order=lanczos_order)
 
         else:
             raise ValueError('Unknown method: please select exact, '
