@@ -1,5 +1,6 @@
 # Required for usage.
 numpy
+scipy
 
 # Required for plotting
 matplotlib

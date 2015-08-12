@@ -5,14 +5,50 @@ About
 PyGSP is a Graph Signal Processing Toolbox implemented in Python. It is a port of the Matlab GSP toolbox
 
 * Development : https://github.com/epfl-lts2/pygsp
-* GSP matlab toolbox : #TODO
+* GSP matlab toolbox : https://github.com/epfl-lts2/gspbox
 
 Features
 --------
 
 * Graphs
 
+  - Basic Graph structure
+  - NNGraph
+  - Bunny
+  - Cube
+  - Sphere
+  - TwoMoons
+  - Grid2d
+  - Torus
+  - Comet
+  - LowStretchTree
+  - RandomRegular
+  - Ring
+  - Community
+  - Minnesota
+  - Sensor
+  - Airfoil
+  - DavidSensorNet
+  - FullConnected
+  - Logo
+  - Path
+  - RandomRing
+
 * Filters
+
+  - Basic Filter structure
+  - Abspline
+  - Expwin
+  - HalfCosine
+  - Itersine
+  - MexicanHat
+  - Meyer
+  - SimpleTf
+  - Papadakis
+  - Regular
+  - Simoncelli
+  - Held
+  - Heat
 
 Installation
 ------------
@@ -27,8 +63,9 @@ Installation in an isolated virtual environment::
     $ pip install pygsp
 
 You need virtualenvwrapper to run this command. The ``--system-site-packages``
-option could be useful if you want to use a shared system installation of numpy, scipy and matplotlib. Their building and installation require quite some
-dependencies.
+option could be useful if you want to use a shared system installation of numpy, scipy and matplotlib. Their building and installation require quite some dependencies.
+
+For a classic UNIX system, you will need python-dev(el) (or equivalent) installed as a system package as well as the fortran extension for your favorite compiler (gfortran for gcc). You will also need the blas/lapack implementation for your system.
 
 Another way is to manually download from PyPI, unpack the package and install
 with::
@@ -42,10 +79,6 @@ Execute the project test suite once to make sure you have a working install::
 Authors
 -------
 
-Basile Châtillon <basile.chatillon@epfl.ch>,
-Alexandre Lafaye <alexandre.lafaye@epfl.ch>,
-Nicolas Rod <nicolas.rod@epfl.ch>
-
-License
--------
-* Free software: GPL v3 license
+* Basile Châtillon <basile.chatillon@epfl.ch>,
+* Alexandre Lafaye <alexandre.lafaye@epfl.ch>,
+* Nicolas Rod <nicolas.rod@epfl.ch>
