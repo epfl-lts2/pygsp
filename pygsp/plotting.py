@@ -15,7 +15,6 @@ try:
     from pyqtgraph.Qt import QtCore, QtGui
 except:
     pass
-import pygsp
 import uuid
 
 
@@ -66,11 +65,13 @@ def plot(O, **kwargs):
 
     """
 
-    if issubclass(type(O), pygsp.graphs.Graph):
+    from pygsp import graphs, pointsclouds, filters
+
+    if issubclass(type(O), graphs.Graph):
         plot_graph(O)
-    elif issubclass(type(O), pygsp.graphs.PointsCloud):
+    elif issubclass(type(O), pointsclouds.pointscloud.PointsCloud):
         plot_pointcloud(O)
-    elif issubclass(type(O), pygsp.filters.Filter):
+    elif issubclass(type(O), filters.Filter):
         plot_filter(O, **kwargs)
     else:
         raise TypeError('Your object type is incorrect, be sure it is a '
@@ -301,8 +302,8 @@ def plot_pointcloud(P):
 
     Examples
     --------
-    >>> from pygsp import graphs, plotting
-    >>> logo = graphs.PointsCloud('logo')
+    >>> from pygsp import plotting, pointsclouds
+    >>> logo = pointsclouds.PointsCloud('logo')
     >>> try:
     ...     plotting.plot_pointcloud(logo)
     ... except:
@@ -455,10 +456,7 @@ def plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
     Examples
     --------
     >>> import numpy as np
-    >>> import pygsp
-    >>> from pygsp import graphs
-    >>> from pygsp import filters
-    >>> from pygsp import plotting
+    >>> from pygsp import graphs, filters, plotting
     >>> G = graphs.Ring(15)
     >>> signal = np.sin((np.arange(1, 16)*2*np.pi/15))
     >>> try:
@@ -699,34 +697,3 @@ def pg_plot_signal(G, signal, show_edges=None, cp={-6, -3, 160},
     elif G.coords.shape[1] == 3:
         window_list[str(uuid.uuid4())] = app
 
-
-def rescale_center(x):
-    r"""
-    Rescaling the dataset.
-
-    Rescaling the dataset, previously and mainly used in the SwissRoll graph.
-
-    Parameters
-    ----------
-    x : ndarray
-        Dataset to be rescaled.
-
-    Returns
-    -------
-    r : ndarray
-        Rescaled dataset.
-
-    Examples
-    --------
-    >>> import pygsp
-    >>> pygsp.utils.dummy(0, [1, 2, 3], True)
-    array([1, 2, 3])
-
-    """
-    N = x.shape[1]
-    y = x - np.kron(np.ones((1, N)), np.expand_dims(np.mean(x, axis=1),
-                                                    axis=1))
-    c = np.amax(y)
-    r = y / c
-
-    return r
