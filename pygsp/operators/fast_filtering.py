@@ -15,7 +15,7 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
     r"""
     Compute Chebyshev coefficients for a Filterbank
 
-    Paramters
+    Parameters
     ---------
     f : List of filters
     G : Graph
