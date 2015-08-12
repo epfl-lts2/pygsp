@@ -236,7 +236,7 @@ def kron_reduction(G, ind):
     if isinstance(G, Graph):
         # Suppress the diagonal ? This is a good question?
         Wnew = sparse.diags(Lnew.diagonal(), 0) - Lnew
-        Snew = Lnew.diagonal() - np.sum(Wnew.toarray(), axis=0)
+        Snew = Lnew.diagonal() - np.ravel(Wnew.sum(0))
         if np.linalg.norm(Snew, 2) >= np.spacing(1000):
             Wnew = Wnew + sparse.diags(Snew, 0)
 

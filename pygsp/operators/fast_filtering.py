@@ -100,16 +100,16 @@ def cheby_op(G, c, signal, **kwargs):
 
     a_arange = [0, G.lmax]
 
-    a1 = float(a_arange[1]-a_arange[0])/2
-    a2 = float(a_arange[1]+a_arange[0])/2
+    a1 = float(a_arange[1] - a_arange[0])/2
+    a2 = float(a_arange[1] + a_arange[0])/2
 
     twf_old = signal
-    twf_cur = (np.dot(G.L.toarray(), signal) - a2 * signal)/a1
+    twf_cur = (G.L.dot(signal) - a2 * signal)/a1
 
     for i in range(Nscales):
         r[np.arange(G.N) + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
-    for k in range(2, M+1):
-        twf_new = (2./a1) * (np.dot(G.L.toarray(), twf_cur) - a2*twf_cur) - twf_old
+    for k in range(2, M + 1):
+        twf_new = (2./a1) * (G.L.dot(twf_cur) - a2*twf_cur) - twf_old
         for i in range(Nscales):
             if k + 1 <= M:
                 r[np.arange(G.N) + G.N*i] += c[i][k]*twf_new
