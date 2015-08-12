@@ -38,10 +38,8 @@ class RandomRing(Graph):
 
         self.W = W + W.getH()
 
-        self.coords = np.concatenate((np.expand_dims(np.cos(position*2*np.pi),
-                                      axis=1),
-                                      np.expand_dims(np.sin(position*2*np.pi),
-                                      axis=1)),
+        self.coords = np.concatenate((np.cos(position*2*np.pi)[:, np.newaxis],
+                                      np.sin(position*2*np.pi)[:, np.newaxis]),
                                      axis=1)
 
         self.N = N

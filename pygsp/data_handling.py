@@ -63,9 +63,10 @@ def pyramid_cell2coeff(ca, pe):
     coeff[:Nt] = ca[Nl]
 
     ind = Nt
+    tmpNt = np.arange(Nt, dtype=int)
     for i in range(Nl):
         Nt = np.shape(ca[Nl - 1 - i])[0]
-        coeff[ind + np.arange(Nt)] = pe[Nl - 1 - i]
+        coeff[ind + tmpNt] = pe[Nl - 1 - i]
         ind += Nt
 
     if ind != N:

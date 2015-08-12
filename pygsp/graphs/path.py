@@ -33,7 +33,7 @@ class Path(Graph):
 
         self.W = sparse.csc_matrix((np.ones((2*(N - 1))), (inds_i, inds_j)),
                                    shape=(N, N))
-        self.coords = np.concatenate((np.expand_dims(np.arange(N) + 1, axis=1),
+        self.coords = np.concatenate(((np.arange(N) + 1)[:, np.newaxis],
                                       np.zeros((N, 1))),
                                      axis=1)
         self.plotting = {"limits": np.array([0, N + 1, -1, 1])}

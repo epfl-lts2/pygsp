@@ -49,8 +49,8 @@ class LowStretchTree(Graph):
             XCoords = np.concatenate((XCoords, XCoords + 2**p))
             XCoords = np.kron(np.ones((2)), XCoords)
 
-        self.coords = np.concatenate((np.expand_dims(XCoords, axis=1),
-                                      np.expand_dims(YCoords, axis=1)),
+        self.coords = np.concatenate((XCoords[:, np.newaxis],
+                                      YCoords[:, np.newaxis]),
                                      axis=1)
 
         self.limits = np.array([0, 2**k + 1, 0, 2**k + 1])

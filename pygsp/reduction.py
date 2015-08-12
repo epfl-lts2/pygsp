@@ -220,7 +220,7 @@ def kron_reduction(G, ind):
         L = G
 
     N = np.shape(L)[0]
-    ind_comp = np.setdiff1d(np.arange(N), ind)
+    ind_comp = np.setdiff1d(np.arange(N, dtype=int), ind)
 
     L_red = L[np.ix_(ind, ind)]
     L_in_out = L[np.ix_(ind, ind_comp)]
