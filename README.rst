@@ -56,19 +56,30 @@ Features
 Installation
 ------------
 
-System-wide installation::
+Ubuntu
+^^^^^^
+The PyGSP module is available on PyPI, the Python Package Index.
+If you don't have pip, install it.::
 
-    $ pip install pygsp
+    $ sudo apt-get install python-pip
 
-Installation in an isolated virtual environment::
+Ideally, you should be able to install the PyGSP on your computer by simply entering the following command::
 
-    $ mkvirtualenv --system-site-packages pygsp
-    $ pip install pygsp
+    $ sudo pip install pygsp
 
-You need virtualenvwrapper to run this command. The ``--system-site-packages``
-option could be useful if you want to use a shared system installation of numpy, scipy and matplotlib. Their building and installation require quite some dependencies.
+Unfortunately, this command will most likely fail. For some reason, the install will generally fail when it'll try to install requirements such as numpy and scipy. You'll need to install them manually by doing so::
 
-For a classic UNIX system, you will need python-dev(el) (or equivalent) installed as a system package as well as the fortran extension for your favorite compiler (gfortran for gcc). You will also need the blas/lapack implementation for your system.
+    $ sudo pip install numpy
+    $ sudo pip install scipy
+
+For a classic UNIX system, you will need python-dev(el) (or equivalent) installed as a system package as well as the fortran extension for your favorite compiler (gfortran for gcc). You will also need the blas/lapack implementation for your system. If you can't install numpy or scipy, try installing the following and then install numpy and scipy::
+
+    $ sudo apt-get install python-dev liblapack-dev libatlas-dev gcc gfortran
+
+If you want to use the plotting functionalities of the PyGSP, you have to install matplotlib or pygtgraph. For matplotlib, just do::
+
+    $ sudo apt-get python-matplotlib
+
 
 Another way is to manually download from PyPI, unpack the package and install
 with::
