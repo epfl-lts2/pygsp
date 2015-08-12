@@ -1368,7 +1368,7 @@ class Community(Graph):
 
         W = W + np.abs(sparse.rand(N, N, density=world_density))
         # W need to be symetric.
-        # Basile 30.06.2015 : W = (W + W.getH())/2.
+        W = (W + W.transpose())/2.
         W = np.where(np.abs(W) > 0, 1, W).astype(float)
 
         self.W = sparse.coo_matrix(W)
