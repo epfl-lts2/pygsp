@@ -4,6 +4,7 @@ from pygsp.graphs.gutils import estimate_lmax
 from pygsp import utils
 
 import numpy as np
+import scipy as sp
 from math import pi
 
 logger = utils.build_logger(__name__)
@@ -14,9 +15,9 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
     r"""
     Compute Chebyshev coefficients for a Filterbank
 
-    Paramters
+    Parameters
     ---------
-    f : Filter or list of filters
+    f : List of filters
     G : Graph
     m : int
         Maximum order of Chebyshev coeff to compute (default = 30)
@@ -127,7 +128,7 @@ def lanczos_op(fi, s, G=None, order=30):
 
     Parameters
     ----------
-    fi: Filter or list of filters
+    fi: Filter
     s : ndarray
         Signal to approximate.
     G : Graph
@@ -144,24 +145,92 @@ def lanczos_op(fi, s, G=None, order=30):
         G = fi.G
 
     Nf = len(fi.g)
-    Nv = np.shape(s)[1]
-    c = np.zeros((G.N))
+
+    try:
+        Nv = np.shape(s)[1]
+        is2d = True
+        c = np.zeros((G.N*Nf, Nv))
+    except IndexError:
+        Nv = 1
+        is2d = False
+        c = np.zeros((G.N*Nf))
 
     tmpN = np.arange(G.N, dtype=int)
     for j in range(Nv):
-        V, H = lanczos(G.L, order, s[:, j])
-        Uh, Eh = np.linalg.eig(H)
-        V = np.dot(V, Uh)
+        if is2d:
+            V, H, _ = lanczos(G.L.toarray(), order, s[:, j])
+        else:
+            V, H, _ = lanczos(G.L.toarray(), order, s)
 
-        Eh = np.diagonal(Eh)
+        Eh, Uh = np.linalg.eig(H)
+
+        # Eh = np.diagonal(Eh)
         Eh = np.where(Eh < 0, 0, Eh)
         fie = fi.evaluate(Eh)
+        V = np.dot(V, Uh)
 
         for i in range(Nf):
-            c[tmpN + i*G.N, j] = np.dot(V, fie[:][i] * np.dot(V.T, s[:, j]))
+            if is2d:
+                c[tmpN + i*G.N, j] = np.dot(V, fie[:][i] * np.dot(V.T, s[:, j]))
+            else:
+                c[tmpN + i*G.N] = np.dot(V, fie[:][i] * np.dot(V.T, s))
 
     return c
 
 
-def lanczos():
-    raise NotImplementedError
+def lanczos(A, order, x):
+    try:
+        N, M = np.shape(x)
+    except ValueError:
+        N = np.shape(x)[0]
+        M = 1
+        x = x[:, np.newaxis]
+
+    # normalization
+    q = np.divide(x, np.kron(np.ones((N, 1)), np.linalg.norm(x, axis=0)))
+
+    # initialization
+    hiv = np.arange(0, order*M, order)
+    V = np.zeros((N, M*order))
+    V[:, hiv] = q
+
+    H = np.zeros((order + 1, M*order))
+    r = np.dot(A, q)
+    H[0, hiv] = np.sum(q*r, axis=0)
+    r -= np.kron(np.ones((N, 1)), H[0, hiv])*q
+    H[1, hiv] = np.linalg.norm(r, axis=0)
+
+    orth = np.zeros((order))
+    orth[0] = np.linalg.norm(np.dot(V.T, V) - M)
+
+    for k in range(1, order):
+        if np.sum(np.abs(H[k, hiv + k - 1])) <= np.spacing(1):
+            H = H[:k - 1, _sum_ind(np.arange(k), hiv)]
+            V = V[:, _sum_ind(np.arange(k), hiv)]
+            orth = orth[:k]
+
+            return V, H, orth
+
+        H[k - 1, hiv + k] = H[k, hiv + k - 1]
+        v = q
+        q = r/np.tile(H[k - 1, k + hiv], (N, 1))
+        V[:, k + hiv] = q
+
+        r = np.dot(A, q)
+        r -= np.tile(H[k - 1, k + hiv], (N, 1))*v
+        H[k, k + hiv] = np.sum(np.multiply(q, r), axis=0)
+        r -= np.tile(H[k, k + hiv], (N, 1))*q
+
+        # The next line has to be checked
+        r -= np.dot(V, np.dot(V.T, r)) # full reorthogonalization
+        H[k + 1, k + hiv] = np.linalg.norm(r, axis=0)
+        orth[k] = np.linalg.norm(np.dot(V.T, V) - M)
+
+    H = H[np.ix_(np.arange(order), np.arange(order))]
+
+    return V, H, orth
+
+
+def _sum_ind(ind1, ind2):
+    ind = np.tile(np.ravel(ind1), (np.size(ind2), 1)).T + np.ravel(ind2)
+    return np.ravel(ind)
