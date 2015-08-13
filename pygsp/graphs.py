@@ -1358,9 +1358,13 @@ class Community(Graph):
             coords[node_ind] = rad_com*coords[node_ind] + com_coords[i]
             info["node_com"] = i
 
-        # Look for epsilon-niehgbors of the nodes, with distance < 1e-3 (this is symmetrical)
+        # Look for epsilon-niehgbors of the nodes, with distance < 1e-3
         kdtree = spatial.KDTree(coords)
         idx_w = set(kdtree.query_pairs(np.log(1e3)))
+
+        # Construct also the revert edges for symmetry
+        for elem in list(idx_w):
+            idx_w.add((elem[1], elem[0]))
 
         # Add noise (careful with symmetry !)
         rand_idx = np.random.randint(0, high=N, size=(int(N*N*world_density/2), 2))
