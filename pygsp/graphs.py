@@ -1356,11 +1356,11 @@ class Community(Graph):
 
             node_ind = np.arange(com_lims[i], com_lims[i+1])
             coords[node_ind] = rad_com*coords[node_ind] + com_coords[i]
-            info["node_com"] = i
+            info["node_com"][node_ind] = i
 
         # Look for epsilon-niehgbors of the nodes, with distance < 1e-3
         kdtree = spatial.KDTree(coords)
-        idx_w = set(kdtree.query_pairs(np.log(1e3)))
+        idx_w = kdtree.query_pairs(np.log(1e3))
 
         # Construct also the revert edges for symmetry
         for elem in list(idx_w):
@@ -1370,11 +1370,8 @@ class Community(Graph):
         rand_idx = np.random.randint(0, high=N, size=(int(N*N*world_density/2), 2))
         map(lambda (i_idx, j_idx): idx_w.add((i_idx, j_idx)), rand_idx)
         map(lambda (i_idx, j_idx): idx_w.add((j_idx, i_idx)), rand_idx)
-        idx_w = list(idx_w)  # transform the set into a list to order items
-        i_w, j_w = [], []
-        for elem in idx_w:
-            i_w.append(elem[0])
-            j_w.append(elem[1])
+        idx_w = np.array(list(idx_w))  # transform into array
+        i_w, j_w = idx_w[:, 0], idx_w[:, 1]
 
         self.W = sparse.coo_matrix((([1] * len(i_w)), (i_w, j_w)), shape=(N, N))
         self.gtype = "Community"
