@@ -94,15 +94,20 @@ def repmatline(A, ncol=1, nrow=1):
     Examples
     --------
 
-    For ncol=2 and nrow=3, the matix
-
+    For ncol=2 and nrow=3, the matrix
+    ::
                 1 2
                 3 4
+    ::
+
     becomes
+    ::
                 1 1 1 2 2 2
                 1 1 1 2 2 2
                 3 3 3 4 4 4
                 3 3 3 4 4 4
+    ::
+
     np.repeat(np.repeat(x, nrow, axis=1), ncol,  axis=0)
 
     """
