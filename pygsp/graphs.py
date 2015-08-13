@@ -1367,13 +1367,14 @@ class Community(Graph):
             idx_w.add((elem[1], elem[0]))
 
         # Add noise (careful with symmetry !)
-        rand_idx = np.random.randint(0, high=N, size=(int(N*N*world_density/2), 2))
-        map(lambda (i_idx, j_idx): idx_w.add((i_idx, j_idx)), rand_idx)
-        map(lambda (i_idx, j_idx): idx_w.add((j_idx, i_idx)), rand_idx)
+        for (i_idx, j_idx) in np.random.randint(0, high=N, size=(int(N*N*world_density/2), 2)):
+            idx_w.add((i_idx, j_idx))
+            idx_w.add((j_idx, i_idx))
+
         idx_w = np.array(list(idx_w))  # transform into array
         i_w, j_w = idx_w[:, 0], idx_w[:, 1]
 
-        self.W = sparse.coo_matrix((([1] * len(i_w)), (i_w, j_w)), shape=(N, N))
+        self.W = sparse.coo_matrix((np.ones(len(i_w)), (i_w, j_w)), shape=(N, N))
         self.gtype = "Community"
         self.coords = coords
         self.N = N
