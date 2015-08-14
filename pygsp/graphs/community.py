@@ -112,22 +112,25 @@ class Community(Graph):
 
             node_ind = np.arange(com_lims[i], com_lims[i + 1])
             coords[node_ind] = rad_com*coords[node_ind] + com_coords[i]
-            info["node_com"] = i
+            info["node_com"][node_ind] = i
 
-        D = distanz(coords.T)
-        W = np.exp(-np.power(D, 2))
-        W = np.where(W < 1e-3, 0, W)
+        # Look for epsilon-niehgbors of the nodes, with distance < 1e-3
+        kdtree = spatial.KDTree(coords)
+        idx_w = kdtree.query_pairs(np.log(1e3))
 
-        # When we make W symetric, the density get bigger (because we add
-        # a ramdom number of values)
-        world_density = world_density/float(2 - 1./N)
+        # Construct also the revert edges for symmetry
+        for elem in list(idx_w):
+            idx_w.add((elem[1], elem[0]))
 
-        W = W + np.abs(sparse.rand(N, N, density=world_density))
-        # W need to be symetric.
-        # Basile 30.06.2015 : W = (W + W.getH())/2.
-        W = np.where(np.abs(W) > 0, 1, W).astype(float)
+        # Add noise (careful with symmetry !)
+        for (i_idx, j_idx) in np.random.randint(0, high=N, size=(int(N*N*world_density/2), 2)):
+            idx_w.add((i_idx, j_idx))
+            idx_w.add((j_idx, i_idx))
 
-        self.W = sparse.coo_matrix(W)
+        idx_w = np.array(list(idx_w))  # transform into array
+        i_w, j_w = idx_w[:, 0], idx_w[:, 1]
+
+        self.W = sparse.coo_matrix((np.ones(len(i_w)), (i_w, j_w)), shape=(N, N))
         self.gtype = "Community"
         self.coords = coords
         self.N = N
