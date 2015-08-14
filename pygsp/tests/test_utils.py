@@ -7,7 +7,6 @@ Test suite for the utils module of the pygsp package.
 
 import sys
 import numpy as np
-import scipy as sp
 import numpy.testing as nptest
 from scipy import sparse
 from pygsp import utils, graphs, operators
@@ -37,10 +36,10 @@ class FunctionsTestCase(unittest.TestCase):
                          [3.,  0.5,  1., -4.5],
                          [0.5, -2., -4.5,  6.]])
         lap1 = sparse.lil_matrix(lap1)
-        sym1 = np.matrix([[-8. , -5.5, -3. , -0.5],
-                          [-5.5, -3. , -0.5,  2. ],
-                          [-3. , -0.5,  2. ,  4.5],
-                          [-0.5,  2. ,  4.5,  7. ]])
+        sym1 = np.matrix([[-8., -5.5, -3., -0.5],
+                          [-5.5, -3., -0.5,  2.],
+                          [-3., -0.5,  2.,  4.5],
+                          [-0.5,  2.,  4.5,  7.]])
         sym1 = sparse.lil_matrix(sym1)
         weight_check1 = {'has_inf_val': False, 'has_nan_value': False,
                          'is_not_square': False, 'diag_is_not_zero': True}
@@ -81,21 +80,20 @@ class FunctionsTestCase(unittest.TestCase):
 
         test_graphs = [t1, t3, t4]
 
-
         def test_is_directed(G, rep):
-            self.assertEqual(utils.is_directed(G), rep['is_dir'])
+            self.assertEqual(graphs.gutils.is_directed(G), rep['is_dir'])
 
         def test_estimate_lmax(G):
             operators.compute_fourier_basis(G)
-            nptest.assert_almost_equal(utils.estimate_lmax(G)[0], G.lmax)
+            nptest.assert_almost_equal(graphs.gutils.estimate_lmax(G)[0], G.lmax)
 
         def test_check_weights(G, w_c):
-            self.assertEqual(utils.check_weights(G.W), w_c)
+            self.assertEqual(graphs.gutils.check_weights(G.W), w_c)
 
         # TODO move test_create_laplacian in Operator
 
         def test_check_connectivity(G, is_conn, **kwargs):
-            self.assertEqual(utils.check_connectivity(G)[0], is_conn)
+            self.assertEqual(graphs.gutils.check_connectivity(G)[0], is_conn)
 
         def test_distanz(x, y):
             # TODO test with matlab
@@ -103,7 +101,7 @@ class FunctionsTestCase(unittest.TestCase):
 
         def test_symetrize(W, ans):
             # mat_answser = None
-            check = np.all((ans == utils.symetrize(W)).todense())
+            check = np.all((ans == graphs.gutils.symetrize(W)).todense())
             self.assertTrue(check)
 
         # Not ready yet

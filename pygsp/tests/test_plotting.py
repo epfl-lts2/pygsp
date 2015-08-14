@@ -9,7 +9,6 @@ import sys
 import numpy as np
 import numpy.testing as nptest
 from scipy import sparse
-import pygsp
 from pygsp import graphs
 
 # Use the unittest2 backport on Python 2.6 to profit from the new features.
@@ -145,7 +144,7 @@ class FunctionsTestCase(unittest.TestCase):
         Dummy test.
         """
         a = np.array([1, 2])
-        b = pygsp.graphs.dummy(1, a, True)
+        b = graphs.dummy(1, a, True)
         nptest.assert_almost_equal(a, b)
 
 
