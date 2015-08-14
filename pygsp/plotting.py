@@ -142,11 +142,23 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
                                     np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
                                     np.expand_dims(G.coords[kj, 1], axis=0)))
-                ax.plot(x, y, linewidth=G.plotting['edge_width'],
+
+                if isinstance(G.plotting['vertex_color'], list):
+                    ax.plot(x, y, linewidth=G.plotting['edge_width'],
+                        color=G.plotting['edge_color'],
+                        linestyle=G.plotting['edge_style'],
+                        marker='', zorder=1)
+
+                    ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
+                       s=G.plotting['vertex_size'],
+                       c=G.plotting['vertex_color'], zorder=2)
+                else:
+                    ax.plot(x, y, linewidth=G.plotting['edge_width'],
                         color=G.plotting['edge_color'],
                         linestyle=G.plotting['edge_style'],
                         marker='o', markersize=G.plotting['vertex_size'],
                         markerfacecolor=G.plotting['vertex_color'])
+
             if G.coords.shape[1] == 3:
                 # Very dirty way to display a 3d graph
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
