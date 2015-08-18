@@ -51,7 +51,7 @@ class Community(Graph):
                                  sizes has to be equal to N")
 
         if not min_com:
-            min_com = round(float(N) / Nc / 3.)
+            min_com = int(round(float(N) / Nc / 3.))
 
         if not min_deg:
             min_deg = round(min_com/2.)
