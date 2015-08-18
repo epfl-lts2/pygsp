@@ -52,7 +52,7 @@ def close(*args):
     By default, showing plots does not block the prompt.
 
     """
-    plt.close(args)
+    plt.close(*args)
 
 
 def plot(O, **kwargs):
