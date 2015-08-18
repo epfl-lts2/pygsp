@@ -36,6 +36,17 @@ Filters
 .. inheritance-diagram:: pygsp.filters
     :parts: 2
 
+PointsCloud
+-----------
+
+.. automodule:: pygsp.pointsclouds
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+
+    pointsclouds
+
 Operators
 ---------
 
@@ -55,3 +66,33 @@ Plotting
     :maxdepth: 2
 
     plotting
+
+Reduction
+---------
+
+.. automodule:: pygsp.reduction
+
+.. toctree::
+    :maxdepth: 2
+
+    reduction
+
+Utils
+-----
+
+.. automodule:: pygsp.utils
+
+.. toctree::
+    :maxdepth: 2
+
+    utils
+
+Data Handling
+-------------
+
+.. automodule:: pygsp.data_handling
+
+.. toctree::
+    :maxdepth: 2
+
+    data_handling

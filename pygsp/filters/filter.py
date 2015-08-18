@@ -333,8 +333,8 @@ class Filter(object):
         r"""
         Create the matrix of the filterbank frame.
 
-        This function creates the matrix associated to the filterbank g. The\
-        size of the matrix is MN x N, where M is the number of filters.
+        This function creates the matrix associated to the filterbank g.
+        The size of the matrix is MN x N, where M is the number of filters.
 
         Parameters
         ----------
@@ -343,7 +343,9 @@ class Filter(object):
         Returns
         -------
         F : Frame
+
         """
+
         if G.N > 2000:
             self.logger.warning('Warning: Create a big matrix, '
                                 'you can use other methods.')
@@ -354,7 +356,7 @@ class Filter(object):
         tmpN = np.arange(G.N, dtype=int)
 
         for i in range(Nf):
-            F[:, G.N*i + tmp] = Ft[G.N*i + tmpN]
+            F[:, G.N*i + tmpN] = Ft[G.N*i + tmpN]
 
         return F
 

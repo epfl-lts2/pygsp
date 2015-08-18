@@ -381,9 +381,9 @@ def symetrize(W, symetrize_type='average'):
     symetrize_type : string
         type of symetrization (default 'average')
         The availlable symetrization_types are:
-            'average' : average of W and W^T (default)
-            'full'    : copy the missing entries
-            'none'    : nothing is done (the matrix might stay unsymetric!)
+        'average' : average of W and W^T (default)
+        'full'    : copy the missing entries
+        'none'    : nothing is done (the matrix might stay unsymetric!)
 
     Returns
     -------
@@ -399,6 +399,7 @@ def symetrize(W, symetrize_type='average'):
     >>> x = sparse.coo_matrix(np.array([[1, 1, 0, 0], [0, 0, 1, 1], [1, 0, 1, 0], [0, 1, 0, 1]]))
     >>> W2 = gutils.symetrize(x)
     >>> W1 = gutils.symetrize(x, symetrize_type='average')
+
     """
 
     if symetrize_type == 'average':
