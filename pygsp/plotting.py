@@ -30,15 +30,29 @@ class plid():
 plid = plid()
 
 
-def show():
+def show(block=False):
     r"""
     To show created figures
 
-    Strictly equivalent to plt.show() excepted you don't have to import
+    Equivalent to plt.show(*args, **kw) excepted you don't have to import
     matplotlib by youself.
 
+    By default, showing plots does not block the prompt.
+
     """
-    plt.show()
+    plt.show(block)
+
+def close(*args):
+    r"""
+    To close created figures
+
+    Strictly equivalent to plt.close(*args) excepted you don't have to import
+    matplotlib by youself.
+
+    By default, showing plots does not block the prompt.
+
+    """
+    plt.close(*args)
 
 
 def plot(O, **kwargs):
