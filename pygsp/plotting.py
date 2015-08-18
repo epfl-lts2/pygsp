@@ -82,7 +82,7 @@ def plot(O, **kwargs):
     from pygsp import graphs, pointsclouds, filters
 
     if issubclass(type(O), graphs.Graph):
-        plot_graph(O)
+        plot_graph(O, **kwargs)
     elif issubclass(type(O), pointsclouds.pointscloud.PointsCloud):
         plot_pointcloud(O)
     elif issubclass(type(O), filters.Filter):
