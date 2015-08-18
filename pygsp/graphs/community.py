@@ -4,7 +4,7 @@ from . import Graph
 from pygsp.utils import distanz
 
 import numpy as np
-from scipy import sparse
+from scipy import sparse, spatial
 import random as rd
 from math import sqrt
 
