@@ -23,7 +23,7 @@ class Papadakis(Filter):
     ----------
     G : Graph
     a : float
-        See equation above TODO for this parameter
+        See equation above for this parameter
         The spectrum is scaled between 0 and 2 (default = 3/4)
 
     Returns
