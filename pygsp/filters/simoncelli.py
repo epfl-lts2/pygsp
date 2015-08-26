@@ -12,11 +12,18 @@ class Simoncelli(Filter):
 
     Inherits its methods from Filters
 
+    This function create a parseval filterbank of :math:`2`.
+    The low-pass filter is defined by a function :math:`f_l(x)`.
+
+    .. math:: f_{l}=\begin{cases} 1 & \mbox{if }x\leq a\\ \cos\left(\frac{\pi}{2}\frac{\log\left(\frac{x}{2}\right)}{\log(2)}\right) & \mbox{if }a<x\leq2a\\ 0 & \mbox{if }x>2a \end{cases}
+
+    The high pass filter is is adaptated to obtain a tight frame.
+
     Parameters
     ----------
     G : Graph
     a : float
-        See equation above TODO for this parameter
+        See equation above for this parameter
         The spectrum is scaled between 0 and 2 (default = 2/3)
 
     Returns

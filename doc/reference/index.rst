@@ -77,6 +77,16 @@ Reduction
 
     reduction
 
+Optimization
+------------
+
+.. automodule:: pygsp.optimization
+
+.. toctree::
+    :maxdepth: 2
+
+    optimization
+
 Utils
 -----
 

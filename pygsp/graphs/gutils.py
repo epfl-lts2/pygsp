@@ -212,15 +212,11 @@ def compute_fourier_basis(G, exact=None, cheb_order=30, **kwargs):
         logger.warning("Performing full eigendecomposition of a large matrix\
               may take some time.")
 
-    if False:
-        # TODO
-        pass
-    else:
-        if not hasattr(G, 'L'):
-            raise AttributeError("Graph Laplacian is missing")
-        G.e, G.U = utils.full_eigen(G.L)
-        G.e = np.array(G.e)
-        G.U = np.array(G.U)
+    if not hasattr(G, 'L'):
+        raise AttributeError("Graph Laplacian is missing")
+    G.e, G.U = utils.full_eigen(G.L)
+    G.e = np.array(G.e)
+    G.U = np.array(G.U)
 
     G.lmax = np.max(G.e)
 

@@ -40,8 +40,6 @@ class FunctionsTestCase(unittest.TestCase):
             G = graphs.Graph(W, directed=False)
             ki, kj = np.nonzero(G.A)
             needed_attributes_testing(G)
-            # TODO
-            # self.assertEqual(G.L, )
 
         def test_NNGraph():
             Xin = np.arange(90).reshape(30, 3)

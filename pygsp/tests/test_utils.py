@@ -90,13 +90,12 @@ class FunctionsTestCase(unittest.TestCase):
         def test_check_weights(G, w_c):
             self.assertEqual(graphs.gutils.check_weights(G.W), w_c)
 
-        # TODO move test_create_laplacian in Operator
 
         def test_check_connectivity(G, is_conn, **kwargs):
             self.assertEqual(graphs.gutils.check_connectivity(G)[0], is_conn)
 
         def test_distanz(x, y):
-            # TODO test with matlab
+            # TODO test with matlab to compare
             self.assertEqual(utils.distanz(x, y))
 
         def test_symetrize(W, ans):

@@ -178,7 +178,14 @@ class Graph(object):
 
     def deep_copy_graph(self):
         r"""
-        TODO write doc
+        Creates a deepcopy of a graph with all the attributes.
+
+        Exemples
+        --------
+        >>> from pygsp import graphs
+        >>> G = graphs.Logo()
+        >>> Gcopy = G.deep_copy_graph()
+
         """
         return deepcopy(self)
 
@@ -223,7 +230,6 @@ class Graph(object):
 
     def separate_graph(self):
         r"""
-        TODO write func & doc
         """
         raise NotImplementedError("Not implemented yet")
 

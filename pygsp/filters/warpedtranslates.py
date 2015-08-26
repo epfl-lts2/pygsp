@@ -11,7 +11,7 @@ class WarpedTranslates(Filter):
     ----------
     G : Graph
     Nf : int
-        Number of filters (default = #TODO)
+        Number of filters
 
     Returns
     -------

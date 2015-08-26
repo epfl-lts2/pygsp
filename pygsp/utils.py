@@ -73,6 +73,16 @@ def sparsifier(func):
     return inner
 
 
+def pyunlocbox_required(func):
+
+    def inner(*args, **kwargs):
+        try:
+            import pyunlocbox
+        except ImportError:
+            logger.error('Cannot import pyunlocbox')
+        return func(*args, **kwargs)
+
+
 def distanz(x, y=None):
     r"""
     Calculate the distanz between two colon vectors
@@ -154,7 +164,6 @@ def full_eigen(L):
     inds = np.argsort(eigenvalues)
     EVa = np.sort(eigenvalues)
 
-    # TODO check if axis are good
     EVe = eigenvectors[:, inds]
 
     for val in EVe[0, :].reshape(EVe.shape[0], 1):

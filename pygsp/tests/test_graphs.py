@@ -37,8 +37,6 @@ class FunctionsTestCase(unittest.TestCase):
             self.assertEqual(G.d, 120)
             self.assertEqual(G.Ne, 15)
             self.assertFalse(G.directed)
-            # TODO
-            # self.assertEqual(G.L, )
 
         def test_NNGraph():
             Xin = np.arange(90).reshape(30, 3)

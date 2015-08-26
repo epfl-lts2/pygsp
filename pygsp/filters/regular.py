@@ -12,11 +12,29 @@ class Regular(Filter):
 
     Inherits its methods from Filters
 
+    This function creates a parseval filterbank :math:`2` filters.
+    The low-pass filter is defined by a function :math:`f_l(x)`
+    between :math:`0` and :math:`2`. For :math:`d = 0`.
+
+    .. math:: f_{l}= \sin\left( \frac{\pi}{4} x \right)
+
+    For :math:`d = 1`
+
+    .. math:: f_{l}= \sin\left( \frac{\pi}{4} \left( 1+ \sin\left(\frac{\pi}{2}(x-1)\right) \right) \right)
+
+    For :math:`d = 2`
+
+    .. math:: f_{l}= \sin\left( \frac{\pi}{4} \left( 1+ \sin\left(\frac{\pi}{2} \sin\left(\frac{\pi}{2}(x-1)\right)\right) \right) \right)
+
+    And so for other degrees :math:`d`
+
+    The high pass filter is adaptated to obtain a tight frame.
+
     Parameters
     ----------
     G : Graph
     d : float
-        See equation above TODO for this parameter
+        See equations above for this parameter
         Degree (default = 3)
 
     Returns

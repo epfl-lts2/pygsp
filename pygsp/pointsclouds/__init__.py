@@ -3,7 +3,8 @@
 r"""
 This module implements some PointsClouds
 
-:class: `PointsCloud`  Class countaining all the PointsClouds
+:class: `PointsCloud`  Class containing all the PointsClouds
+
 """
 
 import importlib

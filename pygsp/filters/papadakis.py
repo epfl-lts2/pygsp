@@ -12,6 +12,13 @@ class Papadakis(Filter):
 
     Inherits its methods from Filters
 
+    This function create a parseval filterbank of :math:`2`.
+    The low-pass filter is defined by a function :math:`f_l(x)`
+
+    .. math:: f_{l}=\begin{cases} 1 & \mbox{if }x\leq a\\ \sqrt{1-\frac{\sin\left(\frac{3\pi}{2a}x\right)}{2}} & \mbox{if }a<x\leq \frac{5a}{3} \\ 0 & \mbox{if }x>\frac{5a}{3} \end{cases}
+
+    The high pass filter is adaptated to obtain a tight frame.
+
     Parameters
     ----------
     G : Graph

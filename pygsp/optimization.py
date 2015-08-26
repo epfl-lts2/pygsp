@@ -2,47 +2,56 @@
 
 from pygsp.data_handling import adj2vec
 from pygsp.operators import operator
+from pygsp.utils import build_logger
 
+logger = build_logger(__name__)
 
-def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, verbose=1, maxit=200, use_matrix=True):
+def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix=True):
     r"""
     TV proximal operator for graphs.
 
     This function computes the TV proximal operator for graphs. The TV norm
     is the one norm of the gradient. The gradient is defined in the
-    function |gsp_grad|. This function require the PyUNLocBoX to be executed.
+    function :func:`~pygsp.operator.grad`.
+    This function require the PyUNLocBoX to be executed.
+
+    pygsp.optimization.prox_tv(y, gamma, param) solves:
+
+    :math:`sol = \min_{z} \frac{1}{2} \|x - z\|_2^2 + \gamma  \|x\|_{TV}`
 
     Parameters
     ----------
     x: int
-        Description.
-    gamma: array_like
-        Description.
+        Input signal
+    gamma: ndarray
+        Regularization parameter
     G: graph object
-        Description.
+        Graphs structure
     A: lambda function
-        Description.
+        Forward operator, this parameter allows to solve the following problem:
+        :math:`sol = \min_{z} \frac{1}{2} \|x - z\|_2^2 + \gamma  \| A x\|_{TV}`
+        (default = Id)
     At: lambda function
-        Description.
+        Adjoint operator. (default = Id)
     nu: float
-        Description.
+        Bound on the norm of the operator (default = 1)
     tol: float
-        Description.
-    verbose: int
-        Description.
+        Stops criterion for the loop. The algorithm will stop if :
+        :math:`\frac{n(t) - n(t - 1)} {n(t)} < tol`
+        where :math: `n(t) = f(x) + 0.5 \|x-y\|_2^2` is the objective function at iteration :math:`t`
+        (default = :math:`10e-4`)
     maxit: int
-        Description.
+        Maximum iteration. (default = 200)
     use_matrix: bool
-        Description.
+        If a matrix should be used. (default = True)
 
     Returns
     -------
     sol: solution
-        Description.
 
     Examples
     --------
-    TODO
+    >>> from pygsp import optimization, graphs
 
     """
 

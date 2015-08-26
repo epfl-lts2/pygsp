@@ -103,9 +103,10 @@ def gwft_frame_matrix(G, g):
 
     Returns
     -------
-        F : TODO
-            Frame
+    F : ndarray
+        Frame
     """
+
     if G.N > 256:
         logger.warning("It will create a big matrix. You can use other methods.")
 
@@ -125,10 +126,10 @@ def ngwft(G, f, g, lowmemory=True):
     G : Graph
     f : ndarray
         Graph signal
-    g : TODO
-        window
+    g : ndarray
+        Window
     lowmemory : bool
-        use less memory. (default = True)
+        Use less memory. (default = True)
 
     Returns
     -------
@@ -170,11 +171,11 @@ def ngwft_frame_matrix(G, g):
     Parameters
     ----------
     G : Graph
-    g : TODO
-        window
+    g : ndarray
+        Window
 
     Output parameters:
-    F : TODO
+    F : ndarray
         Frame
     """
     if G.N > 256:
