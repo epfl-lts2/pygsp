@@ -243,7 +243,6 @@ def pg_plot_graph(G, show_edges=None):
     """
 
     # TODO handling when G is a list of graphs
-    # TODO integrate param when G is a clustered graph
     global window_list
     if 'window_list' not in globals():
         window_list = {}
@@ -268,7 +267,18 @@ def pg_plot_graph(G, show_edges=None):
                 v = w.addViewBox()
                 v.setAspectLocked()
 
-                g = pg.GraphItem(pos=G.coords, adj=adj)
+                extra_args = {}
+                if isinstance(G.plotting['vertex_color'], list) and isinstance(G.plotting['vertex_color'][0], int):
+                    extra_args['symbolPen'] = map(lambda v_col: pg.mkPen(v_col), G.plotting['vertex_color'])
+                    extra_args['brush'] = map(lambda v_col: pg.mkBrush(v_col), G.plotting['vertex_color'])
+                elif isinstance(G.plotting['vertex_color'], int):
+                    extra_args['symbolPen'] = G.plotting['vertex_color']
+                    extra_args['brush'] = G.plotting['vertex_color']
+
+                if G.plotting['vertex_size']:
+                    extra_args['size'] = G.plotting['vertex_size']
+
+                g = pg.GraphItem(pos=G.coords, adj=adj, **extra_args)
                 v.addItem(g)
 
                 window_list[str(uuid.uuid4())] = w
