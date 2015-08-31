@@ -262,21 +262,28 @@ def pg_plot_graph(G, show_edges=None):
             if G.coords.shape[1] == 2:
                 adj = np.concatenate((np.expand_dims(ki, axis=1),
                                       np.expand_dims(kj, axis=1)), axis=1)
+
                 w = pg.GraphicsWindow()
-                w.setWindowTitle(G.gtype)
+                w.setWindowTitle(G.plotting['plot_name'] or G.gtype if 'plot_name' in G.plotting else G.gtype)
                 v = w.addViewBox()
                 v.setAspectLocked()
 
                 extra_args = {}
-                if isinstance(G.plotting['vertex_color'], list) and isinstance(G.plotting['vertex_color'][0], int):
+                if isinstance(G.plotting['vertex_color'], list):
                     extra_args['symbolPen'] = map(lambda v_col: pg.mkPen(v_col), G.plotting['vertex_color'])
                     extra_args['brush'] = map(lambda v_col: pg.mkBrush(v_col), G.plotting['vertex_color'])
                 elif isinstance(G.plotting['vertex_color'], int):
                     extra_args['symbolPen'] = G.plotting['vertex_color']
                     extra_args['brush'] = G.plotting['vertex_color']
 
-                if G.plotting['vertex_size']:
-                    extra_args['size'] = G.plotting['vertex_size']
+                # Define syntaxic sugar mapping keywords for the display options
+                for plot_args, pg_args in [('vertex_size', 'size'), ('vertex_mask', 'mask'), ('edge_color', 'pen')]:
+                    if plot_args in G.plotting:
+                        G.plotting[pg_args] = G.plotting.pop(plot_args)
+
+                for pg_args in ['size', 'mask', 'pen', 'symbolPen']:
+                    if pg_args in G.plotting:
+                        extra_args[pg_args] = G.plotting[pg_args]
 
                 g = pg.GraphItem(pos=G.coords, adj=adj, **extra_args)
                 v.addItem(g)
