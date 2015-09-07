@@ -11,8 +11,8 @@ except:
     pass
 try:
     import pyqtgraph as pg
-    import pyqtgraph.opengl as gl
     from pyqtgraph.Qt import QtCore, QtGui
+    import pyqtgraph.opengl as gl
 except:
     pass
 import uuid
@@ -250,89 +250,103 @@ def pg_plot_graph(G, show_edges=None):
     if show_edges is None:
         show_edges = G.Ne < 10000
 
-    if show_edges:
-        ki, kj = np.nonzero(G.A)
-        if G.directed:
+    ki, kj = np.nonzero(G.A)
+    if G.directed:
+        raise NotImplementedError('TODO')
+        if G.coords.shape[1] == 2:
             raise NotImplementedError('TODO')
-            if G.coords.shape[1] == 2:
-                raise NotImplementedError('TODO')
-            else:
-                raise NotImplementedError('TODO')
         else:
-            if G.coords.shape[1] == 2:
-                adj = np.concatenate((np.expand_dims(ki, axis=1),
-                                      np.expand_dims(kj, axis=1)), axis=1)
-
-                w = pg.GraphicsWindow()
-                w.setWindowTitle(G.plotting['plot_name'] or G.gtype if 'plot_name' in G.plotting else G.gtype)
-                v = w.addViewBox()
-                v.setAspectLocked()
-
-                extra_args = {}
-                if isinstance(G.plotting['vertex_color'], list):
-                    extra_args['symbolPen'] = map(lambda v_col: pg.mkPen(v_col), G.plotting['vertex_color'])
-                    extra_args['brush'] = map(lambda v_col: pg.mkBrush(v_col), G.plotting['vertex_color'])
-                elif isinstance(G.plotting['vertex_color'], int):
-                    extra_args['symbolPen'] = G.plotting['vertex_color']
-                    extra_args['brush'] = G.plotting['vertex_color']
-
-                # Define syntaxic sugar mapping keywords for the display options
-                for plot_args, pg_args in [('vertex_size', 'size'), ('vertex_mask', 'mask'), ('edge_color', 'pen')]:
-                    if plot_args in G.plotting:
-                        G.plotting[pg_args] = G.plotting.pop(plot_args)
-
-                for pg_args in ['size', 'mask', 'pen', 'symbolPen']:
-                    if pg_args in G.plotting:
-                        extra_args[pg_args] = G.plotting[pg_args]
-
-                g = pg.GraphItem(pos=G.coords, adj=adj, **extra_args)
-                v.addItem(g)
-
-                window_list[str(uuid.uuid4())] = w
-
-            if G.coords.shape[1] == 3:
-                app = QtGui.QApplication([])
-                w = gl.GLViewWidget()
-                w.opts['distance'] = 10
-                w.show()
-                w.setWindowTitle(G.gtype)
-
-                # Very dirty way to display a 3d graph
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
-                                    np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
-                                    np.expand_dims(G.coords[kj, 1], axis=0)))
-                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0),
-                                    np.expand_dims(G.coords[kj, 2], axis=0)))
-                ii = range(0, x.shape[1])
-                x2 = np.ndarray((0, 1))
-                y2 = np.ndarray((0, 1))
-                z2 = np.ndarray((0, 1))
-                for i in ii:
-                    x2 = np.append(x2, x[:, i])
-                for i in ii:
-                    y2 = np.append(y2, y[:, i])
-                for i in ii:
-                    z2 = np.append(z2, z[:, i])
-
-                pts = np.concatenate((np.expand_dims(x2, axis=1),
-                                      np.expand_dims(y2, axis=1),
-                                      np.expand_dims(z2, axis=1)), axis=1)
-
-                g = gl.GLLinePlotItem(pos=pts, mode='lines')
-
-                gp = gl.GLScatterPlotItem(pos=G.coords, color=(1., 0., 0., 1))
-
-                w.addItem(g)
-                w.addItem(gp)
-
-                window_list[str(uuid.uuid4())] = app
-
+            raise NotImplementedError('TODO')
     else:
         if G.coords.shape[1] == 2:
-            pg.plot(G.coords, pen=None, symbol='o')
-        if G.coords.shape[1] == 3:
-            pg.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
+            adj = np.concatenate((np.expand_dims(ki, axis=1),
+                                  np.expand_dims(kj, axis=1)), axis=1)
+
+            w = pg.GraphicsWindow()
+            w.setWindowTitle(G.plotting['plot_name'] or G.gtype if 'plot_name' in G.plotting else G.gtype)
+            v = w.addViewBox()
+            v.setAspectLocked()
+
+            extra_args = {}
+            if isinstance(G.plotting['vertex_color'], list):
+                extra_args['symbolPen'] = map(lambda v_col: pg.mkPen(v_col), G.plotting['vertex_color'])
+                extra_args['brush'] = map(lambda v_col: pg.mkBrush(v_col), G.plotting['vertex_color'])
+            elif isinstance(G.plotting['vertex_color'], int):
+                extra_args['symbolPen'] = G.plotting['vertex_color']
+                extra_args['brush'] = G.plotting['vertex_color']
+
+            # Define syntaxic sugar mapping keywords for the display options
+            for plot_args, pg_args in [('vertex_size', 'size'), ('vertex_mask', 'mask'), ('edge_color', 'pen')]:
+                if plot_args in G.plotting:
+                    G.plotting[pg_args] = G.plotting.pop(plot_args)
+
+            for pg_args in ['size', 'mask', 'pen', 'symbolPen']:
+                if pg_args in G.plotting:
+                    extra_args[pg_args] = G.plotting[pg_args]
+
+            if not show_edges:
+                extra_args['pen'] = None
+
+            g = pg.GraphItem(pos=G.coords, adj=adj, **extra_args)
+            v.addItem(g)
+
+            window_list[str(uuid.uuid4())] = w
+
+        elif G.coords.shape[1] == 3:
+            app = QtGui.QApplication([])
+            w = gl.GLViewWidget()
+            w.opts['distance'] = 10
+            w.show()
+            w.setWindowTitle(G.plotting['plot_name'] or G.gtype if 'plot_name' in G.plotting else G.gtype)
+
+            # Very dirty way to display a 3d graph
+            x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
+                                np.expand_dims(G.coords[kj, 0], axis=0)))
+            y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
+                                np.expand_dims(G.coords[kj, 1], axis=0)))
+            z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0),
+                                np.expand_dims(G.coords[kj, 2], axis=0)))
+            ii = range(0, x.shape[1])
+            x2 = np.ndarray((0, 1))
+            y2 = np.ndarray((0, 1))
+            z2 = np.ndarray((0, 1))
+            for i in ii:
+                x2 = np.append(x2, x[:, i])
+            for i in ii:
+                y2 = np.append(y2, y[:, i])
+            for i in ii:
+                z2 = np.append(z2, z[:, i])
+
+            pts = np.concatenate((np.expand_dims(x2, axis=1),
+                                  np.expand_dims(y2, axis=1),
+                                  np.expand_dims(z2, axis=1)), axis=1)
+
+            extra_args = {'color': (1., 0., 0., 1)}
+            if 'vertex_color' in G.plotting:
+                if isinstance(G.plotting['vertex_color'], list):
+                    extra_args['color'] = np.array(map(lambda v_col: pg.glColor(pg.mkPen(v_col).color()), G.plotting['vertex_color']))
+                elif isinstance(G.plotting['vertex_color'], int):
+                    extra_args['color'] = pg.glColor(pg.mkPen(G.plotting['vertex_color']).color())
+                else:
+                    extra_args['color'] = G.plotting['vertex_color']
+
+            # Define syntaxic sugar mapping keywords for the display options
+            for plot_args, pg_args in [('vertex_size', 'size')]:
+                if plot_args in G.plotting:
+                    G.plotting[pg_args] = G.plotting.pop(plot_args)
+
+            for pg_args in ['size']:
+                if pg_args in G.plotting:
+                    extra_args[pg_args] = G.plotting[pg_args]
+
+            if show_edges:
+                g = gl.GLLinePlotItem(pos=pts, mode='lines', color=G.plotting['edge_color'])
+                w.addItem(g)
+
+            gp = gl.GLScatterPlotItem(pos=G.coords, **extra_args)
+            w.addItem(gp)
+
+            window_list[str(uuid.uuid4())] = app
 
 
 def plot_pointcloud(P):
