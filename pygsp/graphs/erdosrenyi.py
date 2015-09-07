@@ -37,15 +37,6 @@ class ErdosRenyi(Graph):
     Author: Lionel Martin
     """
 
-    def _construct_w(self):
-        M = self.N * (self.N-1) / 2
-        nb_elem = int(self.p * M)
-        indices = np.random.permutation(M)[:nb_elem]
-        indices = tuple(map(lambda coord: coord[indices], np.tril_indices(self.N, -1)))
-        matrix = sparse.csr_matrix((np.ones(nb_elem), indices), shape=(self.N, self.N))
-
-        return matrix + matrix.T
-
     def __init__(self, N=100, p=0.1, **kwargs):
         self.N = N
         self.p = p
@@ -64,12 +55,17 @@ class ErdosRenyi(Graph):
                               cannot be negative.")
 
         is_connected = False
+        M = self.N * (self.N-1) / 2
+        nb_elem = int(self.p * M)
 
         for i in range(max_iter):
             if is_connected:
                 break
 
-            self.W = self._construct_w()
+            indices = np.random.permutation(M)[:nb_elem]
+            indices = tuple(map(lambda coord: coord[indices], np.tril_indices(self.N, -1)))
+            matrix = sparse.csr_matrix((np.ones(nb_elem), indices), shape=(self.N, self.N))
+            self.W = matrix + matrix.T
             is_connected = check_connectivity(self)
 
         super(ErdosRenyi, self).__init__(W=self.W, gtype=self.gtype,
