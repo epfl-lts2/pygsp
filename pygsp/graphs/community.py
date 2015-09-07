@@ -56,7 +56,7 @@ class Community(Graph):
         if not min_deg:
             min_deg = round(min_com/2.)
 
-        if not world_density:
+        if world_density is None:
             world_density = 1./N
 
         # Begining
@@ -116,21 +116,19 @@ class Community(Graph):
 
         # Look for epsilon-niehgbors of the nodes, with distance < 1e-3
         kdtree = spatial.KDTree(coords)
-        idx_w = kdtree.query_pairs(np.log(1e3))
+        idx_w = kdtree.query_pairs(np.sqrt(N/4./Nc))
 
-        # Construct also the revert edges for symmetry
-        for elem in list(idx_w):
-            idx_w.add((elem[1], elem[0]))
-
-        # Add noise (careful with symmetry !)
+        # Add noise with approximative world_density: no double edges, no self loops
         for (i_idx, j_idx) in np.random.randint(0, high=N, size=(int(N*N*world_density/2), 2)):
-            idx_w.add((i_idx, j_idx))
-            idx_w.add((j_idx, i_idx))
+            if i_idx != j_idx:
+                idx_w.add((i_idx, j_idx) if i_idx < j_idx else (j_idx, i_idx))
 
-        idx_w = np.array(list(idx_w))  # transform into array
-        i_w, j_w = idx_w[:, 0], idx_w[:, 1]
-
-        self.W = sparse.coo_matrix((np.ones(len(i_w)), (i_w, j_w)), shape=(N, N))
+        if idx_w:
+            idx_w = np.array(list(idx_w))  # transform into array
+            idx_w = np.concatenate((idx_w, np.fliplr(idx_w)))
+            self.W = sparse.coo_matrix((np.ones(idx_w.shape[0]), (idx_w[:, 0], idx_w[:, 1])), shape=(N, N))
+        else:
+            self.W = sparse.coo_matrix((N, N))
         self.gtype = "Community"
         self.coords = coords
         self.N = N

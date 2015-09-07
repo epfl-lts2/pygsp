@@ -35,4 +35,4 @@ class Bunny(NNGraph):
         super(Bunny, self).__init__(Xin=self.Xin, center=self.center,
                                     rescale=self.rescale, epsilon=self.epsilon,
                                     plotting=self.plotting, NNtype=self.NNtype,
-                                    **kwargs)
+                                    gtype=self.gtype, **kwargs)
