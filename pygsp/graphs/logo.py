@@ -16,7 +16,7 @@ class Logo(Graph):
     >>> G = graphs.Logo()
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         logo = PointsCloud("logo")
 
         self.W = logo.W
@@ -34,4 +34,4 @@ class Logo(Graph):
 
         super(Logo, self).__init__(plotting=self.plotting, coords=self.coords,
                                    gtype=self.gtype, limits=self.limits,
-                                   W=self.W)
+                                   W=self.W, **kwargs)
