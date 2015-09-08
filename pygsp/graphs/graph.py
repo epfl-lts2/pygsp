@@ -57,7 +57,7 @@ class Graph(object):
                  lap_type='combinatorial', L=None,
                  plotting={}, **kwargs):
 
-        self.logger = build_logger(__name__)
+        self.logger = build_logger(__name__, **kwargs)
 
         self.gtype = gtype
         self.lap_type = lap_type

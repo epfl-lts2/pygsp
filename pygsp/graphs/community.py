@@ -40,7 +40,7 @@ class Community(Graph):
     """
 
     def __init__(self, N=256, Nc=None, com_sizes=np.array([]), min_com=None,
-                 min_deg=None, size_ratio=1, world_density=None):
+                 min_deg=None, size_ratio=1, world_density=None, **kwargs):
         # Initialisation of the parameters
         if not Nc:
             Nc = int(round(sqrt(N)/2.))
@@ -141,4 +141,4 @@ class Community(Graph):
         self.info = info
 
         super(Community, self).__init__(W=self.W, gtype=self.gtype,
-                                        coords=self.coords, info=self.info)
+                                        coords=self.coords, info=self.info, **kwargs)
