@@ -56,7 +56,7 @@ class Community(Graph):
         comm_sizes = kwargs.pop('comm_sizes', np.array([]))
         size_ratio = float(kwargs.pop('size_ratio', 1.))
         world_density = float(kwargs.pop('world_density', 1. / N))
-        world_density = world_density if 0 < world_density < 1 else 1. / N
+        world_density = world_density if 0 <= world_density <= 1 else 1. / N
         comm_density = kwargs.pop('comm_density', None)
         k_neigh = kwargs.pop('k_neigh', None)
         epsilon = float(kwargs.pop('epsilon', np.sqrt(2 * np.sqrt(N)) / 2))
@@ -112,7 +112,7 @@ class Community(Graph):
         if comm_density:
             # random picking edges following the community density (same for all communities)
             comm_density = float(comm_density)
-            comm_density = comm_density if comm_density > 0. and comm_density < 1. else 0.1
+            comm_density = comm_density if 0. <= comm_density <= 1. else 0.1
             info['comm_density'] = comm_density
             self.logger.info("GSP_COMMUNITY: Constructed using community density = {}".format(comm_density))
         elif k_neigh:
