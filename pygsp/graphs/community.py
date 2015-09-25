@@ -3,7 +3,7 @@
 from . import Graph
 from pygsp.utils import build_logger
 
-
+from collections import Counter
 import numpy as np
 from scipy import sparse, spatial
 
@@ -49,24 +49,26 @@ class Community(Graph):
 
         # Parameter initialisation #
         N = int(N)
-        Nc = int(kwargs.pop('Nc', int(round(sqrt(N)/2.))))
+        Nc = int(kwargs.pop('Nc', int(round(np.sqrt(N)/2.))))
         min_comm = int(kwargs.pop('min_comm', int(round(N / (3. * Nc)))))
         min_deg = int(kwargs.pop('min_deg', 0))
         comm_sizes = kwargs.pop('comm_sizes', np.array([]))
         size_ratio = float(kwargs.pop('size_ratio', 1.))
         world_density = float(kwargs.pop('world_density', 1. / N))
+        world_density = world_density if 0 < world_density < 1 else 1. / N
         comm_density = kwargs.pop('comm_density', None)
         k_neigh = kwargs.pop('k_neigh', None)
-        epsilon = float(kwargs.pop('epsilon', sqrt(2 * sqrt(N)) / 2))
+        epsilon = float(kwargs.pop('epsilon', np.sqrt(2 * np.sqrt(N)) / 2))
 
         self.logger = build_logger(__name__)
-        w_data = ([], ([], []))
+        w_data = [[], [[], []]]
 
         try:
-            if comm_sizes and np.sum(comm_sizes) != N:
-                raise ValueError('GSP_COMMUNITY: The sum of the community sizes has to be equal to N.')
-            if len(comm_sizes) != Nc:
-                raise ValueError('GSP_COMMUNITY: The length of the community sizes has to be equal to Nc.')
+            if len(comm_sizes) > 0:
+                if np.sum(comm_sizes) != N:
+                    raise ValueError('GSP_COMMUNITY: The sum of the community sizes has to be equal to N.')
+                if len(comm_sizes) != Nc:
+                    raise ValueError('GSP_COMMUNITY: The length of the community sizes has to be equal to Nc.')
 
         except TypeError:
             raise TypeError("GSP_COMMUNITY: comm_sizes expected to be a list or array, got {}".format(type(comm_sizes)))
@@ -74,7 +76,8 @@ class Community(Graph):
         if min_comm * Nc > N:
             raise ValueError('GSP_COMMUNITY: The constraint on minimum size for communities is unsolvable.')
 
-        info = {'node_com': None, 'comm_sizes': None, 'com_coords': None}
+        info = {'node_com': None, 'comm_sizes': None, 'com_coords': None,
+                'world_density': world_density, 'min_comm': min_comm}
 
         # Communities construction #
         if comm_sizes.shape[0] == 0:
@@ -89,7 +92,7 @@ class Community(Graph):
         info['comm_sizes'] = np.array(map(lambda (k, v): v, sorted(counts.items(), key=lambda (k, v): k)))
 
         # Coordinates association #
-        world_rad = size_ratio * sqrt(N)
+        world_rad = size_ratio * np.sqrt(N)
         info['com_coords'] = world_rad * np.array(zip(
             np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
             np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc)))
@@ -101,7 +104,7 @@ class Community(Graph):
         for i in range(N):
             # set coordinates as an offset from the center of the community it belongs to
             comm_idx = info['node_com'][i]
-            comm_rad = sqrt(info['comm_sizes'][comm_idx])
+            comm_rad = np.sqrt(info['comm_sizes'][comm_idx])
             coords[i] = info['com_coords'][comm_idx] + comm_rad * coords[i]
 
         # Intra-community edges construction #
@@ -109,29 +112,32 @@ class Community(Graph):
             # random picking edges following the community density (same for all communities)
             comm_density = float(comm_density)
             comm_density = comm_density if comm_density > 0. and comm_density < 1. else 0.1
-            logger.info("GSP_COMMUNITY: Constructed using community density = {}".format(comm_density))
+            info['comm_density'] = comm_density
+            self.logger.info("GSP_COMMUNITY: Constructed using community density = {}".format(comm_density))
         elif k_neigh:
             # k-NN among the nodes in the same community (same k for all communities)
             k_neigh = int(k_neigh)
             k_neigh = k_neigh if k_neigh > 0 else 10
-            logger.info("GSP_COMMUNITY: Constructed using K-NN with k = {}".format(k_neigh))
+            info['k_neigh'] = k_neigh
+            self.logger.info("GSP_COMMUNITY: Constructed using K-NN with k = {}".format(k_neigh))
         else:
             # epsilon-NN among the nodes in the same community (same eps for all communities)
-            logger.info("GSP_COMMUNITY: Constructed using eps-NN with eps = {}".format(epsilon))
+            info['epsilon'] = epsilon
+            self.logger.info("GSP_COMMUNITY: Constructed using eps-NN with eps = {}".format(epsilon))
 
         first_node = 0
         for i in range(Nc):
             com_siz = info['comm_sizes'][i]
             M = com_siz * (com_siz - 1) / 2
-            nb_edges = int(comm_density * M)
 
             if comm_density:
+                nb_edges = int(comm_density * M)
                 tril_ind = np.tril_indices(com_siz, -1)
                 indices = np.random.permutation(M)[:nb_edges]
 
                 w_data[0] += [1] * nb_edges
-                w_data[1][0] += first_node + map(lambda elem: tril_ind[1][elem], indices)
-                w_data[1][1] += first_node + map(lambda elem: tril_ind[0][elem], indices)
+                w_data[1][0] += map(lambda elem: first_node + tril_ind[1][elem], indices)
+                w_data[1][1] += map(lambda elem: first_node + tril_ind[0][elem], indices)
 
             elif k_neigh:
                 comm_coords = coords[first_node:first_node + com_siz]
@@ -142,8 +148,8 @@ class Community(Graph):
                 map(lambda row: map(lambda elm: pairs_set.add((min(row[0], elm), max(row[0], elm))), row[1:]), indices)
 
                 w_data[0] += [1] * len(pairs_set)
-                w_data[1][0] += first_node + map(lambda pair: pair[0], pairs_set)
-                w_data[1][1] += first_node + map(lambda pair: pair[1], pairs_set)
+                w_data[1][0] += map(lambda pair: first_node + pair[0], pairs_set)
+                w_data[1][1] += map(lambda pair: first_node + pair[1], pairs_set)
 
             else:
                 comm_coords = coords[first_node:first_node + com_siz]
@@ -151,21 +157,21 @@ class Community(Graph):
                 pairs_set = kdtree.query_pairs(epsilon)
 
                 w_data[0] += [1] * len(pairs_set)
-                w_data[1][0] += first_node + map(lambda elem: elem[0], pairs_set)
-                w_data[1][1] += first_node + map(lambda elem: elem[1], pairs_set)
+                w_data[1][0] += map(lambda elem: first_node + elem[0], pairs_set)
+                w_data[1][1] += map(lambda elem: first_node + elem[1], pairs_set)
 
             first_node += com_siz
 
         # Inter-community edges construction #
         M = (N**2 - np.sum(map(lambda com_siz: com_siz**2, info['comm_sizes']))) / 2
-        nb_edges = world_density * M
+        nb_edges = int(world_density * M)
 
         if world_density < 0.3:  # TODO Tweak this parameter
             # use regression sampling
             inter_edges = set()
             while len(inter_edges) < nb_edges:
                 new_point = np.random.randint(0, N, 2)
-                if info['node_com'][min(new_point)] != info['node_com'][min(new_point)]:
+                if info['node_com'][min(new_point)] != info['node_com'][max(new_point)]:
                     inter_edges.add((min(new_point), min(new_point)))
         else:
             # use random permutation
@@ -187,9 +193,10 @@ class Community(Graph):
         w_data[0] += [1] * nb_edges
         w_data[1][0] += map(lambda elem: elem[0], inter_edges)
         w_data[1][1] += map(lambda elem: elem[1], inter_edges)
+        w_data[1] = tuple(w_data[1])
 
         params = {'gtype': 'Community', 'coords': coords, 'N': N, 'Nc': Nc,
-                  'info': info, 'W': sparse.coo_matrix(w_data, shape=(N, N))}
+                  'info': info, 'W': sparse.coo_matrix(tuple(w_data), shape=(N, N))}
         for (key, value) in params.items():
             setattr(self, key, value)
 
