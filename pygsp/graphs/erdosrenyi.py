@@ -45,7 +45,6 @@ class ErdosRenyi(Graph):
         max_iter = int(kwargs.pop('max_iter', 10))
 
         self.gtype = u"Erdös Renyi"
-        self.logger = build_logger(__name__)
 
         if p > 1:
             raise ValueError("GSP_ErdosRenyi: The probability p \
