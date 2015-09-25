@@ -7,6 +7,7 @@ from pygsp.graphs import gutils
 import numpy as np
 from math import log
 from copy import deepcopy
+import logging
 
 
 class Filter(object):
@@ -17,7 +18,7 @@ class Filter(object):
 
     def __init__(self, G, filters=None, **kwargs):
 
-        self.logger = utils.build_logger(__name__)
+        self.logger = utils.build_logger(__name__, **kwargs)
 
         if not hasattr(G, 'lmax'):
             self.logger.info('{} : has to compute lmax'.format(

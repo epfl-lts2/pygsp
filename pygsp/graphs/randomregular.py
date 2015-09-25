@@ -162,7 +162,7 @@ class RandomRegular(Graph):
 
         self.gtype = "random_regular"
 
-        self.logger = build_logger(__name__)  # Build the logger as createRandRegGraph needit
+        self.logger = build_logger(__name__, **kwargs)  # Build the logger as createRandRegGraph needit
 
         self.W = self.createRandRegGraph(self.N, self.k)
 
