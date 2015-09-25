@@ -61,7 +61,7 @@ class Community(Graph):
         k_neigh = kwargs.pop('k_neigh', None)
         epsilon = float(kwargs.pop('epsilon', np.sqrt(2 * np.sqrt(N)) / 2))
 
-        self.logger = build_logger(__name__, logging_level=kwargs.pop('logging_level', ''))
+        self.logger = build_logger(__name__, **kwargs)
         w_data = [[], [[], []]]
 
         try:
