@@ -4,6 +4,7 @@ from . import Graph
 from pygsp.utils import build_logger
 
 from collections import Counter
+from copy import deepcopy
 import numpy as np
 from scipy import sparse, spatial
 
@@ -166,13 +167,13 @@ class Community(Graph):
         M = (N**2 - np.sum(map(lambda com_siz: com_siz**2, info['comm_sizes']))) / 2
         nb_edges = int(world_density * M)
 
-        if world_density < 0.3:  # TODO Tweak this parameter
+        if world_density < 0.35:
             # use regression sampling
             inter_edges = set()
             while len(inter_edges) < nb_edges:
                 new_point = np.random.randint(0, N, 2)
                 if info['node_com'][min(new_point)] != info['node_com'][max(new_point)]:
-                    inter_edges.add((min(new_point), min(new_point)))
+                    inter_edges.add((min(new_point), max(new_point)))
         else:
             # use random permutation
             indices = np.random.permutation(M)[:nb_edges]
@@ -193,6 +194,11 @@ class Community(Graph):
         w_data[0] += [1] * nb_edges
         w_data[1][0] += map(lambda elem: elem[0], inter_edges)
         w_data[1][1] += map(lambda elem: elem[1], inter_edges)
+
+        w_data[0] += w_data[0]
+        tmp_w_data = deepcopy(w_data[1][0])
+        w_data[1][0] += w_data[1][1]
+        w_data[1][1] += tmp_w_data
         w_data[1] = tuple(w_data[1])
 
         params = {'gtype': 'Community', 'coords': coords, 'N': N, 'Nc': Nc,
