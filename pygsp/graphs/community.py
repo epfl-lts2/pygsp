@@ -23,7 +23,7 @@ class Community(Graph):
         min_comm : int
             Minimum size of the communities (default = round(N/Nc/3))
         min_deg : int
-            Minimum degree of each node (default = 0)
+            Minimum degree of each node (default = 0, NOT IMPLEMENTED YET)
         comm_sizes : int
             Size of the communities (default = random)
         size_ratio : float
