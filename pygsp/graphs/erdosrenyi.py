@@ -65,7 +65,8 @@ class ErdosRenyi(Graph):
             indices = tuple(map(lambda coord: coord[indices], np.tril_indices(self.N, -1)))
             matrix = sparse.csr_matrix((np.ones(nb_elem), indices), shape=(self.N, self.N))
             self.W = matrix + matrix.T
+            self.A = sparse.lil_matrix(self.W > 0)
             is_connected = check_connectivity(self)
 
-        super(ErdosRenyi, self).__init__(W=self.W, gtype=self.gtype,
+        super(ErdosRenyi, self).__init__(W=self.W, gtype=kwargs.pop('gtype', self.gtype),
                                          **kwargs)

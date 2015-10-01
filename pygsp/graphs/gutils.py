@@ -12,9 +12,13 @@ logger = utils.build_logger(__name__)
 
 def check_connectivity(G, **kwargs):
     r"""
-    Function to check the connectivity of the input graph.
-    It will call _check_connectivity_directed or _check_connectivity_undirected
-    wether the graph is directed or not.
+    Function to check the strong connectivity of the input graph.
+    It uses DFS travelling on graph to ensure that each node is visited.
+
+    For undirected graphs, starting at any vertex and trying to access all others is enough.
+    For directed graphs, one needs to check that a random vertex is accessible by all others
+    and can access all others. Thus, we can transpose the adjacency matrix and compute again
+    with the same starting point in both phases.
 
     Parameters
     ----------
@@ -27,73 +31,26 @@ def check_connectivity(G, **kwargs):
     -------
     is_connected : bool
         A bool value telling if the graph is connected
-    in_conn : int
-        Number of in connections
-    out_conn : int
-        Number of out connections
-
     """
 
     if not hasattr(G, 'directed'):
         G.directed = is_directed(G)
-    # Removing the diagonal
-    A = G.W - np.diag(G.W.diagonal())
 
-    if G.directed:
-        return _check_connectivity_directed(A, **kwargs)
+    for adj_matrix in [G.A, G.A.T] if G.directed else [G.A]:
+        visited = np.zeros(G.N, dtype=bool)
+        stack = [0]
 
-    else:
-        return _check_connectivity_undirected(A, **kwargs)
+        while len(stack):
+            v = stack.pop()
+            if not visited[v]:
+                visited[v] = True
+                # Add indices of nodes not visited yet and accessible from v
+                stack.extend(filter(lambda idx: not visited[idx] and idx not in stack, adj_matrix[v, :].nonzero()[1]))
 
+        if not visited.all():
+            return False
 
-def _check_connectivity_directed(A, **kwargs):
-    r"""
-    Subfunc to check connec in the directed case.
-    """
-    is_connected = (A < 0).any()
-    hard_check = (1 - (A.sum(axis=0) > 0)) +\
-        (1 - (A.sum(axis=1) > 0)).reshape(1, A.shape[0])
-
-    c = 0
-    while c <= sp.shape(A)[0]:
-        c_is_connected = (c == 0)
-        c += 1
-        if c_is_connected:
-            break
-
-    r = 0
-    while r <= sp.shape(A)[1]:
-        r_is_connected = (c == 0)
-        r += 1
-        if r_is_connected:
-            break
-
-    # TODO check axis
-    in_conn = (1 - (A.sum(axis=0) > 0))
-    out_conn = (1 - (A.sum(axis=1) > 0))
-
-    return is_connected, in_conn, out_conn
-
-
-def _check_connectivity_undirected(A, **kwargs):
-    r"""
-    Subfunc to check connec in the undirected case.
-    """
-
-    is_connected = (A < 0).any()
-    c = 0
-    while c <= sp.shape(A)[0]:
-        c_is_connected = (c == 0)
-        c += 1
-        if c_is_connected:
-            break
-
-    # TODO check axises
-    in_conn = (A.sum(axis=1) > 0).nonzero()
-    out_conn = in_conn
-
-    if c_is_connected:
-        return is_connected, in_conn, out_conn
+    return True
 
 
 def check_weights(W):
