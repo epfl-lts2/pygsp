@@ -158,9 +158,7 @@ def full_eigen(L):
         Eigenvectors
 
     """
-
-    eigenvectors, eigenvalues, _ = np.linalg.svd(L.todense())
-
+    eigenvectors, eigenvalues, _ = sp.linalg.svd(L.todense())
     # Sort everything
 
     inds = np.argsort(eigenvalues)

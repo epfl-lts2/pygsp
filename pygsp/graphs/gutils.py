@@ -268,6 +268,7 @@ def estimate_lmax(G):
     >>> # or
     >>> graphs.gutils.estimate_lmax(G)
     """
+
     try:
         lmax = sparse.linalg.eigs(G.L, k=1, tol=5e-3, ncv=10)[0]
         # MAT: lmax=eigs(G.L,1,'lm',opts)

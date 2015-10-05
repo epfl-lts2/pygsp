@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pygsp import utils
+from pygsp.utils import build_logger
 from pygsp.graphs.gutils import compute_fourier_basis
 from pygsp.data_handling import adj2vec
 
@@ -9,7 +9,7 @@ from scipy import sparse
 from math import sqrt
 
 
-logger = utils.build_logger(__name__)
+logger = build_logger(__name__)
 
 
 def div(G, s):

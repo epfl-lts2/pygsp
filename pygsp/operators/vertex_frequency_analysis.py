@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pygsp.graphs import gutils
+from pygsp.graphs.gutils import compute_fourier_basis
 from pygsp.utils import build_logger
 from pygsp.operators import operator
 from pygsp import data_handling
@@ -35,7 +35,7 @@ def generalized_wft(G, g, f, lowmemory=True):
 
     if not hasattr(G, 'U'):
         logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
-        gutils.compute_fourier_basis(G)
+        compute_fourier_basis(G)
 
     # if iscell(g)
     #    g = gsp_igft(G,g{1}(G.e))
@@ -83,7 +83,7 @@ def gabor_wft(G, f, k):
 
     if not hasattr(G, 'e'):
         logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
-        gutils.compute_fourier_basis(G)
+        compute_fourier_basis(G)
     g = Gabor(G, k)
 
     C = g.analysis(G, f)
@@ -139,7 +139,7 @@ def ngwft(G, f, g, lowmemory=True):
 
     if not hasattr(G, 'U'):
         logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
-        gutils.compute_fourier_basis(G)
+        compute_fourier_basis(G)
 
     if lowmemory:
         # Compute the Frame into a big matrix

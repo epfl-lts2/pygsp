@@ -92,7 +92,6 @@ class FunctionsTestCase(unittest.TestCase):
         def test_check_weights(G, w_c):
             self.assertEqual(graphs.gutils.check_weights(G.W), w_c)
 
-
         def test_check_connectivity(G, is_conn, **kwargs):
             self.assertEqual(graphs.gutils.check_connectivity(G), is_conn)
 
@@ -121,7 +120,7 @@ class FunctionsTestCase(unittest.TestCase):
         checks5 = {'has_inf_val': False, 'has_nan_value': False, 'is_not_square': False, 'diag_is_not_zero': True}
         test_check_weights(G5, checks5)
 
-        with self.assertRaises(np.linalg.linalg.LinAlgError):
+        with self.assertRaises(ValueError):
             test_estimate_lmax(t2['G'])
 
         # Not ready yet

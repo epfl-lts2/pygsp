@@ -49,3 +49,5 @@ doc/tutorials/img/*\.png
 docs/_build
 
 .ropeproject
+
+.eggs/*

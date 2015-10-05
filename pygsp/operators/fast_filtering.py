@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from pygsp.graphs.gutils import estimate_lmax
-from pygsp import utils
+from pygsp.utils import filterbank_handler, build_logger
 
 import numpy as np
 import scipy as sp
 from math import pi
 
-logger = utils.build_logger(__name__)
+logger = build_logger(__name__)
 
 
-@utils.filterbank_handler
+@filterbank_handler
 def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
     r"""
     Compute Chebyshev coefficients for a Filterbank
