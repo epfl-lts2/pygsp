@@ -109,6 +109,7 @@ class Sensor(Graph):
                                                       self.Nc)
 
                 self.W = W
+                self.A = sparse.lil_matrix(self.W > 0)
 
                 if check_connectivity(self):
                     break

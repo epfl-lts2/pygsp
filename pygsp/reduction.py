@@ -42,8 +42,8 @@ def graph_sparsify(M, epsilon):
     ---------
     See :cite: `spielman2011graph` `rudelson1999random` `rudelson2007sampling`
     for more informations
-
     """
+
     # Test the input parameters
     if isinstance(M, Graph):
         if not M.lap_type == 'combinatorial':
@@ -124,8 +124,8 @@ def interpolate(Gh, Gl, coeff, order=100, **kwargs):
     Returns
     -------
     s_pred : Predicted signal
-
     """
+
     alpha = np.dot(Gl.pyramid['K_reg'].toarray(), coeff)
 
     try:
@@ -263,7 +263,8 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
     kwargs : Dict
         Optional parameters that will be used
     filters : list
-        A list of filter that will be used for the analysis and sythesis operator. If only one filter is given, it will be used for all levels. You may change that later on.
+        A list of filter that will be used for the analysis and sythesis operator.
+        If only one filter is given, it will be used for all levels. You may change that later on.
 
     Returns
     -------
@@ -364,6 +365,9 @@ def pyramid_synthesis(Gs, coeff, order=100, **kwargs):
 
 
 def tree_depths(A, root):
+    r"""
+    Empty docstring. TODO
+    """
 
     if gutils.check_connectivity(A) == 0:
         raise ValueError('Graph is not connected')

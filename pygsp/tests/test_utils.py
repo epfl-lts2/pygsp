@@ -28,21 +28,23 @@ class FunctionsTestCase(unittest.TestCase):
 
     def test_utils(self):
         # Data init
-        W1 = np.arange(16).reshape((4, 4)) - 8
+        W1 = np.arange(16).reshape((4, 4))
+        mask1 = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [1, 0, 1, 0], [0, 1, 0, 1]])
+        W1[mask1 == 1] = 0
         W1 = sparse.lil_matrix(W1)
         G1 = graphs.Graph(W1)
-        lap1 = np.array([[-9.,  5.5,  3.,  0.5],
-                         [5.5, -4.,  0.5, -2.],
-                         [3.,  0.5,  1., -4.5],
-                         [0.5, -2., -4.5,  6.]])
+        lap1 = np.array([[4, -1, 0, -3],
+                         [-4, 10, -6, 0],
+                         [0, -9, 20, -11],
+                         [-12, 0, -14, 26]])
         lap1 = sparse.lil_matrix(lap1)
-        sym1 = np.matrix([[-8., -5.5, -3., -0.5],
-                          [-5.5, -3., -0.5,  2.],
-                          [-3., -0.5,  2.,  4.5],
-                          [-0.5,  2.,  4.5,  7.]])
+        sym1 = np.matrix([[0, 2.5, 0, 7.5],
+                          [2.5, 0, 7.5, 0],
+                          [0, 7.5, 0, 12.5],
+                          [7.5, 0, 12.5, 0]])
         sym1 = sparse.lil_matrix(sym1)
         weight_check1 = {'has_inf_val': False, 'has_nan_value': False,
-                         'is_not_square': False, 'diag_is_not_zero': True}
+                         'is_not_square': False, 'diag_is_not_zero': False}
         rep1 = {'lap': lap1, 'is_dir': True, 'weight_check': weight_check1,
                 'is_conn': True, 'sym': sym1}
         t1 = {'G': G1, 'rep': rep1}
@@ -92,7 +94,7 @@ class FunctionsTestCase(unittest.TestCase):
 
 
         def test_check_connectivity(G, is_conn, **kwargs):
-            self.assertEqual(graphs.gutils.check_connectivity(G)[0], is_conn)
+            self.assertEqual(graphs.gutils.check_connectivity(G), is_conn)
 
         def test_distanz(x, y):
             # TODO test with matlab to compare
@@ -114,6 +116,10 @@ class FunctionsTestCase(unittest.TestCase):
             test_check_weights(t['G'], t['rep']['weight_check'])
             test_check_connectivity(t['G'], t['rep']['is_conn'])
             test_symetrize(t['G'].W, t['rep']['sym'])
+
+        G5 = graphs.Graph(np.arange(16).reshape((4, 4)))
+        checks5 = {'has_inf_val': False, 'has_nan_value': False, 'is_not_square': False, 'diag_is_not_zero': True}
+        test_check_weights(G5, checks5)
 
         with self.assertRaises(np.linalg.linalg.LinAlgError):
             test_estimate_lmax(t2['G'])
