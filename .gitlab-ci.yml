@@ -1,4 +1,4 @@
 test:
   script:
   - pip install -r requirements.txt --user
-  - python manage.py test
+  - python setup.py test
