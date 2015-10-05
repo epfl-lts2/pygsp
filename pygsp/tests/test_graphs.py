@@ -7,10 +7,8 @@ Test suite for the graphs module of the pygsp package.
 
 import sys
 import numpy as np
-import scipy as sp
 import numpy.testing as nptest
 from scipy import sparse
-import pygsp
 from pygsp import graphs
 
 # Use the unittest2 backport on Python 2.6 to profit from the new features.
@@ -39,8 +37,6 @@ class FunctionsTestCase(unittest.TestCase):
             self.assertEqual(G.d, 120)
             self.assertEqual(G.Ne, 15)
             self.assertFalse(G.directed)
-            # TODO
-            # self.assertEqual(G.L, )
 
         def test_NNGraph():
             Xin = np.arange(90).reshape(30, 3)
@@ -115,7 +111,7 @@ class FunctionsTestCase(unittest.TestCase):
         Dummy test.
         """
         a = np.array([1, 2])
-        b = pygsp.graphs.dummy(1, a, True)
+        b = graphs.dummy(1, a, True)
         nptest.assert_almost_equal(a, b)
 
 

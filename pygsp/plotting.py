@@ -11,11 +11,10 @@ except:
     pass
 try:
     import pyqtgraph as pg
-    import pyqtgraph.opengl as gl
     from pyqtgraph.Qt import QtCore, QtGui
+    import pyqtgraph.opengl as gl
 except:
     pass
-import pygsp
 import uuid
 
 
@@ -31,15 +30,29 @@ class plid():
 plid = plid()
 
 
-def show():
+def show(block=False):
     r"""
     To show created figures
 
-    Strictly equivalent to plt.show() excepted you don't have to import
+    Equivalent to plt.show(*args, **kw) excepted you don't have to import
     matplotlib by youself.
 
+    By default, showing plots does not block the prompt.
+
     """
-    plt.show()
+    plt.show(block)
+
+def close(*args):
+    r"""
+    To close created figures
+
+    Strictly equivalent to plt.close(*args) excepted you don't have to import
+    matplotlib by youself.
+
+    By default, showing plots does not block the prompt.
+
+    """
+    plt.close(*args)
 
 
 def plot(O, **kwargs):
@@ -66,11 +79,13 @@ def plot(O, **kwargs):
 
     """
 
-    if issubclass(type(O), pygsp.graphs.Graph):
-        plot_graph(O)
-    elif issubclass(type(O), pygsp.graphs.PointsCloud):
+    from pygsp import graphs, pointsclouds, filters
+
+    if issubclass(type(O), graphs.Graph):
+        plot_graph(O, **kwargs)
+    elif issubclass(type(O), pointsclouds.pointscloud.PointsCloud):
         plot_pointcloud(O)
-    elif issubclass(type(O), pygsp.filters.Filter):
+    elif issubclass(type(O), filters.Filter):
         plot_filter(O, **kwargs)
     else:
         raise TypeError('Your object type is incorrect, be sure it is a '
@@ -141,11 +156,23 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
                                     np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
                                     np.expand_dims(G.coords[kj, 1], axis=0)))
-                ax.plot(x, y, linewidth=G.plotting['edge_width'],
+
+                if isinstance(G.plotting['vertex_color'], list):
+                    ax.plot(x, y, linewidth=G.plotting['edge_width'],
+                        color=G.plotting['edge_color'],
+                        linestyle=G.plotting['edge_style'],
+                        marker='', zorder=1)
+
+                    ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
+                       s=G.plotting['vertex_size'],
+                       c=G.plotting['vertex_color'], zorder=2)
+                else:
+                    ax.plot(x, y, linewidth=G.plotting['edge_width'],
                         color=G.plotting['edge_color'],
                         linestyle=G.plotting['edge_style'],
                         marker='o', markersize=G.plotting['vertex_size'],
                         markerfacecolor=G.plotting['vertex_color'])
+
             if G.coords.shape[1] == 3:
                 # Very dirty way to display a 3d graph
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
@@ -216,7 +243,6 @@ def pg_plot_graph(G, show_edges=None):
     """
 
     # TODO handling when G is a list of graphs
-    # TODO integrate param when G is a clustered graph
     global window_list
     if 'window_list' not in globals():
         window_list = {}
@@ -224,71 +250,103 @@ def pg_plot_graph(G, show_edges=None):
     if show_edges is None:
         show_edges = G.Ne < 10000
 
-    if show_edges:
-        ki, kj = np.nonzero(G.A)
-        if G.directed:
+    ki, kj = np.nonzero(G.A)
+    if G.directed:
+        raise NotImplementedError('TODO')
+        if G.coords.shape[1] == 2:
             raise NotImplementedError('TODO')
-            if G.coords.shape[1] == 2:
-                raise NotImplementedError('TODO')
-            else:
-                raise NotImplementedError('TODO')
         else:
-            if G.coords.shape[1] == 2:
-                adj = np.concatenate((np.expand_dims(ki, axis=1),
-                                      np.expand_dims(kj, axis=1)), axis=1)
-                w = pg.GraphicsWindow()
-                w.setWindowTitle(G.gtype)
-                v = w.addViewBox()
-                v.setAspectLocked()
-
-                g = pg.GraphItem(pos=G.coords, adj=adj)
-                v.addItem(g)
-
-                window_list[str(uuid.uuid4())] = w
-
-            if G.coords.shape[1] == 3:
-                app = QtGui.QApplication([])
-                w = gl.GLViewWidget()
-                w.opts['distance'] = 10
-                w.show()
-                w.setWindowTitle(G.gtype)
-
-                # Very dirty way to display a 3d graph
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
-                                    np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
-                                    np.expand_dims(G.coords[kj, 1], axis=0)))
-                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0),
-                                    np.expand_dims(G.coords[kj, 2], axis=0)))
-                ii = range(0, x.shape[1])
-                x2 = np.ndarray((0, 1))
-                y2 = np.ndarray((0, 1))
-                z2 = np.ndarray((0, 1))
-                for i in ii:
-                    x2 = np.append(x2, x[:, i])
-                for i in ii:
-                    y2 = np.append(y2, y[:, i])
-                for i in ii:
-                    z2 = np.append(z2, z[:, i])
-
-                pts = np.concatenate((np.expand_dims(x2, axis=1),
-                                      np.expand_dims(y2, axis=1),
-                                      np.expand_dims(z2, axis=1)), axis=1)
-
-                g = gl.GLLinePlotItem(pos=pts, mode='lines')
-
-                gp = gl.GLScatterPlotItem(pos=G.coords, color=(1., 0., 0., 1))
-
-                w.addItem(g)
-                w.addItem(gp)
-
-                window_list[str(uuid.uuid4())] = app
-
+            raise NotImplementedError('TODO')
     else:
         if G.coords.shape[1] == 2:
-            pg.plot(G.coords, pen=None, symbol='o')
-        if G.coords.shape[1] == 3:
-            pg.plot(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2], 'bo')
+            adj = np.concatenate((np.expand_dims(ki, axis=1),
+                                  np.expand_dims(kj, axis=1)), axis=1)
+
+            w = pg.GraphicsWindow()
+            w.setWindowTitle(G.plotting['plot_name'] or G.gtype if 'plot_name' in G.plotting else G.gtype)
+            v = w.addViewBox()
+            v.setAspectLocked()
+
+            extra_args = {}
+            if isinstance(G.plotting['vertex_color'], list):
+                extra_args['symbolPen'] = map(lambda v_col: pg.mkPen(v_col), G.plotting['vertex_color'])
+                extra_args['brush'] = map(lambda v_col: pg.mkBrush(v_col), G.plotting['vertex_color'])
+            elif isinstance(G.plotting['vertex_color'], int):
+                extra_args['symbolPen'] = G.plotting['vertex_color']
+                extra_args['brush'] = G.plotting['vertex_color']
+
+            # Define syntaxic sugar mapping keywords for the display options
+            for plot_args, pg_args in [('vertex_size', 'size'), ('vertex_mask', 'mask'), ('edge_color', 'pen')]:
+                if plot_args in G.plotting:
+                    G.plotting[pg_args] = G.plotting.pop(plot_args)
+
+            for pg_args in ['size', 'mask', 'pen', 'symbolPen']:
+                if pg_args in G.plotting:
+                    extra_args[pg_args] = G.plotting[pg_args]
+
+            if not show_edges:
+                extra_args['pen'] = None
+
+            g = pg.GraphItem(pos=G.coords, adj=adj, **extra_args)
+            v.addItem(g)
+
+            window_list[str(uuid.uuid4())] = w
+
+        elif G.coords.shape[1] == 3:
+            app = QtGui.QApplication([])
+            w = gl.GLViewWidget()
+            w.opts['distance'] = 10
+            w.show()
+            w.setWindowTitle(G.plotting['plot_name'] or G.gtype if 'plot_name' in G.plotting else G.gtype)
+
+            # Very dirty way to display a 3d graph
+            x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
+                                np.expand_dims(G.coords[kj, 0], axis=0)))
+            y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
+                                np.expand_dims(G.coords[kj, 1], axis=0)))
+            z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0),
+                                np.expand_dims(G.coords[kj, 2], axis=0)))
+            ii = range(0, x.shape[1])
+            x2 = np.ndarray((0, 1))
+            y2 = np.ndarray((0, 1))
+            z2 = np.ndarray((0, 1))
+            for i in ii:
+                x2 = np.append(x2, x[:, i])
+            for i in ii:
+                y2 = np.append(y2, y[:, i])
+            for i in ii:
+                z2 = np.append(z2, z[:, i])
+
+            pts = np.concatenate((np.expand_dims(x2, axis=1),
+                                  np.expand_dims(y2, axis=1),
+                                  np.expand_dims(z2, axis=1)), axis=1)
+
+            extra_args = {'color': (1., 0., 0., 1)}
+            if 'vertex_color' in G.plotting:
+                if isinstance(G.plotting['vertex_color'], list):
+                    extra_args['color'] = np.array(map(lambda v_col: pg.glColor(pg.mkPen(v_col).color()), G.plotting['vertex_color']))
+                elif isinstance(G.plotting['vertex_color'], int):
+                    extra_args['color'] = pg.glColor(pg.mkPen(G.plotting['vertex_color']).color())
+                else:
+                    extra_args['color'] = G.plotting['vertex_color']
+
+            # Define syntaxic sugar mapping keywords for the display options
+            for plot_args, pg_args in [('vertex_size', 'size')]:
+                if plot_args in G.plotting:
+                    G.plotting[pg_args] = G.plotting.pop(plot_args)
+
+            for pg_args in ['size']:
+                if pg_args in G.plotting:
+                    extra_args[pg_args] = G.plotting[pg_args]
+
+            if show_edges:
+                g = gl.GLLinePlotItem(pos=pts, mode='lines', color=G.plotting['edge_color'])
+                w.addItem(g)
+
+            gp = gl.GLScatterPlotItem(pos=G.coords, **extra_args)
+            w.addItem(gp)
+
+            window_list[str(uuid.uuid4())] = app
 
 
 def plot_pointcloud(P):
@@ -301,8 +359,8 @@ def plot_pointcloud(P):
 
     Examples
     --------
-    >>> from pygsp import graphs, plotting
-    >>> logo = graphs.PointsCloud('logo')
+    >>> from pygsp import plotting, pointsclouds
+    >>> logo = pointsclouds.PointsCloud('logo')
     >>> try:
     ...     plotting.plot_pointcloud(logo)
     ... except:
@@ -455,10 +513,7 @@ def plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     Examples
     --------
     >>> import numpy as np
-    >>> import pygsp
-    >>> from pygsp import graphs
-    >>> from pygsp import filters
-    >>> from pygsp import plotting
+    >>> from pygsp import graphs, filters, plotting
     >>> G = graphs.Ring(15)
     >>> signal = np.sin((np.arange(1, 16)*2*np.pi/15))
     >>> try:
@@ -699,34 +754,3 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     elif G.coords.shape[1] == 3:
         window_list[str(uuid.uuid4())] = app
 
-
-def rescale_center(x):
-    r"""
-    Rescaling the dataset.
-
-    Rescaling the dataset, previously and mainly used in the SwissRoll graph.
-
-    Parameters
-    ----------
-    x : ndarray
-        Dataset to be rescaled.
-
-    Returns
-    -------
-    r : ndarray
-        Rescaled dataset.
-
-    Examples
-    --------
-    >>> import pygsp
-    >>> pygsp.utils.dummy(0, [1, 2, 3], True)
-    array([1, 2, 3])
-
-    """
-    N = x.shape[1]
-    y = x - np.kron(np.ones((1, N)), np.expand_dims(np.mean(x, axis=1),
-                                                    axis=1))
-    c = np.amax(y)
-    r = y / c
-
-    return r

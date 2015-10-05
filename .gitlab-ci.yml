@@ -1,1 +1,4 @@
-.travis.yml
+test:
+  script:
+  - pip install -r requirements.txt --user
+  - python setup.py test

@@ -20,11 +20,11 @@ Gradient Matriciel
 
 Gwft
 ----
-.. autofunction:: pygsp.operators.gwft
+.. autofunction:: pygsp.operators.generalized_wft
 
 Gwft2
 -----
-.. autofunction:: pygsp.operators.gwft2
+.. autofunction:: pygsp.operators.gabor_wft
 
 Gwft Frame Matrix
 -----------------
@@ -54,33 +54,9 @@ Chebyshev Operator
 ------------------
 .. autofunction:: pygsp.operators.cheby_op
 
-Full Eigen
-----------
-.. autofunction:: pygsp.operators.full_eigen
-
-Create Laplacian
-----------------
-.. autofunction:: pygsp.operators.create_laplacian
-
 Localize
 --------
 .. autofunction:: pygsp.operators.localize
-
-Kron Pyramid
-------------
-.. autofunction:: pygsp.operators.kron_pyramid
-
-Kron Reduction
---------------
-.. autofunction:: pygsp.operators.kron_reduction
-
-Pyramid Synthesis
------------------
-.. autofunction:: pygsp.operators.pyramid_synthesis
-
-Interpolate
------------
-.. autofunction:: pygsp.operators.interpolate
 
 Modulate
 --------
@@ -89,7 +65,3 @@ Modulate
 Translate
 ---------
 .. autofunction:: pygsp.operators.translate
-
-Tree multiresolution
---------------------
-.. autofunction:: pygsp.operators.tree_multiresolution
