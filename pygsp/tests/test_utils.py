@@ -99,9 +99,9 @@ class FunctionsTestCase(unittest.TestCase):
             # TODO test with matlab to compare
             self.assertEqual(utils.distanz(x, y))
 
-        def test_symetrize(W, ans):
+        def test_symmetrize(W, ans):
             # mat_answser = None
-            check = np.all((ans == graphs.gutils.symetrize(W)).todense())
+            check = np.all((ans == graphs.gutils.symmetrize(W)).todense())
             self.assertTrue(check)
 
         # Not ready yet
@@ -114,7 +114,7 @@ class FunctionsTestCase(unittest.TestCase):
             test_estimate_lmax(t['G'])
             test_check_weights(t['G'], t['rep']['weight_check'])
             test_check_connectivity(t['G'], t['rep']['is_conn'])
-            test_symetrize(t['G'].W, t['rep']['sym'])
+            test_symmetrize(t['G'].W, t['rep']['sym'])
 
         G5 = graphs.Graph(np.arange(16).reshape((4, 4)))
         checks5 = {'has_inf_val': False, 'has_nan_value': False, 'is_not_square': False, 'diag_is_not_zero': True}

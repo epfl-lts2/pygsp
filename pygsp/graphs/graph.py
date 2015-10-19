@@ -24,7 +24,7 @@ class Graph(object):
     N : int
         Number of nodes. Default is the lenght of the first dimension of W.
     d : float
-        Degree of the vectors
+        Degree of the vertices
     Ne : int
         Edge numbers
     gtype : string
@@ -38,7 +38,7 @@ class Graph(object):
         Laplacian matrix
     coords : ndarray
         Coordinates of the vertices (default = np.array([0, 0]))
-    plotting : Dict
+    plotting : dict
         Dictionnary containing the plotting parameters
 
     Examples
@@ -97,26 +97,12 @@ class Graph(object):
 
         # Plotting default parameters
         self.plotting = {}
-        if 'edge_width' in plotting:
-            self.plotting['edge_width'] = plotting['edge_width']
-        else:
-            self.plotting['edge_width'] = 1
-        if 'edge_color' in plotting:
-            self.plotting['edge_color'] = plotting['edge_color']
-        else:
-            self.plotting['edge_color'] = np.array([255, 88, 41])/255.
-        if 'edge_style' in plotting:
-            self.plotting['edge_style'] = plotting['edge_style']
-        else:
-            self.plotting['edge_style'] = '-'
-        if 'vertex_size' in plotting:
-            self.plotting['vertex_size'] = plotting['vertex_size']
-        else:
-            self.plotting['vertex_size'] = 5
-        if 'vertex_color' in plotting:
-            self.plotting['vertex_color'] = plotting['vertex_color']
-        else:
-            self.plotting['vertex_color'] = 'b'
+        self.plotting['vertex_size'] = plotting.get('vertex_size', 10)
+        self.plotting['edge_width'] = plotting.get('edge_width', 1)
+        self.plotting['edge_style'] = plotting.get('edge_style', '-')
+        self.plotting['edge_color'] = plotting.get('edge_color', np.array([255, 88, 41])/255.)
+        self.plotting['vertex_color'] = plotting.get('vertex_color', 'b')
+
 
     def update_graph_attr(self, *args, **kwargs):
         r"""

@@ -52,7 +52,7 @@ class RandomRegular(Graph):
         # check symmetry
         tmp = (A - A.getH())
         if np.sum((tmp.getH()*tmp).diagonal()) > 0:
-            msg += "is not symetric, "
+            msg += "is not symmetric, "
 
         # check parallel edged
         if A.max(axis=None) > 1:

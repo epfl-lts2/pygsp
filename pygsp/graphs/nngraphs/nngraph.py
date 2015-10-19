@@ -43,7 +43,7 @@ class NNGraph(Graph):
 
     def __init__(self, Xin, NNtype='knn', use_flann=False, center=True,
                  rescale=True, k=10, sigma=0.1, epsilon=0.01, gtype=None,
-                 plotting=None, symetrize_type='average', **kwargs):
+                 plotting=None, symmetrize_type='average', **kwargs):
 
         if Xin is None:
             raise ValueError("You must enter a Xin to process the NNgraph")
@@ -64,7 +64,7 @@ class NNGraph(Graph):
             self.plotting = plotting
         else:
             self.plotting = {}
-        self.symetrize_type = symetrize_type
+        self.symmetrize_type = symmetrize_type
 
         N, d = np.shape(self.Xin)
         Xout = self.Xin
@@ -137,7 +137,7 @@ class NNGraph(Graph):
 
         # Symetry checks
         if gutils.is_directed(W):
-            W = gutils.symetrize(W, symetrize_type=self.symetrize_type)
+            W = gutils.symmetrize(W, symmetrize_type=self.symmetrize_type)
         else:
             pass
 

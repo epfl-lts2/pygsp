@@ -281,13 +281,13 @@ def estimate_lmax(G):
     return np.real(lmax)
 
 
-def is_directed(M):
+def is_directed(O):
     r"""
-    Returns a bool:  True if the graph is directed and false if not.
+    Define if the graph has directed edges.
 
     Parameters
     ----------
-    M : sparse matrix or Graph
+    O : sparse matrix (A or W) or the Graph object
 
     Returns
     -------
@@ -295,36 +295,36 @@ def is_directed(M):
 
     Notes
     -----
-    The Weight matrix has to be sparse (For now)
-    Can also be used to check if a matrix is symetrical
+    Can also be used to check if a matrix is symmetrical
 
     Examples
     --------
     >>> from scipy import sparse
     >>> from pygsp import graphs
-    >>> W = sparse.rand(10,10,0.2)
+    >>> W = sparse.rand(10, 10, 0.2)
     >>> G = graphs.Graph(W=W)
     >>> is_directed = graphs.gutils.is_directed(G.W)
     """
-
     from pygsp.graphs import Graph
 
-    # To pass a graph or a weight matrix as an argument
-    if isinstance(M, Graph):
-        W = M.W
-    else:
-        W = M
+    is_graph = isinstance(O, Graph)
 
-    # Python Bug Can't use this in tests
-    if np.shape(W) != (1, 1):
-        is_dir = np.abs((W - W.T)).sum() != 0
+    if is_graph:
+        W = O.W
     else:
-        is_dir = False
+        W = O
 
+    if np.diff(np.shape(W))[0]:
+        raise ValueError("Matrix dimensions mismatch, expecting square matrix.")
+
+    is_dir = np.abs(W - W.T).sum() != 0
+
+    if is_graph:
+        O.directed = is_dir
     return is_dir
 
 
-def symetrize(W, symetrize_type='average'):
+def symmetrize(W, symmetrize_type='average'):
     r"""
     Symetrize a matrix.
 
@@ -332,18 +332,16 @@ def symetrize(W, symetrize_type='average'):
     ----------
     W : sparse matrix
         Weight matrix
-    symetrize_type : string
-        type of symetrization (default 'average')
-        The availlable symetrization_types are:
+    symmetrize_type : string
+        type of symmetrization (default 'average')
+        The availlable symmetrization types are:
         'average' : average of W and W^T (default)
         'full'    : copy the missing entries
-        'none'    : nothing is done (the matrix might stay unsymetric!)
 
     Returns
     -------
     W : sparse matrix
-        symetrized matrix
-
+        symmetrized matrix
 
     Examples
     --------
@@ -351,25 +349,21 @@ def symetrize(W, symetrize_type='average'):
     >>> import numpy as np
     >>> from scipy import sparse
     >>> x = sparse.coo_matrix(np.array([[1, 1, 0, 0], [0, 0, 1, 1], [1, 0, 1, 0], [0, 1, 0, 1]]))
-    >>> W2 = gutils.symetrize(x)
-    >>> W1 = gutils.symetrize(x, symetrize_type='average')
+    >>> W2 = gutils.symmetrize(x)
+    >>> W1 = gutils.symmetrize(x, symmetrize_type='full')
 
     """
 
-    if symetrize_type == 'average':
-        W = (W + W.getH())/2.
-        return W
+    if symmetrize_type == 'average':
+        W = (W + W.T) / 2.
 
-    elif symetrize_type == 'full':
+    elif symmetrize_type == 'full':
         A = W > 0
         M = (A - (A.T * A))
         W = sparse.csr_matrix(W.T)
         W[M.T] = W.T[M.T]
 
-        return W
-
-    elif symetrize_type == 'none':
-        return W
-
     else:
-        raise ValueError("Unknown symetrize type")
+        raise ValueError("Unknown symmetrize type")
+
+    return W

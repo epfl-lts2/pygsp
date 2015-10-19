@@ -4,18 +4,22 @@ This module implements plotting functions for the PyGSP main objects.
 """
 
 import numpy as np
+import uuid
+
 try:
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
+    plt_import = True
 except:
-    pass
+    plt_import = False
+
 try:
     import pyqtgraph as pg
     from pyqtgraph.Qt import QtCore, QtGui
     import pyqtgraph.opengl as gl
+    qtg_import = True
 except:
-    pass
-import uuid
+    qtg_import = False
 
 
 class plid():
@@ -79,20 +83,28 @@ def plot(O, **kwargs):
 
     """
 
-    from pygsp import graphs, pointsclouds, filters
+    from graphs import Graph
+    from pointsclouds.pointscloud import PointsCloud
+    from filters import Filter
 
-    if issubclass(type(O), graphs.Graph):
-        plot_graph(O, **kwargs)
-    elif issubclass(type(O), pointsclouds.pointscloud.PointsCloud):
+    if issubclass(type(O), Graph):
+        if qtg_import:
+            pg_plot_graph(O, **kwargs)
+        elif plt_import:
+            plot_graph(O, **kwargs)
+        else:
+            raise ImportError('No drawing library installed. Please '
+                              'install matplotlib or pyqtgraph.')
+    elif issubclass(type(O), PointsCloud):
         plot_pointcloud(O)
-    elif issubclass(type(O), filters.Filter):
+    elif issubclass(type(O), Filter):
         plot_filter(O, **kwargs)
     else:
         raise TypeError('Your object type is incorrect, be sure it is a '
-                        'PointCloud, a Filter or a Graph')
+                        'PointCloud, a Filter or a Graph.')
 
 
-def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
+def plot_graph(G, savefig=False, show_edges=None, plot_name=''):
     r"""
     Function to plot a graph or an array of graphs
 
@@ -126,7 +138,7 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=False):
     # TODO integrate param when G is a clustered graph
 
     if not plot_name:
-        plot_name = "Plot of " + G.gtype
+        plot_name = u"Plot of {}".format(G.gtype)
 
     if show_edges is None:
         show_edges = G.Ne < 10000

@@ -26,6 +26,6 @@ assert optimization
 assert reduction
 assert plotting
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 __email__ = 'LTS2Graph@groupes.epfl.ch'
 __release_date__ = '2015-10-05'

@@ -229,7 +229,7 @@ def kron_reduction(G, ind):
 
     Lnew = L_red - L_in_out.dot(sparse.linalg.spsolve(L_comp, L_out_in))
 
-    # Make the laplacian symetric if it is almost symetric!
+    # Make the laplacian symmetric if it is almost symmetric!
     if np.abs(Lnew - Lnew.getH()).sum() < np.spacing(1)*np.abs(Lnew).sum():
         Lnew = (Lnew + Lnew.getH())/2.
 
