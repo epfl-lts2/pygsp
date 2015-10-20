@@ -6,6 +6,7 @@ from pygsp.utils import build_logger
 
 logger = build_logger(__name__)
 
+
 def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix=True):
     r"""
     TV proximal operator for graphs.

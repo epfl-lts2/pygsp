@@ -3,6 +3,8 @@
 import numpy as np
 from scipy import sparse
 
+from pygsp.graphs.gutils import is_directed
+
 
 def adj2vec(G):
     r"""
@@ -12,6 +14,9 @@ def adj2vec(G):
     ----------
     G : Graph structure
     """
+
+    if not hasattr(G, 'directed'):
+        G.directed = is_directed(G)
 
     if G.directed:
         raise NotImplementedError("Not implemented yet")
@@ -55,7 +60,7 @@ def pyramid_cell2coeff(ca, pe):
 
     try:
         Nt, Nv = np.shape(ca[Nl])
-        coeff = coeff = np.zeros((N, Nv))
+        coeff = np.zeros((N, Nv))
     except ValueError:
         Nt = np.shape(ca[Nl])[0]
         coeff = np.zeros((N))
@@ -94,7 +99,7 @@ def repmatline(A, ncol=1, nrow=1):
     Examples
     --------
 
-    For ncol=2 and nrow=3, the matrix
+    For nrow=2 and ncol=3, the matrix
     ::
                 1 2
                 3 4
@@ -108,11 +113,11 @@ def repmatline(A, ncol=1, nrow=1):
                 3 3 3 4 4 4
     ::
 
-    np.repeat(np.repeat(x, nrow, axis=1), ncol,  axis=0)
+    np.repeat(np.repeat(x, ncol, axis=1), nrow,  axis=0)
 
     """
 
-    if ncol < 0 or nrow < 0:
+    if ncol < 1 or nrow < 1:
         raise ValueError("The number of lines and rows must be greater or\
                          equal to one, or you will get an empty array.")
 

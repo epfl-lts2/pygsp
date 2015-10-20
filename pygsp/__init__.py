@@ -17,15 +17,15 @@ from pygsp import plotting
 
 # Silence the code checker warning about unused symbols.
 assert graphs
+assert operators
 assert utils
 assert filters
-assert operators
 assert pointsclouds
 assert data_handling
 assert optimization
 assert reduction
 assert plotting
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 __email__ = 'LTS2Graph@groupes.epfl.ch'
-__release_date__ = '2015-10-05'
+__release_date__ = '2015-10-19'
