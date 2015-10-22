@@ -3,23 +3,19 @@
 language: python
 
 python:
-  - "2.6"
   - "2.7"
   - "3.2"
   - "3.3"
   - "3.4"
-#  - "pypy" fails to install numpy
+  - "pypy"
 
 before_install:
     - sudo apt-get install -qq python-dev liblapack-dev libatlas-dev gcc gfortran libatlas-base-dev
     - pip install -U pip
     - if [[ $TRAVIS_PYTHON_VERSION < 3 ]]; then echo installing matplotlib for python2; sudo apt-get install -qq  python-matplotlib; fi
-    - if [[ $TRAVIS_PYTHON_VERSION -ge 3 ]]; then echo installing matplotlib for python3; pip install matplotlib; fi
+    - if [[ $TRAVIS_PYTHON_VERSION >= 3 ]]; then echo installing matplotlib for python3; pip install matplotlib; fi
 
 install:
-    # Backport of new unittest features for Python 2.6.
-    - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi
-    # Usage dependencies expressed in the package.
     - python setup.py install
 
 script: python setup.py test
