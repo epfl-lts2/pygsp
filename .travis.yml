@@ -12,9 +12,9 @@ python:
 before_install:
     - sudo apt-get install -qq python-dev liblapack-dev libatlas-dev gcc gfortran libatlas-base-dev
     - pip install -U pip
-    - cp .travis.matplotlibrc ~/.config/matplotlib/matplotlibrc
     - if [[ $TRAVIS_PYTHON_VERSION < 3 ]]; then echo installing matplotlib for python2; sudo apt-get install -qq  python-matplotlib; fi
     - if [[ $TRAVIS_PYTHON_VERSION > 2 ]]; then echo installing matplotlib for python3; pip install matplotlib; fi
+    - cp .travis.matplotlibrc ~/.config/matplotlib/matplotlibrc
 
 install:
     - python setup.py install
