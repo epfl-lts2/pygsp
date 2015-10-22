@@ -7,7 +7,7 @@ python:
   - "3.2"
   - "3.3"
   - "3.4"
-  - "pypy"
+#  - "pypy" fails to install numpy
 
 before_install:
     - sudo apt-get install -qq python-dev liblapack-dev libatlas-dev gcc gfortran libatlas-base-dev

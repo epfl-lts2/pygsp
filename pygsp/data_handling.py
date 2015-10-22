@@ -111,7 +111,7 @@ def repmatline(A, ncol=1, nrow=1):
 
     with::
 
-    >>> M = np.repeat(np.repeat(x, nrow, axis=1), ncol,  axis=0)
+        M = np.repeat(np.repeat(x, nrow, axis=1), ncol, axis=0)
     """
 
     if ncol < 0 or nrow < 0:
