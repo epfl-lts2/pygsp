@@ -19,8 +19,9 @@ class Community(Graph):
         Number of nodes (default = 256)
     kwargs : Dict
         Optional parameters for the construction of the Community graph
+
         Nc : int
-            Number of communities (default = round(sqrt(N)/2))
+            Number of communities (default = :math:`round(\sqrt{N}/2)`)
         min_comm : int
             Minimum size of the communities (default = round(N/Nc/3))
         min_deg : int
@@ -37,7 +38,7 @@ class Community(Graph):
             Number of intra-community connections (default = None, not used if None or comm_density is defined)
         epsilon : float
             Max distance at which two nodes sharing a community are connected
-            (default = sqrt(2*sqrt(N))/2, not used if k_neigh or comm_density is defined)
+            (default = :math:`sqrt(2\sqrt{N})/2`, not used if k_neigh or comm_density is defined)
 
     Examples
     --------
@@ -45,7 +46,6 @@ class Community(Graph):
     >>> G = graphs.Community()
 
     """
-
     def __init__(self, N=256, **kwargs):
 
         # Parameter initialisation #

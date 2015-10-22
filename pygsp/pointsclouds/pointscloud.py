@@ -15,7 +15,7 @@ class PointsCloud(object):
     name : string
         The name of the point cloud to load.
         Possible arguments : 'airfoil', 'bunny', 'david64', 'david500', 'logo',
-        'two_moons'.
+        'minnesota', two_moons'.
     max_dim : int
         The maximum dimensionality of the points (only valid for two_moons)
         (default is 2)

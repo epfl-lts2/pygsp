@@ -180,7 +180,7 @@ class Graph(object):
         r"""
         Creates a deepcopy of a graph with all the attributes.
 
-        Exemples
+        Examples
         --------
         >>> from pygsp import graphs
         >>> G = graphs.Logo()

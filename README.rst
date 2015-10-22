@@ -1,3 +1,5 @@
+.. _about:
+
 =====
 About
 =====
@@ -12,46 +14,49 @@ PyGSP is a Graph Signal Processing Toolbox implemented in Python. It is a port o
 
 Features
 --------
+This toolbox facilitate graph constructions and give tools to perform signal processing on them.
 
-* Graphs
+A whole list of preconstructed graphs can be used as well as core functions to create any other graph among which::
 
-  - Basic Graph structure
-  - NNGraph
-  - Bunny
-  - Cube
-  - Sphere
-  - TwoMoons
-  - Grid2d
-  - Torus
-  - Comet
-  - LowStretchTree
-  - RandomRegular
-  - Ring
-  - Community
-  - Minnesota
-  - Sensor
+  - Neighest Neighbor Graphs
+    - Bunny
+    - Cube
+    - Sphere
+    - TwoMoons
   - Airfoil
+  - Comet
+  - Community
   - DavidSensorNet
+  - ErdosRenyi
   - FullConnected
-  - Logo
+  - Grid2d
+  - Logo GSP
+  - LowStretchTree
+  - Minnesota
   - Path
+  - RandomRegular
   - RandomRing
+  - Ring
+  - Sensor
+  - SBM
+  - Swiss roll
+  - Torus
 
-* Filters
+On these graphs, filters can be applied to do signal processing. To this end, there is also a list of predefined filters on this toolbox::
 
-  - Basic Filter structure
   - Abspline
   - Expwin
+  - Gabor
   - HalfCosine
+  - Heat
+  - Held
   - Itersine
   - MexicanHat
   - Meyer
-  - SimpleTf
   - Papadakis
   - Regular
   - Simoncelli
-  - Held
-  - Heat
+  - SimpleTf
 
 Installation
 ------------
@@ -65,27 +70,33 @@ If you don't have pip, install it.::
 
 Ideally, you should be able to install the PyGSP on your computer by simply entering the following command::
 
-    $ sudo pip install pygsp
+    $ pip install pygsp
 
-Unfortunately, this command will most likely fail. For some reason, the install will generally fail when it'll try to install requirements such as numpy and scipy. You'll need to install them manually by doing so::
-
-    $ sudo pip install numpy
-    $ sudo pip install scipy
+This installation requires numpy and scipy. If you don't have them installed already, pip installing pygsp will try to install them for you. Note that these two mathematical libraries requires additional system packages.
 
 For a classic UNIX system, you will need python-dev(el) (or equivalent) installed as a system package as well as the fortran extension for your favorite compiler (gfortran for gcc). You will also need the blas/lapack implementation for your system. If you can't install numpy or scipy, try installing the following and then install numpy and scipy::
 
     $ sudo apt-get install python-dev liblapack-dev libatlas-dev gcc gfortran
 
+Then, try again to install the pygsp::
+    
+    $ pip install pygsp
+
+Plotting
+^^^^^^^^
 If you want to use the plotting functionalities of the PyGSP, you have to install matplotlib or pygtgraph. For matplotlib, just do::
 
     $ sudo apt-get python-matplotlib
 
 
-Another way is to manually download from PyPI, unpack the package and install
-with::
+Another way is to manually download from PyPI, unpack the package and install with::
 
     $ python setup.py install
 
+Instructions and requirements to install pyqtgraph can be found at http://www.pyqtgraph.org/.
+
+Testing
+^^^^^^^
 Execute the project test suite once to make sure you have a working install::
 
     $ python setup.py test
@@ -95,4 +106,5 @@ Authors
 
 * Basile Châtillon <basile.chatillon@epfl.ch>,
 * Alexandre Lafaye <alexandre.lafaye@epfl.ch>,
+* Lionel Martin <lionel.martin@epfl.ch>,
 * Nicolas Rod <nicolas.rod@epfl.ch>

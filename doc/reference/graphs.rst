@@ -1,3 +1,5 @@
+.. _graphs-api:
+
 ==============
 Graphs objects
 ==============

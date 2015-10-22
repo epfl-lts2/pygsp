@@ -181,6 +181,7 @@ class Filter(object):
             - 'exact' : Exact method using the graph Fourier matrix
             - 'cheby' : Chebyshev polynomial approximation
             - 'lanczos' : Lanczos approximation
+
             Default : if the Fourier matrix is present: 'exact' otherwise
             'cheby'
         order : Degree of the Chebyshev approximation

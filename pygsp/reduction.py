@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+r"""
+This module contains functionalities for the reduction of graphs' vertex set while keeping the graph structure.
+"""
 
 from pygsp.utils import resistance_distance, build_logger
 from pygsp.graphs import Graph, gutils

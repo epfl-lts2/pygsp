@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
+r"""
+This module provides optimization tools to accelarate graph signal processing as a whole.
+"""
 
 from pygsp.data_handling import adj2vec
 from pygsp.operators import operator
 from pygsp.utils import build_logger
 
 logger = build_logger(__name__)
+
 
 def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix=True):
     r"""

@@ -25,7 +25,7 @@ Fix Bugs
 ~~~~~~~~
 
 Look through the GitHub issues for bugs. Anything tagged with "bug"
-is open to whoever wants to implement it.
+is open to whoever wants to fix it.
 
 Implement Features
 ~~~~~~~~~~~~~~~~~~
@@ -62,11 +62,15 @@ Ready to contribute? Here's how to set up `pygsp` for local development.
 
     $ git clone git@github.com:your_name_here/pygsp.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+3. Install your local copy into a virtualenv. Assuming you have `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/>`_ installed, this is how you set up your fork for local development::
 
     $ mkvirtualenv pygsp
     $ cd pygsp/
     $ python setup.py develop
+
+Note: alternatively, the third step could be replaced by::
+
+    $ pip install -e .
 
 4. Create a branch for local development::
 
@@ -84,9 +88,9 @@ Ready to contribute? Here's how to set up `pygsp` for local development.
 
 6. Commit your changes and push your branch to GitHub::
 
-    $ git add .
+    $ git add *
     $ git commit -m "Your detailed description of your changes."
-    $ git push origin name-of-your-bugfix-or-feature
+    $ git push --set-upstream origin name-of-your-branch
 
 7. Submit a pull request through the GitHub website.
 
