@@ -11,10 +11,7 @@ import logging
 
 
 class Filter(object):
-    r"""
-    Parent class for all Filters or Filterbanks, contains the shared
-    methods for those classes.
-    """
+    r"""Parent class for all Filters or Filterbanks, contains the shared methods for those classes."""
 
     def __init__(self, G, filters=None, **kwargs):
 

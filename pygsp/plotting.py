@@ -171,19 +171,19 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=''):
 
                 if isinstance(G.plotting['vertex_color'], list):
                     ax.plot(x, y, linewidth=G.plotting['edge_width'],
-                        color=G.plotting['edge_color'],
-                        linestyle=G.plotting['edge_style'],
-                        marker='', zorder=1)
+                            color=G.plotting['edge_color'],
+                            linestyle=G.plotting['edge_style'],
+                            marker='', zorder=1)
 
                     ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
-                       s=G.plotting['vertex_size'],
-                       c=G.plotting['vertex_color'], zorder=2)
+                               s=G.plotting['vertex_size'],
+                               c=G.plotting['vertex_color'], zorder=2)
                 else:
                     ax.plot(x, y, linewidth=G.plotting['edge_width'],
-                        color=G.plotting['edge_color'],
-                        linestyle=G.plotting['edge_style'],
-                        marker='o', markersize=G.plotting['vertex_size'],
-                        markerfacecolor=G.plotting['vertex_color'])
+                            color=G.plotting['edge_color'],
+                            linestyle=G.plotting['edge_style'],
+                            marker='o', markersize=G.plotting['vertex_size'],
+                            markerfacecolor=G.plotting['vertex_color'])
 
             if G.coords.shape[1] == 3:
                 # Very dirty way to display a 3d graph
@@ -235,7 +235,7 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=''):
 
 def pg_plot_graph(G, show_edges=None):
     r"""
-    Function to plot a graph or an array of graphs
+    Plot a graph or an array of graphs.
 
     Parameters
     ----------
@@ -253,7 +253,6 @@ def pg_plot_graph(G, show_edges=None):
 
 
     """
-
     # TODO handling when G is a list of graphs
     global window_list
     if 'window_list' not in globals():
@@ -378,7 +377,6 @@ def plot_pointcloud(P):
     ... except:
     ...     pass
 
-
     """
     if P.coords.shape[1] == 2:
         fig = plt.figure(plid.plot_id)
@@ -446,7 +444,7 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3,
     if G is None:
         G = filters.G
     if plot_name is None:
-        plot_name = "Filter plot of " + G.gtype
+        plot_name = "Filter plot of {}".format(G.gtype)
 
     lambdas = np.linspace(0, G.lmax, npoints)
 

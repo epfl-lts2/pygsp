@@ -164,7 +164,7 @@ class Graph(object):
 
     def deep_copy_graph(self):
         r"""
-        Creates a deepcopy of a graph with all the attributes.
+        Create a deepcopy of a graph with all the attributes.
 
         Exemples
         --------
@@ -177,8 +177,7 @@ class Graph(object):
 
     def copy_graph_attributes(self, Gn, ctype=True):
         r"""
-        Copy_graph_attributes copies some parameters of the graph into
-        a given one
+        Copy some parameters of the graph into a given one.
 
         Parameters
         ----------:
@@ -215,8 +214,7 @@ class Graph(object):
             Gn.L = gutils.create_laplacian(Gn)
 
     def separate_graph(self):
-        r"""
-        """
+        r"""Not implemented yet."""
         raise NotImplementedError("Not implemented yet")
 
     def subgraph(self, c):
@@ -247,7 +245,6 @@ class Graph(object):
         This function create a subgraph from G taking only the node in c.
 
         """
-
         sub_G = self
         sub_G.W = self.W[c, c]
         try:

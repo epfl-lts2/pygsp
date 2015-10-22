@@ -43,7 +43,6 @@ def graph_sparsify(M, epsilon):
     See :cite: `spielman2011graph` `rudelson1999random` `rudelson2007sampling`
     for more informations
     """
-
     # Test the input parameters
     if isinstance(M, Graph):
         if not M.lap_type == 'combinatorial':
@@ -54,7 +53,7 @@ def graph_sparsify(M, epsilon):
 
     N = np.shape(L)[0]
 
-    if epsilon <= 1./sqrt(N) or epsilon > 1:
+    if epsilon <= 1. / sqrt(N) or epsilon > 1:
         raise ValueError('GRAPH_SPARSIFY: Epsilon out of required range')
 
     # pas sparse
@@ -72,23 +71,23 @@ def graph_sparsify(M, epsilon):
     # Calculate the new weights.
     weights = np.maximum(0, weights)
     Re = np.maximum(0, resistance_distances[start_nodes, end_nodes])
-    Pe = weights*Re
-    Pe = Pe/np.sum(Pe)
+    Pe = weights * Re
+    Pe = Pe / np.sum(Pe)
 
     # Rudelson, 1996 Random Vectors in the Isotropic Position
     # (too hard to figure out actual C0)
-    C0 = 1/30.
+    C0 = 1 / 30.
     # Rudelson and Vershynin, 2007, Thm. 3.1
-    C = 4*C0
-    q = round(N*log(N)*9*C**2/(epsilon**2))
+    C = 4 * C0
+    q = round(N * log(N) * 9 * C**2 / (epsilon**2))
 
     results = stats.rv_discrete(values=(np.arange(np.shape(Pe)[0]), Pe)).rvs(size=q)
     spin_counts = stats.itemfreq(results)
-    per_spin_weights = weights/(q*Pe)
+    per_spin_weights = weights / (q * Pe)
 
     counts = np.zeros(np.shape(weights)[0])
     counts[spin_counts[:, 0]] = spin_counts[:, 1]
-    new_weights = counts*per_spin_weights
+    new_weights = counts * per_spin_weights
 
     sparserW = sparse.csc_matrix((new_weights, (start_nodes, end_nodes)),
                                  shape=(N, N))
@@ -98,8 +97,8 @@ def graph_sparsify(M, epsilon):
     if isinstance(M, Graph):
         sparserW = sparse.diags(sparserL.diagonal(), 0) - sparserL
         if not M.directed:
-            sparserW = (sparserW + sparserW.getH())/2.
-            sparserL = (sparserL + sparserL.getH())/2.
+            sparserW = (sparserW + sparserW.getH()) / 2.
+            sparserL = (sparserL + sparserL.getH()) / 2.
 
         Mnew = Graph(W=sparserW, L=sparserL)
         M.copy_graph_attributes(Mnew)
@@ -111,7 +110,7 @@ def graph_sparsify(M, epsilon):
 
 def interpolate(Gh, Gl, coeff, order=100, **kwargs):
     r"""
-    Interpolate lower coefficient
+    Interpolate lower coefficient.
 
     Parameters
     ----------
@@ -125,7 +124,6 @@ def interpolate(Gh, Gl, coeff, order=100, **kwargs):
     -------
     s_pred : Predicted signal
     """
-
     alpha = np.dot(Gl.pyramid['K_reg'].toarray(), coeff)
 
     try:
@@ -142,14 +140,14 @@ def interpolate(Gh, Gl, coeff, order=100, **kwargs):
 
 def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None):
     r"""
-    Compute a pyramid of graphs using the kron reduction
+    Compute a pyramid of graphs using the kron reduction.
 
     Parameters
     ----------
     G : Graph structure
     Nlevels : int
         Number of level of decomposition
-    lambda : float
+    lamda : float
         Stability parameter. It add self loop to the graph to give the alorithm some stability.
         (default = 0.025)
     sparsify : bool
@@ -162,25 +160,24 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None):
     Cs : ndarray
 
     """
-
     if not epsilon:
-        epsilon = min(10./sqrt(G.N), .1)
+        epsilon = min(10. / sqrt(G.N), .1)
 
     Gs = [G]
     for i in range(Nlevels):
-        L_reg = Gs[i].L + lamda*sparse.eye(Gs[i].N)
+        L_reg = Gs[i].L + lamda * sparse.eye(Gs[i].N)
         V = sparse.linalg.eigs(L_reg, 1)[1][:, 0]
 
-        # Select the bigger group
+        # Select the biggest group
         V = np.where(V >= 0, 0, 1)
-        if np.sum(V) >= Gs[i].N/2.:
-            ind = (V).nonzero()[0]
+        if np.sum(V) >= Gs[i].N / 2.:
+            ind = V.nonzero()[0]
         else:
             ind = (1 - V).nonzero()[0]
 
         if sparsify:
             Gtemp = kron_reduction(Gs[i], ind)
-            Gs.append(graph_sparsify(Gtemp, max(epsilon, 2./sqrt(Gs[i].N))))
+            Gs.append(graph_sparsify(Gtemp, max(epsilon, 2. / sqrt(Gs[i].N))))
         else:
             Gs.append(kron_reduction(Gs[i], ind))
 
@@ -195,7 +192,7 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None):
 
 def kron_reduction(G, ind):
     r"""
-    Compute the kron reduction
+    Compute the kron reduction.
 
     Parameters
     ----------
@@ -230,8 +227,8 @@ def kron_reduction(G, ind):
     Lnew = L_red - L_in_out.dot(sparse.linalg.spsolve(L_comp, L_out_in))
 
     # Make the laplacian symmetric if it is almost symmetric!
-    if np.abs(Lnew - Lnew.getH()).sum() < np.spacing(1)*np.abs(Lnew).sum():
-        Lnew = (Lnew + Lnew.getH())/2.
+    if np.abs(Lnew - Lnew.getH()).sum() < np.spacing(1) * np.abs(Lnew).sum():
+        Lnew = (Lnew + Lnew.getH()) / 2.
 
     if isinstance(G, Graph):
         # Suppress the diagonal ? This is a good question?
@@ -252,7 +249,7 @@ def kron_reduction(G, ind):
 
 def pyramid_analysis(Gs, f, filters=None, **kwargs):
     r"""
-    Compute the graph pyramid transform coefficients
+    Compute the graph pyramid transform coefficients.
 
     Parameters
     ----------
@@ -323,9 +320,53 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
     return ca, pe
 
 
+def pyramid_cell2coeff(ca, pe):
+    r"""
+    Cell array to vector transform for the pyramid.
+
+    Parameters
+    ----------
+    ca : ndarray
+        Array with the coarse approximation at each level
+    pe : ndarray
+        Array with the prediction errors at each level
+
+    Returns
+    -------
+    coeff : ndarray
+        Array of coefficient
+    """
+    Nl = len(ca) - 1
+    N = 0
+
+    for ele in ca:
+        N += np.shape(ele)[0]
+
+    try:
+        Nt, Nv = np.shape(ca[Nl])
+        coeff = np.zeros((N, Nv))
+    except ValueError:
+        Nt = np.shape(ca[Nl])[0]
+        coeff = np.zeros((N))
+
+    coeff[:Nt] = ca[Nl]
+
+    ind = Nt
+    tmpNt = np.arange(Nt, dtype=int)
+    for i in range(Nl):
+        Nt = np.shape(ca[Nl - 1 - i])[0]
+        coeff[ind + tmpNt] = pe[Nl - 1 - i]
+        ind += Nt
+
+    if ind != N:
+        raise ValueError('Something is wrong here: contact the gspbox team.')
+
+    return coeff
+
+
 def pyramid_synthesis(Gs, coeff, order=100, **kwargs):
     r"""
-    Synthesizes a signal from its graph pyramid transform coefficients
+    Synthesizes a signal from its graph pyramid transform coefficients.
 
     Parameters
     ----------

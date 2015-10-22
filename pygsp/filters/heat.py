@@ -47,12 +47,14 @@ class Heat(Filter):
 
             if isinstance(tau, list):
                 for t in tau:
-                    gu = lambda x, taulam=t: np.exp(-taulam * x/G.lmax)
+                    def gu(x, taulam=t):
+                        return np.exp(-taulam * x/G.lmax)
                     ng = linalg.norm(gu(G.e))
                     g.append(lambda x, taulam=t: np.exp(-taulam *
                                                         x/G.lmax / ng))
             else:
-                gu = lambda x: np.exp(-tau * x/G.lmax)
+                def gu(x):
+                    return np.exp(-tau * x/G.lmax)
                 ng = linalg.norm(gu(G.e))
                 g.append(lambda x: np.exp(-tau * x/G.lmax / ng))
 
