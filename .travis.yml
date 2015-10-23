@@ -23,9 +23,7 @@ addons:
 
 before_install:
     - pip install -U pip
-    - ls -lah ~
-    - ls -lah ~/.config
-    - ls -lah ~/.config/matplotlib
+    - mkdir -p ~/.config/matplotlib
     - |-
       echo backend : Agg > ~/.config/matplotlib/matplotlibrc
 
