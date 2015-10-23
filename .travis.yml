@@ -6,16 +6,23 @@ sudo: false
 
 python:
   - "2.7"
-  - "3.2"
   - "3.3"
   - "3.4"
 #  - "pypy" fails to install numpy
 
+addons:
+  apt:
+    packages:
+    - python-dev
+    - liblapack-dev
+    - libatlas-dev
+    - gcc
+    - gfortran
+    - libatlas-base-dev
+    - python-matplotlib
+
 before_install:
-    - sudo apt-get install -qq python-dev liblapack-dev libatlas-dev gcc gfortran libatlas-base-dev
     - pip install -U pip
-    - if [[ $TRAVIS_PYTHON_VERSION < 3 ]]; then echo installing matplotlib for python2; sudo apt-get install -qq  python-matplotlib; fi
-    - if [[ $TRAVIS_PYTHON_VERSION > 2 ]]; then echo installing matplotlib for python3; pip install matplotlib; fi
     - echo backend : Agg > ~/.config/matplotlib/matplotlibrc
 
 install:
