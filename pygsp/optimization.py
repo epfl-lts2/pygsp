@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+r"""
+This module provides optimization tools to accelarate graph signal processing as a whole.
+"""
 
 from pygsp.data_handling import adj2vec
 from pygsp.operators import operator

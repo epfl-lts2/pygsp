@@ -108,7 +108,6 @@ class FunctionsTestCase(unittest.TestCase):
         # def test_tree_depths(A, root):
         #     # mat_answser = None
         #     self.assertEqual(mat_answser, utils.tree_depths(A, root))
-
         for t in test_graphs:
             test_is_directed(t['G'], t['rep'])
             test_estimate_lmax(t['G'])
@@ -128,19 +127,11 @@ class FunctionsTestCase(unittest.TestCase):
 
         # test_distanz(x, y)
 
-    def test_dummy(self):
-        """
-        Dummy test.
-        """
-        a = np.array([1, 2])
-        b = utils.dummy(1, a, True)
-        nptest.assert_almost_equal(a, b)
-
-
 suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
 
 
 def run():
+    """Run tests."""
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 

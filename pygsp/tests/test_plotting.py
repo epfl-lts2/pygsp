@@ -137,19 +137,11 @@ class FunctionsTestCase(unittest.TestCase):
             G = graphs.SwissRoll()
             needed_attributes_testing(G)
 
-    def test_dummy(self):
-        """
-        Dummy test.
-        """
-        a = np.array([1, 2])
-        b = graphs.dummy(1, a, True)
-        nptest.assert_almost_equal(a, b)
-
-
 suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
 
 
 def run():
+    """Run tests."""
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 

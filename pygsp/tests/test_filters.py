@@ -29,7 +29,9 @@ class FunctionsTestCase(unittest.TestCase):
     def test_filters(self):
         G = graphs.Logo()
         graphs.estimate_lmax(G)
-        fu = lambda x: x/(1. + x)
+
+        def fu(x):
+            x / (1. + x)
 
         def test_default_filters(G, fu):
             g = filters.Filter(G)
@@ -84,19 +86,11 @@ class FunctionsTestCase(unittest.TestCase):
             pass
             # gw = filters.warpedtranslates(G, g))
 
-    def test_dummy(self):
-        """
-        Dummy test.
-        """
-        a = np.array([1, 2])
-        b = graphs.dummy(1, a, True)
-        nptest.assert_almost_equal(a, b)
-
-
 suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
 
 
 def run():
+    """Run tests."""
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 

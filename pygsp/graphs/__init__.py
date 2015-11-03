@@ -1,47 +1,18 @@
 # -*- coding: utf-8 -*-
 
 r"""
-This module implements graphs
+This module implements graphs and contains predefined graphs for the most famous ones.
 
-:class: `Graph`  Main graph class
+A graph is constructed either from its adjacency matrix, its weight matrix or any other parameter
+which depends on the particular graph you are trying to build. For specific information, :ref:`see details  here<graphs-api>`.
 """
 
-import numpy as np
 import importlib
 import sys
 
+__all__ = ['Graph', 'Airfoil', 'Comet', 'Community', 'DavidSensorNet', 'ErdosRenyi', 'FullConnected', 'Grid2d', 'Logo',
+           'LowStretchTree', 'Minnesota', 'Path', 'RandomRing', 'RandomRegular', 'Ring', 'Sensor', 'StochasticBlockModel', 'SwissRoll', 'Torus']
 
-def dummy(a, b, c):
-    r"""
-    Short description.
-
-    Long description.
-
-    Parameters
-    ----------
-    a: int
-        Description.
-    b: array_like
-        Description.
-    c: bool
-        Description.
-
-    Returns
-    -------
-    d: ndarray
-        Description.
-
-    Examples
-    --------
-    >>> import pygsp
-    >>> pygsp.graphs.dummy(0, [1, 2, 3], True)
-    array([1, 2, 3])
-
-    """
-    return np.array(b)
-
-
-__all__ = ['Graph', 'Airfoil', 'Comet', 'Community', 'DavidSensorNet', 'ErdosRenyi', 'FullConnected', 'Grid2d', 'Logo', 'LowStretchTree', 'Minnesota', 'Path', 'RandomRing', 'RandomRegular', 'Ring', 'Sensor', 'StochasticBlockModel', 'SwissRoll', 'Torus']
 
 
 # Automaticaly import all classes from subfiles defined in __all__

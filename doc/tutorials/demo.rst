@@ -26,7 +26,7 @@ You can now plot the graph:
 
 >>> pygsp.plotting.plot(G, savefig=True, plot_name='doc/tutorials/img/logo')
 
-.. image:: logo.*
+.. image:: img/logo.*
 
 Looks good isn't it? Now we can start to analyse the graph. The next step to compute Graph Fourier Transform or exact graph filtering is to precompute the Fourier basis of the graph. This operation can be very long as it needs to to fully diagonalize the Laplacian. Happily it is not needed to filter signal on graphs.
 
@@ -92,5 +92,7 @@ Finally here's the noisy signal and the denoised version right under.
 .. image:: img/noisy_logo.*
 .. image:: img/denoised_logo.*
 
-So here are the basics for the PyGSP toolbox, if you want more informations you can check the doc at : #TODO.
+So here are the basics for the PyGSP toolbox, if you want more informations you can check the doc in :ref:`the reference guide section <reference-guide>`.
+
+
 Enjoy the toolbox!

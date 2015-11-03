@@ -1,47 +1,20 @@
 # -*- coding: utf-8 -*-
 
 r"""
-This module implements the main filter class and all the filters subclasses
+This module implements filters and contains predefined filters that can be directly applied to graphs.
 
-:class: `Filter` Main filter class
+A filter is associated to a graph and is defined with one or several function(s).
+We define by Filterbank a list of filters applied to a single graph.
+Tools for the analysis, the synthesis and the evaluation are provided to work with the filters on the graphs.
+For specific information, :ref:`see details  here<graphs-api>`.
 """
 
-import numpy as np
 import importlib
 import sys
 
 
-def dummy(a, b, c):
-    r"""
-    Short description.
-
-    Long description.
-
-    Parameters
-    ----------
-    a : int
-        Description.
-    b : array_like
-        Description.
-    c : bool
-        Description.
-
-    Returns
-    -------
-    d : ndarray
-        Description.
-
-    Examples
-    --------
-    >>> import pygsp
-    >>> pygsp.filters.dummy(0, [1, 2, 3], True)
-    array([1, 2, 3])
-
-    """
-    return np.array(b)
-
-
-__all__ = ['Filter', 'Abspline', 'Expwin', 'Gabor', 'HalfCosine', 'Heat', 'Held', 'Itersine', 'MexicanHat', 'Meyer', 'Papadakis', 'Regular', 'Simoncelli', 'SimpleTf', 'WarpedTranslates']
+__all__ = ['Filter', 'Abspline', 'Expwin', 'Gabor', 'HalfCosine', 'Heat', 'Held', 'Itersine', 'MexicanHat', 'Meyer',
+           'Papadakis', 'Regular', 'Simoncelli', 'SimpleTf', 'WarpedTranslates']
 
 
 # Automaticaly import all classes from subfiles defined in __all__

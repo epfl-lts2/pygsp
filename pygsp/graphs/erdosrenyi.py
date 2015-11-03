@@ -12,7 +12,7 @@ from math import floor
 
 class ErdosRenyi(Graph):
     r"""
-    Create a random Erdos Renyi graph
+    Create a random Erdos Renyi graph.
 
     The Erdos Renyi graph is constructed by connecting nodes randomly. Each 
     edge is included in the graph with probability p independent from every
@@ -34,7 +34,6 @@ class ErdosRenyi(Graph):
     >>> from pygsp import graphs
     >>> G = graphs.ErdosRenyi(100, 0.05)
 
-    Author: Lionel Martin
     """
 
     def __init__(self, N=100, p=0.1, **kwargs):

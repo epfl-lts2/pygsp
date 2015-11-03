@@ -34,6 +34,7 @@ def adj2vec(G):
 
 
 def mat2vec(d):
+    r"""Not implemented yet"""
     raise NotImplementedError
 
 
@@ -58,19 +59,20 @@ def repmatline(A, ncol=1, nrow=1):
 
     For nrow=2 and ncol=3, the matrix
     ::
-                1 2
-                3 4
-    ::
+
+        x   =   [1 2 ]
+                [3 4 ]
 
     becomes
     ::
-                1 1 1 2 2 2
-                1 1 1 2 2 2
-                3 3 3 4 4 4
-                3 3 3 4 4 4
-    ::
 
-    np.repeat(np.repeat(x, ncol, axis=1), nrow,  axis=0)
+                [1 1 1 2 2 2 ]
+        M   =   [1 1 1 2 2 2 ]
+                [3 3 3 4 4 4 ]
+                [3 3 3 4 4 4 ]
+
+    with::
+        M = np.repeat(np.repeat(x, nrow, axis=1), ncol, axis=0)
 
     """
     if ncol < 1 or nrow < 1:

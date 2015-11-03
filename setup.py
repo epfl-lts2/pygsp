@@ -13,13 +13,12 @@ if sys.argv[-1] == 'publish':
     sys.exit()
 
 setup(
-
     name='PyGSP',
     version='0.2.1',
     description='The official Graph Signal Processing Toolbox',
     long_description=open('README.rst').read(),
-    author='Alexandre Lafaye, Basile Châtillon, Nicolas Rod, Lionel Martin (EPFL LTS2)',
-    author_email='alexandre.lafaye@epfl.ch, basile.chatillon@epfl.ch, nicolas.rod@epfl.ch, lionel.martin@epfl.ch',
+    author='Alexandre Lafaye, Basile Châtillon, Lionel Martin, Nicolas Rod (EPFL LTS2)',
+    author_email='alexandre.lafaye@epfl.ch, basile.chatillon@epfl.ch, lionel.martin@epfl.ch, nicolas.rod@epfl.ch',
     url='https://github.com/epfl-lts2/',
     packages=['pygsp', 'pygsp.filters', 'pygsp.graphs', 'pygsp.graphs.nngraphs', 'pygsp.operators',
               'pygsp.pointsclouds', 'pygsp.tests'],
@@ -43,10 +42,8 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
     ],

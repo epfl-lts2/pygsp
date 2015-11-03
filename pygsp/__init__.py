@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
 """
-Package documentation.
+This toolbox is splitted in different modules taking care of the different aspects of Graph Signal Processing.
+
+Those modules are : Graphs, Filters, Operators and PointClouds.
+
+You can find detailed documentation on the use of the functions in the subsequent pages.
 """
 
 # When importing the toolbox, you surely want these modules.
@@ -28,4 +32,4 @@ assert plotting
 
 __version__ = '0.2.1'
 __email__ = 'LTS2Graph@groupes.epfl.ch'
-__release_date__ = '2015-10-19'
+__release_date__ = '2015-10-14'
