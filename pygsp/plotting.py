@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""
-This module implements plotting functions for the PyGSP main objects.
-"""
+r"""This module implements plotting functions for the PyGSP main objects."""
 
 import numpy as np
 import uuid
@@ -23,9 +21,7 @@ except:
 
 
 class plid():
-    r"""
-    Not so clean way of generating plot_ids
-    """
+    r"""Not so clean way of generating plot_ids."""
 
     def __init__(self):
         self.plot_id = 0
@@ -36,7 +32,7 @@ plid = plid()
 
 def show(block=False):
     r"""
-    To show created figures
+    Show created figures.
 
     Equivalent to plt.show(*args, **kw) excepted you don't have to import
     matplotlib by youself.
@@ -46,9 +42,10 @@ def show(block=False):
     """
     plt.show(block)
 
+
 def close(*args):
     r"""
-    To close created figures
+    Close created figures.
 
     Strictly equivalent to plt.close(*args) excepted you don't have to import
     matplotlib by youself.

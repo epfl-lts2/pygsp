@@ -6,7 +6,8 @@ from pygsp.filters import Filter
 
 import numpy as np
 from scipy import sparse, stats
-from math import sqrt, log
+from scipy.sparse.linalg import eigs, spsolve
+from math import sqrt
 
 logger = build_logger(__name__)
 
@@ -42,6 +43,7 @@ def graph_sparsify(M, epsilon):
     ---------
     See :cite: `spielman2011graph` `rudelson1999random` `rudelson2007sampling`
     for more informations
+
     """
     # Test the input parameters
     if isinstance(M, Graph):
@@ -53,7 +55,7 @@ def graph_sparsify(M, epsilon):
 
     N = np.shape(L)[0]
 
-    if epsilon <= 1. / sqrt(N) or epsilon > 1:
+    if not 1./sqrt(N) <= epsilon < 1:
         raise ValueError('GRAPH_SPARSIFY: Epsilon out of required range')
 
     # pas sparse
@@ -63,8 +65,9 @@ def graph_sparsify(M, epsilon):
         W = M.W
     else:
         W = np.diag(L.diagonal()) - L.toarray()
-        W = np.where(W < 1e-10, 0, W)
-        W = sparse.csc_matrix(W)
+        W[W < 1e-10] = 0
+
+    W = sparse.csc_matrix(W)
 
     start_nodes, end_nodes, weights = sparse.find(sparse.tril(W))
 
@@ -82,7 +85,7 @@ def graph_sparsify(M, epsilon):
     q = round(N * log(N) * 9 * C**2 / (epsilon**2))
 
     results = stats.rv_discrete(values=(np.arange(np.shape(Pe)[0]), Pe)).rvs(size=q)
-    spin_counts = stats.itemfreq(results)
+    spin_counts = stats.itemfreq(results).astype(int)
     per_spin_weights = weights / (q * Pe)
 
     counts = np.zeros(np.shape(weights)[0])
@@ -91,14 +94,14 @@ def graph_sparsify(M, epsilon):
 
     sparserW = sparse.csc_matrix((new_weights, (start_nodes, end_nodes)),
                                  shape=(N, N))
-    sparserW = sparserW + sparserW.getH()
+    sparserW = sparserW + sparserW.T
     sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
 
     if isinstance(M, Graph):
         sparserW = sparse.diags(sparserL.diagonal(), 0) - sparserL
         if not M.directed:
-            sparserW = (sparserW + sparserW.getH()) / 2.
-            sparserL = (sparserL + sparserL.getH()) / 2.
+            sparserW = (sparserW + sparserW.T) / 2.
+            sparserL = (sparserL + sparserL.T) / 2.
 
         Mnew = Graph(W=sparserW, L=sparserL)
         M.copy_graph_attributes(Mnew)
@@ -108,37 +111,41 @@ def graph_sparsify(M, epsilon):
     return Mnew
 
 
-def interpolate(Gh, Gl, coeff, order=100, **kwargs):
+def interpolate(Gu, Gl, coeff, order=100, **kwargs):
     r"""
-    Interpolate lower coefficient.
+    Interpolate lower coefficients.
 
     Parameters
     ----------
-    Gh : Upper graph
-    Gl : Lower graph
-    coeff : Coefficients
+    Gu : Graph
+        Upper graph
+    Gl : Graph
+        Lower graph
+    coeff : list
+        Coefficients
     order : int
         Degree of the Chebyshev approximation. (default = 100)
 
     Returns
     -------
     s_pred : Predicted signal
+
     """
     alpha = np.dot(Gl.pyramid['K_reg'].toarray(), coeff)
 
     try:
         Nv = np.shape(coeff)[1]
-        s_pred = np.zeros((Gh.N, Nv))
+        s_pred = np.zeros((Gu.N, Nv))
     except IndexError:
-        s_pred = np.zeros((Gh.N))
+        s_pred = np.zeros((Gu.N))
 
     s_pred[Gl.pyramid['ind']] = alpha
 
-    return Gl.pyramid['green_kernel'].analysis(Gh, s_pred, order=order,
+    return Gl.pyramid['green_kernel'].analysis(Gu, s_pred, order=order,
                                                **kwargs)
 
 
-def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None):
+def kron_pyramid(G, Nlevels, **kwargs):
     r"""
     Compute a pyramid of graphs using the kron reduction.
 
@@ -147,33 +154,46 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None):
     G : Graph structure
     Nlevels : int
         Number of level of decomposition
-    lamda : float
-        Stability parameter. It add self loop to the graph to give the alorithm some stability.
-        (default = 0.025)
-    sparsify : bool
-        Sparsify the graph after the Kron reduction. (default is True)
-    epsilon : float
-        Sparsification parameter if the sparsification is used. (default = min(2/sqrt(G.N), 0.1))
+    params : dict
+        lambd : float
+            Stability parameter. It add self loop to the graph to give the algorithm some stability (default = 0.025).
+        sparsify : bool
+            Sparsify the graph after the Kron reduction (default is True).
+        epsilon : float
+            Sparsification parameter if the sparsification is used (default = min(2/sqrt(G.N), 0.1)).
+        filters : list
+            A cell array of filter that will be used for the analysis and sythesis operators.
+            If only one filter is given, it will be used for all levels. (default = 0.5 / (0.5 + x))
 
     Returns
     -------
     Cs : ndarray
 
     """
-    if not epsilon:
-        epsilon = min(10. / sqrt(G.N), .1)
+    lambd = float(kwargs.pop('lambd', 0.025))
+    sparsify = bool(kwargs.pop('sparsify', True))
+    epsilon = float(kwargs.pop('epsilon', min(10. / sqrt(G.N), .1)))
+    filters = kwargs.pop('filters', lambda x: 1 / (2*x + 1.))
+
+    if hasattr(filters, '__call__'):
+        filters = [filters] * Nlevels
+
+    if isinstance(filters, list):
+        if len(filters) != Nlevels:
+            raise ValueError('KRON_PYRAMID: Incorrect number of filters. Expected {}, got {}'.format(Nlevels, len(filters)))
+    else:
+        raise TypeError('KRON_PYRAMID: Filters expected to be a function or a list of functions.')
 
     Gs = [G]
     for i in range(Nlevels):
-        L_reg = Gs[i].L + lamda * sparse.eye(Gs[i].N)
-        V = sparse.linalg.eigs(L_reg, 1)[1][:, 0]
+        L_reg = Gs[i].L + lambd * sparse.eye(Gs[i].N)
+        V = eigs(L_reg, 1)[1][:, 0]
 
         # Select the biggest group
-        V = np.where(V >= 0, 0, 1)
-        if np.sum(V) >= Gs[i].N / 2.:
-            ind = V.nonzero()[0]
+        if sum(np.sign(V)) >= 0:
+            ind = np.nonzero(V >= 0)[0]
         else:
-            ind = (1 - V).nonzero()[0]
+            ind = np.nonzero(V < 0)[0]
 
         if sparsify:
             Gtemp = kron_reduction(Gs[i], ind)
@@ -183,8 +203,9 @@ def kron_pyramid(G, Nlevels, lamda=0.025, sparsify=True, epsilon=None):
 
         Gs[i + 1].pyramid = {'ind': ind,
                              'green_kernel': Filter(Gs[i + 1],
-                                                    filters=[lambda x: 1./(lamda + x)]),
-                             'level': i + 1,
+                                                    filters=[lambda x: 1./(lambd + x)]),
+                             'filter': filters[i],
+                             'level': i,
                              'K_reg': kron_reduction(L_reg, ind)}
 
     return Gs
@@ -198,11 +219,14 @@ def kron_reduction(G, ind):
     ----------
     G : Graph or sparse matrix
         Graph structure or weight matrix
-    ind : indices of the nodes to keep
+    ind : list
+        indices of the nodes to keep
 
     Returns
     -------
-    Gnew : New graph structure or weight matrix
+    Gnew : Graph or sparse matrix
+        New graph structure or weight matrix
+
     """
     if isinstance(G, Graph):
         if hasattr(G, 'lap_type'):
@@ -224,11 +248,11 @@ def kron_reduction(G, ind):
     L_out_in = L[np.ix_(ind_comp, ind)].tocsc()
     L_comp = L[np.ix_(ind_comp, ind_comp)].tocsc()
 
-    Lnew = L_red - L_in_out.dot(sparse.linalg.spsolve(L_comp, L_out_in))
+    Lnew = L_red - L_in_out.dot(spsolve(L_comp, L_out_in))
 
     # Make the laplacian symmetric if it is almost symmetric!
-    if np.abs(Lnew - Lnew.getH()).sum() < np.spacing(1) * np.abs(Lnew).sum():
-        Lnew = (Lnew + Lnew.getH()) / 2.
+    if np.abs(Lnew - Lnew.T).sum() < np.spacing(1) * np.abs(Lnew).sum():
+        Lnew = (Lnew + Lnew.T) / 2.
 
     if isinstance(G, Graph):
         # Suppress the diagonal ? This is a good question?
@@ -257,7 +281,7 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
         A multiresolution sequence of graph structures.
     f : ndarray
         Graph signal to analyze.
-    kwargs : Dict
+    kwargs : dict
         Optional parameters that will be used
     filters : list
         A list of filter that will be used for the analysis and sythesis operator.
@@ -269,34 +293,29 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
         Array with the coarse approximation at each level
     pe : ndarray
         Array with the prediction errors at each level
+
     """
     if np.shape(f)[0] != Gs[0].N:
-        raise ValueError("The signal to analyze should have the same dimension as the first graph")
+        raise ValueError("PYRAMID ANALYSIS: The signal to analyze should have the same dimension as the first graph.")
 
     Nlevels = len(Gs) - 1
+
     # check if the type of filters is right.
     if filters:
-        if type(filters) != list:
-            logger.warning('filters is not a list. I will convert it for you.')
+        if not isinstance(filters, list):
             if hasattr(filters, '__call__'):
+                logger.warning('Converting filters into a list.')
                 filters = [filters]
             else:
-                logger.error('filters must be a list of function.')
+                logger.error('Filters must be a list of functions.')
 
         if len(filters) == 1:
-            for _ in range(Nlevels - 1):
-                filters.append(filters[0])
+            filters = filters * Nlevels
 
-        elif (1 < len(filters) and len(filters) < Nlevels) or Nlevels < len(filters):
-            raise ValueError('The numbers of filters can must be one or equal to Nlevels')
-
-    elif not filters:
-        filters = []
-        for i in range(Nlevels):
-            filters.append(lambda x: .5/(.5 + x))
-
-    for i in range(Nlevels):
-        Gs[i + 1].pyramid['filters'] = Filter(Gs[i + 1], filters=[filters[i]])
+        elif len(filters) != Nlevels:
+            raise ValueError('The number of filters must be one or equal to Nlevels.')
+    else:
+        filters = map(lambda idx: Gs[idx + 1].pyramid['filters'], range(Nlevels))
 
     # ca = [np.ravel(f)]
     ca = [f]
@@ -304,9 +323,9 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
 
     for i in range(Nlevels):
         # Low pass the signal
-        s_low = Gs[i + 1].pyramid['filters'].analysis(Gs[i], ca[i], **kwargs)
+        s_low = Filter(Gs[i], filters=[filters[i]]).analysis(Gs[i], ca[i], **kwargs)
         # Keep only the coefficient on the selected nodes
-        ca.append(s_low[Gs[i + 1].pyramid['ind']])
+        ca.append(s_low[Gs[i].pyramid['ind'], :])
         # Compute prediction
         s_pred = interpolate(Gs[i], Gs[i + 1], ca[i + 1], **kwargs)
         # Compute errors
@@ -380,6 +399,7 @@ def pyramid_synthesis(Gs, coeff, order=100, **kwargs):
     -------
     signal : The synthesized signal.
     ca : Cell array with the coarse approximation at each level
+
     """
     Nl = len(Gs) - 1
 
@@ -393,8 +413,8 @@ def pyramid_synthesis(Gs, coeff, order=100, **kwargs):
         # Compute prediction
         Nt = Gs[Nl - 1 - i].N
         # Compute the ca coeff
-        s_pred = interpolate(Gs[Nl - 1 - i], Gs[Nl - i], ca[i], order=order,
-                             **kwargs)
+        s_pred = interpolate(Gs[Nl - 1 - i], Gs[Nl - i], ca[Nl - i],
+                             order=order, **kwargs)
 
         ca.append(s_pred + coeff[ind + np.arange(Nt)])
         ind += Nt

@@ -33,6 +33,8 @@ Features
   - Logo
   - Path
   - RandomRing
+  - ErdosRenyi
+  - StochasticBlockModel
 
 * Filters
 

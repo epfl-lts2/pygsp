@@ -41,7 +41,7 @@ def dummy(a, b, c):
     return np.array(b)
 
 
-__all__ = ['Graph', 'Airfoil', 'Comet', 'Community', 'DavidSensorNet', 'FullConnected', 'Grid2d', 'Logo', 'LowStretchTree', 'Minnesota', 'Path', 'RandomRing', 'RandomRegular', 'Ring', 'Sensor', 'SwissRoll', 'Torus', 'ErdosRenyi']
+__all__ = ['Graph', 'Airfoil', 'Comet', 'Community', 'DavidSensorNet', 'ErdosRenyi', 'FullConnected', 'Grid2d', 'Logo', 'LowStretchTree', 'Minnesota', 'Path', 'RandomRing', 'RandomRegular', 'Ring', 'Sensor', 'StochasticBlockModel', 'SwissRoll', 'Torus']
 
 
 # Automaticaly import all classes from subfiles defined in __all__
