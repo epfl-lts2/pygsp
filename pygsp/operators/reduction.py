@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""
-This module contains functionalities for the reduction of graphs' vertex set while keeping the graph structure.
-"""
+r"""This module contains functionalities for the reduction of graphs' vertex set while keeping the graph structure."""
 
 from pygsp.utils import resistance_distance, build_logger
 from pygsp.graphs import Graph, gutils
@@ -15,7 +13,7 @@ from math import sqrt
 logger = build_logger(__name__)
 
 
-def graph_sparsify(M, epsilon):
+def graph_sparsify(M, epsilon, maxiter=10):
     r"""
     Sparsify a graph using Spielman-Srivastava algorithm.
 
@@ -37,10 +35,10 @@ def graph_sparsify(M, epsilon):
 
     Examples
     --------
-    >>> from pygsp import graphs, reduction
+    >>> from pygsp import graphs, operators
     >>> G = graphs.Sensor(256, Nc=20, distribute=True)
     >>> epsilon = 0.4
-    >>> G2 = reduction.graph_sparsify(G, epsilon)
+    >>> G2 = operators.graph_sparsify(G, epsilon)
 
     Reference
     ---------
@@ -80,25 +78,33 @@ def graph_sparsify(M, epsilon):
     Pe = weights * Re
     Pe = Pe / np.sum(Pe)
 
-    # Rudelson, 1996 Random Vectors in the Isotropic Position
-    # (too hard to figure out actual C0)
-    C0 = 1 / 30.
-    # Rudelson and Vershynin, 2007, Thm. 3.1
-    C = 4 * C0
-    q = round(N * log(N) * 9 * C**2 / (epsilon**2))
+    for i in range(maxiter):
+        # Rudelson, 1996 Random Vectors in the Isotropic Position
+        # (too hard to figure out actual C0)
+        C0 = 1 / 30.
+        # Rudelson and Vershynin, 2007, Thm. 3.1
+        C = 4 * C0
+        q = round(N * np.log(N) * 9 * C**2 / (epsilon**2))
 
-    results = stats.rv_discrete(values=(np.arange(np.shape(Pe)[0]), Pe)).rvs(size=q)
-    spin_counts = stats.itemfreq(results).astype(int)
-    per_spin_weights = weights / (q * Pe)
+        results = stats.rv_discrete(values=(np.arange(np.shape(Pe)[0]), Pe)).rvs(size=q)
+        spin_counts = stats.itemfreq(results).astype(int)
+        per_spin_weights = weights / (q * Pe)
 
-    counts = np.zeros(np.shape(weights)[0])
-    counts[spin_counts[:, 0]] = spin_counts[:, 1]
-    new_weights = counts * per_spin_weights
+        counts = np.zeros(np.shape(weights)[0])
+        counts[spin_counts[:, 0]] = spin_counts[:, 1]
+        new_weights = counts * per_spin_weights
 
-    sparserW = sparse.csc_matrix((new_weights, (start_nodes, end_nodes)),
-                                 shape=(N, N))
-    sparserW = sparserW + sparserW.T
-    sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
+        sparserW = sparse.csc_matrix((new_weights, (start_nodes, end_nodes)),
+                                     shape=(N, N))
+        sparserW = sparserW + sparserW.T
+        sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
+
+        if gutils.check_connectivity(Graph(W=sparserW)):
+            break
+        elif i == maxiter - 1:
+            logger.warning('Despite attempts to reduce epsilon, sparsified graph is disconnected')
+        else:
+            epsilon -= (epsilon - 1/sqrt(N)) / 2.
 
     if isinstance(M, Graph):
         sparserW = sparse.diags(sparserL.diagonal(), 0) - sparserL
@@ -170,7 +176,8 @@ def kron_pyramid(G, Nlevels, **kwargs):
 
     Returns
     -------
-    Cs : ndarray
+    Gs : ndarray
+        The graph layers.
 
     """
     lambd = float(kwargs.pop('lambd', 0.025))
@@ -189,14 +196,13 @@ def kron_pyramid(G, Nlevels, **kwargs):
 
     Gs = [G]
     for i in range(Nlevels):
-        L_reg = Gs[i].L + lambd * sparse.eye(Gs[i].N)
-        V = eigs(L_reg, 1)[1][:, 0]
-
-        # Select the biggest group
-        if sum(np.sign(V)) >= 0:
-            ind = np.nonzero(V >= 0)[0]
+        if hasattr(Gs[i], 'U'):
+            V = Gs[i].U[:, Gs[i].N]
         else:
-            ind = np.nonzero(V < 0)[0]
+            V = eigs(Gs[i].L, 1)[1][:, 0]
+
+        V *= np.sign(V[0])
+        ind = np.nonzero(V >= 0)[0]
 
         if sparsify:
             Gtemp = kron_reduction(Gs[i], ind)
@@ -204,8 +210,10 @@ def kron_pyramid(G, Nlevels, **kwargs):
         else:
             Gs.append(kron_reduction(Gs[i], ind))
 
+        L_reg = Gs[i].L + lambd * np.eye(Gs[i].N)
+
         Gs[i + 1].pyramid = {'ind': ind,
-                             'green_kernel': Filter(Gs[i + 1],
+                             'green_kernel': Filter(Gs[i],
                                                     filters=[lambda x: 1./(lambd + x)]),
                              'filter': filters[i],
                              'level': i,

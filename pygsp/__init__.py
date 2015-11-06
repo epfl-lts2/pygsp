@@ -16,7 +16,6 @@ from pygsp import filters
 from pygsp import pointsclouds
 from pygsp import data_handling
 from pygsp import optimization
-from pygsp import reduction
 from pygsp import plotting
 
 # Silence the code checker warning about unused symbols.
@@ -27,7 +26,6 @@ assert filters
 assert pointsclouds
 assert data_handling
 assert optimization
-assert reduction
 assert plotting
 
 __version__ = '0.2.1'
