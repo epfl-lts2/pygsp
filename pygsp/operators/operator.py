@@ -31,7 +31,7 @@ def div(G, s):
         raise ValueError('Signal size not equal to number of edges')
 
     D = grad_mat(G)
-    di = D.getH() * s
+    di = D.T * s
 
     if s.dtype == 'float32':
         di = np.float32(di)
