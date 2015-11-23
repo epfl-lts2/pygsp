@@ -103,7 +103,6 @@ class Graph(object):
         self.plotting['edge_color'] = plotting.get('edge_color', np.array([255, 88, 41])/255.)
         self.plotting['vertex_color'] = plotting.get('vertex_color', 'b')
 
-
     def update_graph_attr(self, *args, **kwargs):
         r"""
         update_graph_attr will recompute the some attribute of the graph:
@@ -135,6 +134,7 @@ class Graph(object):
         >>> G.update_graph_attr('N', 'd', W=newW)
 
         Updates all attributes of G excepted 'N' and 'd'
+
         """
         graph_attr = {}
         valid_attributes = ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed',

@@ -13,12 +13,13 @@ def adj2vec(G):
     Parameters
     ----------
     G : Graph structure
+
     """
     if not hasattr(G, 'directed'):
         G.directed = is_directed(G)
 
     if G.directed:
-        raise NotImplementedError("Not implemented yet")
+        raise NotImplementedError("Not implemented yet.")
 
     else:
         v_i, v_j = (sparse.tril(G.W)).nonzero()

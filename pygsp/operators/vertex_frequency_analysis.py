@@ -22,8 +22,7 @@ def generalized_wft(G, g, f, lowmemory=True):
     f : ndarray
         Graph signal
     lowmemory : bool
-        use less memory
-        Default is True
+        use less memory (default=True)
 
     Returns
     -------
@@ -34,14 +33,13 @@ def generalized_wft(G, g, f, lowmemory=True):
     Nf = np.shape(f)[1]
 
     if not hasattr(G, 'U'):
-        logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
+        logger.info('Analysis filter has to compute the eigenvalues and the eigenvectors.')
         compute_fourier_basis(G)
 
-    # if iscell(g)
-    #    g = gsp_igft(G,g{1}(G.e))
-
-    if hasattr(g, 'function_handle'):
-        g = operator.igft(G, g.g[0](G.e))
+    if isinstance(g, list):
+        g = operator.igft(G, g[0](G.e))
+    elif hasattr(g, '__call__'):
+        g = operator.igft(G, g(G.e))
 
     if not lowmemory:
         # Compute the Frame into a big matrix
@@ -53,7 +51,7 @@ def generalized_wft(G, g, f, lowmemory=True):
     else:
         # Compute the translate of g
         ghat = np.dot(G.U.T, g)
-        Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.T))
+        Ftrans = np.sqrt(G.N) * np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.T))
         C = np.zeros((G.N, G.N))
 
         for j in range(Nf):

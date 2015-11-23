@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from os import path
 import numpy as np
-
 from scipy import io
+
+from os import path
 
 
 class PointsCloud(object):
     r"""
-    Load the parameters of models and the points
+    Load the parameters of models and the points.
 
     Parameters
     ----------
@@ -30,6 +30,7 @@ class PointsCloud(object):
     >>> from pygsp import pointsclouds
     >>> bunny = pointsclouds.PointsCloud('bunny')
     >>> Xin = bunny.Xin
+
 
     Note
     ----
@@ -98,5 +99,5 @@ class PointsCloud(object):
             self.Xin = twomoonsmat["features"][:max_dim].T
 
         else:
-            raise ValueError("This PointsCloud does not exist. Please verify"
+            raise ValueError("This PointsCloud does not exist. Please verify "
                              "you wrote the right name in lower case.")

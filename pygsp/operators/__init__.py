@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""
-This module implements the main operators for the PyGSP box.
-"""
+r"""This module implements the main operators for the PyGSP box."""
 
 from .fast_filtering import *
 from .operator import *

@@ -7,7 +7,6 @@ from pygsp.graphs import gutils
 import numpy as np
 from math import log
 from copy import deepcopy
-import logging
 
 
 class Filter(object):

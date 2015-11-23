@@ -1,15 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-Test suite for the filters module of the pygsp package.
-"""
+"""Test suite for the filters module of the pygsp package."""
 
 import sys
-import numpy as np
-import numpy.testing as nptest
-from pygsp import graphs
-from pygsp import filters
+from pygsp import graphs, filters
 
 # Use the unittest2 backport on Python 2.6 to profit from the new features.
 if sys.version_info < (2, 7):

@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-Test suite for the graphs module of the pygsp package.
-"""
+"""Test suite for the graphs module of the pygsp package."""
 
 import sys
 import numpy as np
-import numpy.testing as nptest
 from scipy import sparse
 from pygsp import graphs
 

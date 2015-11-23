@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-Test suite for the docstrings of the pygsp package.
-"""
+"""Test suite for the docstrings of the pygsp package."""
 
 import doctest
 import glob

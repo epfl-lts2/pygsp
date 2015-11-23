@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""
-This module implements some utilitary functions used throughout the PyGSP box.
-"""
+r"""This module implements some utilitary functions used throughout the PyGSP box."""
 
 import numpy as np
 import scipy as sp
@@ -56,9 +54,8 @@ def filterbank_handler(func):
             return func(f, *args, **kwargs)
         elif len(f.g) > 1:
             output = []
-            i = range(len(f.g))
-            for ii in i:
-                output.append(func(f, *args, i=ii, **kwargs))
+            for i in range(len(f.g)):
+                output.append(func(f, *args, i=i, **kwargs))
             return output
 
         else:
@@ -141,7 +138,7 @@ def distanz(x, y=None):
     return np.sqrt(d)
 
 
-def full_eigen(L):
+def full_eigen(L):  # 1 call dans gutils.compute_fourier_basis
     r"""
     Computes full eigen decomposition on a matrix
 
@@ -173,7 +170,7 @@ def full_eigen(L):
     return EVa, EVe
 
 
-def resistance_distance(M):
+def resistance_distance(M):  # 1 call dans operators.reduction
     r"""
     Compute the resistance distances of a graph.
 
@@ -197,9 +194,7 @@ def resistance_distance(M):
     ----------
     :cite:`klein1993resistance`
 
-
     """
-
     from pygsp.graphs.gutils import create_laplacian
 
     if sparse.issparse(M):
@@ -209,8 +204,7 @@ def resistance_distance(M):
         if not M.lap_type == 'combinatorial':
             logger.info('Compute the combinatorial laplacian for the resitance'
                         ' distance')
-            create_laplacian(M, lap_type='combinatorial',
-                             get_laplacian_only=False)
+            create_laplacian(M, lap_type='combinatorial', get_laplacian_only=False)
         L = M.L.tocsc()
 
     try:

@@ -4,27 +4,25 @@ from pygsp.graphs.gutils import estimate_lmax
 from pygsp.utils import filterbank_handler, build_logger
 
 import numpy as np
-import scipy as sp
-from math import pi
 
 logger = build_logger(__name__)
 
 
 @filterbank_handler
-def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
+def compute_cheby_coeff(f, m=30, N=None, i=0, *args):
     r"""
-    Compute Chebyshev coefficients for a Filterbank
+    Compute Chebyshev coefficients for a Filterbank.
 
     Parameters
     ---------
-    f : List of filters
-    G : Graph
+    f : Filter
+        Filterbank with at least 1 filter
     m : int
         Maximum order of Chebyshev coeff to compute (default = 30)
     N : int
         Grid order used to compute quadrature (default = m + 1)
     i : int
-        Indice of the Filterbank element to compute (default = 0)
+        Index of the Filterbank element to compute (default = 0)
 
     Returns
     -------
@@ -32,33 +30,33 @@ def compute_cheby_coeff(f, G=None, m=30, N=None, i=0, *args):
         Matrix of Chebyshev coefficients
 
     """
-
-    if G is None:
-        G = f.G
+    G = f.G
 
     if not N:
         N = m + 1
 
     if not hasattr(G, 'lmax'):
+        logger.info('The variable lmax has not been computed yet, it will be done now.')
         G.lmax = estimate_lmax(G)
-        logger.info('The variable lmax has not been computed yet, it will be done.)')
 
     a_arange = [0, G.lmax]
 
-    a1 = (a_arange[1] - a_arange[0])/2
-    a2 = (a_arange[1] + a_arange[0])/2
+    a1 = (a_arange[1] - a_arange[0]) / 2
+    a2 = (a_arange[1] + a_arange[0]) / 2
     c = np.zeros((m + 1))
 
     tmpN = np.arange(N)
+    num = np.cos(np.pi * (tmpN + 0.5) / N)
     for o in range(m + 1):
-        c[o] = np.sum(f.g[i](a1*np.cos(pi*(tmpN + 0.5)/N) + a2)*np.cos(pi*o*(tmpN + 0.5)/N)) * 2./N
+        c[o] = 2. / N * np.dot(f.g[i](a1 * num + a2),
+                               np.cos(np.pi * o * (tmpN + 0.5) / N))
 
     return c
 
 
 def cheby_op(G, c, signal, **kwargs):
     r"""
-    Chebyshev polylnomial of graph Laplacian applied to vector
+    Chebyshev polynomial of graph Laplacian applied to vector.
 
     Parameters
     ----------
@@ -74,17 +72,15 @@ def cheby_op(G, c, signal, **kwargs):
         Result of the filtering
 
     """
-    # With that way, we can handle if we do not have a list of filter but only a simple filter.
-    if type(c) != list:
+    # Handle if we do not have a list of filters but only a simple filter in cheby_coeff.
+    if not isinstance(c, list):
         c = [c]
 
     M = np.shape(c[0])[0]
     Nscales = len(c)
 
-    try:
-        M >= 2
-    except:
-        logger.error("The signal has an invalid shape")
+    if M < 2:
+        raise TypeError("The coefficients have an invalid shape")
 
     if not hasattr(G, 'lmax'):
         G.lmax = estimate_lmax(G)
@@ -101,15 +97,16 @@ def cheby_op(G, c, signal, **kwargs):
 
     a_arange = [0, G.lmax]
 
-    a1 = float(a_arange[1] - a_arange[0])/2
-    a2 = float(a_arange[1] + a_arange[0])/2
+    a1 = float(a_arange[1] - a_arange[0]) / 2.
+    a2 = float(a_arange[1] + a_arange[0]) / 2.
 
     twf_old = signal
-    twf_cur = (G.L.dot(signal) - a2 * signal)/a1
+    twf_cur = (G.L.dot(signal) - a2 * signal) / a1
 
     tmpN = np.arange(G.N, dtype=int)
     for i in range(Nscales):
-        r[tmpN + G.N*i] = 0.5*c[i][0]*twf_old + c[i][1]*twf_cur
+        r[tmpN + G.N*i] = 0.5 * c[i][0] * twf_old + c[i][1] * twf_cur
+
     for k in range(2, M + 1):
         twf_new = (2./a1) * (G.L.dot(twf_cur) - a2*twf_cur) - twf_old
         for i in range(Nscales):
@@ -122,16 +119,15 @@ def cheby_op(G, c, signal, **kwargs):
     return r
 
 
-def lanczos_op(fi, s, G=None, order=30):
+def lanczos_op(fi, s, order=30):
     r"""
-    Perform the lanczos approximation of the signal s
+    Perform the lanczos approximation of the signal s.
 
     Parameters
     ----------
     fi: Filter
     s : ndarray
         Signal to approximate.
-    G : Graph
     order : int
         Degree of the lanczos approximation. (default = 30)
 
@@ -141,9 +137,7 @@ def lanczos_op(fi, s, G=None, order=30):
         lanczos approximation of s
 
     """
-    if not G:
-        G = fi.G
-
+    G = fi.G
     Nf = len(fi.g)
 
     try:
@@ -164,8 +158,7 @@ def lanczos_op(fi, s, G=None, order=30):
 
         Eh, Uh = np.linalg.eig(H)
 
-        # Eh = np.diagonal(Eh)
-        Eh = np.where(Eh < 0, 0, Eh)
+        Eh[Eh < 0] = 0
         fie = fi.evaluate(Eh)
         V = np.dot(V, Uh)
 
