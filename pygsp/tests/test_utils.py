@@ -83,17 +83,18 @@ class FunctionsTestCase(unittest.TestCase):
         test_graphs = [t1, t3, t4]
 
         def test_is_directed(G, rep):
-            self.assertEqual(graphs.gutils.is_directed(G), rep['is_dir'])
+            G.is_directed()
+            self.assertEqual(G.directed, rep['is_dir'])
 
-        def test_estimate_lmax(G):
-            operators.compute_fourier_basis(G)
-            nptest.assert_almost_equal(graphs.gutils.estimate_lmax(G)[0], G.lmax)
+        def test_estimate_lmax(G, lmax):
+            G.estimate_lmax()
+            nptest.assert_almost_equal(G.lmax, lmax)
 
         def test_check_weights(G, w_c):
             self.assertEqual(graphs.gutils.check_weights(G.W), w_c)
 
-        def test_check_connectivity(G, is_conn, **kwargs):
-            self.assertEqual(graphs.gutils.check_connectivity(G), is_conn)
+        def test_is_connected(G, is_conn, **kwargs):
+            self.assertEqual(G.is_connected(), is_conn)
 
         def test_distanz(x, y):
             # TODO test with matlab to compare
@@ -110,9 +111,9 @@ class FunctionsTestCase(unittest.TestCase):
         #     self.assertEqual(mat_answser, utils.tree_depths(A, root))
         for t in test_graphs:
             test_is_directed(t['G'], t['rep'])
-            test_estimate_lmax(t['G'])
+            test_estimate_lmax(t['G'], t['rep']['lmax'])
             test_check_weights(t['G'], t['rep']['weight_check'])
-            test_check_connectivity(t['G'], t['rep']['is_conn'])
+            test_is_connected(t['G'], t['rep']['is_conn'])
             test_symmetrize(t['G'].W, t['rep']['sym'])
 
         G5 = graphs.Graph(np.arange(16).reshape((4, 4)))
@@ -120,7 +121,7 @@ class FunctionsTestCase(unittest.TestCase):
         test_check_weights(G5, checks5)
 
         with self.assertRaises(ValueError):
-            test_estimate_lmax(t2['G'])
+            test_estimate_lmax(t2['G'], t2['rep']['lmax'])
 
         # Not ready yet
         # test_tree_depths(A, root)

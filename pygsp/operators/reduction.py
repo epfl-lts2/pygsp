@@ -2,7 +2,7 @@
 r"""This module contains functionalities for the reduction of graphs' vertex set while keeping the graph structure."""
 
 from pygsp.utils import resistance_distance, build_logger
-from pygsp.graphs import Graph, gutils
+from pygsp.graphs import Graph
 from pygsp.filters import Filter
 
 import numpy as np
@@ -99,7 +99,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
         sparserW = sparserW + sparserW.T
         sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
 
-        if gutils.check_connectivity(Graph(W=sparserW)):
+        if Graph(W=sparserW).is_connected():
             break
         elif i == maxiter - 1:
             logger.warning('Despite attempts to reduce epsilon, sparsified graph is disconnected')
@@ -110,9 +110,8 @@ def graph_sparsify(M, epsilon, maxiter=10):
         sparserW = sparse.diags(sparserL.diagonal(), 0) - sparserL
         if not M.directed:
             sparserW = (sparserW + sparserW.T) / 2.
-            sparserL = (sparserL + sparserL.T) / 2.
 
-        Mnew = Graph(W=sparserW, L=sparserL)
+        Mnew = Graph(W=sparserW)
         M.copy_graph_attributes(Mnew)
     else:
         Mnew = sparse.lil_matrix(sparserL)
@@ -273,7 +272,7 @@ def kron_reduction(G, ind):
             Wnew = Wnew + sparse.diags(Snew, 0)
 
         Gnew = Graph(W=Wnew, coords=G.coords[ind, :],
-                     type='Kron reduction')
+                     gtype='Kron reduction')
         G.copy_graph_attributes(Gnew, ctype=False)
 
     else:
@@ -437,11 +436,8 @@ def pyramid_synthesis(Gs, coeff, order=100, **kwargs):
 
 
 def tree_depths(A, root):
-    r"""
-    Empty docstring. TODO
-    """
-
-    if gutils.check_connectivity(A) == 0:
+    r"""Empty docstring. TODO."""
+    if not Graph(A=A).is_connected():
         raise ValueError('Graph is not connected')
 
     N = np.shape(A)[0]
@@ -455,7 +451,7 @@ def tree_depths(A, root):
     while len(assigned) < N:
         new_entries_whole_round = []
         for i in range(len(next_to_expand)):
-            neighbors = np.where(A[next_to_expand[i]] > 1e-7)[0]
+            neighbors = np.where(A[next_to_expand[i]])[0]
             new_entries = np.setdiff1d(neighbors, assigned)
             parents[new_entries] = next_to_expand[i]
             depths[new_entries] = current_depth
@@ -505,7 +501,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
     Gs = [G]
 
     if compute_full_eigen:
-        Gs[0] = gutils.compute_fourier_basis(G)
+        Gs[0].compute_fourier_basis()
 
     subsampled_vertex_indices = []
     depths, parents = tree_depths(G.A, root)
@@ -573,7 +569,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         Gs[lev].copy_graph_attributes(Gtemp, False)
 
         if compute_full_eigen:
-            gutils.compute_fourier_basis(Gs[lev + 1])
+            Gs[lev + 1].compute_fourier_basis()
 
         # Replace current adjacency matrix and root
         Gs.append(Gtemp)

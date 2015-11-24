@@ -31,7 +31,7 @@ class FunctionsTestCase(unittest.TestCase):
 
         def test_default_graph():
             W = np.arange(16).reshape(4, 4)
-            G = graphs.Graph(W, directed=False)
+            G = graphs.Graph(W)
             ki, kj = np.nonzero(G.A)
             self.assertEqual(ki.shape[0], G.Ne)
             self.assertEqual(kj.shape[0], G.Ne)

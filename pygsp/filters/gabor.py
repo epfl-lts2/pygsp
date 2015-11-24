@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from . import Filter
-from pygsp.graphs.gutils import compute_fourier_basis
 
 import numpy as np
 
@@ -43,7 +42,7 @@ class Gabor(Filter):
         if not hasattr(G, 'e'):
             self.logger.info('Filter Gabor will calculate and set'
                              ' the eigenvalues to normalize the kernel')
-            compute_fourier_basis(G)
+            G.compute_fourier_basis()
 
         Nf = np.shape(G.e)[0]
 

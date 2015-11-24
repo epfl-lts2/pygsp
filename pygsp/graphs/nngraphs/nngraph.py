@@ -136,7 +136,7 @@ class NNGraph(Graph):
             raise ValueError("Weight matrix W is not square")
 
         # Symetry checks
-        if gutils.is_directed(W):
+        if Graph(W=W).directed:
             W = gutils.symmetrize(W, symmetrize_type=self.symmetrize_type)
         else:
             pass

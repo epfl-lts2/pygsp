@@ -2,7 +2,6 @@
 
 from pygsp import utils
 from pygsp.operators import fast_filtering, operator
-from pygsp.graphs import gutils
 
 import numpy as np
 from math import log
@@ -19,7 +18,7 @@ class Filter(object):
         if not hasattr(G, 'lmax'):
             self.logger.info('{} : has to compute lmax'.format(
                 self.__class__.__name__))
-            G.lmax = gutils.estimate_lmax(G)
+            G.estimate_lmax()
 
         self.G = G
 
@@ -88,7 +87,7 @@ class Filter(object):
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
                 self.logger.info('The Fourier matrix is not available. '
                                  'The function will compute it for you.')
-                gutils.compute_fourier_basis(G)
+                G.compute_fourier_basis()
 
             try:
                 Nv = np.shape(s)[1]
@@ -118,7 +117,7 @@ class Filter(object):
                 self.logger.info('FILTER_ANALYSIS: The variable lmax is not '
                                  'available. The function will compute '
                                  'it for you.')
-                gutils.estimate_lmax(G)
+                G.estimate_lmax()
 
             cheb_coef = fast_filtering.compute_cheby_coeff(self, G, m=cheb_order)
             c = fast_filtering.cheby_op(G, cheb_coef, s)
@@ -214,7 +213,7 @@ class Filter(object):
             if not hasattr(G, 'e') or not hasattr(G, 'U'):
                 self.logger.info("The Fourier matrix is not available. "
                                  "The function will compute it for you.")
-                gutils.compute_fourier_basis(G)
+                G.compute_fourier_basis()
 
             fie = self.evaluate(G.e)
             Nv = np.shape(c)[1]
@@ -235,7 +234,7 @@ class Filter(object):
             if hasattr(G, 'lmax'):
                 self.logger.info('The variable lmax is not available. '
                                  'The function will compute it for you.')
-                gutils.estimate_lmax(G)
+                G.estimate_lmax()
 
             cheb_coeffs = operator.compute_cheby_coeff(self, G, m=order,
                                                        N=order + 1)
@@ -300,7 +299,7 @@ class Filter(object):
 
         if isinstance(G, Graph):
             if not hasattr(G, 'lmax'):
-                gutils.estimate_lmax(G)
+                G.estimate_lmax()
                 self.logger.info('FILTERBANK_BOUNDS: Had to estimate lmax.')
             xmin = 0
             xmax = G.lmax

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from pygsp.utils import build_logger
-from pygsp.graphs.gutils import compute_fourier_basis
 from pygsp.data_handling import adj2vec
 
 import numpy as np
@@ -143,7 +142,7 @@ def gft(G, f):
     if isinstance(G, Graph):
         if not hasattr(G, 'U'):
             logger.info('Analysis filter has to compute the eigenvalues and the eigenvectors.')
-            compute_fourier_basis(G)
+            G.compute_fourier_basis()
 
         U = G.U
     else:
@@ -175,7 +174,7 @@ def igft(G, f_hat):
     if isinstance(G, Graph):
         if not hasattr(G, 'U'):
             logger.info('Analysis filter has to compute the eigenvalues and the eigenvectors.')
-            compute_fourier_basis(G)
+            G.compute_fourier_basis()
         U = G.U
 
     else:

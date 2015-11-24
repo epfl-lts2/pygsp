@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from pygsp.graphs.gutils import estimate_lmax
 from pygsp.utils import filterbank_handler, build_logger
 
 import numpy as np
@@ -37,7 +36,7 @@ def compute_cheby_coeff(f, m=30, N=None, i=0, *args):
 
     if not hasattr(G, 'lmax'):
         logger.info('The variable lmax has not been computed yet, it will be done now.')
-        G.lmax = estimate_lmax(G)
+        G.estimate_lmax()
 
     a_arange = [0, G.lmax]
 
@@ -83,7 +82,7 @@ def cheby_op(G, c, signal, **kwargs):
         raise TypeError("The coefficients have an invalid shape")
 
     if not hasattr(G, 'lmax'):
-        G.lmax = estimate_lmax(G)
+        G.estimate_lmax()
 
     if signal.dtype == 'float32':
         signal = np.float64(signal)

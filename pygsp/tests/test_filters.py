@@ -23,7 +23,7 @@ class FunctionsTestCase(unittest.TestCase):
 
     def test_filters(self):
         G = graphs.Logo()
-        graphs.estimate_lmax(G)
+        G.estimate_lmax()
 
         def fu(x):
             x / (1. + x)

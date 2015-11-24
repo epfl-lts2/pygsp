@@ -3,8 +3,6 @@
 import numpy as np
 from scipy import sparse
 
-from pygsp.graphs.gutils import is_directed
-
 
 def adj2vec(G):
     r"""
@@ -16,7 +14,7 @@ def adj2vec(G):
 
     """
     if not hasattr(G, 'directed'):
-        G.directed = is_directed(G)
+        G.is_directed()
 
     if G.directed:
         raise NotImplementedError("Not implemented yet.")

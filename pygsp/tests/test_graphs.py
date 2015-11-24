@@ -27,13 +27,13 @@ class FunctionsTestCase(unittest.TestCase):
 
         def test_default_graph():
             W = np.arange(16).reshape(4, 4)
-            G = graphs.Graph(W, directed=False)
-            self.assertEqual(G.W.todense(), sparse.lil_matrix(W).todense())
-            self.assertEqual(G.A.todense(), sparse.lil_matrix(G.W > 0).todense())
+            G = graphs.Graph(W)
+            self.assertEqual(G.W, sparse.lil_matrix(W))
+            self.assertEqual(G.A, G.W > 0)
             self.assertEqual(G.N, 4)
-            self.assertEqual(G.d, 120)
+            self.assertEqual(G.d, [3, 4, 4, 4])
             self.assertEqual(G.Ne, 15)
-            self.assertFalse(G.directed)
+            self.assertTrue(G.directed)
 
         def test_NNGraph():
             Xin = np.arange(90).reshape(30, 3)
@@ -60,7 +60,7 @@ class FunctionsTestCase(unittest.TestCase):
             G = graphs.Torus()
 
         def test_Comet():
-            G = graphs.Comet
+            G = graphs.Comet()
 
         def test_LowStretchTree():
             G = graphs.LowStretchTree()
