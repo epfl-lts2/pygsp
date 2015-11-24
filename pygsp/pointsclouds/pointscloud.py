@@ -101,3 +101,12 @@ class PointsCloud(object):
         else:
             raise ValueError("This PointsCloud does not exist. Please verify "
                              "you wrote the right name in lower case.")
+
+    def plot(self):
+        r"""
+        Plot the pointcloud.
+
+        See plotting doc.
+        """
+        from pygsp import plotting
+        plotting.plot_pointcloud(self)

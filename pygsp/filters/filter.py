@@ -408,3 +408,12 @@ class Filter(object):
             gdual.g[i] = lambda x, ind=i: can_dual_func(self, ind, deepcopy(x))
 
         return gdual
+
+    def plot(self):
+        r"""
+        Plot the filter.
+
+        See plotting doc.
+        """
+        from pygsp import plotting
+        plotting.plot_filter(self)

@@ -56,18 +56,21 @@ def close(*args):
     plt.close(*args)
 
 
-def plot(O, **kwargs):
+def plot(O, default_qtg=True, **kwargs):
     r"""
-    Main plotting function
+    Main plotting function.
 
-    This function should be able to determine the appropriated plot for
-    the object
-    Additionnal kwargs may be given in case of filter plotting
+    This function should be able to determine the appropriate plot for
+    the object.
+    Additionnal kwargs may be given in case of filter plotting.
 
     Parameters
     ----------
     O : object
         Should be either a Graph, Filter or PointCloud
+    default_qtg: boolean
+        Define the library to use if both are installed.
+        Default is pyqtgraph (field=True).
 
     Examples
     --------
@@ -75,23 +78,16 @@ def plot(O, **kwargs):
     >>> G = graphs.Logo()
     >>> try:
     ...     plotting.plot(G)
-    ... except:
-    ...     pass
+    ... except Exception as e:
+    ...     print e
 
     """
-
     from graphs import Graph
     from pointsclouds.pointscloud import PointsCloud
     from filters import Filter
 
     if issubclass(type(O), Graph):
-        if qtg_import:
-            pg_plot_graph(O, **kwargs)
-        elif plt_import:
-            plot_graph(O, **kwargs)
-        else:
-            raise ImportError('No drawing library installed. Please '
-                              'install matplotlib or pyqtgraph.')
+        plot_graph(O, default_qtg, **kwargs)
     elif issubclass(type(O), PointsCloud):
         plot_pointcloud(O)
     elif issubclass(type(O), Filter):
@@ -101,9 +97,43 @@ def plot(O, **kwargs):
                         'PointCloud, a Filter or a Graph.')
 
 
-def plot_graph(G, savefig=False, show_edges=None, plot_name=''):
+def plot_graph(G, default_qtg=True, **kwargs):
     r"""
-    Function to plot a graph or an array of graphs
+    Plot a graph or an array of graphs with installed libraries.
+
+    This function should be able to determine the appropriate plot for
+    the graph.
+    Additionnal kwargs may be given in case of filter plotting.
+
+    Parameters
+    ----------
+    G : Graph
+    default_qtg: boolean
+        Define the library to use if both are installed.
+        Default is pyqtgraph (field=True).
+
+    Examples
+    --------
+    >>> from pygsp import graphs, plotting
+    >>> G = graphs.Logo()
+    >>> try:
+    ...     plotting.plot_graph(G)
+    ... except Exception as e:
+    ...     print e
+
+    """
+    if qtg_import and (default_qtg or not plt_import):
+        pg_plot_graph(G, **kwargs)
+    elif plt_import and not (default_qtg and qtg_import):
+        plt_plot_graph(G, **kwargs)
+    else:
+        raise ImportError('No drawing library installed. Please '
+                          'install matplotlib or pyqtgraph.')
+
+
+def plt_plot_graph(G, savefig=False, show_edges=None, plot_name=''):
+    r"""
+    Plot a graph or an array of graphs with matplotlib.
 
     Parameters
     ----------
@@ -123,14 +153,11 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=''):
     >>> from pygsp import plotting, graphs
     >>> G = graphs.Logo()
     >>> try:
-    ...     plotting.plot_graph(G)
+    ...     plotting.plt_plot_graph(G)
     ... except:
     ...     pass
 
     """
-
-    # def _thread(G, show_edges, savefig):
-
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
 
@@ -139,6 +166,9 @@ def plot_graph(G, savefig=False, show_edges=None, plot_name=''):
 
     if show_edges is None:
         show_edges = G.Ne < 10000
+
+    if 'edge_color' not in G.plotting:
+        G.plotting['edge_color'] = np.array([255, 88, 41])/255.
 
     # Matplotlib graph initialization in 2D and 3D
     if G.coords.shape[1] == 2:
@@ -480,12 +510,9 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3,
     #     plt.show()
 
 
-def plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
-                vertex_size=None, vertex_highlight=False, climits=None,
-                colorbar=True, bar=False, bar_width=1, savefig=False,
-                plot_name=None):
+def plot_signal(G, signal, default_qtg=True, **kwargs):
     r"""
-    Plot a graph signal in 2D or 3D.
+    Plot a graph signal in 2D or 3D with installed libraries.
 
     Parameters
     ----------
@@ -504,18 +531,16 @@ def plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     climits : array of int
         Limits of the colorbar.
     colorbar : boolean
-        To plot an extra line showing the sum of the squared magnitudes\
+        To plot an extra line showing the sum of the squared magnitudes 
         of the filters (default True if there is multiple filters).
-    bar : int
-        NOT IMPLEMENTED: 0 display color, 1 display bar for the graph
-        (default 0).
+    bar : boolean
+        NOT IMPLEMENTED: False display color, True display bar for the graph
+        (default False).
     bar_width : int
         Width of the bar (default 1).
-    savefig : boolean
-        Determine wether the plot is saved as a PNG file in your\
-        current directory (True) or shown in a window (False) (default False).
-    plot_name : str
-        To give custom names to plots
+    default_qtg: boolean
+        Define the library to use if both are installed.
+        Default is pyqtgraph (field=True).
 
     Examples
     --------
@@ -524,10 +549,36 @@ def plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     >>> G = graphs.Ring(15)
     >>> signal = np.sin((np.arange(1, 16)*2*np.pi/15))
     >>> try:
-    ...     plotting.plot_signal(signal, G)
+    ...     plotting.plot_signal(G, signal)
     ... except:
     ...     pass
 
+    """
+    if qtg_import and (default_qtg or not plt_import):
+        pg_plot_signal(G, signal, **kwargs)
+    elif plt_import and not (default_qtg and qtg_import):
+        plt_plot_signal(G, signal, **kwargs)
+    else:
+        raise ImportError('No drawing library installed. Please '
+                          'install matplotlib or pyqtgraph.')
+
+
+def plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
+                    vertex_size=None, vertex_highlight=False, climits=None,
+                    colorbar=True, bar=False, bar_width=1, savefig=False,
+                    plot_name=None):
+    r"""
+    Plot a graph signal in 2D or 3D using matplotlib.
+
+    See plot_signal for full documentation.
+
+    Extra args
+    ----------
+    savefig : boolean
+        Determine whether the plot is saved as a PNG file in your
+        current directory (True) or shown in a window (False) (default False).
+    plot_name : str
+        To give custom names to plots
 
     """
     fig = plt.figure(plid.plot_id)
@@ -621,33 +672,7 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     r"""
     Plot a graph signal in 2D or 3D, with pyqtgraph.
 
-    Parameters
-    ----------
-    G : Graph object
-        If not specified it will take the one used to create the filter.
-    signal : array of int
-        Signal applied to the graph.
-    show_edges : boolean
-        Set to 0 to only draw the vertices (default G.Ne < 10000).
-    cp : List of int
-        Camera position for a 3D graph.
-    vertex_size : int
-        Size of circle representing each signal component.
-    vertex_highlight : boolean
-        Vector of indices of vertices to be highlighted.
-    climits : array of int
-        Limits of the colorbar.
-    colorbar : boolean
-        To plot an extra line showing the sum of the squared magnitudes\
-        of the filters (default True if there is multiple filters).
-    bar : int
-        0 display color, 1 display bar for the graph (default 0).
-    bar_width : int
-        Width of the bar (default 1).
-
-    Examples
-    --------
-    TODO
+    See plot_signal for full documentation.
 
     """
     if np.sum(np.abs(signal.imag)) > 1e-10:
@@ -760,4 +785,3 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         window_list[str(uuid.uuid4())] = w
     elif G.coords.shape[1] == 3:
         window_list[str(uuid.uuid4())] = app
-
