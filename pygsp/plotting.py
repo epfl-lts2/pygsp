@@ -419,7 +419,7 @@ def plot_pointcloud(P):
         # plt.show()
 
 
-def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3,
+def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
                 x_size=10, plot_eigenvalues=None, show_sum=None,
                 savefig=False, plot_name=None):
     r"""
@@ -428,8 +428,6 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3,
     Parameters
     ----------
     filters : filter object
-    G : Graph object
-        If not specified it will take the one used to create the filter
     npoints : int
         Number of point where the filters are evaluated.
     line_width : int
@@ -462,14 +460,14 @@ def plot_filter(filters, G=None, npoints=1000, line_width=4, x_width=3,
     ...     pass
 
     """
+    G = filters.G
+
     if not isinstance(filters.g, list):
         filters.g = [filters.g]
     if plot_eigenvalues is None:
         plot_eigenvalues = hasattr(G, 'e')
     if show_sum is None:
         show_sum = len(filters.g) > 1
-    if G is None:
-        G = filters.G
     if plot_name is None:
         plot_name = "Filter plot of {}".format(G.gtype)
 

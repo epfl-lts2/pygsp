@@ -4,6 +4,22 @@
 History
 =======
 
+0.3.0 (2015-11-24)
+------------------
+
+Refactoring graphs using object programming and fail safe checks.
+
+Refactoring filters to use only the Graph object used at the construction of the filter for all operations.
+
+Removal of default coordinates (all vertices on the origin) for graphs that do not possess spatial meaning.
+
+Correction of minor issues on Python3+ imports.
+
+Various fixes.
+
+Finalizing demos for the documentation.
+
+
 0.2.1 (2015-10-14)
 ------------------
 

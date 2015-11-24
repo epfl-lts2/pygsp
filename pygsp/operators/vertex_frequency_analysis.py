@@ -83,7 +83,7 @@ def gabor_wft(G, f, k):
         G.compute_fourier_basis()
     g = Gabor(G, k)
 
-    C = g.analysis(G, f)
+    C = g.analysis(f)
     C = data_handling.vec2mat(C, G.N).T
 
     return C

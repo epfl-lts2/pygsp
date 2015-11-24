@@ -148,8 +148,7 @@ def gft(G, f):
     else:
         U = G
 
-    return np.dot(np.conjugate(U.T), f)
-    return np.dot(np.conjugate(U.T), f)
+    return np.dot(U.getH(), f)  # True Hermitian here.
 
 
 def igft(G, f_hat):
@@ -183,13 +182,12 @@ def igft(G, f_hat):
     return np.dot(U, f_hat)
 
 
-def localize(G, g, i):
+def localize(g, i):
     r"""
     Localize a kernel g to the node i.
 
     Parameters
     ----------
-    G : Graph
     g : Filter
         kernel (or filterbank)
     i : int
@@ -201,10 +199,11 @@ def localize(G, g, i):
         Translated signal
 
     """
-    f = np.zeros((G.N))
+    N = g.G.N
+    f = np.zeros((N))
     f[i - 1] = 1
 
-    gt = np.sqrt(G.N) * g.analysis(G, f)
+    gt = np.sqrt(N) * g.analysis(f)
 
     return gt
 
