@@ -87,25 +87,8 @@ class StochasticBlockModel(Graph):
         if undirected:
             W = W + W.T
 
-        info = {'node_com': z, 'comm_sizes': np.bincount(z), 'com_coords': None}
-
-        # Coordinates association #
-        world_rad = np.sqrt(N)
-        info['com_coords'] = world_rad * np.array(zip(
-            np.cos(2 * np.pi * np.arange(1, k + 1) / k),
-            np.sin(2 * np.pi * np.arange(1, k + 1) / k)))
-
-        coords = np.random.rand(N, 2)  # nodes' coordinates inside the community
-        coords = np.array(map(lambda elem: [elem[0] * np.cos(2 * np.pi * elem[1]),
-                                            elem[0] * np.sin(2 * np.pi * elem[1])], coords))
-
-        for i in range(N):
-            # set coordinates as an offset from the center of the community it belongs to
-            comm_idx = info['node_com'][i]
-            comm_rad = np.sqrt(info['comm_sizes'][comm_idx])
-            coords[i] = info['com_coords'][comm_idx] + comm_rad * coords[i]
-
-        self.info = info
+        self.info = {'node_com': z, 'comm_sizes': np.bincount(z),
+                     'world_rad': np.sqrt(N)}
 
         super(StochasticBlockModel, self).__init__(gtype='StochasticBlockModel',
-                                                   W=W, coords=coords, **kwargs)
+                                                   W=W, **kwargs)

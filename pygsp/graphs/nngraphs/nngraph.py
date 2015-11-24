@@ -49,6 +49,7 @@ class NNGraph(Graph):
             raise ValueError("You must enter a Xin to process the NNgraph")
         else:
             self.Xin = Xin
+
         self.NNtype = NNtype
         self.use_flann = use_flann
         self.center = center

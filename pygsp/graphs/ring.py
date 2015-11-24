@@ -53,15 +53,9 @@ class Ring(Graph):
         W = sparse.csc_matrix((np.ones((2*num_edges)), (i_inds, j_inds)),
                               shape=(N, N))
 
-        coords = np.concatenate((np.cos(np.arange(N).reshape(N, 1) * 2 * np.pi / float(N)),
-                                 np.sin(np.arange(N).reshape(N, 1) * 2 * np.pi / float(N))),
-                                axis=1)
-
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
         gtype = 'ring' if k == 1 else 'k-ring'
-
         self.k = k
 
-        super(Ring, self).__init__(W=W, gtype=gtype, coords=coords,
-                                   plotting=plotting, **kwargs)
+        super(Ring, self).__init__(W=W, gtype=gtype, plotting=plotting, **kwargs)

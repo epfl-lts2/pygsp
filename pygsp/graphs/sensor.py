@@ -59,12 +59,8 @@ class Sensor(Graph):
             for i in range(mdim):
                 for j in range(mdim):
                     if i*mdim + j < N:
-                        XCoords[i*mdim + j] = \
-                            np.array(1./float(mdim)*np.random.rand()
-                                     + i/float(mdim))
-                        YCoords[i*mdim + j] = \
-                            np.array(1./float(mdim)*np.random.rand()
-                                     + j/float(mdim))
+                        XCoords[i*mdim + j] = np.array((i + np.random.rand()) / mdim)
+                        YCoords[i*mdim + j] = np.array((j + np.random.rand()) / mdim)
 
         # take random coordinates in a 1 by 1 square
         else:
@@ -103,9 +99,9 @@ class Sensor(Graph):
         if self.connected:
             for x in range(self.n_try):
                 W, coords = self.create_weight_matrix(N, distribute,
-                                                           regular, Nc)
+                                                      regular, Nc)
                 self.W = W
-                self.A = self.W > 0
+                self.A = W > 0
 
                 if self.is_connected():
                     break
@@ -113,8 +109,8 @@ class Sensor(Graph):
                 elif x == self.n_try - 1:
                     self.logger.warning('Graph is not connected.')
         else:
-            W, coords = self.create_weight_matrix(self.N, self.distribute,
-                                                  self.regular, self.Nc)
+            W, coords = self.create_weight_matrix(N, distribute,
+                                                  regular, Nc)
 
         W = sparse.lil_matrix(W)
         W = (W + W.T) / 2.

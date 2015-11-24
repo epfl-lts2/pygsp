@@ -2,9 +2,10 @@
 
 from pygsp.utils import build_logger
 
-
 import numpy as np
 from scipy import sparse
+
+from collections import Counter
 
 
 class Graph(object):
@@ -81,7 +82,7 @@ class Graph(object):
         self.lap_type = lap_type
 
         self.is_directed()
-        self.create_laplacian()
+        self.create_laplacian(lap_type)
 
         if isinstance(coords, np.ndarray) and 2 <= len(np.shape(coords)) <= 3:
             self.coords = coords
@@ -194,6 +195,78 @@ class Graph(object):
         if hasattr(self, 'lap_type'):
             Gn.lap_type = self.lap_type
             Gn.create_laplacian()
+
+    def set_coords(self, kind='ring2D', coords=None):
+        r"""
+        Set coordinates for the vertices.
+
+        Parameters
+        ----------
+        kind : string
+            The kind of display. Default is 'ring2D'.
+            Accepting ['ring2D', 'community2D', 'manual', 'random2D', 'random3D'].
+        coords : np.ndarray
+            An array of coordinates in 2D or 3D. Used only if kind is manual.
+            Set the coordinates to this array as is.
+
+        Examples
+        --------
+        >>> from pygsp import graphs
+        >>> G = graphs.ErdosRenyi()
+        >>> G.set_coords()
+        >>> G.plot()
+
+        """
+        if kind not in ['ring2D', 'community2D', 'manual', 'random2D', 'random3D']:
+            raise ValueError('Unexpected kind argument. Got {}.'.format(kind))
+
+        if kind == 'manual':
+            if isinstance(coords, list):
+                coords = np.array(coords)
+            if isinstance(coords, np.ndarray) and len(coords.shape) == 2 and \
+                    coords.shape[0] == self.N and 2 <= coords.shape[1] <= 3:
+                self.coords = coords
+            else:
+                raise ValueError('Expecting coords to be a list or ndarray of size Nx2 or Nx3.')
+
+        elif kind == 'ring2D':
+            tmp = np.arange(self.N).reshape(self.N, 1)
+            self.coords = np.concatenate((np.cos(tmp*2*np.pi/self.N),
+                                          np.sin(tmp*2*np.pi/self.N)),
+                                         axis=1)
+
+        elif kind == 'random2D':
+            self.coords = np.random.rand((self.N, 2))
+
+        elif kind == 'random3D':
+            self.coords = np.random.rand((self.N, 3))
+
+        elif kind == 'community2D':
+            if not hasattr(self, 'info') or 'node_com' not in self.info:
+                ValueError('Missing arguments to the graph to be able to compute community coordinates.')
+
+            if 'world_rad' not in self.info:
+                self.info['world_rad'] = np.sqrt(self.N)
+
+            if 'comm_sizes' not in self.info:
+                counts = Counter(self.info['node_com'])
+                self.info['comm_sizes'] = np.array(list(map(lambda counter: counter[1], sorted(counts.items()))))
+
+            Nc = self.info['comm_sizes'].shape[0]
+
+            self.info['com_coords'] = self.info['world_rad'] * np.array(list(zip(
+                np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
+                np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc))))
+
+            coords = np.random.rand(N, 2)  # nodes' coordinates inside the community
+            self.coords = np.array([[elem[0] * np.cos(2 * np.pi * elem[1]),
+                                elem[0] * np.sin(2 * np.pi * elem[1])] for elem in coords])
+
+            for i in range(N):
+                # set coordinates as an offset from the center of the community it belongs to
+                comm_idx = self.info['node_com'][i]
+                comm_rad = np.sqrt(self.info['comm_sizes'][comm_idx])
+                self.coords[i] = self.info['com_coords'][comm_idx] + comm_rad * self.coords[i]
 
     def subgraph(self, ind):
         r"""
@@ -445,3 +518,12 @@ class Graph(object):
             lmax = np.max(self.d)
 
         self.lmax = np.real(lmax)
+
+    def plot(self, **kwargs):
+        r"""
+        Plot the graph.
+
+        See plotting doc.
+        """
+        from pygsp import plotting
+        plotting.plot_graph(self, **kwargs)

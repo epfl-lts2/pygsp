@@ -35,14 +35,8 @@ class RandomRing(Graph):
         W = sparse.csc_matrix((weight, (inds_i, inds_j)), shape=(N, N))
         W = W.tolil()
         W[N - 1, 0] = weightend
-
         W = W + W.T
-
-        coords = np.concatenate((np.cos(position * 2 * np.pi)[:, np.newaxis],
-                                 np.sin(position * 2 * np.pi)[:, np.newaxis]),
-                                axis=1)
 
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
-        super(RandomRing, self).__init__(W=self.W, gtype='random-ring',
-                                         coords=coords, plotting=plotting)
+        super(RandomRing, self).__init__(W=W, gtype='random-ring', plotting=plotting)

@@ -77,7 +77,7 @@ class Community(Graph):
         if min_comm * Nc > N:
             raise ValueError('GSP_COMMUNITY: The constraint on minimum size for communities is unsolvable.')
 
-        info = {'node_com': None, 'comm_sizes': None, 'com_coords': None,
+        info = {'node_com': None, 'comm_sizes': None, 'world_rad': None,
                 'world_density': world_density, 'min_comm': min_comm}
 
         # Communities construction #
@@ -91,22 +91,7 @@ class Community(Graph):
 
         counts = Counter(info['node_com'])
         info['comm_sizes'] = np.array(list(map(lambda counter: counter[1], sorted(counts.items()))))
-
-        # Coordinates association #
-        world_rad = size_ratio * np.sqrt(N)
-        info['com_coords'] = world_rad * np.array(list(zip(
-            np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
-            np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc))))
-
-        coords = np.random.rand(N, 2)  # nodes' coordinates inside the community
-        coords = np.array([[elem[0] * np.cos(2 * np.pi * elem[1]),
-                            elem[0] * np.sin(2 * np.pi * elem[1])] for elem in coords])
-
-        for i in range(N):
-            # set coordinates as an offset from the center of the community it belongs to
-            comm_idx = info['node_com'][i]
-            comm_rad = np.sqrt(info['comm_sizes'][comm_idx])
-            coords[i] = info['com_coords'][comm_idx] + comm_rad * coords[i]
+        info['world_rad'] = size_ratio * np.sqrt(N)
 
         # Intra-community edges construction #
         if comm_density:
@@ -206,5 +191,4 @@ class Community(Graph):
         for key, value in {'Nc': Nc, 'info': info}:
             setattr(self, key, value)
 
-        super(Community, self).__init__(W=W, coords=coords, gtype='Community',
-                                        info=self.info, **kwargs)
+        super(Community, self).__init__(W=W, gtype='Community', **kwargs)
