@@ -1,45 +1,58 @@
 # -*- coding: utf-8 -*-
 
 from pygsp.utils import build_logger
-from pygsp.graphs import gutils
+
 
 import numpy as np
 from scipy import sparse
-from copy import deepcopy
 
 
 class Graph(object):
     r"""
-    The main graph object
+    The main graph object.
 
-    It is used to initialize by default every missing field of the subgraphs
+    It is used to initialize by default every missing field of the subclass graphs.
     It can also be used alone to initialize customs graphs.
 
     Parameters
     ----------
-    W : sparse matrix or ndarray
-        Weights matrix (default is empty)
-    A : sparse adjacency matrix
-        default is constructed with W
-    N : int
-        Number of nodes. Default is the lenght of the first dimension of W.
-    d : float
-        Degree of the vertices
-    Ne : int
-        Edge numbers
+    W : sparse matrix or ndarray (data is float)
+        Weight matrix. Mandatory.
     gtype : string
         Graph type (default is "unknown")
-    directed : bool
-        Whether the graph is directed
-        (default depending of the previous values)
     lap_type : string
-        Laplacian type (default = 'combinatorial')
-    L : Ndarray
-        Laplacian matrix
+        Laplacian type (default is 'combinatorial')
     coords : ndarray
-        Coordinates of the vertices (default = np.array([0, 0]))
+        Coordinates of the vertices (default is None)
     plotting : dict
         Dictionnary containing the plotting parameters
+
+    Fields
+    ------
+    A graph contains the following fields:
+
+    N : the number of nodes (also called vertices sometimes) in the graph.
+        They represent the different points between which connections may occur.
+    Ne : the number of edges (also called links sometimes) in the graph.
+        They reprensent the actual connections between the nodes.
+    W : the weight matrix contains the weights of the connections.
+        It is represented as a NxN matrix of floats.
+        W_i,j = 0 means that there is no connection from i to j.
+    A : the adjacency matrix defines which edges exist on the graph.
+        It is represented as a NxN matrix of booleans. A_i,j is True if W_i,j > 0.
+    d : the degree vector of the vertices. It is represented as a Nx1 vector
+        counting the number of connections that each node possesses.
+    gtype : the graph type is a short description of the graph object.
+    directed : the flag to assess if the graph is directed or not.
+        In this framework, we consider that a graph is directed
+        if and only if its weight matrix is non symmetric.
+    L : the laplacian matrix. It is represented as a NxN matrix computed from W.
+    lap_type : the laplacian type determine which kind of laplacian to compute.
+        From a given matrix W, there exist several laplacians that could be computed.
+    coords : the coordinates of the vertices in the 2D or 3D space for plotting.
+    plotting : all the plotting parameters go here.
+        They depend on the library used for plotting.
+
 
     Examples
     --------
@@ -49,68 +62,50 @@ class Graph(object):
     >>> G = graphs.Graph(W)
 
     """
-
-    # All the parameters that needs calculation to be set
-    # or not needed are set to None
-    def __init__(self, W=None, A=None, N=None, d=None, Ne=None,
-                 gtype='unknown', directed=None, coords=None,
-                 lap_type='combinatorial', L=None,
-                 plotting={}, **kwargs):
+    def __init__(self, W, gtype='unknown', lap_type='combinatorial',
+                 coords=None, plotting={}, **kwargs):
 
         self.logger = build_logger(__name__, **kwargs)
 
+        shapes = np.shape(W)
+        if len(shapes) != 2 or shapes[0] != shapes[1]:
+            self.logger.error('W has incorrect shape {}'.format(shapes))
+
+        self.N = shapes[0]
+        self.W = sparse.lil_matrix(W)
+        self.A = self.W > 0
+
+        self.Ne = self.W.nnz
+        self.d = self.A.sum(axis=1)
         self.gtype = gtype
         self.lap_type = lap_type
 
-        if W is not None:
-            self.W = sparse.lil_matrix(W)
-        else:
-            self.W = sparse.lil_matrix(0)
-        if A is not None:
-            self.A = A
-        else:
-            self.A = sparse.lil_matrix(W > 0)
-        if N is not None:
-            self.N = N
-        else:
-            self.N = np.shape(self.W)[0]
-        if d is not None:
-            self.d = d
-        else:
-            self.d = self.W.sum()
-        if Ne is not None:
-            self.Ne = Ne
-        else:
-            self.Ne = self.W.nnz
-        if coords is not None:
+        self.is_directed()
+        self.create_laplacian()
+
+        if isinstance(coords, np.ndarray) and 2 <= len(np.shape(coords)) <= 3:
             self.coords = coords
         else:
-            self.coords = np.zeros((self.N, 2))
-        if directed:
-            self.directed = directed
-        else:
-            self.directed = gutils.is_directed(self.W)
-        if L is not None:
-            self.L = L
-        else:
-            self.L = gutils.create_laplacian(self)
+            self.coords = np.ndarray(None)
 
         # Plotting default parameters
-        self.plotting = {}
-        self.plotting['vertex_size'] = plotting.get('vertex_size', 10)
-        self.plotting['edge_width'] = plotting.get('edge_width', 1)
-        self.plotting['edge_style'] = plotting.get('edge_style', '-')
-        self.plotting['edge_color'] = plotting.get('edge_color', np.array([255, 88, 41])/255.)
-        self.plotting['vertex_color'] = plotting.get('vertex_color', 'b')
+        self.plotting = {'vertex_size': plotting.get('vertex_size', 10),
+                         'edge_width': plotting.get('edge_width', 1)
+                         'edge_style': plotting.get('edge_style', '-')
+                         'vertex_color': plotting.get('vertex_color', 'b')
+                         'edge_color': plotting.get('edge_color', np.array([255, 88, 41])/255.)}
+
+        if isinstance(plotting, dict):
+            self.plotting.update(plotting)
 
     def update_graph_attr(self, *args, **kwargs):
         r"""
-        update_graph_attr will recompute the some attribute of the graph:
+        Recompute some attribute of the graph.
 
         Parameters
         ----------
         args: list of string
-            the arguments, that will be not changed and not re-compute.
+            the arguments that will be not changed and not re-compute.
         kwargs: Dictionnary
             The arguments with their new value.
 
@@ -162,19 +157,6 @@ class Graph(object):
         else:
             super(type(self), self).__init__(**graph_attr)
 
-    def deep_copy_graph(self):
-        r"""
-        Create a deepcopy of a graph with all the attributes.
-
-        Examples
-        --------
-        >>> from pygsp import graphs
-        >>> G = graphs.Logo()
-        >>> Gcopy = G.deep_copy_graph()
-
-        """
-        return deepcopy(self)
-
     def copy_graph_attributes(self, Gn, ctype=True):
         r"""
         Copy some parameters of the graph into a given one.
@@ -211,26 +193,22 @@ class Graph(object):
 
         if hasattr(self, 'lap_type'):
             Gn.lap_type = self.lap_type
-            Gn.L = gutils.create_laplacian(Gn)
+            Gn.create_laplacian()
 
-    def separate_graph(self):
-        r"""Not implemented yet."""
-        raise NotImplementedError("Not implemented yet")
-
-    def subgraph(self, c):
+    def subgraph(self, ind):
         r"""
         Create a subgraph from G.
 
         Parameters
         ----------
-        G : graph
+        G : Graph
             Original graph
-        c : int
-            Node to keep
+        ind : list
+            Nodes to keep
 
         Returns
         -------
-        subG : graph
+        subG : Graph
             Subgraph
 
         Examples
@@ -239,19 +217,231 @@ class Graph(object):
         >>> import numpy as np
         >>> W = np.arange(16).reshape(4, 4)
         >>> G = graphs.Graph(W)
-        >>> c = 3
-        >>> subG = graphs.Graph.subgraph(G, c)
+        >>> ind = [3]
+        >>> subG = graphs.Graph.subgraph(G, ind)
 
-        This function create a subgraph from G taking only the node in c.
+        This function create a subgraph from G taking only the nodes in ind.
 
         """
+        if not isinstance(ind, list) and not isinstance(ind, np.ndarray):
+            raise TypeError('The indices must be a list or a ndarray.')
+
         sub_G = self
-        sub_G.W = self.W[c, c]
+        sub_G.W = self.W[np.ix_(ind, ind)]
+
+        print self.W
+
         try:
-            sub_G.N = len(c)
+            sub_G.N = len(ind)
         except TypeError:
             sub_G.N = 1
 
         sub_G.gtype = "sub-" + self.gtype
 
         return sub_G
+
+    def is_connected(self):
+        r"""
+        Function to check the strong connectivity of the input graph.
+
+        It uses DFS travelling on graph to ensure that each node is visited.
+        For undirected graphs, starting at any vertex and trying to access all others is enough.
+        For directed graphs, one needs to check that a random vertex is accessible by all others
+        and can access all others. Thus, we can transpose the adjacency matrix and compute again
+        with the same starting point in both phases.
+
+        Returns
+        -------
+        is_connected : bool
+            A bool value telling if the graph is connected
+
+        Examples
+        --------
+        >>> from scipy import sparse
+        >>> from pygsp import graphs
+        >>> W = sparse.rand(10, 10, 0.2)
+        >>> G = graphs.Graph(W=W)
+        >>> is_connected = G.is_connected()<
+
+        """
+        if not hasattr(self, 'directed'):
+            self.is_directed()
+
+        for adj_matrix in [self.A, self.A.T] if self.directed else [self.A]:
+            visited = np.zeros(self.N, dtype=bool)
+            stack = [0]
+
+            while len(stack):
+                v = stack.pop()
+                if not visited[v]:
+                    visited[v] = True
+                    # Add indices of nodes not visited yet and accessible from v
+                    stack.extend(filter(lambda idx: not visited[idx] and idx not in stack, adj_matrix[v, :].nonzero()[1]))
+
+            if not visited.all():
+                self.is_connected = False
+                return False
+
+        self.is_connected = True
+        return True
+
+    def is_directed(self):
+        r"""
+        Define if the graph has directed edges.
+
+        Notes
+        -----
+        Can also be used to check if a matrix is symmetrical
+
+        Examples
+        --------
+        >>> from scipy import sparse
+        >>> from pygsp import graphs
+        >>> W = sparse.rand(10, 10, 0.2)
+        >>> G = graphs.Graph(W=W)
+        >>> is_directed = G.is_directed()
+
+        """
+        if np.diff(np.shape(self.W))[0]:
+            raise ValueError("Matrix dimensions mismatch, expecting square matrix.")
+
+        is_dir = np.abs(self.W - self.W.T).sum() != 0
+
+        self.directed = is_dir
+
+    def compute_fourier_basis(self, smallest_first=True, force_recompute=False, **kwargs):
+        r"""
+        Compute the fourier basis of the graph.
+
+        Parameters
+        ----------
+        smallest_first: bool
+            Define the order of the eigenvalues.
+            Default is smallest first (True).
+        force_recompute: bool
+            Force to recompute the Fourier basis if already existing.
+
+        Note
+        ----
+        'G.compute_fourier_basis()' computes a full eigendecomposition of
+        the graph Laplacian G.L:
+
+        .. L = U Lambda U*
+
+        .. math:: {\cal L} = U \Lambda U^*
+
+        where $\Lambda$ is a diagonal matrix of the Laplacian eigenvalues.
+
+        *G.e* is a column vector of length *G.N* containing the Laplacian
+        eigenvalues. The largest eigenvalue is stored in *G.lmax*.
+        The eigenvectors are stored as column vectors of *G.U* in the same
+        order that the eigenvalues. Finally, the coherence of the
+        Fourier basis is in *G.mu*.
+
+        Example
+        -------
+        >>> from pygsp import graphs
+        >>> N = 50
+        >>> G = graphs.Sensor(N)
+        >>> G.compute_fourier_basis()
+
+        References
+        ----------
+        cite ´chung1997spectral´
+
+        """
+        if hasattr(self, 'e') or hasattr(self, 'U'):
+            if force_recompute:
+                logger.warning("This graph already has a Fourier basis. Recomputing.")
+            else:
+                logger.error("This graph already has a Fourier basis. Stopping.")
+                return
+
+        if self.N > 3000:
+            logger.warning("Performing full eigendecomposition of a large "
+                           "matrix may take some time.")
+
+        if not hasattr(self, 'L'):
+            raise AttributeError("Graph Laplacian is missing")
+
+        eigenvectors, eigenvalues, _ = sp.linalg.svd(self.L.todense())
+
+        inds = np.argsort(eigenvalues)
+        if not smallest_first:
+            inds = inds[::-1]
+
+        self.e = np.sort(eigenvalues)
+        self.lmax = np.max(self.e)
+        self.U = eigenvectors[:, inds]
+        self.mu = np.max(np.abs(self.U))
+
+    def create_laplacian(self, lap_type='combinatorial'):
+        r"""
+        Create a new graph laplacian.
+
+        Parameters
+        ----------
+        lap_type : string
+            The laplacian type to use. Default is "combinatorial".
+
+        """
+        if sp.shape(self.W) == (1, 1):
+            self.L = sparse.lil_matrix(0)
+            return
+
+        if lap_type in ['combinatorial', 'normalized', 'none']:
+            self.lap_type = lap_type
+        else:
+            raise AttributeError('Unknown laplacian type!')
+
+        if self.directed:
+            if lap_type == 'combinatorial':
+                L = 0.5*(sparse.diags(np.ravel(self.W.sum(0)), 0) + sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W - self.W.T).tocsc()
+            elif lap_type == 'normalized':
+                raise NotImplementedError('Yet. Ask Nathanael.')
+            elif lap_type == 'none':
+                L = sparse.lil_matrix(0)
+
+        else:
+            if lap_type == 'combinatorial':
+                L = (sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W).tocsc()
+            elif lap_type == 'normalized':
+                D = sparse.diags(np.ravel(np.power(self.W.sum(1), -0.5)), 0).tocsc()
+                L = sparse.identity(self.N) - D * self.W * D
+            elif lap_type == 'none':
+                L = sparse.lil_matrix(0)
+
+        self.L = L
+
+    def estimate_lmax(self, force_recompute):
+        r"""
+        Estimate the maximal eigenvalue.
+
+        Examples
+        --------
+        Just define a graph and apply the estimation on it.
+
+        >>> from pygsp import graphs
+        >>> import numpy as np
+        >>> W = np.arange(16).reshape(4, 4)
+        >>> G = graphs.Graph(W)
+        >>> G.estimate_lmax()
+
+        """
+        if hashattr(self, 'lmax'):
+            if force_recompute:
+                logger.error('Already computed lmax. Recomputing.')
+            else:
+                logger.error('Already computed lmax. Stopping.')
+                return
+
+        try:
+            lmax = sparse.linalg.eigs(self.L, k=1, tol=5e-3, ncv=10)[0]
+
+            # On robustness purposes, increasing the error by 1 percent
+            lmax *= 1.01
+        except ValueError:
+            logger.warning('GSP_ESTIMATE_LMAX: Cannot use default method.')
+            lmax = np.max(self.d)
+
+        self.lmax = np.real(lmax)
