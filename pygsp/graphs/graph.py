@@ -3,7 +3,7 @@
 from pygsp.utils import build_logger
 
 import numpy as np
-from scipy import sparse
+import scipy as sp
 
 from collections import Counter
 
@@ -73,7 +73,7 @@ class Graph(object):
             self.logger.error('W has incorrect shape {}'.format(shapes))
 
         self.N = shapes[0]
-        self.W = sparse.lil_matrix(W)
+        self.W = sp.sparse.lil_matrix(W)
         self.A = self.W > 0
 
         self.Ne = self.W.nnz
@@ -90,11 +90,8 @@ class Graph(object):
             self.coords = np.ndarray(None)
 
         # Plotting default parameters
-        self.plotting = {'vertex_size': plotting.get('vertex_size', 10),
-                         'edge_width': plotting.get('edge_width', 1)
-                         'edge_style': plotting.get('edge_style', '-')
-                         'vertex_color': plotting.get('vertex_color', 'b')
-                         'edge_color': plotting.get('edge_color', np.array([255, 88, 41])/255.)}
+        self.plotting = {'vertex_size': 10, 'edge_width': 1,
+                         'edge_style': '-', 'vertex_color': 'b'}
 
         if isinstance(plotting, dict):
             self.plotting.update(plotting)
@@ -458,8 +455,8 @@ class Graph(object):
             The laplacian type to use. Default is "combinatorial".
 
         """
-        if sp.shape(self.W) == (1, 1):
-            self.L = sparse.lil_matrix(0)
+        if np.shape(self.W) == (1, 1):
+            self.L = sp.sparse.lil_matrix(0)
             return
 
         if lap_type in ['combinatorial', 'normalized', 'none']:
@@ -469,26 +466,31 @@ class Graph(object):
 
         if self.directed:
             if lap_type == 'combinatorial':
-                L = 0.5*(sparse.diags(np.ravel(self.W.sum(0)), 0) + sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W - self.W.T).tocsc()
+                L = 0.5*(sp.sparse.diags(np.ravel(self.W.sum(0)), 0) + sp.sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W - self.W.T).tocsc()
             elif lap_type == 'normalized':
                 raise NotImplementedError('Yet. Ask Nathanael.')
             elif lap_type == 'none':
-                L = sparse.lil_matrix(0)
+                L = sp.sparse.lil_matrix(0)
 
         else:
             if lap_type == 'combinatorial':
-                L = (sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W).tocsc()
+                L = (sp.sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W).tocsc()
             elif lap_type == 'normalized':
-                D = sparse.diags(np.ravel(np.power(self.W.sum(1), -0.5)), 0).tocsc()
-                L = sparse.identity(self.N) - D * self.W * D
+                D = sp.sparse.diags(np.ravel(np.power(self.W.sum(1), -0.5)), 0).tocsc()
+                L = sp.sparse.identity(self.N) - D * self.W * D
             elif lap_type == 'none':
-                L = sparse.lil_matrix(0)
+                L = sp.sparse.lil_matrix(0)
 
         self.L = L
 
-    def estimate_lmax(self, force_recompute):
+    def estimate_lmax(self, force_recompute=False):
         r"""
         Estimate the maximal eigenvalue.
+
+        Parameters
+        ----------
+        force_recompute : boolean
+            Force to recompute the maximal eigenvalue. Default is false.
 
         Examples
         --------
@@ -501,7 +503,7 @@ class Graph(object):
         >>> G.estimate_lmax()
 
         """
-        if hashattr(self, 'lmax'):
+        if hasattr(self, 'lmax'):
             if force_recompute:
                 logger.error('Already computed lmax. Recomputing.')
             else:
@@ -509,7 +511,7 @@ class Graph(object):
                 return
 
         try:
-            lmax = sparse.linalg.eigs(self.L, k=1, tol=5e-3, ncv=10)[0]
+            lmax = sp.sparse.linalg.eigs(self.L, k=1, tol=5e-3, ncv=10)[0]
 
             # On robustness purposes, increasing the error by 1 percent
             lmax *= 1.01

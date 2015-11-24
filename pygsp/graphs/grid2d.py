@@ -64,7 +64,7 @@ class Grid2d(Graph):
 
         self.Nv = Nv
         self.Mv = Mv
-        plotting = {"vertex_size": 30
+        plotting = {"vertex_size": 30,
                     "limits": np.array([-1./self.Nv, 1 + 1./self.Nv,
                                         1./self.Mv, 1 + 1./self.Mv])}
 

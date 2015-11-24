@@ -19,7 +19,7 @@ class LowStretchTree(Graph):
     --------
     >>> from pygsp import graphs, plotting
     >>> G = graphs.LowStretchTree(k=3)
-    >>> plotting.plot_graph(G)
+    >>> G.plot()
     """
 
     def __init__(self, k=6, **kwargs):
