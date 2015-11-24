@@ -2,7 +2,6 @@
 
 from . import Graph
 from pygsp.utils import build_logger
-from pygsp.graphs.gutils import check_connectivity
 
 import numpy as np
 from scipy import sparse
@@ -27,6 +26,7 @@ class ErdosRenyi(Graph):
     param :
         Structure of optional parameter
         connected - flag to force the graph to be connected. By default, it is False.
+        directed - define if the graph is directed. By default, it is False.
         max_iter - is the maximum number of try to connect the graph. By default, it is 10.
 
     Examples
@@ -37,35 +37,38 @@ class ErdosRenyi(Graph):
     """
 
     def __init__(self, N=100, p=0.1, **kwargs):
-        self.N = N
         self.p = p
 
-        connected = bool(kwargs.pop('connected', False))
+        need_connected = bool(kwargs.pop('connected', False))
+        directed = bool(kwargs.pop('directed', False))
         max_iter = int(kwargs.pop('max_iter', 10))
 
-        self.gtype = u"Erdös Renyi"
-
         if p > 1:
-            raise ValueError("GSP_ErdosRenyi: The probability p \
-                              cannot be above 1.")
+            raise ValueError("GSP_ErdosRenyi: The probability p "
+                             "cannot be above 1.")
         elif p < 0:
-            raise ValueError("GSP_ErdosRenyi: The probability p \
-                              cannot be negative.")
+            raise ValueError("GSP_ErdosRenyi: The probability p "
+                             "cannot be negative.")
 
-        is_connected = False
-        M = self.N * (self.N-1) / 2
-        nb_elem = int(self.p * M)
+        M = N * (N-1) if directed else N * (N-1) / 2
+        nb_elem = int(p * M)
 
         for i in range(max_iter):
-            if is_connected:
+            indices = np.random.permutation(M)[:nb_elem]
+
+            if directed:
+                all_ind = np.tril_indices(N, N-1)
+                non_diag = tuple(map(lambda dim: dim[condlist], all_ind))
+                indices = tuple(map(lambda coord: coord[indices], non_diag))
+            else:
+                indices = tuple(map(lambda coord: coord[indices], np.tril_indices(N, -1)))
+
+            matrix = sparse.csr_matrix((np.ones(nb_elem), indices), shape=(N, N))
+            self.W = matrix if directed else matrix + matrix.T
+            self.A = self.W > 0
+            is_connected = self.is_connected()
+
+            if not need_connected or is_connected:
                 break
 
-            indices = np.random.permutation(M)[:nb_elem]
-            indices = tuple(map(lambda coord: coord[indices], np.tril_indices(self.N, -1)))
-            matrix = sparse.csr_matrix((np.ones(nb_elem), indices), shape=(self.N, self.N))
-            self.W = matrix + matrix.T
-            self.A = sparse.lil_matrix(self.W > 0)
-            is_connected = check_connectivity(self)
-
-        super(ErdosRenyi, self).__init__(W=self.W, gtype=kwargs.pop('gtype', self.gtype),
-                                         **kwargs)
+        super(ErdosRenyi, self).__init__(W=self.W, gtype=u"Erdös Renyi", **kwargs)

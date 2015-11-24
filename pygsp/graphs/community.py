@@ -201,10 +201,10 @@ class Community(Graph):
         w_data[1][1] += tmp_w_data
         w_data[1] = tuple(w_data[1])
 
-        params = {'gtype': 'Community', 'coords': coords, 'N': N, 'Nc': Nc,
-                  'info': info, 'W': sparse.coo_matrix(tuple(w_data), shape=(N, N))}
-        for (key, value) in params.items():
+        W = sparse.coo_matrix(tuple(w_data), shape=(N, N))
+
+        for key, value in {'Nc': Nc, 'info': info}:
             setattr(self, key, value)
 
-        super(Community, self).__init__(W=self.W, gtype=self.gtype,
-                                        coords=self.coords, info=self.info, **kwargs)
+        super(Community, self).__init__(W=W, coords=coords, gtype='Community',
+                                        info=self.info, **kwargs)

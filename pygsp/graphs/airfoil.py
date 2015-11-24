@@ -18,7 +18,7 @@ class Airfoil(Graph):
 
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
 
         airfoil = PointsCloud("airfoil")
         i_inds = airfoil.i_inds
@@ -28,16 +28,12 @@ class Airfoil(Graph):
                               (np.reshape(i_inds - 1, (12289)),
                                np.reshape(j_inds - 1, (12289)))),
                               shape=(4253, 4253))
-        self.W = (A + A.getH())/2.
+        W = (A + A.T) / 2.
 
-        x = airfoil.x
-        y = airfoil.y
+        plotting = {"vertex_size": 30,
+                    "limits": np.array([-1e-4, 1.01*np.max(airfoil.x),
+                                        -1e-4, 1.01*np.max(airfoil.y)])}
 
-        self.coords = airfoil.coords
-        self.gtype = 'Airfoil'
-        self.plotting = {"limits": np.array([-1e-4, 1.01*np.max(x),
-                                             -1e-4, 1.01*np.max(y)]),
-                         "vertex_size": 30}
-
-        super(Airfoil, self).__init__(W=self.W, coords=self.coords,
-                                      plotting=self.plotting, gtype=self.gtype)
+        super(Airfoil, self).__init__(W=W, coords=airfoil.coords,
+                                      plotting=plotting, gtype='Airfoil',
+                                      **kwargs)

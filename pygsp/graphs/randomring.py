@@ -36,17 +36,13 @@ class RandomRing(Graph):
         W = W.tolil()
         W[N - 1, 0] = weightend
 
-        self.W = W + W.getH()
+        W = W + W.T
 
-        self.coords = np.concatenate((np.cos(position*2*np.pi)[:, np.newaxis],
-                                      np.sin(position*2*np.pi)[:, np.newaxis]),
-                                     axis=1)
+        coords = np.concatenate((np.cos(position * 2 * np.pi)[:, np.newaxis],
+                                 np.sin(position * 2 * np.pi)[:, np.newaxis]),
+                                axis=1)
 
-        self.N = N
-        self.limits = np.array([-1, 1, -1, 1])
-        self.gtype = 'random-ring'
+        plotting = {'limits': np.array([-1, 1, -1, 1])}
 
-        super(RandomRing, self).__init__(N=self.N, W=self.W,
-                                         gtype=self.gtype,
-                                         coords=self.coords,
-                                         limits=self.limits)
+        super(RandomRing, self).__init__(W=self.W, gtype='random-ring',
+                                         coords=coords, plotting=plotting)

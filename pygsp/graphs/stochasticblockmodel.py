@@ -53,7 +53,7 @@ class StochasticBlockModel(Graph):
                 p = np.array(p)
 
             if p.shape != (k, ):
-                raise ValueError("Optional parameter p is neither a scalar nor a vector of size k.")
+                raise ValueError('Optional parameter p is neither a scalar nor a vector of size k.')
 
             q = kwargs.pop('q', 0.3/k)
             if isinstance(q, float):
@@ -62,7 +62,7 @@ class StochasticBlockModel(Graph):
                 q = np.array(q)
 
             if q.shape != (k, k):
-                raise ValueError("Optional parameter q is neither a scalar nor a matrix of size kxk.")
+                raise ValueError('Optional parameter q is neither a scalar nor a matrix of size kxk.')
 
             M = q
             M.flat[::k+1] = p  # edit the diagonal terms
@@ -86,7 +86,6 @@ class StochasticBlockModel(Graph):
 
         if undirected:
             W = W + W.T
-        self.W = W
 
         info = {'node_com': z, 'comm_sizes': np.bincount(z), 'com_coords': None}
 
@@ -107,6 +106,6 @@ class StochasticBlockModel(Graph):
             coords[i] = info['com_coords'][comm_idx] + comm_rad * coords[i]
 
         self.info = info
-        self.coords = coords
 
-        super(StochasticBlockModel, self).__init__(W=self.W, gtype=kwargs.pop('gtype', 'StochasticBlockModel'), coords=self.coords, **kwargs)
+        super(StochasticBlockModel, self).__init__(gtype='StochasticBlockModel',
+                                                   W=W, coords=coords, **kwargs)

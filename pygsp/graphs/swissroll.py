@@ -40,43 +40,41 @@ class SwissRoll(Graph):
 
     def __init__(self, N=400, a=1, b=4, dim=3, thresh=1e-6, s=None,
                  noise=False, srtype='uniform'):
-        self.dim = dim
-        self.N = N
+
         if s is None:
             s = sqrt(2./N)
 
         y1 = np.random.rand(N)
         y2 = np.random.rand(N)
+
         if srtype == 'uniform':
             tt = np.sqrt((b * b - a * a) * y1 + a * a)
         elif srtype == 'classic':
             tt = (b - a) * y1 + a
-        self.gtype = 'swiss roll' + srtype
         tt *= pi
-        h = 21 * y2
+
         if dim == 2:
             x = np.array((tt*np.cos(tt), tt * np.sin(tt)))
         elif dim == 3:
-            x = np.array((tt*np.cos(tt), h, tt * np.sin(tt)))
+            x = np.array((tt*np.cos(tt), 21 * y2, tt * np.sin(tt)))
 
         if noise:
             x += np.random.randn(*x.shape)
 
         self.x = x
+        self.dim = dim
 
-        self.limits = np.array([-1, 1, -1, 1, -1, 1])
-
-        coords = self.rescale_center(x)
         dist = distanz(coords)
         W = np.exp(-np.power(dist, 2) / (2. * s**2))
         W -= np.diag(np.diag(W))
-        W = np.where(W < thresh, 0, W)
+        W[W < thresh] = 0
 
-        self.W = W
+        coords = self.rescale_center(x)
+        plotting = {'limits': np.array([-1, 1, -1, 1, -1, 1])}
+        gtype = 'swiss roll {}'.format(srtype)
 
-        self.coords = coords.T
-        super(SwissRoll, self).__init__(W=self.W, coords=self.coords,
-                                        limits=self.limits, gtype=self.gtype)
+        super(SwissRoll, self).__init__(W=W, coords=coords.T,
+                                        plotting=plotting, gtype=gtype)
 
     def rescale_center(self, x):
         r"""
