@@ -4,6 +4,7 @@ from pygsp.utils import build_logger
 
 import numpy as np
 import scipy as sp
+from scipy import sparse
 
 from collections import Counter
 
@@ -73,7 +74,7 @@ class Graph(object):
             self.logger.error('W has incorrect shape {}'.format(shapes))
 
         self.N = shapes[0]
-        self.W = sp.sparse.lil_matrix(W)
+        self.W = sparse.lil_matrix(W)
         self.A = self.W > 0
 
         self.Ne = self.W.nnz
@@ -81,7 +82,7 @@ class Graph(object):
         self.gtype = gtype
         self.lap_type = lap_type
 
-        self.is_directed()
+        self.is_connected()
         self.create_laplacian(lap_type)
 
         if isinstance(coords, np.ndarray) and 2 <= len(np.shape(coords)) <= 3:
@@ -247,7 +248,7 @@ class Graph(object):
 
             if 'comm_sizes' not in self.info:
                 counts = Counter(self.info['node_com'])
-                self.info['comm_sizes'] = np.array(list(map(lambda counter: counter[1], sorted(counts.items()))))
+                self.info['comm_sizes'] = np.array([cnt[1] for cnt in sorted(counts.items())])
 
             Nc = self.info['comm_sizes'].shape[0]
 
@@ -299,8 +300,6 @@ class Graph(object):
         sub_G = self
         sub_G.W = self.W[np.ix_(ind, ind)]
 
-        print self.W
-
         try:
             sub_G.N = len(ind)
         except TypeError:
@@ -322,7 +321,7 @@ class Graph(object):
 
         Returns
         -------
-        is_connected : bool
+        connected : bool
             A bool value telling if the graph is connected
 
         Examples
@@ -331,28 +330,29 @@ class Graph(object):
         >>> from pygsp import graphs
         >>> W = sparse.rand(10, 10, 0.2)
         >>> G = graphs.Graph(W=W)
-        >>> is_connected = G.is_connected()<
+        >>> connected = G.is_connected()
 
         """
         if not hasattr(self, 'directed'):
             self.is_directed()
 
         for adj_matrix in [self.A, self.A.T] if self.directed else [self.A]:
-            visited = np.zeros(self.N, dtype=bool)
+            visited = np.zeros(self.A.shape[0], dtype=bool)
             stack = [0]
 
             while len(stack):
                 v = stack.pop()
                 if not visited[v]:
                     visited[v] = True
+
                     # Add indices of nodes not visited yet and accessible from v
-                    stack.extend(filter(lambda idx: not visited[idx] and idx not in stack, adj_matrix[v, :].nonzero()[1]))
+                    stack.extend(list(filter(lambda idx: not visited[idx] and idx not in stack, adj_matrix[v, :].nonzero()[1])))
 
             if not visited.all():
-                self.is_connected = False
+                self.connected = False
                 return False
 
-        self.is_connected = True
+        self.connected = True
         return True
 
     def is_directed(self):
@@ -369,7 +369,7 @@ class Graph(object):
         >>> from pygsp import graphs
         >>> W = sparse.rand(10, 10, 0.2)
         >>> G = graphs.Graph(W=W)
-        >>> is_directed = G.is_directed()
+        >>> directed = G.is_directed()
 
         """
         if np.diff(np.shape(self.W))[0]:
@@ -422,13 +422,13 @@ class Graph(object):
         """
         if hasattr(self, 'e') or hasattr(self, 'U'):
             if force_recompute:
-                logger.warning("This graph already has a Fourier basis. Recomputing.")
+                self.logger.warning("This graph already has a Fourier basis. Recomputing.")
             else:
-                logger.error("This graph already has a Fourier basis. Stopping.")
+                self.logger.error("This graph already has a Fourier basis. Stopping.")
                 return
 
         if self.N > 3000:
-            logger.warning("Performing full eigendecomposition of a large "
+            self.logger.warning("Performing full eigendecomposition of a large "
                            "matrix may take some time.")
 
         if not hasattr(self, 'L'):
@@ -456,7 +456,7 @@ class Graph(object):
 
         """
         if np.shape(self.W) == (1, 1):
-            self.L = sp.sparse.lil_matrix(0)
+            self.L = sparse.lil_matrix(0)
             return
 
         if lap_type in ['combinatorial', 'normalized', 'none']:
@@ -466,20 +466,20 @@ class Graph(object):
 
         if self.directed:
             if lap_type == 'combinatorial':
-                L = 0.5*(sp.sparse.diags(np.ravel(self.W.sum(0)), 0) + sp.sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W - self.W.T).tocsc()
+                L = 0.5*(sparse.diags(np.ravel(self.W.sum(0)), 0) + sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W - self.W.T).tocsc()
             elif lap_type == 'normalized':
                 raise NotImplementedError('Yet. Ask Nathanael.')
             elif lap_type == 'none':
-                L = sp.sparse.lil_matrix(0)
+                L = sparse.lil_matrix(0)
 
         else:
             if lap_type == 'combinatorial':
-                L = (sp.sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W).tocsc()
+                L = (sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W).tocsc()
             elif lap_type == 'normalized':
-                D = sp.sparse.diags(np.ravel(np.power(self.W.sum(1), -0.5)), 0).tocsc()
-                L = sp.sparse.identity(self.N) - D * self.W * D
+                D = sparse.diags(np.ravel(np.power(self.W.sum(1), -0.5)), 0).tocsc()
+                L = sparse.identity(self.N) - D * self.W * D
             elif lap_type == 'none':
-                L = sp.sparse.lil_matrix(0)
+                L = sparse.lil_matrix(0)
 
         self.L = L
 
@@ -505,18 +505,17 @@ class Graph(object):
         """
         if hasattr(self, 'lmax'):
             if force_recompute:
-                logger.error('Already computed lmax. Recomputing.')
+                self.logger.error('Already computed lmax. Recomputing.')
             else:
-                logger.error('Already computed lmax. Stopping.')
+                self.logger.error('Already computed lmax. Stopping.')
                 return
 
         try:
-            lmax = sp.sparse.linalg.eigs(self.L, k=1, tol=5e-3, ncv=10)[0]
-
             # On robustness purposes, increasing the error by 1 percent
-            lmax *= 1.01
-        except ValueError:
-            logger.warning('GSP_ESTIMATE_LMAX: Cannot use default method.')
+            lmax = 1.01 * sparse.linalg.eigs(self.L, k=1, tol=5e-3, ncv=10)[0][0]
+
+        except sparse.linalg.ArpackNoConvergence:
+            self.logger.warning('GSP_ESTIMATE_LMAX: Cannot use default method.')
             lmax = np.max(self.d)
 
         self.lmax = np.real(lmax)

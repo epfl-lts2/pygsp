@@ -148,7 +148,7 @@ def gft(G, f):
     else:
         U = G
 
-    return np.dot(U.getH(), f)  # True Hermitian here.
+    return np.dot(np.conjugate(U.T), f)  # True Hermitian here.
 
 
 def igft(G, f_hat):

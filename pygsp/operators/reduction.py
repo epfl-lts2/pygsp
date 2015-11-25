@@ -325,7 +325,7 @@ def pyramid_analysis(Gs, f, filters=None, **kwargs):
         elif len(filters) != Nlevels:
             raise ValueError('The number of filters must be one or equal to Nlevels.')
     else:
-        filters = map(lambda idx: Gs[idx + 1].pyramid['filters'], range(Nlevels))
+        filters = [Gs[idx + 1].pyramid['filters'] for idx in range(Nlevels)]
 
     # ca = [np.ravel(f)]
     ca = [f]

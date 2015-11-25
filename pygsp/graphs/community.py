@@ -90,7 +90,7 @@ class Community(Graph):
             info['node_com'] = np.concatenate([[val] * cnt for (val, cnt) in enumerate(comm_sizes)])
 
         counts = Counter(info['node_com'])
-        info['comm_sizes'] = np.array(list(map(lambda counter: counter[1], sorted(counts.items()))))
+        info['comm_sizes'] = np.array([cnt[1] for cnt in sorted(counts.items())])
         info['world_rad'] = size_ratio * np.sqrt(N)
 
         # Intra-community edges construction #

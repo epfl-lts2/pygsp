@@ -106,7 +106,7 @@ class Filter(object):
                                  'it for you.')
                 self.G.estimate_lmax()
 
-            cheb_coef = fast_filtering.compute_cheby_coeff(self, self.G, m=cheb_order)
+            cheb_coef = fast_filtering.compute_cheby_coeff(self, m=cheb_order)
             c = fast_filtering.cheby_op(self.G, cheb_coef, s)
 
         elif method == 'lanczos':
@@ -217,8 +217,7 @@ class Filter(object):
                                  'The function will compute it for you.')
                 self.G.estimate_lmax()
 
-            cheb_coeffs = operator.compute_cheby_coeff(self, self.G, m=order,
-                                                       N=order + 1)
+            cheb_coeffs = operator.compute_cheby_coeff(self, m=order, N=order + 1)
             s = np.zeros((N, np.shape(c)[1]))
             tmpN = np.arange(N, dtype=int)
 
@@ -362,11 +361,11 @@ class Filter(object):
 
         return gdual
 
-    def plot(self):
+    def plot(self, **kwargs):
         r"""
         Plot the filter.
 
         See plotting doc.
         """
         from pygsp import plotting
-        plotting.plot_filter(self)
+        plotting.plot_filter(self, **kwargs)

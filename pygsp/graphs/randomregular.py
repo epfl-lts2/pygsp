@@ -130,7 +130,7 @@ class RandomRegular(Graph):
         while np.size(U) and repetition < matIter:
             edgesTested += 1
 
-            # print progess
+            # print(progess)
             if edgesTested % 5000 == 0:
                 self.logger.debug("createRandRegGraph() progress: edges= "
                                   "{}/{}.".format(edgesTested, n*d/2))

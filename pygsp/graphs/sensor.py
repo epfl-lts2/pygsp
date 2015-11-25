@@ -85,6 +85,7 @@ class Sensor(Graph):
             W = np.where(W < T, 0, W)
             W = np.where(W2 > 0, W2, W)
 
+        W = sparse.csc_matrix(W)
         return W, coords
 
     def __init__(self, N=64, Nc=2, regular=False, n_try=50,
@@ -94,9 +95,8 @@ class Sensor(Graph):
         self.regular = regular
         self.n_try = n_try
         self.distribute = distribute
-        self.connected = connected
 
-        if self.connected:
+        if connected:
             for x in range(self.n_try):
                 W, coords = self.create_weight_matrix(N, distribute,
                                                       regular, Nc)

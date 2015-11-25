@@ -6,7 +6,7 @@ In this demonstration file, we show how to reduce a graph using the GSPBox. Then
 To start open a python shell (IPython is recommended here) and import the required packages. You would probably also import numpy as you will need it to create matrices and arrays.
 
 >>> import numpy as np
->>> from pygsp.graphs import Sensor, compute_fourier_basis, estimate_lmax
+>>> from pygsp.graphs import Sensor
 >>> from pygsp.operators import kron_pyramid, pyramid_cell2coeff, pyramid_analysis, pyramid_synthesis
 
 For this demo we will be using a Sensor graph with 512 nodes.
@@ -18,8 +18,8 @@ The function kron_pyramid computes the graph pyramid for you:
 >>> Gs = kron_pyramid(G, 5, epsilon=0.1, sparsify=False)
 
 Next, we will compute the fourier basis of our different graph layers:
->>> compute_fourier_basis(Gs)
->>> estimate_lmax(Gs)
+>>> Gs.compute_fourier_basis()
+>>> Gs.estimate_lmax()
 
 >>> f = np.ones((G.N))
 >>> f[np.arange(G.N/2)] = -1

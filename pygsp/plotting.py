@@ -77,9 +77,9 @@ def plot(O, default_qtg=True, **kwargs):
     >>> from pygsp import graphs, plotting
     >>> G = graphs.Logo()
     >>> try:
-    ...     plotting.plot(G)
+    ...     plotting.plot(G, default_qtg=False)
     ... except Exception as e:
-    ...     print e
+    ...     print(e)
 
     """
     from graphs import Graph
@@ -108,6 +108,9 @@ def plot_graph(G, default_qtg=True, **kwargs):
     Parameters
     ----------
     G : Graph
+        Graph object to plot
+    show_edges : boolean
+        Set to False to only draw the vertices (default G.Ne < 10000).
     default_qtg: boolean
         Define the library to use if both are installed.
         Default is pyqtgraph (field=True).
@@ -117,9 +120,9 @@ def plot_graph(G, default_qtg=True, **kwargs):
     >>> from pygsp import graphs, plotting
     >>> G = graphs.Logo()
     >>> try:
-    ...     plotting.plot_graph(G)
+    ...     plotting.plot_graph(G, default_qtg=False)
     ... except Exception as e:
-    ...     print e
+    ...     print(e)
 
     """
     if qtg_import and (default_qtg or not plt_import):
@@ -135,27 +138,15 @@ def plt_plot_graph(G, savefig=False, show_edges=None, plot_name=''):
     r"""
     Plot a graph or an array of graphs with matplotlib.
 
-    Parameters
+    See plot_graph for full documentation.
+
+    Extra args
     ----------
-    G : Graph
-        Graph object to plot
-    show_edges : boolean
-        Set to False to only draw the vertices (default G.Ne < 10000).
     savefig : boolean
         Determine wether the plot is saved as a PNG file in your\
         current directory (True) or shown in a window (False) (default False).
     plot_name : str
         To give custom names to plots
-
-    Examples
-    --------
-
-    >>> from pygsp import plotting, graphs
-    >>> G = graphs.Logo()
-    >>> try:
-    ...     plotting.plt_plot_graph(G)
-    ... except:
-    ...     pass
 
     """
     # TODO handling when G is a list of graphs
@@ -264,20 +255,7 @@ def pg_plot_graph(G, show_edges=None):
     r"""
     Plot a graph or an array of graphs.
 
-    Parameters
-    ----------
-    G : Graph
-        Graph object to plot
-
-    Examples
-    --------
-    >>> from pygsp import plotting, graphs
-    >>> G = graphs.Logo()
-    >>> try:
-    ...     plotting.pg_plot_graph(G)
-    ... except:
-    ...     pass
-
+    See plot_graph for full documentation.
 
     """
     # TODO handling when G is a list of graphs
@@ -307,8 +285,8 @@ def pg_plot_graph(G, show_edges=None):
 
             extra_args = {}
             if isinstance(G.plotting['vertex_color'], list):
-                extra_args['symbolPen'] = map(lambda v_col: pg.mkPen(v_col), G.plotting['vertex_color'])
-                extra_args['brush'] = map(lambda v_col: pg.mkBrush(v_col), G.plotting['vertex_color'])
+                extra_args['symbolPen'] = [pg.mkPen(v_col) for v_col in G.plotting['vertex_color']]
+                extra_args['brush'] = [pg.mkBrush(v_col) for v_col in G.plotting['vertex_color']]
             elif isinstance(G.plotting['vertex_color'], int):
                 extra_args['symbolPen'] = G.plotting['vertex_color']
                 extra_args['brush'] = G.plotting['vertex_color']
@@ -362,7 +340,7 @@ def pg_plot_graph(G, show_edges=None):
             extra_args = {'color': (1., 0., 0., 1)}
             if 'vertex_color' in G.plotting:
                 if isinstance(G.plotting['vertex_color'], list):
-                    extra_args['color'] = np.array(map(lambda v_col: pg.glColor(pg.mkPen(v_col).color()), G.plotting['vertex_color']))
+                    extra_args['color'] = np.array([pg.glColor(pg.mkPen(v_col).color()) for v_col in  G.plotting['vertex_color']])
                 elif isinstance(G.plotting['vertex_color'], int):
                     extra_args['color'] = pg.glColor(pg.mkPen(G.plotting['vertex_color']).color())
                 else:
@@ -547,7 +525,7 @@ def plot_signal(G, signal, default_qtg=True, **kwargs):
     >>> G = graphs.Ring(15)
     >>> signal = np.sin((np.arange(1, 16)*2*np.pi/15))
     >>> try:
-    ...     plotting.plot_signal(G, signal)
+    ...     plotting.plot_signal(G, signal, default_qtg=False)
     ... except:
     ...     pass
 
@@ -710,8 +688,7 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     mininum = min(signal)
     maximum = max(signal)
 
-    normalized_signal = map(lambda x: (float(x) - mininum) /
-                            (maximum - mininum), signal)
+    normalized_signal = [(float(x) - mininum) / (maximum - mininum) for x in signal]
 
     if G.coords.shape[1] == 2:
         gp = pg.ScatterPlotItem(G.coords[:, 0],
