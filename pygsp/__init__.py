@@ -28,6 +28,6 @@ assert data_handling
 assert optimization
 assert plotting
 
-__version__ = '0.2.1'
+__version__ = '0.3.0'
 __email__ = 'LTS2Graph@groupes.epfl.ch'
-__release_date__ = '2015-10-14'
+__release_date__ = '2015-12-01'
