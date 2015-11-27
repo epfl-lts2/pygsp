@@ -256,11 +256,11 @@ class Graph(object):
                 np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
                 np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc))))
 
-            coords = np.random.rand(N, 2)  # nodes' coordinates inside the community
+            coords = np.random.rand(self.N, 2)  # nodes' coordinates inside the community
             self.coords = np.array([[elem[0] * np.cos(2 * np.pi * elem[1]),
                                 elem[0] * np.sin(2 * np.pi * elem[1])] for elem in coords])
 
-            for i in range(N):
+            for i in range(self.N):
                 # set coordinates as an offset from the center of the community it belongs to
                 comm_idx = self.info['node_com'][i]
                 comm_rad = np.sqrt(self.info['comm_sizes'][comm_idx])

@@ -108,3 +108,8 @@ Authors
 * Alexandre Lafaye <alexandre.lafaye@epfl.ch>,
 * Lionel Martin <lionel.martin@epfl.ch>,
 * Nicolas Rod <nicolas.rod@epfl.ch>
+
+Acknowledgment
+--------------
+
+This project has been partly funded by the Swiss National Science Foundation under grant 200021_154350 "Towards Signal Processing on Graphs".

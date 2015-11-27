@@ -90,7 +90,7 @@ class FunctionsTestCase(unittest.TestCase):
 
         def test_estimate_lmax(G, lmax):
             G.estimate_lmax()
-            self.assertTrue(lmax <= G.lmax <= 1.01 * lmax)
+            self.assertTrue(lmax <= G.lmax and G.lmax <= 1.02 * lmax)
 
         def test_check_weights(G, w_c):
             self.assertEqual(graphs.gutils.check_weights(G.W), w_c)

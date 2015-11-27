@@ -11,6 +11,8 @@ Refactoring graphs using object programming and fail safe checks.
 
 Refactoring filters to use only the Graph object used at the construction of the filter for all operations.
 
+Refactoring Graph pyramid to match MATLAB implementation.
+
 Removal of default coordinates (all vertices on the origin) for graphs that do not possess spatial meaning.
 
 Correction of minor issues on Python3+ imports.
