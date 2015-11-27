@@ -239,7 +239,7 @@ def graph_multiresolution(G, levels, **kwargs):
     for i in range(levels):
         if downsampling_method == 'largest_eigenvector':
             if hasattr(Gs[i], 'U'):
-                V = Gs[i].U[:, Gs[i].N]
+                V = Gs[i].U[:, -1]
             else:
                 V = eigs(Gs[i].L, 1)[1][:, 0]
 

@@ -12,6 +12,7 @@ To start open a python shell (IPython is recommended here) and import the requir
 For this demo we will be using a Sensor graph with 512 nodes.
 
 >>> G = Sensor(512, distribute=True)
+>>> G.compute_fourier_basis()
 
 The function graph_multiresolution computes the graph pyramid for you:
 
