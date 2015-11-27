@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from pygsp.graphs.gutils import compute_fourier_basis
-from pygsp.utils import build_logger
-from pygsp.operators import operator
 from pygsp import data_handling
+from pygsp.operators import operator
+from pygsp.utils import build_logger
 
 import numpy as np
 
@@ -22,8 +21,7 @@ def generalized_wft(G, g, f, lowmemory=True):
     f : ndarray
         Graph signal
     lowmemory : bool
-        use less memory
-        Default is True
+        use less memory (default=True)
 
     Returns
     -------
@@ -34,14 +32,13 @@ def generalized_wft(G, g, f, lowmemory=True):
     Nf = np.shape(f)[1]
 
     if not hasattr(G, 'U'):
-        logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
-        compute_fourier_basis(G)
+        logger.info('Analysis filter has to compute the eigenvalues and the eigenvectors.')
+        G.compute_fourier_basis()
 
-    # if iscell(g)
-    #    g = gsp_igft(G,g{1}(G.e))
-
-    if hasattr(g, 'function_handle'):
-        g = operator.igft(G, g.g[0](G.e))
+    if isinstance(g, list):
+        g = operator.igft(G, g[0](G.e))
+    elif hasattr(g, '__call__'):
+        g = operator.igft(G, g(G.e))
 
     if not lowmemory:
         # Compute the Frame into a big matrix
@@ -53,7 +50,7 @@ def generalized_wft(G, g, f, lowmemory=True):
     else:
         # Compute the translate of g
         ghat = np.dot(G.U.T, g)
-        Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.T))
+        Ftrans = np.sqrt(G.N) * np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.T))
         C = np.zeros((G.N, G.N))
 
         for j in range(Nf):
@@ -83,10 +80,10 @@ def gabor_wft(G, f, k):
 
     if not hasattr(G, 'e'):
         logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
-        compute_fourier_basis(G)
+        G.compute_fourier_basis()
     g = Gabor(G, k)
 
-    C = g.analysis(G, f)
+    C = g.analysis(f)
     C = data_handling.vec2mat(C, G.N).T
 
     return C
@@ -139,7 +136,7 @@ def ngwft(G, f, g, lowmemory=True):
 
     if not hasattr(G, 'U'):
         logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
-        compute_fourier_basis(G)
+        G.compute_fourier_basis()
 
     if lowmemory:
         # Compute the Frame into a big matrix

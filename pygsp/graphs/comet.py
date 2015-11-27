@@ -34,9 +34,8 @@ class Comet(Graph):
                                  np.arange(k + 1, Nv),
                                  np.arange(k, Nv - 1)))
 
-        self.W = sparse.csc_matrix((np.ones((np.size(i_inds))),
-                                    (i_inds, j_inds)),
-                                   shape=(Nv, Nv))
+        W = sparse.csc_matrix((np.ones(np.size(i_inds)), (i_inds, j_inds)),
+                              shape=(Nv, Nv))
 
         tmpcoords = np.zeros((Nv, 2))
         inds = np.arange(k) + 1
@@ -44,14 +43,12 @@ class Comet(Graph):
         tmpcoords[1:k + 1, 1] = np.sin(inds*2*np.pi/k)
         tmpcoords[k + 1:, 0] = np.arange(1, Nv - k) + 1
 
-        self.coords = tmpcoords
         self.Nv = Nv
         self.k = k
-        self.gtype = 'Comet'
-        self.plotting = {"limits": np.array([-2, np.max(tmpcoords[:, 0]),
-                                             np.min(tmpcoords[:, 1]),
-                                             np.max(tmpcoords[:, 1])])}
+        plotting = {"limits": np.array([-2,
+                                        np.max(tmpcoords[:, 0]),
+                                        np.min(tmpcoords[:, 1]),
+                                        np.max(tmpcoords[:, 1])])}
 
-        super(Comet, self).__init__(W=self.W, coords=self.coords,
-                                    plotting=self.plotting,
-                                    gtype=self.gtype, **kwargs)
+        super(Comet, self).__init__(W=W, coords=tmpcoords, gtype='Comet',
+                                    plotting=plotting, **kwargs)

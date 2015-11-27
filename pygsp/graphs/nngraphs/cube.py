@@ -30,18 +30,17 @@ class Cube(NNGraph):
 
     """
 
-    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random",
-                 **kwargs):
+    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random", **kwargs):
         self.radius = radius
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
         self.sampling = sampling
 
         if self.nb_dim > 3:
-            raise ValueError("Dimension > 3 not supported yet !")
+            raise NotImplementedError("Dimension > 3 not supported yet !")
 
         if self.sampling == "random":
-            if nb_dim == 2:
+            if self.nb_dim == 2:
                 pts = np.random.rand(self.nb_pts, self.nb_pts)
 
             elif self.nb_dim == 3:
@@ -70,9 +69,4 @@ class Cube(NNGraph):
         else:
             raise ValueError("Unknown sampling !")
 
-        self.NNtype = 'knn'
-        self.gtype = "Cube"
-        self.k = 10
-
-        super(Cube, self).__init__(Xin=pts, k=self.k, NNtype=self.NNtype,
-                                   gtype=self.gtype, **kwargs)
+        super(Cube, self).__init__(Xin=pts, k=10, gtype="Cube", **kwargs)

@@ -43,12 +43,13 @@ class NNGraph(Graph):
 
     def __init__(self, Xin, NNtype='knn', use_flann=False, center=True,
                  rescale=True, k=10, sigma=0.1, epsilon=0.01, gtype=None,
-                 plotting=None, symetrize_type='average', **kwargs):
+                 plotting={}, symmetrize_type='average', **kwargs):
 
         if Xin is None:
-            raise ValueError("You must enter a Xin to process the NNgraph")
+            raise ValueError('You must enter a Xin to process the NNgraph')
         else:
             self.Xin = Xin
+
         self.NNtype = NNtype
         self.use_flann = use_flann
         self.center = center
@@ -56,15 +57,13 @@ class NNGraph(Graph):
         self.k = k
         self.sigma = sigma
         self.epsilon = epsilon
+
         if gtype is None:
-            self.gtype = "nearest neighbors"
+            gtype = 'nearest neighbors'
         else:
-            self.gtype = gtype + ", NNgraph"
-        if plotting:
-            self.plotting = plotting
-        else:
-            self.plotting = {}
-        self.symetrize_type = symetrize_type
+            gtype = '{}, NNGraph'.format(gtype)
+
+        self.symmetrize_type = symmetrize_type
 
         N, d = np.shape(self.Xin)
         Xout = self.Xin
@@ -77,18 +76,17 @@ class NNGraph(Graph):
             bounding_radius = 0.5*np.linalg.norm(np.amax(Xout, axis=0) -
                                                  np.amin(Xout, axis=0), 2)
             scale = np.power(N, 1./float(min(d, 3)))/10.
-            Xout *= scale/bounding_radius
+            Xout *= scale / bounding_radius
 
-        if self.NNtype == "knn":
+        if self.NNtype == 'knn':
             spi = np.zeros((N*k))
             spj = np.zeros((N*k))
             spv = np.zeros((N*k))
 
-            # since we didn't find a good flann python library yet,
-            # we wont implement it for now
+            # since we didn't find a good flann python library yet, we wont implement it for now
             if self.use_flann:
-                raise NotImplementedError("Suitable library for flann has not \
-                                          been found yet.")
+                raise NotImplementedError('Suitable library for flann has not '
+                                          'been found yet.')
             else:
                 kdt = spatial.KDTree(Xout)
                 D, NN = kdt.query(Xout, k=k + 1)
@@ -103,7 +101,7 @@ class NNGraph(Graph):
                                   shape=(np.shape(self.Xin)[0],
                                          np.shape(self.Xin)[0]))
 
-        elif self.NNtype == "radius":
+        elif self.NNtype == 'radius':
 
             kdt = spatial.KDTree(Xout)
             D, NN = kdt.query(Xout, k=None, distance_upper_bound=epsilon)
@@ -129,22 +127,27 @@ class NNGraph(Graph):
                                          np.shape(self.Xin)[0]))
 
         else:
-            raise ValueError("Unknown type : allowed values are knn, radius")
+            raise ValueError('Unknown type : allowed values are knn, radius')
 
         # Sanity check
         if np.shape(W)[0] != np.shape(W)[1]:
-            raise ValueError("Weight matrix W is not square")
+            raise ValueError('Weight matrix W is not square')
 
-        # Symetry checks
-        if gutils.is_directed(W):
-            W = gutils.symetrize(W, symetrize_type=self.symetrize_type)
+        # Symmetry checks
+        if np.abs(W - W.T).sum():
+            if symmetrize_type == 'average':
+                W = (W + W.T) / 2.
+
+            elif symmetrize_type == 'full':
+                A = W > 0
+                M = (A - (A.T * A))
+                W = sparse.csr_matrix(W.T)
+                W[M.T] = W.T[M.T]
+
+            else:
+                raise ValueError("Unknown symmetrize type.")
         else:
             pass
 
-        self.N = N
-        self.W = W
-        self.coords = Xout
-
-        super(NNGraph, self).__init__(N=self.N, gtype=self.gtype, W=self.W,
-                                      plotting=self.plotting,
-                                      coords=self.coords, **kwargs)
+        super(NNGraph, self).__init__(W=W, gtype=gtype, plotting=plotting,
+                                      coords=Xout, **kwargs)

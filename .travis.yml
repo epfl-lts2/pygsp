@@ -1,33 +1,33 @@
-<<<<<<< HEAD
 # Configuration file for automatic testing at travis-ci.org
-=======
-# Config file for automatic testing at travis-ci.org
->>>>>>> 132762c403a9f93294874238968f77e8c41da789
 
 language: python
 
+sudo: false
+
 python:
-<<<<<<< HEAD
-  - "2.6"
   - "2.7"
-  - "3.2"
   - "3.3"
   - "3.4"
 #  - "pypy" fails to install numpy
 
+addons:
+  apt:
+    packages:
+    - python-dev
+    - liblapack-dev
+    - libatlas-dev
+    - gcc
+    - gfortran
+    - libatlas-base-dev
+    - python-matplotlib
+
+before_install:
+    - pip install -U pip
+    - mkdir -p ~/.config/matplotlib
+    - |-
+      echo backend : Agg > ~/.config/matplotlib/matplotlibrc
+
 install:
-    # Backport of new unittest features for Python 2.6.
-    - if [[ $TRAVIS_PYTHON_VERSION == '2.6' ]]; then pip install unittest2; fi
-    # Usage dependencies expressed in the package.
     - python setup.py install
 
-=======
-  - "2.7"
-  - "pypy"
-
-# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -r requirements.txt
-
-# command to run tests, e.g. python setup.py test
->>>>>>> 132762c403a9f93294874238968f77e8c41da789
 script: python setup.py test

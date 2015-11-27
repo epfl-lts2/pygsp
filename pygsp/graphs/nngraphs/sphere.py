@@ -29,23 +29,18 @@ class Sphere(NNGraph):
 
     """
 
-    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling="random",
-                 **kwargs):
+    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling='random', **kwargs):
         self.radius = radius
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
         self.sampling = sampling
 
-        if self.sampling == "random":
+        if self.sampling == 'random':
             pts = np.random.normal(0, 1, (self.nb_pts, self.nb_dim))
+
             for i in range(self.nb_pts):
                 pts[i] /= np.linalg.norm(pts[i])
         else:
-            raise ValueError("Unknow sampling!")
+            raise ValueError('Unknow sampling!')
 
-        self.NNtype = "knn"
-        self.k = 10
-        self.gtype = "Sphere"
-
-        super(Sphere, self).__init__(Xin=pts, NNtype=self.NNtype, k=self.k,
-                                     gtype=self.gtype, **kwargs)
+        super(Sphere, self).__init__(Xin=pts, gtype='Sphere', k=10, **kwargs)

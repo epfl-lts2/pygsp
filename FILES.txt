@@ -1,10 +1,10 @@
 To be modified upon project creation
 ------------------------------------
 
-pygsp         Rename the directory with the package name
-setup.py      Insert project name, description, authors, version, dependencies
-doc/conf.py   Change package name
-pygsp/__init__.py     Change version and release date
+pygsp         			Rename the directory with the package name
+setup.py      			Insert project name, description, authors, version, dependencies
+doc/conf.py   			Change package name and copyright
+pygsp/__init__.py    	Change version and release date
 
 Implement code in pygsp/
 Implement tests in pygsp/tests/

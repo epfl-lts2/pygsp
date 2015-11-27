@@ -1,15 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-Test suite for the filters module of the pygsp package.
-"""
+"""Test suite for the filters module of the pygsp package."""
 
 import sys
-import numpy as np
-import numpy.testing as nptest
-from pygsp import graphs
-from pygsp import filters
+from pygsp import graphs, filters
 
 # Use the unittest2 backport on Python 2.6 to profit from the new features.
 if sys.version_info < (2, 7):
@@ -28,8 +23,10 @@ class FunctionsTestCase(unittest.TestCase):
 
     def test_filters(self):
         G = graphs.Logo()
-        graphs.estimate_lmax(G)
-        fu = lambda x: x/(1. + x)
+        G.estimate_lmax()
+
+        def fu(x):
+            x / (1. + x)
 
         def test_default_filters(G, fu):
             g = filters.Filter(G)
@@ -84,19 +81,11 @@ class FunctionsTestCase(unittest.TestCase):
             pass
             # gw = filters.warpedtranslates(G, g))
 
-    def test_dummy(self):
-        """
-        Dummy test.
-        """
-        a = np.array([1, 2])
-        b = graphs.dummy(1, a, True)
-        nptest.assert_almost_equal(a, b)
-
-
 suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
 
 
 def run():
+    """Run tests."""
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 

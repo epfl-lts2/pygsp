@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""
-This module implements some utilitary functions used throughout the PyGSP box.
-"""
+r"""This module implements some utilitary functions used throughout the PyGSP box."""
 
 import numpy as np
 import scipy as sp
@@ -56,9 +54,8 @@ def filterbank_handler(func):
             return func(f, *args, **kwargs)
         elif len(f.g) > 1:
             output = []
-            i = range(len(f.g))
-            for ii in i:
-                output.append(func(f, *args, i=ii, **kwargs))
+            for i in range(len(f.g)):
+                output.append(func(f, *args, i=i, **kwargs))
             return output
 
         else:
@@ -141,39 +138,7 @@ def distanz(x, y=None):
     return np.sqrt(d)
 
 
-def full_eigen(L):
-    r"""
-    Computes full eigen decomposition on a matrix
-
-    Parameters
-    ----------
-    L : ndarray
-        Matrix to decompose
-
-    Returns
-    -------
-    EVa : ndarray
-        Eigenvalues
-    EVe : ndarray
-        Eigenvectors
-
-    """
-    eigenvectors, eigenvalues, _ = sp.linalg.svd(L.todense())
-    # Sort everything
-
-    inds = np.argsort(eigenvalues)
-    EVa = np.sort(eigenvalues)
-
-    EVe = eigenvectors[:, inds]
-
-    for val in EVe[0, :].reshape(EVe.shape[0], 1):
-        if val < 0:
-            val = -val
-
-    return EVa, EVe
-
-
-def resistance_distance(M):
+def resistance_distance(M):  # 1 call dans operators.reduction
     r"""
     Compute the resistance distances of a graph.
 
@@ -197,11 +162,7 @@ def resistance_distance(M):
     ----------
     :cite:`klein1993resistance`
 
-
     """
-
-    from pygsp.graphs.gutils import create_laplacian
-
     if sparse.issparse(M):
         L = M.tocsc()
 
@@ -209,8 +170,7 @@ def resistance_distance(M):
         if not M.lap_type == 'combinatorial':
             logger.info('Compute the combinatorial laplacian for the resitance'
                         ' distance')
-            create_laplacian(M, lap_type='combinatorial',
-                             get_laplacian_only=False)
+            M.create_laplacian(lap_type='combinatorial')
         L = M.L.tocsc()
 
     try:
@@ -225,33 +185,3 @@ def resistance_distance(M):
         - pseudo - pseudo.T
 
     return rd
-
-
-def dummy(a, b, c):
-    r"""
-    Short description.
-
-    Long description.
-
-    Parameters
-    ----------
-    a : int
-        Description.
-    b : array_like
-        Description.
-    c : bool
-        Description.
-
-    Returns
-    -------
-    d : ndarray
-        Description.
-
-    Examples
-    --------
-    >>> import pygsp
-    >>> pygsp.utils.dummy(0, [1, 2, 3], True)
-    array([1, 2, 3])
-
-    """
-    return np.array(b)

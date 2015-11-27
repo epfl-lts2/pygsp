@@ -29,14 +29,12 @@ class Minnesota(Graph):
     def __init__(self, connect=True):
         minnesota = PointsCloud('minnesota')
 
-        self.N = np.shape(minnesota.A)[0]
-        self.coords = minnesota.coords
-        self.plotting = {"limits": np.array([-98, -89, 43, 50]),
-                         "vertex_size": 30}
+        plotting = {"limits": np.array([-98, -89, 43, 50]),
+                    "vertex_size": 30}
 
         if connect:
             # Edit adjacency matrix
-            A = minnesota.A.tolil()
+            A = (minnesota.A > 0).astype(int)
 
             # clean minnesota graph
             A.setdiag(0)
@@ -55,13 +53,10 @@ class Minnesota(Graph):
             A[2289, 2290] = 1
             A[2290, 2289] = 1
 
-            self.W = A
-            self.gtype = 'minnesota'
+            gtype = 'minnesota'
 
         else:
-            self.W = A
-            self.gtype = 'minnesota-disconnected'
+            gtype = 'minnesota-disconnected'
 
-        super(Minnesota, self).__init__(W=self.W, gtype=self.gtype,
-                                        coords=self.coords, N=self.N,
-                                        plotting=self.plotting)
+        super(Minnesota, self).__init__(W=A, coords=minnesota.coords,
+                                        gtype=gtype, plotting=plotting)

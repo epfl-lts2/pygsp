@@ -27,48 +27,35 @@ class Ring(Graph):
 
     def __init__(self, N=64, k=1, **kwargs):
 
-        if k > N/2.:
-            raise ValueError("Too many neighbors requested.")
+        if 2*k > N:
+            raise ValueError('Too many neighbors requested.')
 
         # Create weighted adjancency matrix
-        if k == N/2.:
-            num_edges = N*(k - 1) + N/2.
+        if 2*k == N:
+            num_edges = N * (k - 1) + N / 2.
         else:
-            num_edges = N*k
+            num_edges = N * k
 
-        i_inds = np.zeros((2*num_edges))
-        j_inds = np.zeros((2*num_edges))
+        i_inds = np.zeros((2 * num_edges))
+        j_inds = np.zeros((2 * num_edges))
 
         tmpN = np.arange(N, dtype=int)
         for i in range(min(k, floor((N - 1)/2.))):
-            i_inds[i*2*N + tmpN] = tmpN
-            j_inds[i*2*N + tmpN] = np.remainder(tmpN + i + 1, N)
-            i_inds[(i*2 + 1)*N + tmpN] = np.remainder(tmpN + i + 1, N)
-            j_inds[(i*2 + 1)*N + tmpN] = tmpN
+            i_inds[2*i * N + tmpN] = tmpN
+            j_inds[2*i * N + tmpN] = np.remainder(tmpN + i + 1, N)
+            i_inds[(2*i + 1)*N + tmpN] = np.remainder(tmpN + i + 1, N)
+            j_inds[(2*i + 1)*N + tmpN] = tmpN
 
         if k == N/2.:
             i_inds[2*N*(k - 1) + tmpN] = tmpN
             i_inds[2*N*(k - 1) + tmpN] = np.remainder(tmpN + k + 1, N)
 
-        self.W = sparse.csc_matrix((np.ones((2*num_edges)), (i_inds, j_inds)),
-                                   shape=(N, N))
+        W = sparse.csc_matrix((np.ones((2*num_edges)), (i_inds, j_inds)),
+                              shape=(N, N))
 
-        self.coords = np.concatenate((np.cos(np.arange(N).reshape(N, 1)
-                                             * 2 * np.pi/float(N)),
-                                      np.sin(np.arange(N).reshape(N, 1)
-                                             * 2 * np.pi/float(N))),
-                                     axis=1)
+        plotting = {'limits': np.array([-1, 1, -1, 1])}
 
-        self.plotting = {"limits": np.array([-1, 1, -1, 1])}
-
-        if k == 1:
-            self.gtype = "ring"
-        else:
-            self.gtype = "k-ring"
-
-        self.N = N
+        gtype = 'ring' if k == 1 else 'k-ring'
         self.k = k
 
-        super(Ring, self).__init__(W=self.W, N=self.N, gtype=self.gtype,
-                                   coords=self.coords, plotting=self.plotting,
-                                   **kwargs)
+        super(Ring, self).__init__(W=W, gtype=gtype, plotting=plotting, **kwargs)

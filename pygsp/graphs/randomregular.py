@@ -32,16 +32,15 @@ class RandomRegular(Graph):
 
     def isRegularGraph(self, A):
         r"""
-        This fonction prints a message describing the problem of a given
-        sparse matrix.
+        Troubleshoot a given regular graph.
 
         Parameters
         ----------
         A : sparse matrix
 
         """
-
-        msg = "The given matrix "
+        warn = False
+        msg = 'The given matrix'
 
         # check if the sparse matrix is in a good format
         if A.getformat() == 'lil' or \
@@ -50,30 +49,36 @@ class RandomRegular(Graph):
             A = A.tocsc()
 
         # check symmetry
-        tmp = (A - A.getH())
-        if np.sum((tmp.getH()*tmp).diagonal()) > 0:
-            msg += "is not symetric, "
+        tmp = A - A.T
+        if np.abs(tmp).sum() > 0:
+            warn = True
+            msg = '{} is not symmetric,'.format(msg)
 
         # check parallel edged
         if A.max(axis=None) > 1:
-            msg += "has parallel edges, "
+            warn = True
+            msg = '{} has parallel edges,'.format(msg)
 
         # check that d is d-regular
         d_vec = A.sum(axis=0)
-        if np.min(d_vec) < d_vec[:, 0] and np.max(d_vec) > d_vec[:, 0]:
-            msg += "not d-regular, "
+        if np.min(d_vec) != np.max(d_vec):
+            warn = True
+            msg = '{} is not d-regular,'.format(msg)
 
-        # check that g doesn't contain any loops
-        if A.diagonal().any() > 0:
-            msg += "has self loops, "
+        # check that g doesn't contain any self-loop
+        if A.diagonal().any():
+            warn = True
+            msg = '{} has self loop.'.format(msg)
 
+        if warn:
+            self.logger.warning('{}.'.format(msg[:-1]))
         else:
-            msg += "is ok"
-        self.logger.info(msg)
+            self.logger.info('{} is ok.'.format(msg))
 
-    def createRandRegGraph(self, vertNum, deg):
+    def createRandRegGraph(self, vertNum, deg, maxIter=10):
         r"""
-        Create a simple d-regular undirected graph
+        Create a simple d-regular undirected graph.
+
         simple = without loops or double edges
         d-reglar = each vertex is adjecent to d edges
 
@@ -83,6 +88,8 @@ class RandomRegular(Graph):
             Number of vertices
         deg : int
             The degree of each vertex
+        maxIter : int
+            The maximum number of iterations
 
         Returns
         -------
@@ -93,41 +100,40 @@ class RandomRegular(Graph):
         ---------
         "The pairing model": create n*d 'half edges'.
         Repeat as long as possible: pick a pair of half edges
-        and if it's legal (doesn't creat a loop nor a double edge)
+        and if it's legal (doesn't create a loop nor a double edge)
         add it to the graph
 
         Reference
         ---------
         http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.67.7957&rep=rep1&type=pdf
         (This code has been adapted from matlab to python)
-        """
 
+        """
         n = vertNum
         d = deg
-        matIter = 10
 
         # continue until a proper graph is formed
-        if (n*d) % 2 == 1:
+        if (n * d) % 2 == 1:
             raise ValueError("createRandRegGraph input err:\
                                 n*d must be even!")
 
         # a list of open half-edges
         U = np.kron(np.ones((d)), np.arange(n))
 
-        # the graphs adajency matrix
+        # the graphs adjacency matrix
         A = sparse.lil_matrix(np.zeros((n, n)))
 
         edgesTested = 0
         repetition = 1
 
         # check that there are no loops nor parallel edges
-        while np.size(U) != 0 and repetition < matIter:
+        while np.size(U) and repetition < matIter:
             edgesTested += 1
 
-            # print progess
+            # print(progess)
             if edgesTested % 5000 == 0:
                 self.logger.debug("createRandRegGraph() progress: edges= "
-                                  "{}/{}n".format(edgesTested, n*d))
+                                  "{}/{}.".format(edgesTested, n*d/2))
 
             # chose at random 2 half edges
             i1 = floor(rd.random()*np.shape(U)[0])
@@ -150,21 +156,19 @@ class RandomRegular(Graph):
 
                 # remove used half-edges
                 v = sorted([i1, i2])
-                U = np.concatenate((U[1:v[0]], U[v[0] + 1:v[1]], U[v[1] + 1:]))
+                U = np.concatenate((U[:v[0]], U[v[0] + 1:v[1]], U[v[1] + 1:]))
 
         self.isRegularGraph(A)
 
         return A
 
     def __init__(self, N=64, k=6, **kwargs):
-        self.N = N
         self.k = k
 
-        self.gtype = "random_regular"
+        # Build the logger as createRandRegGraph need it
+        self.logger = build_logger(__name__, **kwargs)
 
-        self.logger = build_logger(__name__, **kwargs)  # Build the logger as createRandRegGraph needit
+        W = self.createRandRegGraph(N, k)
 
-        self.W = self.createRandRegGraph(self.N, self.k)
-
-        super(RandomRegular, self).__init__(W=self.W, gtype=self.gtype,
+        super(RandomRegular, self).__init__(W=W, gtype="random_regular",
                                             **kwargs)

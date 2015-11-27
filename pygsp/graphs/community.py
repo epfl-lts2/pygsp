@@ -19,8 +19,9 @@ class Community(Graph):
         Number of nodes (default = 256)
     kwargs : Dict
         Optional parameters for the construction of the Community graph
+
         Nc : int
-            Number of communities (default = round(sqrt(N)/2))
+            Number of communities (default = :math:`round(\sqrt{N}/2)`)
         min_comm : int
             Minimum size of the communities (default = round(N/Nc/3))
         min_deg : int
@@ -37,7 +38,7 @@ class Community(Graph):
             Number of intra-community connections (default = None, not used if None or comm_density is defined)
         epsilon : float
             Max distance at which two nodes sharing a community are connected
-            (default = sqrt(2*sqrt(N))/2, not used if k_neigh or comm_density is defined)
+            (default = :math:`sqrt(2\sqrt{N})/2`, not used if k_neigh or comm_density is defined)
 
     Examples
     --------
@@ -45,7 +46,6 @@ class Community(Graph):
     >>> G = graphs.Community()
 
     """
-
     def __init__(self, N=256, **kwargs):
 
         # Parameter initialisation #
@@ -77,7 +77,7 @@ class Community(Graph):
         if min_comm * Nc > N:
             raise ValueError('GSP_COMMUNITY: The constraint on minimum size for communities is unsolvable.')
 
-        info = {'node_com': None, 'comm_sizes': None, 'com_coords': None,
+        info = {'node_com': None, 'comm_sizes': None, 'world_rad': None,
                 'world_density': world_density, 'min_comm': min_comm}
 
         # Communities construction #
@@ -87,26 +87,11 @@ class Community(Graph):
             info['node_com'] = np.sort(np.concatenate((mandatory_labels, remaining_labels)))
         else:
             # create labels based on the constraint given for the community sizes. No random assignation here.
-            info['node_com'] = np.array(reduce(lambda x, y: x+y, [[val] * cnt for (val, cnt) in enumerate(comm_sizes)]))
+            info['node_com'] = np.concatenate([[val] * cnt for (val, cnt) in enumerate(comm_sizes)])
 
         counts = Counter(info['node_com'])
-        info['comm_sizes'] = np.array(map(lambda (k, v): v, sorted(counts.items(), key=lambda (k, v): k)))
-
-        # Coordinates association #
-        world_rad = size_ratio * np.sqrt(N)
-        info['com_coords'] = world_rad * np.array(zip(
-            np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
-            np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc)))
-
-        coords = np.random.rand(N, 2)  # nodes' coordinates inside the community
-        coords = np.array(map(lambda elem: [elem[0] * np.cos(2 * np.pi * elem[1]),
-                                            elem[0] * np.sin(2 * np.pi * elem[1])], coords))
-
-        for i in range(N):
-            # set coordinates as an offset from the center of the community it belongs to
-            comm_idx = info['node_com'][i]
-            comm_rad = np.sqrt(info['comm_sizes'][comm_idx])
-            coords[i] = info['com_coords'][comm_idx] + comm_rad * coords[i]
+        info['comm_sizes'] = np.array([cnt[1] for cnt in sorted(counts.items())])
+        info['world_rad'] = size_ratio * np.sqrt(N)
 
         # Intra-community edges construction #
         if comm_density:
@@ -137,8 +122,8 @@ class Community(Graph):
                 indices = np.random.permutation(M)[:nb_edges]
 
                 w_data[0] += [1] * nb_edges
-                w_data[1][0] += map(lambda elem: first_node + tril_ind[1][elem], indices)
-                w_data[1][1] += map(lambda elem: first_node + tril_ind[0][elem], indices)
+                w_data[1][0] += [first_node + tril_ind[1][elem] for elem in indices]
+                w_data[1][1] += [first_node + tril_ind[0][elem] for elem in indices]
 
             elif k_neigh:
                 comm_coords = coords[first_node:first_node + com_siz]
@@ -149,8 +134,8 @@ class Community(Graph):
                 map(lambda row: map(lambda elm: pairs_set.add((min(row[0], elm), max(row[0], elm))), row[1:]), indices)
 
                 w_data[0] += [1] * len(pairs_set)
-                w_data[1][0] += map(lambda pair: first_node + pair[0], pairs_set)
-                w_data[1][1] += map(lambda pair: first_node + pair[1], pairs_set)
+                w_data[1][0] += [first_node + pair[0] for pair in pairs_set]
+                w_data[1][1] += [first_node + pair[1] for pair in pairs_set]
 
             else:
                 comm_coords = coords[first_node:first_node + com_siz]
@@ -158,13 +143,13 @@ class Community(Graph):
                 pairs_set = kdtree.query_pairs(epsilon)
 
                 w_data[0] += [1] * len(pairs_set)
-                w_data[1][0] += map(lambda elem: first_node + elem[0], pairs_set)
-                w_data[1][1] += map(lambda elem: first_node + elem[1], pairs_set)
+                w_data[1][0] += [first_node + elem[0] for elem in pairs_set]
+                w_data[1][1] += [first_node + elem[1] for elem in pairs_set]
 
             first_node += com_siz
 
         # Inter-community edges construction #
-        M = (N**2 - np.sum(map(lambda com_siz: com_siz**2, info['comm_sizes']))) / 2
+        M = (N**2 - np.sum([com_siz**2 for com_siz in info['comm_sizes']])) / 2
         nb_edges = int(world_density * M)
 
         if world_density < 0.35:
@@ -192,8 +177,8 @@ class Community(Graph):
             inter_edges = np.array(all_points)[indices]
 
         w_data[0] += [1] * nb_edges
-        w_data[1][0] += map(lambda elem: elem[0], inter_edges)
-        w_data[1][1] += map(lambda elem: elem[1], inter_edges)
+        w_data[1][0] += [elem[0] for elem in inter_edges]
+        w_data[1][1] += [elem[1] for elem in inter_edges]
 
         w_data[0] += w_data[0]
         tmp_w_data = deepcopy(w_data[1][0])
@@ -201,10 +186,9 @@ class Community(Graph):
         w_data[1][1] += tmp_w_data
         w_data[1] = tuple(w_data[1])
 
-        params = {'gtype': 'Community', 'coords': coords, 'N': N, 'Nc': Nc,
-                  'info': info, 'W': sparse.coo_matrix(tuple(w_data), shape=(N, N))}
-        for (key, value) in params.items():
+        W = sparse.coo_matrix(tuple(w_data), shape=(N, N))
+
+        for key, value in {'Nc': Nc, 'info': info}:
             setattr(self, key, value)
 
-        super(Community, self).__init__(W=self.W, gtype=self.gtype,
-                                        coords=self.coords, info=self.info, **kwargs)
+        super(Community, self).__init__(W=W, gtype='Community', **kwargs)
