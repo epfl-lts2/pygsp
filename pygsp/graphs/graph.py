@@ -268,18 +268,16 @@ class Graph(object):
 
     def subgraph(self, ind):
         r"""
-        Create a subgraph from G.
+        Create a subgraph from G keeping only the given indices.
 
         Parameters
         ----------
-        G : Graph
-            Original graph
         ind : list
             Nodes to keep
 
         Returns
         -------
-        subG : Graph
+        sub_G : Graph
             Subgraph
 
         Examples
@@ -288,30 +286,21 @@ class Graph(object):
         >>> import numpy as np
         >>> W = np.arange(16).reshape(4, 4)
         >>> G = graphs.Graph(W)
-        >>> ind = [3]
-        >>> subG = graphs.Graph.subgraph(G, ind)
-
-        This function create a subgraph from G taking only the nodes in ind.
+        >>> ind = [1, 3]
+        >>> sub_G = G.subgraph(ind)
 
         """
         if not isinstance(ind, list) and not isinstance(ind, np.ndarray):
             raise TypeError('The indices must be a list or a ndarray.')
 
-        sub_G = self
-        sub_G.W = self.W[np.ix_(ind, ind)]
+        N = len(ind)
 
-        try:
-            sub_G.N = len(ind)
-        except TypeError:
-            sub_G.N = 1
+        sub_W = self.W.tocsr()[ind, :].tocsc()[:, ind]
+        return Graph(sub_W, gtype="sub-{}".format(self.gtype))
 
-        sub_G.gtype = "sub-" + self.gtype
-
-        return sub_G
-
-    def is_connected(self):
+    def is_connected(self, force_recompute=False):
         r"""
-        Function to check the strong connectivity of the input graph.
+        Check the strong connectivity of the input graph.
 
         It uses DFS travelling on graph to ensure that each node is visited.
         For undirected graphs, starting at any vertex and trying to access all others is enough.
@@ -319,10 +308,15 @@ class Graph(object):
         and can access all others. Thus, we can transpose the adjacency matrix and compute again
         with the same starting point in both phases.
 
+        Parameters
+        ---------
+        force_recompute: bool
+            Force to recompute the connectivity if already known.
+
         Returns
         -------
         connected : bool
-            A bool value telling if the graph is connected
+            A bool value telling if the graph is connected.
 
         Examples
         --------
@@ -333,12 +327,24 @@ class Graph(object):
         >>> connected = G.is_connected()
 
         """
+        if hasattr(self, 'force_recompute'):
+            if force_recompute:
+                self.logger.warning("Connectivity for this graph is already known. Recomputing.")
+            else:
+                self.logger.error("Connectivity for this graph is already known. Stopping.")
+                return self.connected
+
         if not hasattr(self, 'directed'):
             self.is_directed()
 
+        if self.A.shape[0] != self.A.shape[1]:
+            self.logger.error('Inconsistant shape to test connectedness. Set to False.')
+            self.connected = False
+            return False
+
         for adj_matrix in [self.A, self.A.T] if self.directed else [self.A]:
             visited = np.zeros(self.A.shape[0], dtype=bool)
-            stack = [0]
+            stack = set([0])
 
             while len(stack):
                 v = stack.pop()
@@ -346,7 +352,7 @@ class Graph(object):
                     visited[v] = True
 
                     # Add indices of nodes not visited yet and accessible from v
-                    stack.extend(list(filter(lambda idx: not visited[idx] and idx not in stack, adj_matrix[v, :].nonzero()[1])))
+                    stack.update(set([idx for idx in adj_matrix[v, :].nonzero()[1] if not visited[idx]]))
 
             if not visited.all():
                 self.connected = False
@@ -355,9 +361,14 @@ class Graph(object):
         self.connected = True
         return True
 
-    def is_directed(self):
+    def is_directed(self, force_recompute=False):
         r"""
         Define if the graph has directed edges.
+
+        Parameters
+        ---------
+        force_recompute: bool
+            Force to recompute the directedness if already known.
 
         Notes
         -----
@@ -372,12 +383,78 @@ class Graph(object):
         >>> directed = G.is_directed()
 
         """
+        if hasattr(self, 'force_recompute'):
+            if force_recompute:
+                self.logger.warning("Directedness for this graph is already known. Recomputing.")
+            else:
+                self.logger.error("Directedness for this graph is already known. Stopping.")
+                return self.directed
+
         if np.diff(np.shape(self.W))[0]:
             raise ValueError("Matrix dimensions mismatch, expecting square matrix.")
 
         is_dir = np.abs(self.W - self.W.T).sum() != 0
 
         self.directed = is_dir
+
+    def extract_components(self):
+        r"""
+        Split the graph into several connected components.
+
+        See the doc of `is_connected` for the method used to determine connectedness.
+
+        Returns
+        -------
+        graphs : list
+            A list of graph structures. Each having its own node list and weight matrix.
+            If the graph is directed, add into the info parameter the information about the source nodes and the sink nodes.
+
+        Examples
+        --------
+        >>> from scipy import sparse
+        >>> from pygsp import graphs
+        >>> W = sparse.rand(10, 10, 0.2)
+        >>> G = graphs.Graph(W=W)
+        >>> components = G.extract_components()
+        >>> has_sinks = 'sink' in components[0].info
+        >>> sinks_0 = components[0].info['sink'] if has_sinks else []
+
+        """
+        if not hasattr(self, 'directed'):
+            self.is_directed()
+
+        if self.A.shape[0] != self.A.shape[1]:
+            self.logger.error('Inconsistant shape to extract components. Square matrix required.')
+            return None
+
+        if self.directed:
+            raise NotImplementedError('Focusing on non directed graphs first.')
+
+        graphs = []
+
+        visited = np.zeros(self.A.shape[0], dtype=bool)
+        indices = []
+
+        while not visited.all():
+            stack = set([np.nonzero(visited == False)[0][0]])
+            comp = []
+
+            while len(stack):
+                v = stack.pop()
+                if not visited[v]:
+                    comp.append(v)
+                    visited[v] = True
+
+                    # Add indices of nodes not visited yet and accessible from v
+                    stack.update(set([idx for idx in self.A[v, :].nonzero()[1] if not visited[idx]]))
+
+            comp = sorted(comp)
+            self.logger.info('Constructing subgraph for component of size {}.'.format(len(comp)))
+            G = self.subgraph(comp)
+            G.info = {'orig_idx': comp}
+            graphs.append(G)
+
+        return graphs
 
     def compute_fourier_basis(self, smallest_first=True, force_recompute=False, **kwargs):
         r"""
