@@ -337,7 +337,7 @@ def pg_plot_graph(G, show_edges=None):
                                   np.expand_dims(y2, axis=1),
                                   np.expand_dims(z2, axis=1)), axis=1)
 
-            extra_args = {'color': (1., 0., 0., 1)}
+            extra_args = {'color': (255, 0, 0, 1)}
             if 'vertex_color' in G.plotting:
                 if isinstance(G.plotting['vertex_color'], list):
                     extra_args['color'] = np.array([pg.glColor(pg.mkPen(v_col).color()) for v_col in  G.plotting['vertex_color']])
