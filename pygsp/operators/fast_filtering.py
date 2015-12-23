@@ -3,6 +3,7 @@
 from pygsp.utils import filterbank_handler, build_logger
 
 import numpy as np
+import scipy as sp
 
 logger = build_logger(__name__)
 
@@ -42,13 +43,13 @@ def compute_cheby_coeff(f, m=30, N=None, i=0, *args):
 
     a1 = (a_arange[1] - a_arange[0]) / 2
     a2 = (a_arange[1] + a_arange[0]) / 2
-    c = np.zeros((m + 1))
+    c = np.zeros((m + 1, 1))
 
     tmpN = np.arange(N)
     num = np.cos(np.pi * (tmpN + 0.5) / N)
     for o in range(m + 1):
-        c[o] = 2. / N * np.dot(f.g[i](a1 * num + a2),
-                               np.cos(np.pi * o * (tmpN + 0.5) / N))
+        c[o, 0] = 2. / N * np.dot(f.g[i](a1 * num + a2),
+                                  np.cos(np.pi * o * (tmpN + 0.5) / N))
 
     return c
 
@@ -72,20 +73,17 @@ def cheby_op(G, c, signal, **kwargs):
 
     """
     # Handle if we do not have a list of filters but only a simple filter in cheby_coeff.
-    if not isinstance(c, list):
-        c = [c]
+    if not isinstance(c, np.ndarray):
+        c = np.ndarray(c)
 
-    M = np.shape(c[0])[0]
-    Nscales = len(c)
+    M, Nscales = np.shape(c)
 
     if M < 2:
         raise TypeError("The coefficients have an invalid shape")
 
     if not hasattr(G, 'lmax'):
+        logger.info('The variable lmax has not been computed yet, it will be done now.')
         G.estimate_lmax()
-
-    if signal.dtype == 'float32':
-        signal = np.float64(signal)
 
     # thanks to that, we can also have 1d signal.
     try:
@@ -104,16 +102,70 @@ def cheby_op(G, c, signal, **kwargs):
 
     tmpN = np.arange(G.N, dtype=int)
     for i in range(Nscales):
-        r[tmpN + G.N*i] = 0.5 * c[i][0] * twf_old + c[i][1] * twf_cur
+        r[tmpN + G.N*i] = 0.5 * c[0, i] * twf_old + c[1, i] * twf_cur
 
-    for k in range(2, M + 1):
-        twf_new = (2./a1) * (G.L.dot(twf_cur) - a2*twf_cur) - twf_old
+    factor = 2/a1 * (G.L - a2 * sp.sparse.eye(G.N))
+    for k in range(2, M):
+        twf_new = factor.dot(twf_cur) - twf_old
         for i in range(Nscales):
-            if k + 1 <= M:
-                r[tmpN + G.N*i] += c[i][k]*twf_new
+            r[tmpN + G.N*i] += c[k, i] * twf_new
 
         twf_old = twf_cur
         twf_cur = twf_new
+
+    return r
+
+
+def cheby_rect(G, bounds, signal, **kwargs):
+    r"""
+    Fast filtering using Chebyshev polynomial for a perfect rectangle filter.
+
+    Parameters
+    ----------
+    G : Graph
+    bounds : array-like
+        The bounds of the pass-band filter
+    signal : array-like
+        Signal to filter
+    order : int (optional)
+        Order of the Chebyshev polynomial (default: 30)
+
+    Returns
+    -------
+    r : array-like
+        Result of the filtering
+
+    """
+    if not (isinstance(bounds, (list, np.ndarray)) and len(bounds) == 2):
+        raise ValueError('Bounds of wrong shape.')
+
+    bounds = np.array(bounds)
+
+    if not hasattr(G, 'lmax'):
+        logger.info('The variable lmax has not been computed yet, it will be done now.')
+        G.estimate_lmax()
+
+    m = int(kwargs.pop('order', 30) + 1)
+
+    try:
+        Nv = np.shape(signal)[1]
+        r = np.zeros((G.N, Nv))
+    except IndexError:
+        r = np.zeros((G.N))
+
+    b1, b2 = np.arccos(2. * bounds / G.lmax - 1.)
+    factor = 4./G.lmax * G.L - 2.*sp.sparse.eye(G.N)
+
+    T_old = signal
+    T_cur = factor.dot(signal) / 2.
+    r = (b1 - b2)/np.pi * signal + 2./np.pi * (np.sin(b1) - np.sin(b2)) * T_cur
+
+    for k in range(2, m):
+        T_new = factor.dot(T_cur) - T_old
+        r += 2./(k*np.pi) * (np.sin(k*b1) - np.sin(k*b2)) * T_new
+        T_old = T_cur
+        T_cur = T_new
+
 
     return r
 
