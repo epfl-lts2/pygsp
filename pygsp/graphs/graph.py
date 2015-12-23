@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from pygsp.utils import build_logger
+from pygsp.graphs import gutils
 
 import numpy as np
 import scipy as sp
@@ -75,14 +76,18 @@ class Graph(object):
 
         self.N = shapes[0]
         self.W = sparse.lil_matrix(W)
-        self.A = self.W > 0
+        gutils.check_weights(self.W)
 
+        self.A = self.W > 0
         self.Ne = self.W.nnz
         self.d = self.A.sum(axis=1)
         self.gtype = gtype
         self.lap_type = lap_type
 
         self.is_connected()
+        if not self.connected:
+            self.logger.warning('Graph is not connected!')
+
         self.create_laplacian(lap_type)
 
         if isinstance(coords, np.ndarray) and 2 <= len(np.shape(coords)) <= 3:
@@ -194,7 +199,7 @@ class Graph(object):
             Gn.lap_type = self.lap_type
             Gn.create_laplacian()
 
-    def set_coords(self, kind='ring2D', coords=None):
+    def set_coords(self, kind='ring2D', **kwargs):
         r"""
         Set coordinates for the vertices.
 
@@ -202,7 +207,7 @@ class Graph(object):
         ----------
         kind : string
             The kind of display. Default is 'ring2D'.
-            Accepting ['ring2D', 'community2D', 'manual', 'random2D', 'random3D'].
+            Accepting ['community2D', 'manual', 'random2D', 'random3D', 'ring2D', 'spring'].
         coords : np.ndarray
             An array of coordinates in 2D or 3D. Used only if kind is manual.
             Set the coordinates to this array as is.
@@ -215,10 +220,11 @@ class Graph(object):
         >>> G.plot()
 
         """
-        if kind not in ['ring2D', 'community2D', 'manual', 'random2D', 'random3D']:
+        if kind not in ['community2D', 'manual', 'random2D', 'random3D', 'ring2D', 'spring']:
             raise ValueError('Unexpected kind argument. Got {}.'.format(kind))
 
         if kind == 'manual':
+            coords = kwargs.pop('coords', None)
             if isinstance(coords, list):
                 coords = np.array(coords)
             if isinstance(coords, np.ndarray) and len(coords.shape) == 2 and \
@@ -238,6 +244,9 @@ class Graph(object):
 
         elif kind == 'random3D':
             self.coords = np.random.rand((self.N, 3))
+
+        elif kind == 'spring':
+            self.coords = self._fruchterman_reingold_layout(**kwargs)
 
         elif kind == 'community2D':
             if not hasattr(self, 'info') or 'node_com' not in self.info:
@@ -593,7 +602,7 @@ class Graph(object):
 
         except sparse.linalg.ArpackNoConvergence:
             self.logger.warning('GSP_ESTIMATE_LMAX: Cannot use default method.')
-            lmax = np.max(self.d)
+            lmax = 2. * np.max(self.d)
 
         self.lmax = np.real(lmax)
 
@@ -605,3 +614,102 @@ class Graph(object):
         """
         from pygsp import plotting
         plotting.plot_graph(self, **kwargs)
+
+    def _fruchterman_reingold_layout(self, dim=2, k=None, pos=None, fixed=[],
+                                     iterations=50, scale=1.0, center=None):
+        # Position nodes using Fruchterman-Reingold force-directed algorithm.
+
+        if center is None:
+            center = np.zeros((1, dim))
+
+        if np.shape(center)[1] != dim:
+            self.logger.error('Spring coordinates : center has wrong size.')
+
+        dom_size = 1.
+        if pos is not None:
+            # Determine size of existing domain to adjust initial positions
+            dom_size = np.max(pos)
+            shape = (self.N, dim)
+            pos_arr = np.random.random(shape) * dom_size + center
+            for i in range(self.N):
+                pos_arr[i] = np.asarray(pos[i])
+        else:
+            pos_arr = None
+
+        if k is None and fixed is not None:
+            # We must adjust k by domain size for layouts that are not near 1x1
+            k = dom_size / np.sqrt(self.N)
+        pos = _sparse_fruchterman_reingold(self.A, dim, k, pos_arr, fixed, iterations)
+
+        if fixed is None:
+            pos = _rescale_layout(pos, scale=scale) + center
+        return pos
+
+
+def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
+                                 iterations=50):
+    # Position nodes in adjacency matrix A using Fruchterman-Reingold
+    nnodes = A.shape[0]
+
+    # make sure we have a LIst of Lists representation
+    try:
+        A = A.tolil()
+    except:
+        A = (coo_matrix(A)).tolil()
+
+    if pos is None:
+        # random initial positions
+        pos = np.random.random((nnodes, dim))
+
+    # no fixed nodes
+    if fixed is None:
+        fixed = []
+
+    # optimal distance between nodes
+    if k is None:
+        k = np.sqrt(1.0/nnodes)
+
+    # simple cooling scheme.
+    # linearly step down by dt on each iteration so last iteration is size dt.
+    t = 0.1
+    dt = t/float(iterations+1)
+
+    displacement = np.zeros((dim, nnodes))
+    for iteration in range(iterations):
+        displacement *= 0
+        # loop over rows
+        for i in range(nnodes):
+            if i in fixed:
+                continue
+            # difference between this row's node position and all others
+            delta = (pos[i]-pos).T
+            # distance between points
+            distance = np.sqrt((delta**2).sum(axis=0))
+            # enforce minimum distance of 0.01
+            distance = np.where(distance < 0.01, 0.01, distance)
+            # the adjacency matrix row
+            Ai = np.asarray(A[i, :].toarray())
+            # displacement "force"
+            displacement[:, i] += \
+                (delta*(k*k/distance**2-Ai*distance/k)).sum(axis=1)
+        # update positions
+        length = np.sqrt((displacement**2).sum(axis=0))
+        length = np.where(length < 0.01, 0.1, length)
+        pos += (displacement*t/length).T
+        # cool temperature
+        t -= dt
+    return pos
+
+
+def _rescale_layout(pos, scale=1):
+    # rescale to (-scale, scale) in all axes
+
+    # shift origin to (0,0)
+    lim = 0  # max coordinate for all axes
+    for i in range(pos.shape[1]):
+        pos[:, i] -= pos[:, i].mean()
+        lim = max(pos[:, i].max(), lim)
+    # rescale to (-scale,scale) in all directions, preserves aspect
+    for i in range(pos.shape[1]):
+        pos[:, i] *= scale/lim
+    return pos

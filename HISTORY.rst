@@ -4,6 +4,13 @@
 History
 =======
 
+0.4.0
+-----------------
+Added routines to compute coordinates for the graphs.
+
+Added fast filtering of ideal band-pass.
+
+
 0.3.0 (2015-11-24)
 ------------------
 
