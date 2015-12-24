@@ -161,6 +161,9 @@ def plt_plot_graph(G, savefig=False, show_edges=None, plot_name=''):
     if 'edge_color' not in G.plotting:
         G.plotting['edge_color'] = np.array([255, 88, 41])/255.
 
+    if not hasattr(G, 'coords'):
+        raise AttributeError('G has no coordinate set. Please run G.set_coords() first.')
+
     # Matplotlib graph initialization in 2D and 3D
     if G.coords.shape[1] == 2:
         fig = plt.figure(plid.plot_id)
