@@ -22,7 +22,7 @@ setup(
     url='https://github.com/epfl-lts2/',
     packages=['pygsp', 'pygsp.filters', 'pygsp.graphs', 'pygsp.graphs.nngraphs', 'pygsp.operators',
               'pygsp.pointsclouds', 'pygsp.tests'],
-    package_data={'pygsp': ['pointsclouds.misc/*']},
+    package_data={'pygsp': ['pointsclouds/misc/*']},
     test_suite='pygsp.tests.test_all.suite',
     setup_requires=['numpy'],
     install_requires=['numpy', 'scipy'],

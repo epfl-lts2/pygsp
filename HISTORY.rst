@@ -10,8 +10,10 @@ Added routines to compute coordinates for the graphs.
 
 Added fast filtering of ideal band-pass.
 
+Various fixes.
 
-0.3.0 (2015-11-24)
+
+0.3.0 (2015-11-27)
 ------------------
 
 Refactoring graphs using object programming and fail safe checks.
