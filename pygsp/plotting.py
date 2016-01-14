@@ -763,3 +763,7 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         window_list[str(uuid.uuid4())] = w
     elif G.coords.shape[1] == 3:
         window_list[str(uuid.uuid4())] = app
+
+
+def plot_spectrogramm(self, **kwargs):
+    

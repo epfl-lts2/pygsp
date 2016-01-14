@@ -615,6 +615,15 @@ class Graph(object):
         from pygsp import plotting
         plotting.plot_graph(self, **kwargs)
 
+    def show_spectrogramm(self, **kwargs):
+        r"""
+        Plot the spectrogramm for the graph object.
+
+        See plotting doc on spectrogramm.
+        """
+        from pygsp import plotting
+        plotting.plot_spectrogramm(self, **kwargs)
+
     def _fruchterman_reingold_layout(self, dim=2, k=None, pos=None, fixed=[],
                                      iterations=50, scale=1.0, center=None):
         # Position nodes using Fruchterman-Reingold force-directed algorithm.

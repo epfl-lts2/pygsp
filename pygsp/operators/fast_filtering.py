@@ -166,7 +166,6 @@ def cheby_rect(G, bounds, signal, **kwargs):
         T_old = T_cur
         T_cur = T_new
 
-
     return r
 
 
