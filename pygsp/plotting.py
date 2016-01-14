@@ -765,5 +765,50 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         window_list[str(uuid.uuid4())] = app
 
 
-def plot_spectrogramm(self, **kwargs):
-    
+def plot_spectrogramm(G, M=101, **kwargs):
+    r"""
+    Plot the spectrogramm of the given graph.
+
+    Parameters
+    ----------
+    G : Graph object
+        Graph to analyse.
+    M : int (optional)
+        Size of spectral scale. (default = 101)
+    g : Filter object (optional)
+        Kernel to use in the spectrogramm (default = Heat kernel)
+
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pygsp import graphs, plotting
+    >>> G = graphs.Ring(15)
+    >>> plotting.plot_spectrogramm(G)
+
+    """
+    from pygsp.filters import Filter, Heat
+    from scipy import sparse as sp
+
+    if not qtg_import:
+        pass # raise NotImplementedError("You need pyqtgraph to plot the spectrogramm at the moment. Please install dependency and retry.")
+
+    if not hasattr(G, 'lmax'):
+        G.estimate_lmax()
+
+    signals = np.eye(G.N)
+    g = kwargs.pop('g', None)
+    if not g or not isinstance(g, Filter):
+        g = Heat(G)
+    if len(g.g) > 1:
+        g.g = list(g.g[0])
+
+    scale = np.linspace(0, G.lmax, M)
+    spectr = np.zeros((M, G.N))
+
+    for shift_idx in range(M):
+        shifted_g = Filter(G, filters=lambda x: g.g[0](x-scale[shift_idx]))
+        tig = shifted_g.analysis(signals, method='cheby')
+        spectr[shift_idx, :] = np.linalg.norm(tig, axis=0)**2
+
+    return spectr
