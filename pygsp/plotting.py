@@ -248,8 +248,8 @@ def plt_plot_graph(G, savefig=False, show_edges=None, plot_name=''):
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
         plt.close(fig)
-    # else:
-    #     plt.show()
+    #else:
+    #    plt.show()
 
     # threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
@@ -265,6 +265,10 @@ def pg_plot_graph(G, show_edges=None):
     global window_list
     if 'window_list' not in globals():
         window_list = {}
+
+    if not G.coords.shape:
+        raise AttributeError('G has no coordinate set. Please run G.set_coords() first.')
+
 
     if show_edges is None:
         show_edges = G.Ne < 10000
@@ -765,7 +769,7 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         window_list[str(uuid.uuid4())] = app
 
 
-def plot_spectrogramm(G, M=101, **kwargs):
+def plot_spectrogramm(G, **kwargs):
     r"""
     Plot the spectrogramm of the given graph.
 
@@ -773,42 +777,48 @@ def plot_spectrogramm(G, M=101, **kwargs):
     ----------
     G : Graph object
         Graph to analyse.
-    M : int (optional)
-        Size of spectral scale. (default = 101)
-    g : Filter object (optional)
-        Kernel to use in the spectrogramm (default = Heat kernel)
+    node_idx : ndarray
+        Order to sort the nodes in the spectrogramm
 
-
-    Examples
+    Example
     --------
     >>> import numpy as np
     >>> from pygsp import graphs, plotting
     >>> G = graphs.Ring(15)
+    >>> G.compute_spectrogramm()
     >>> plotting.plot_spectrogramm(G)
 
     """
-    from pygsp.filters import Filter, Heat
-    from scipy import sparse as sp
+    global window_list
+    if 'window_list' not in globals():
+        window_list = {}
 
     if not qtg_import:
-        pass # raise NotImplementedError("You need pyqtgraph to plot the spectrogramm at the moment. Please install dependency and retry.")
+        raise NotImplementedError("You need pyqtgraph to plot the spectrogramm at the moment. Please install dependency and retry.")
 
-    if not hasattr(G, 'lmax'):
-        G.estimate_lmax()
+    if not hasattr(G, 'spectr'):
+        G.compute_spectrogramm()
 
-    signals = np.eye(G.N)
-    g = kwargs.pop('g', None)
-    if not g or not isinstance(g, Filter):
-        g = Heat(G)
-    if len(g.g) > 1:
-        g.g = list(g.g[0])
+    node_idx = kwargs.pop('node_idx', None)
+    spectr = G.spectr[node_idx, :] if node_idx is not None else G.spectr
 
-    scale = np.linspace(0, G.lmax, M)
-    spectr = np.zeros((M, G.N))
+    plot_spectr = []
+    min_spec, max_spec = np.min(spectr), np.max(spectr)
 
-    for shift_idx in range(M):
-        shifted_g = Filter(G, filters=lambda x: g.g[0](x-scale[shift_idx]))
-        tig = shifted_g.analysis(signals, method='cheby')
-        spectr[shift_idx, :] = np.linalg.norm(tig, axis=0)**2
+    M = spectr.shape[1]
 
-    return spectr
+    for i in range(0, G.N):
+        for j in range(0, M):
+            # Use colors on [0, 1/4] of the scale
+            plot_spectr.append({'pos': (i, j), 'size': 1., 'symbol': 's', 'brush': pg.intColor(round(255 * (spectr[i, j] - min_spec) / (max_spec - min_spec)), 4 * 255)})
+
+    w = pg.GraphicsWindow()
+    w.setWindowTitle("Spectrogramm of {}".format(G.gtype))
+    v = w.addPlot(labels={'bottom': 'nodes',
+                          'left': 'frequencies {}:{:.2f}:{:.2f}'.format(0, G.lmax/M, G.lmax)})
+    v.setAspectLocked()
+    spi = pg.ScatterPlotItem(pxMode=False)
+    spi.addPoints(plot_spectr)
+    v.addItem(spi)
+
+    window_list[str(uuid.uuid4())] = w
