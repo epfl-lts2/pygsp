@@ -4,7 +4,7 @@
 History
 =======
 
-0.3.0 (2015-11-24)
+0.3.3 (2015-11-27)
 ------------------
 
 Refactoring graphs using object programming and fail safe checks.

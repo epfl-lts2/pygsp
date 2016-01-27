@@ -14,7 +14,7 @@ if sys.argv[-1] == 'publish':
 
 setup(
     name='PyGSP',
-    version='0.3.0',
+    version='0.3.3',
     description='The official Graph Signal Processing Toolbox',
     long_description=open('README.rst').read(),
     author='Alexandre Lafaye, Basile Châtillon, Lionel Martin, Nicolas Rod (EPFL LTS2)',
@@ -22,7 +22,7 @@ setup(
     url='https://github.com/epfl-lts2/',
     packages=['pygsp', 'pygsp.filters', 'pygsp.graphs', 'pygsp.graphs.nngraphs', 'pygsp.operators',
               'pygsp.pointsclouds', 'pygsp.tests'],
-    package_data={'pygsp': ['pointsclouds.misc/*']},
+    package_data={'pygsp.pointsclouds': ['misc/*.dat']},
     test_suite='pygsp.tests.test_all.suite',
     setup_requires=['numpy'],
     install_requires=['numpy', 'scipy'],
