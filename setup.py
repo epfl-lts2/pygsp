@@ -15,6 +15,7 @@ if sys.argv[-1] == 'publish':
 setup(
     name='PyGSP',
     version='0.4.0',
+    version='0.3.3',
     description='The official Graph Signal Processing Toolbox',
     long_description=open('README.rst').read(),
     author='Alexandre Lafaye, Basile Châtillon, Lionel Martin, Nicolas Rod (EPFL LTS2)',

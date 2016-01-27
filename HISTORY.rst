@@ -10,10 +10,12 @@ Added routines to compute coordinates for the graphs.
 
 Added fast filtering of ideal band-pass.
 
+Implemented spectrogramm for graphs.
+
 Various fixes.
 
 
-0.3.2 (2015-11-27)
+0.3.3 (2015-11-27)
 ------------------
 
 Refactoring graphs using object programming and fail safe checks.

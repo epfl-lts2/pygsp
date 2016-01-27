@@ -204,7 +204,7 @@ class Filter(object):
             if Nf == 1:
                 s += operator.igft(np.conjugate(self.G.U),
                                    np.tile(fie, (Nv, 1)).T *
-                                   operator.gft(self.G, c[N*i + tmpN]))
+                                   operator.gft(self.G, c[tmpN]))
             else:
                 for i in range(Nf):
                     s += operator.igft(np.conjugate(self.G.U),
