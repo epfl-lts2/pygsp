@@ -1,5 +1,5 @@
 test:
   script:
-  - pip install -U pip
+  - sudo pip install -U pip
   - pip install -r requirements.txt -U --user
   - python setup.py test
