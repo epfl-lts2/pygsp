@@ -16,9 +16,9 @@ class Itersine(Filter):
     Parameters
     ----------
     G : Graph
-    Nf : int
+    Nf : int (optional)
         Number of filters from 0 to lmax. (default = 6)
-    overlap : int
+    overlap : int (optional)
         (default = 2)
 
     Returns
@@ -35,7 +35,9 @@ class Itersine(Filter):
     def __init__(self, G, Nf=6, overlap=2., **kwargs):
         super(Itersine, self).__init__(G, **kwargs)
 
-        k = lambda x: np.sin(0.5*pi*np.power(np.cos(x*pi), 2)) * ((x >= -0.5)*(x <= 0.5))
+        def k(x):
+            return np.sin(0.5*pi*np.power(np.cos(x*pi), 2)) * ((x >= -0.5)*(x <= 0.5))
+
         scale = G.lmax/(Nf - overlap + 1.)*overlap
         g = []
 

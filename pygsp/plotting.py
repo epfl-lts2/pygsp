@@ -454,7 +454,7 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     if show_sum is None:
         show_sum = len(filters.g) > 1
     if plot_name is None:
-        plot_name = "Filter plot of {}".format(G.gtype)
+        plot_name = u"Filter plot of {}".format(G.gtype)
 
     lambdas = np.linspace(0, G.lmax, npoints)
 
@@ -686,28 +686,6 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         w.show()
         w.setWindowTitle(G.gtype)
 
-    # Plot signal
-    pos = np.array([0., 1., 0.5, 0.25, 0.75])
-    color = np.array([[0, 255, 255, 255], [255, 255, 0, 255], [0, 0, 0, 255],
-                      (0, 0, 255, 255), (255, 0, 0, 255)], dtype=np.ubyte)
-    cmap = pg.ColorMap(pos, color)
-
-    mininum = min(signal)
-    maximum = max(signal)
-
-    normalized_signal = [(float(x) - mininum) / (maximum - mininum) for x in signal]
-
-    if G.coords.shape[1] == 2:
-        gp = pg.ScatterPlotItem(G.coords[:, 0],
-                                G.coords[:, 1],
-                                size=vertex_size,
-                                brush=cmap.map(normalized_signal, 'qcolor'))
-        v.addItem(gp)
-    if G.coords.shape[1] == 3:
-        gp = gl.GLScatterPlotItem(G.coords[:, 0], G.coords[:, 1],
-                                  G.coords[:, 2], size=vertex_size, c=signal)
-        w.addItem(gp)
-
     # Plot edges
     if show_edges:
         ki, kj = np.nonzero(G.A)
@@ -762,6 +740,29 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                 w.addItem(g)
                 w.addItem(gp)
 
+    # Plot signal on top
+    pos = np.arange(0, 1.01, .25)
+    color = np.array([[249, 251, 14, 255], [20, 133, 212, 255], [48, 174, 170, 255],
+                      [210, 184, 87, 255], [53, 42, 135, 255]])
+    cmap = pg.ColorMap(pos, color)
+
+    mininum = min(signal)
+    maximum = max(signal)
+
+    normalized_signal = [(float(x) - mininum) / (maximum - mininum) for x in signal]
+
+    if G.coords.shape[1] == 2:
+        gp = pg.ScatterPlotItem(G.coords[:, 0],
+                                G.coords[:, 1],
+                                size=vertex_size,
+                                brush=cmap.map(normalized_signal, 'qcolor'))
+        v.addItem(gp)
+    if G.coords.shape[1] == 3:
+        gp = gl.GLScatterPlotItem(G.coords[:, 0], G.coords[:, 1],
+                                  G.coords[:, 2], size=vertex_size, c=signal)
+        w.addItem(gp)
+
+
     # Multiple windows handling
     if G.coords.shape[1] == 2:
         window_list[str(uuid.uuid4())] = w
@@ -790,6 +791,7 @@ def plot_spectrogramm(G, **kwargs):
 
     """
     global window_list
+    from pygsp.features import compute_spectrogramm
     if 'window_list' not in globals():
         window_list = {}
 
@@ -797,28 +799,26 @@ def plot_spectrogramm(G, **kwargs):
         raise NotImplementedError("You need pyqtgraph to plot the spectrogramm at the moment. Please install dependency and retry.")
 
     if not hasattr(G, 'spectr'):
-        G.compute_spectrogramm()
+        compute_spectrogramm(G)
 
+    M = G.spectr.shape[1]
     node_idx = kwargs.pop('node_idx', None)
-    spectr = G.spectr[node_idx, :] if node_idx is not None else G.spectr
-
-    plot_spectr = []
+    spectr = np.ravel(G.spectr[node_idx, :] if node_idx is not None else G.spectr)
     min_spec, max_spec = np.min(spectr), np.max(spectr)
 
-    M = spectr.shape[1]
-
-    for i in range(0, G.N):
-        for j in range(0, M):
-            # Use colors on [0, 1/4] of the scale
-            plot_spectr.append({'pos': (i, j), 'size': 1., 'symbol': 's', 'brush': pg.intColor(round(255 * (spectr[i, j] - min_spec) / (max_spec - min_spec)), 4 * 255)})
+    pos = np.array([0., 0.25, 0.5, 0.75, 1.])
+    color = np.array([[20, 133, 212, 255], [53, 42, 135, 255], [48, 174, 170, 255],
+                     [210, 184, 87, 255], [249, 251, 14, 255]], dtype=np.ubyte)
+    cmap = pg.ColorMap(pos, color)
 
     w = pg.GraphicsWindow()
     w.setWindowTitle("Spectrogramm of {}".format(G.gtype))
     v = w.addPlot(labels={'bottom': 'nodes',
                           'left': 'frequencies {}:{:.2f}:{:.2f}'.format(0, G.lmax/M, G.lmax)})
     v.setAspectLocked()
-    spi = pg.ScatterPlotItem(pxMode=False)
-    spi.addPoints(plot_spectr)
+
+    spi = pg.ScatterPlotItem(np.repeat(np.arange(G.N), M), np.ravel(np.tile(np.arange(M), (1, G.N))), pxMode=False, symbol='s',
+                             size=1, brush=cmap.map((spectr.astype(float) - min_spec)/(max_spec - min_spec), 'qcolor'))
     v.addItem(spi)
 
     window_list[str(uuid.uuid4())] = w

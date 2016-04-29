@@ -607,44 +607,6 @@ class Graph(object):
         lmax = np.real(lmax)
         self.lmax = lmax.sum()
 
-    def compute_spectrogramm(self, M=100, **kwargs):
-        r"""
-        Compute the norm of the Tig for all nodes and store it into G.
-
-        Parameters
-        ----------
-        M : int (optional)
-            Size of spectral scale. (default = 100)
-        g : Filter object (optional)
-            Kernel to use in the spectrogramm (default = exp(-M*x²/(50*lmax)))
-
-        """
-        from pygsp.filters import Filter
-
-        if not hasattr(self, 'lmax'):
-            self.estimate_lmax()
-
-        signals = np.eye(self.N)
-
-        g = kwargs.pop('g', None)
-
-        if not g or not isinstance(g, Filter):
-            sigma = self.lmax / M / 8.
-            g = Filter(self, filters=lambda x: np.exp(-x**2/sigma))
-
-        if len(g.g) > 1:
-            g.g = list(g.g[0])
-
-        scale = np.linspace(0, self.lmax, M)
-        spectr = np.zeros((self.N, M))
-
-        for shift_idx in range(M):
-            shifted_g = Filter(self, filters=[lambda x: g.g[0](x-scale[shift_idx])])
-            tig = shifted_g.analysis(signals, method='cheby')
-            spectr[:, shift_idx] = np.linalg.norm(tig, axis=0)**2
-
-        self.spectr = spectr
-
     def plot(self, **kwargs):
         r"""
         Plot the graph.
@@ -672,6 +634,7 @@ class Graph(object):
 
         if np.shape(center)[1] != dim:
             self.logger.error('Spring coordinates : center has wrong size.')
+            center = np.zeros((1, dim))
 
         dom_size = 1.
         if pos is not None:
@@ -746,6 +709,7 @@ def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
         pos += (displacement*t/length).T
         # cool temperature
         t -= dt
+
     return pos
 
 

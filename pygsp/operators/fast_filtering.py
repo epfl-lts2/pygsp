@@ -9,7 +9,7 @@ logger = build_logger(__name__)
 
 
 @filterbank_handler
-def compute_cheby_coeff(f, m=30, N=None, i=0, *args):
+def compute_cheby_coeff(f, m=30, N=None, *args, **kwargs):
     r"""
     Compute Chebyshev coefficients for a Filterbank.
 
@@ -31,6 +31,7 @@ def compute_cheby_coeff(f, m=30, N=None, i=0, *args):
 
     """
     G = f.G
+    i = kwargs.pop('i', 0)
 
     if not N:
         N = m + 1
@@ -61,8 +62,8 @@ def cheby_op(G, c, signal, **kwargs):
     Parameters
     ----------
     G : Graph
-    c : ndarray
-        Chebyshev coefficients
+    c : ndarray or list of ndarrays
+        Chebyshev coefficients for a Filter or a Filterbank
     signal : ndarray
         Signal to filter
 
@@ -265,7 +266,7 @@ def lanczos(A, order, x):
         r -= np.tile(H[k, k + hiv], (N, 1))*q
 
         # The next line has to be checked
-        r -= np.dot(V, np.dot(V.T, r)) # full reorthogonalization
+        r -= np.dot(V, np.dot(V.T, r))  # full reorthogonalization
         H[k + 1, k + hiv] = np.linalg.norm(r, axis=0)
         orth[k] = np.linalg.norm(np.dot(V.T, V) - M)
 

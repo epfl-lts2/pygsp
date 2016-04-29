@@ -12,6 +12,8 @@ Added fast filtering of ideal band-pass.
 
 Implemented spectrogramm for graphs.
 
+Added the Barabási-Albert model for graphs.
+
 Various fixes.
 
 

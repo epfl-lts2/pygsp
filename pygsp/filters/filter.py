@@ -64,18 +64,28 @@ class Filter(object):
             method = 'exact' if hasattr(self.G, 'U') else 'cheby'
         self.logger.info('The analysis method is {}'.format(method))
 
-        Nf = len(self.g)
-        N = self.G.N
+        if method == 'cheby':  # Chebyshev approx
+            if not hasattr(self.G, 'lmax'):
+                self.logger.info('FILTER_ANALYSIS: computing lmax.')
+                self.G.estimate_lmax()
 
-        if method == 'exact':
+            cheb_coef = fast_filtering.compute_cheby_coeff(self, m=cheb_order)
+            c = fast_filtering.cheby_op(self.G, cheb_coef, s)
+
+        elif method == 'lanczos':  # Lanczos approx
+            c = fast_filtering.lanczos_op(self, s, self.G, order=lanczos_order)
+
+        elif method == 'exact':  # Exact computation
             if not hasattr(self.G, 'e') or not hasattr(self.G, 'U'):
                 self.logger.info('The Fourier matrix is not available. '
                                  'The function will compute it for you.')
                 self.G.compute_fourier_basis()
 
+            Nf = len(self.g)  # nb of filters
+            N = self.G.N  # nb of nodes
             try:
-                Nv = np.shape(s)[1]
-                c = np.zeros((N * Nf, Nv))
+                Ns = np.shape(s)[1]  # nb signals
+                c = np.zeros((N * Nf, Ns))
                 is2d = True
             except IndexError:
                 c = np.zeros((N * Nf))
@@ -85,7 +95,7 @@ class Filter(object):
 
             if Nf == 1:
                 if is2d:
-                    return operator.igft(self.G, np.tile(fie, (Nv, 1)).T *
+                    return operator.igft(self.G, np.tile(fie, (Ns, 1)).T *
                                          operator.gft(self.G, s))
                 else:
                     return operator.igft(self.G, fie * operator.gft(self.G, s))
@@ -93,24 +103,12 @@ class Filter(object):
                 tmpN = np.arange(N, dtype=int)
                 for i in range(Nf):
                     if is2d:
-                        c[tmpN + N*i] = operator.igft(self.G, np.tile(fie[:][i], (Nv, 1)).T *
+                        c[tmpN + N*i] = operator.igft(self.G, np.tile(fie[i], (Ns, 1)).T *
                                                       operator.gft(self.G, s))
                     else:
-                        c[tmpN + N*i] = operator.igft(self.G, fie[:][i] *
+                        c[tmpN + N*i] = operator.igft(self.G, fie[i] *
                                                       operator.gft(self.G, s))
 
-        elif method == 'cheby':  # Chebyshev approx
-            if not hasattr(self.G, 'lmax'):
-                self.logger.info('FILTER_ANALYSIS: The variable lmax is not '
-                                 'available. The function will compute '
-                                 'it for you.')
-                self.G.estimate_lmax()
-
-            cheb_coef = fast_filtering.compute_cheby_coeff(self, m=cheb_order)
-            c = fast_filtering.cheby_op(self.G, cheb_coef, s)
-
-        elif method == 'lanczos':
-            c = fast_filtering.lanczos_op(self, s, self.G, order=lanczos_order)
 
         else:
             raise ValueError('Unknown method: please select exact, '
@@ -119,7 +117,7 @@ class Filter(object):
         return c
 
     @utils.filterbank_handler
-    def evaluate(self, x, i=0):
+    def evaluate(self, x, *args, **kwargs):
         r"""
         Evaluation of the Filterbank
 
@@ -134,6 +132,7 @@ class Filter(object):
         -------
         fd = ndarray
             Response of the filter
+
         Examples
         --------
         >>> import numpy as np
@@ -144,6 +143,8 @@ class Filter(object):
         >>> eva = MH.evaluate(x)
 
         """
+        i = kwargs.pop('i', 0)
+
         fd = np.zeros(x.size)
         fd = self.g[i](x)
         return fd
@@ -366,6 +367,7 @@ class Filter(object):
         Plot the filter.
 
         See plotting doc.
+
         """
         from pygsp import plotting
         plotting.plot_filter(self, **kwargs)
