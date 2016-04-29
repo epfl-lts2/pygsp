@@ -200,7 +200,7 @@ class Community(Graph):
 
         W = sparse.coo_matrix(tuple(w_data), shape=(N, N))
 
-        for key, value in {'Nc': Nc, 'info': info}.iteritems():
+        for key, value in {'Nc': Nc, 'info': info}.items():
             setattr(self, key, value)
 
         super(Community, self).__init__(W=W, gtype='Community', coords=coords, **kwargs)
