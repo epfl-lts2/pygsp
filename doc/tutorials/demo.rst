@@ -64,7 +64,7 @@ to it:
 
 You can also put multiple functions in a list to define a filterbank!
 
->>> F.plot(plot_eigenvalues=True, savefig=True, plot_name='doc/tutorials/img/low_pass_filter')
+>>> F.plot(default_qtg=False, plot_eigenvalues=True, savefig=True, plot_name='doc/tutorials/img/low_pass_filter')
 
 .. image:: img/low_pass_filter.*
 

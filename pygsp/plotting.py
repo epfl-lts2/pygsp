@@ -786,7 +786,6 @@ def plot_spectrogramm(G, **kwargs):
     >>> import numpy as np
     >>> from pygsp import graphs, plotting
     >>> G = graphs.Ring(15)
-    >>> G.compute_spectrogramm()
     >>> plotting.plot_spectrogramm(G)
 
     """

@@ -81,7 +81,7 @@ Let's now replace the Heat filter by a filter bank of wavelets. We can create a 
 
 We can now plot the filter bank spectrum :
 
->>> Wk.plot(savefig=True, plot_name='doc/tutorials/img/mexican_hat')
+>>> Wk.plot(default_qtg=False, savefig=True, plot_name='doc/tutorials/img/mexican_hat')
 
 .. figure:: img/mexican_hat.*
     :alt: Mexican Hat Wavelet filter
