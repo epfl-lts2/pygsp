@@ -44,12 +44,12 @@ def compute_cheby_coeff(f, m=30, N=None, *args, **kwargs):
 
     a1 = (a_arange[1] - a_arange[0]) / 2
     a2 = (a_arange[1] + a_arange[0]) / 2
-    c = np.zeros((m + 1, 1))
+    c = np.zeros(m + 1)
 
     tmpN = np.arange(N)
     num = np.cos(np.pi * (tmpN + 0.5) / N)
     for o in range(m + 1):
-        c[o, 0] = 2. / N * np.dot(f.g[i](a1 * num + a2),
+        c[o] = 2. / N * np.dot(f.g[i](a1 * num + a2),
                                   np.cos(np.pi * o * (tmpN + 0.5) / N))
 
     return c
@@ -75,9 +75,10 @@ def cheby_op(G, c, signal, **kwargs):
     """
     # Handle if we do not have a list of filters but only a simple filter in cheby_coeff.
     if not isinstance(c, np.ndarray):
-        c = np.ndarray(c)
+        c = np.array(c)
 
-    M, Nscales = np.shape(c)
+    c = np.atleast_2d(c)
+    Nscales, M = c.shape
 
     if M < 2:
         raise TypeError("The coefficients have an invalid shape")
@@ -103,13 +104,13 @@ def cheby_op(G, c, signal, **kwargs):
 
     tmpN = np.arange(G.N, dtype=int)
     for i in range(Nscales):
-        r[tmpN + G.N*i] = 0.5 * c[0, i] * twf_old + c[1, i] * twf_cur
+        r[tmpN + G.N*i] = 0.5 * c[i, 0] * twf_old + c[i, 1] * twf_cur
 
     factor = 2/a1 * (G.L - a2 * sp.sparse.eye(G.N))
     for k in range(2, M):
         twf_new = factor.dot(twf_cur) - twf_old
         for i in range(Nscales):
-            r[tmpN + G.N*i] += c[k, i] * twf_new
+            r[tmpN + G.N*i] += c[i, k] * twf_new
 
         twf_old = twf_cur
         twf_cur = twf_new
