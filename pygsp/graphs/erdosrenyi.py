@@ -50,7 +50,7 @@ class ErdosRenyi(Graph):
             raise ValueError("GSP_ErdosRenyi: The probability p "
                              "cannot be negative.")
 
-        M = N * (N-1) if directed else N * (N-1) / 2
+        M = int(N * (N-1) if directed else N * (N-1) / 2)
         nb_elem = int(p * M)
 
         for i in range(max_iter):
