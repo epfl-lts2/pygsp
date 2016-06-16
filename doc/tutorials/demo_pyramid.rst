@@ -26,11 +26,11 @@ Next, we will compute the fourier basis of our different graph layers:
 Those that were already computed are returning with an error, meaning that nothing happened.
 Let's now create two signals and a filter, resp f, f2 and g:
 >>> f = np.ones((G.N))
->>> f[np.arange(G.N/2)] = -1
+>>> f[np.arange(G.N//2)] = -1
 >>> f = f + 10*Gs[0].U[:, 7]
 
 >>> f2 = np.ones((G.N, 2))
->>> f2[np.arange(G.N/2)] = -1
+>>> f2[np.arange(G.N//2)] = -1
 
 >>> g = [lambda x: 5./(5 + x)]
 

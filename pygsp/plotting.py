@@ -82,9 +82,9 @@ def plot(O, default_qtg=True, **kwargs):
     ...     print(e)
 
     """
-    from graphs import Graph
-    from pointsclouds.pointscloud import PointsCloud
-    from filters import Filter
+    from .graphs import Graph
+    from .pointsclouds.pointscloud import PointsCloud
+    from .filters import Filter
 
     if issubclass(type(O), Graph):
         plot_graph(O, default_qtg, **kwargs)
@@ -247,9 +247,9 @@ def plt_plot_graph(G, savefig=False, show_edges=None, plot_name=''):
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-        plt.close(fig)
-    #else:
-    #    plt.show()
+        # plt.close(fig)
+    # else:
+    #     plt.show()
 
     # threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
@@ -488,7 +488,7 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-        plt.close(fig)
+        # plt.close(fig)
     # else:
     #     plt.show()
 
@@ -644,14 +644,14 @@ def plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-        plt.close(fig)
+        # plt.close(fig)
     # else:
     #     plt.show()
 
 
 def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                    vertex_size=None, vertex_highlight=False, climits=None,
-                   colorbar=True, bar=False, bar_width=1):
+                   colorbar=True, bar=False, bar_width=1, plot_name=None):
     r"""
     Plot a graph signal in 2D or 3D, with pyqtgraph.
 
@@ -676,15 +676,14 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         window_list = {}
 
     if G.coords.shape[1] == 2:
-        w = pg.GraphicsWindow()
-        w.setWindowTitle(G.gtype)
+        w = pg.GraphicsWindow(plot_name or G.gtype)
         v = w.addViewBox()
     elif G.coords.shape[1] == 3:
         app = QtGui.QApplication([])
         w = gl.GLViewWidget()
         w.opts['distance'] = 10
         w.show()
-        w.setWindowTitle(G.gtype)
+        w.setWindowTitle(plot_name or G.gtype)
 
     # Plot edges
     if show_edges:
@@ -705,12 +704,6 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                 v.addItem(g)
 
             if G.coords.shape[1] == 3:
-                app = QtGui.QApplication([])
-                w = gl.GLViewWidget()
-                w.opts['distance'] = 10
-                w.show()
-                w.setWindowTitle(G.gtype)
-
                 # Very dirty way to display a 3d graph
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
                                     np.expand_dims(G.coords[kj, 0], axis=0)))

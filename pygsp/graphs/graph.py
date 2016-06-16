@@ -616,6 +616,15 @@ class Graph(object):
         from pygsp import plotting
         plotting.plot_graph(self, **kwargs)
 
+    def plot_signal(self, signal, **kwargs):
+        r"""
+        Plot the graph signal.
+
+        See plotting doc.
+        """
+        from pygsp import plotting
+        plotting.plot_signal(self, signal, **kwargs)
+
     def show_spectrogramm(self, **kwargs):
         r"""
         Plot the spectrogramm for the graph object.
