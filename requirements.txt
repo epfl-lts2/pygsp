@@ -4,6 +4,8 @@ scipy
 
 # Required for plotting
 matplotlib
+PySide
+pyopengl
 pyqtgraph
 
 # Required to build documentation.

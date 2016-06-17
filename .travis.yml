@@ -6,28 +6,30 @@ sudo: false
 
 python:
   - "2.7"
+  - "3.2"
   - "3.3"
   - "3.4"
-#  - "pypy" fails to install numpy
+  - "3.5"
+  - "pypy" # fails to install numpy
 
 addons:
   apt:
     packages:
     - python-dev
+    - pkg-config
+    - libfreetype6-dev
+    - libpng-dev
     - liblapack-dev
     - libatlas-dev
-    - gcc
     - gfortran
     - libatlas-base-dev
-    - python-matplotlib
+    - xvfb
 
 before_install:
     - pip install -U pip
-    - mkdir -p ~/.config/matplotlib
-    - |-
-      echo backend : Agg > ~/.config/matplotlib/matplotlibrc
 
 install:
     - python setup.py install
 
-script: python setup.py test
+script:
+    - xvfb-run python setup.py test

@@ -4,7 +4,7 @@
 History
 =======
 
-0.4.0
+0.4.0 (2016-06-17)
 -----------------
 Added routines to compute coordinates for the graphs.
 
