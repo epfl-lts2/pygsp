@@ -61,4 +61,4 @@ class BarabasiAlbert(Graph):
                     W[elem, i] = 1
                     W[i, elem] = 1
 
-        super(BarabasiAlbert, self).__init__(W=W, gtype=u"Barabási-Albert", **kwargs)
+        super(BarabasiAlbert, self).__init__(W=W, gtype=u"Barabasi-Albert", **kwargs)
