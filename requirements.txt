@@ -6,8 +6,8 @@ scipy
 matplotlib==1.4.3 ; python_version < '3.4'
 matplotlib ; python_version >= '3.4'
 
-PySide ; python_version < '3.0'
-PyQt5 ; python_version >= '3.0'
+PySide ; python_version < '3.5'
+PyQt5 ; python_version >= '3.5'
 
 pyopengl
 git+https://github.com/pyqtgraph/pyqtgraph@develop#egg=pyqtgraph-dev

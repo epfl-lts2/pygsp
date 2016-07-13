@@ -21,6 +21,7 @@ addons:
     - libatlas-dev
     - gfortran
     - libatlas-base-dev
+    - libx11-xcb1
     - xvfb
 
 before_install:
