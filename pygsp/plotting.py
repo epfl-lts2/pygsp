@@ -254,7 +254,7 @@ def plt_plot_graph(G, savefig=False, show_edges=None, plot_name=''):
     # threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
 
-def pg_plot_graph(G, show_edges=None):
+def pg_plot_graph(G, show_edges=None, plot_name=''):
     r"""
     Plot a graph or an array of graphs.
 
@@ -286,7 +286,7 @@ def pg_plot_graph(G, show_edges=None):
                                   np.expand_dims(kj, axis=1)), axis=1)
 
             w = pg.GraphicsWindow()
-            w.setWindowTitle(G.plotting['plot_name'] or G.gtype if 'plot_name' in G.plotting else G.gtype)
+            w.setWindowTitle(G.plotting['plot_name'] if 'plot_name' in G.plotting else plot_name or G.gtype)
             v = w.addViewBox()
             v.setAspectLocked()
 
@@ -320,7 +320,7 @@ def pg_plot_graph(G, show_edges=None):
             w = gl.GLViewWidget()
             w.opts['distance'] = 10
             w.show()
-            w.setWindowTitle(G.plotting['plot_name'] or G.gtype if 'plot_name' in G.plotting else G.gtype)
+            w.setWindowTitle(G.plotting['plot_name'] if 'plot_name' in G.plotting else plot_name or G.gtype)
 
             # Very dirty way to display a 3d graph
             x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
