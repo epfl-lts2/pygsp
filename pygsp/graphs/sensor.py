@@ -17,7 +17,7 @@ class Sensor(Graph):
     N : int
         Number of nodes (default = 64)
     Nc : int
-        Minimum number of connections (default = 1)
+        Minimum number of connections (default = 2)
     regular : bool
         Flag to fix the number of connections to nc (default = False)
     n_try : int

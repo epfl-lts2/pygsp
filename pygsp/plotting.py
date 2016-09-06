@@ -82,9 +82,9 @@ def plot(O, default_qtg=True, **kwargs):
     ...     print(e)
 
     """
-    from graphs import Graph
-    from pointclouds.pointclouds import PointCloud
-    from filters import Filter
+    from .graphs import Graph
+    from .pointsclouds.pointscloud import PointsCloud
+    from .filters import Filter
 
     if issubclass(type(O), Graph):
         plot_graph(O, default_qtg, **kwargs)
@@ -247,14 +247,13 @@ def plt_plot_graph(G, savefig=False, show_edges=None, plot_name=''):
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-        plt.close(fig)
-    # else:
-    #     plt.show()
+    else:
+        plt.show()
 
     # threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
 
-def pg_plot_graph(G, show_edges=None):
+def pg_plot_graph(G, show_edges=None, plot_name=''):
     r"""
     Plot a graph or an array of graphs.
 
@@ -265,6 +264,10 @@ def pg_plot_graph(G, show_edges=None):
     global window_list
     if 'window_list' not in globals():
         window_list = {}
+
+    if not G.coords.shape:
+        raise AttributeError('G has no coordinate set. Please run G.set_coords() first.')
+
 
     if show_edges is None:
         show_edges = G.Ne < 10000
@@ -282,7 +285,7 @@ def pg_plot_graph(G, show_edges=None):
                                   np.expand_dims(kj, axis=1)), axis=1)
 
             w = pg.GraphicsWindow()
-            w.setWindowTitle(G.plotting['plot_name'] or G.gtype if 'plot_name' in G.plotting else G.gtype)
+            w.setWindowTitle(G.plotting['plot_name'] if 'plot_name' in G.plotting else plot_name or G.gtype)
             v = w.addViewBox()
             v.setAspectLocked()
 
@@ -316,7 +319,7 @@ def pg_plot_graph(G, show_edges=None):
             w = gl.GLViewWidget()
             w.opts['distance'] = 10
             w.show()
-            w.setWindowTitle(G.plotting['plot_name'] or G.gtype if 'plot_name' in G.plotting else G.gtype)
+            w.setWindowTitle(G.plotting['plot_name'] if 'plot_name' in G.plotting else plot_name or G.gtype)
 
             # Very dirty way to display a 3d graph
             x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
@@ -450,7 +453,7 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     if show_sum is None:
         show_sum = len(filters.g) > 1
     if plot_name is None:
-        plot_name = "Filter plot of {}".format(G.gtype)
+        plot_name = u"Filter plot of {}".format(G.gtype)
 
     lambdas = np.linspace(0, G.lmax, npoints)
 
@@ -484,7 +487,7 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-        plt.close(fig)
+        # plt.close(fig)
     # else:
     #     plt.show()
 
@@ -640,14 +643,13 @@ def plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-        plt.close(fig)
-    # else:
-    #     plt.show()
+    else:
+        plt.show()
 
 
 def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                    vertex_size=None, vertex_highlight=False, climits=None,
-                   colorbar=True, bar=False, bar_width=1):
+                   colorbar=True, bar=False, bar_width=1, plot_name=None):
     r"""
     Plot a graph signal in 2D or 3D, with pyqtgraph.
 
@@ -672,37 +674,14 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         window_list = {}
 
     if G.coords.shape[1] == 2:
-        w = pg.GraphicsWindow()
-        w.setWindowTitle(G.gtype)
+        w = pg.GraphicsWindow(plot_name or G.gtype)
         v = w.addViewBox()
     elif G.coords.shape[1] == 3:
         app = QtGui.QApplication([])
         w = gl.GLViewWidget()
         w.opts['distance'] = 10
         w.show()
-        w.setWindowTitle(G.gtype)
-
-    # Plot signal
-    pos = np.array([0., 1., 0.5, 0.25, 0.75])
-    color = np.array([[0, 255, 255, 255], [255, 255, 0, 255], [0, 0, 0, 255],
-                      (0, 0, 255, 255), (255, 0, 0, 255)], dtype=np.ubyte)
-    cmap = pg.ColorMap(pos, color)
-
-    mininum = min(signal)
-    maximum = max(signal)
-
-    normalized_signal = [(float(x) - mininum) / (maximum - mininum) for x in signal]
-
-    if G.coords.shape[1] == 2:
-        gp = pg.ScatterPlotItem(G.coords[:, 0],
-                                G.coords[:, 1],
-                                size=vertex_size,
-                                brush=cmap.map(normalized_signal, 'qcolor'))
-        v.addItem(gp)
-    if G.coords.shape[1] == 3:
-        gp = gl.GLScatterPlotItem(G.coords[:, 0], G.coords[:, 1],
-                                  G.coords[:, 2], size=vertex_size, c=signal)
-        w.addItem(gp)
+        w.setWindowTitle(plot_name or G.gtype)
 
     # Plot edges
     if show_edges:
@@ -723,12 +702,6 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                 v.addItem(g)
 
             if G.coords.shape[1] == 3:
-                app = QtGui.QApplication([])
-                w = gl.GLViewWidget()
-                w.opts['distance'] = 10
-                w.show()
-                w.setWindowTitle(G.gtype)
-
                 # Very dirty way to display a 3d graph
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
                                     np.expand_dims(G.coords[kj, 0], axis=0)))
@@ -758,6 +731,29 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                 w.addItem(g)
                 w.addItem(gp)
 
+    # Plot signal on top
+    pos = [1, 8, 24, 40, 56, 64]
+    color = np.array([[0, 0, 143, 255], [0, 0, 255, 255], [0, 255, 255, 255],
+                      [255, 255, 0, 255], [255, 0, 0, 255], [128, 0, 0, 255]])
+    cmap = pg.ColorMap(pos, color)
+
+    mininum = min(signal)
+    maximum = max(signal)
+
+    normalized_signal = [1 + 63 *(float(x) - mininum) / (maximum - mininum) for x in signal]
+
+    if G.coords.shape[1] == 2:
+        gp = pg.ScatterPlotItem(G.coords[:, 0],
+                                G.coords[:, 1],
+                                size=vertex_size,
+                                brush=cmap.map(normalized_signal, 'qcolor'))
+        v.addItem(gp)
+    if G.coords.shape[1] == 3:
+        gp = gl.GLScatterPlotItem(G.coords[:, 0], G.coords[:, 1],
+                                  G.coords[:, 2], size=vertex_size, c=signal)
+        w.addItem(gp)
+
+
     # Multiple windows handling
     if G.coords.shape[1] == 2:
         window_list[str(uuid.uuid4())] = w
@@ -765,7 +761,7 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         window_list[str(uuid.uuid4())] = app
 
 
-def plot_spectrogramm(G, M=101, **kwargs):
+def plot_spectrogramm(G, **kwargs):
     r"""
     Plot the spectrogramm of the given graph.
 
@@ -773,13 +769,10 @@ def plot_spectrogramm(G, M=101, **kwargs):
     ----------
     G : Graph object
         Graph to analyse.
-    M : int (optional)
-        Size of spectral scale. (default = 101)
-    g : Filter object (optional)
-        Kernel to use in the spectrogramm (default = Heat kernel)
+    node_idx : ndarray
+        Order to sort the nodes in the spectrogramm
 
-
-    Examples
+    Example
     --------
     >>> import numpy as np
     >>> from pygsp import graphs, plotting
@@ -787,28 +780,39 @@ def plot_spectrogramm(G, M=101, **kwargs):
     >>> plotting.plot_spectrogramm(G)
 
     """
-    from pygsp.filters import Filter, Heat
-    from scipy import sparse as sp
+    global window_list
+    from pygsp.features import compute_spectrogramm
+    if 'window_list' not in globals():
+        window_list = {}
 
     if not qtg_import:
-        pass # raise NotImplementedError("You need pyqtgraph to plot the spectrogramm at the moment. Please install dependency and retry.")
+        raise NotImplementedError("You need pyqtgraph to plot the spectrogramm at the moment. Please install dependency and retry.")
 
-    if not hasattr(G, 'lmax'):
-        G.estimate_lmax()
+    if not hasattr(G, 'spectr'):
+        compute_spectrogramm(G)
 
-    signals = np.eye(G.N)
-    g = kwargs.pop('g', None)
-    if not g or not isinstance(g, Filter):
-        g = Heat(G)
-    if len(g.g) > 1:
-        g.g = list(g.g[0])
+    M = G.spectr.shape[1]
+    node_idx = kwargs.pop('node_idx', None)
+    spectr = np.ravel(G.spectr[node_idx, :] if node_idx is not None else G.spectr)
+    min_spec, max_spec = np.min(spectr), np.max(spectr)
 
-    scale = np.linspace(0, G.lmax, M)
-    spectr = np.zeros((M, G.N))
+    pos = np.array([0., 0.25, 0.5, 0.75, 1.])
+    color = np.array([[20, 133, 212, 255], [53, 42, 135, 255], [48, 174, 170, 255],
+                     [210, 184, 87, 255], [249, 251, 14, 255]], dtype=np.ubyte)
+    cmap = pg.ColorMap(pos, color)
 
-    for shift_idx in range(M):
-        shifted_g = Filter(G, filters=lambda x: g.g[0](x-scale[shift_idx]))
-        tig = shifted_g.analysis(signals, method='cheby')
-        spectr[shift_idx, :] = np.linalg.norm(tig, axis=0)**2
+    w = pg.GraphicsWindow()
+    w.setWindowTitle("Spectrogramm of {}".format(G.gtype))
+    v = w.addPlot(labels={'bottom': 'nodes',
+                          'left': 'frequencies {}:{:.2f}:{:.2f}'.format(0, G.lmax/M, G.lmax)})
+    v.setAspectLocked()
 
+    spi = pg.ScatterPlotItem(np.repeat(np.arange(G.N), M), np.ravel(np.tile(np.arange(M), (1, G.N))), pxMode=False, symbol='s',
+                             size=1, brush=cmap.map((spectr.astype(float) - min_spec)/(max_spec - min_spec), 'qcolor'))
+    v.addItem(spi)
+
+<<<<<<< HEAD
     return spectr
+=======
+    window_list[str(uuid.uuid4())] = w
+>>>>>>> devel

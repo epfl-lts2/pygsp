@@ -87,6 +87,9 @@ class StochasticBlockModel(Graph):
         if undirected:
             W = W + W.T
 
+            if not no_self_loop:  # avoid doubling the self loops with the sum above
+                W[np.arange(N), np.arange(N)] /= 2.
+
         self.info = {'node_com': z, 'comm_sizes': np.bincount(z),
                      'world_rad': np.sqrt(N)}
 

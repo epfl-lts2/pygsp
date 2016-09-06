@@ -48,8 +48,9 @@ def graph_array_handler(func):
 def filterbank_handler(func):
 
     def inner(f, *args, **kwargs):
-        if hasattr(f.g, '__call__'):
-            return func([f], *args, **kwargs)
+        if 'i' in kwargs:
+            return func(f, *args, **kwargs)
+
         if len(f.g) <= 1:
             return func(f, *args, **kwargs)
         elif len(f.g) > 1:
@@ -57,10 +58,6 @@ def filterbank_handler(func):
             for i in range(len(f.g)):
                 output.append(func(f, *args, i=i, **kwargs))
             return output
-
-        else:
-            raise TypeError("This function only accepts Filters or\
-                            Filters lists")
     return inner
 
 

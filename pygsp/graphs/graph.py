@@ -199,14 +199,14 @@ class Graph(object):
             Gn.lap_type = self.lap_type
             Gn.create_laplacian()
 
-    def set_coords(self, kind='ring2D', **kwargs):
+    def set_coords(self, kind='spring', **kwargs):
         r"""
         Set coordinates for the vertices.
 
         Parameters
         ----------
         kind : string
-            The kind of display. Default is 'ring2D'.
+            The kind of display. Default is 'spring'.
             Accepting ['community2D', 'manual', 'random2D', 'random3D', 'ring2D', 'spring'].
         coords : np.ndarray
             An array of coordinates in 2D or 3D. Used only if kind is manual.
@@ -240,10 +240,10 @@ class Graph(object):
                                          axis=1)
 
         elif kind == 'random2D':
-            self.coords = np.random.rand((self.N, 2))
+            self.coords = np.random.rand(self.N, 2)
 
         elif kind == 'random3D':
-            self.coords = np.random.rand((self.N, 3))
+            self.coords = np.random.rand(self.N, 3)
 
         elif kind == 'spring':
             self.coords = self._fruchterman_reingold_layout(**kwargs)
@@ -604,7 +604,8 @@ class Graph(object):
             self.logger.warning('GSP_ESTIMATE_LMAX: Cannot use default method.')
             lmax = 2. * np.max(self.d)
 
-        self.lmax = np.real(lmax)
+        lmax = np.real(lmax)
+        self.lmax = lmax.sum()
 
     def plot(self, **kwargs):
         r"""
@@ -614,6 +615,15 @@ class Graph(object):
         """
         from pygsp import plotting
         plotting.plot_graph(self, **kwargs)
+
+    def plot_signal(self, signal, **kwargs):
+        r"""
+        Plot the graph signal.
+
+        See plotting doc.
+        """
+        from pygsp import plotting
+        plotting.plot_signal(self, signal, **kwargs)
 
     def show_spectrogramm(self, **kwargs):
         r"""
@@ -633,6 +643,7 @@ class Graph(object):
 
         if np.shape(center)[1] != dim:
             self.logger.error('Spring coordinates : center has wrong size.')
+            center = np.zeros((1, dim))
 
         dom_size = 1.
         if pos is not None:
@@ -707,6 +718,7 @@ def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
         pos += (displacement*t/length).T
         # cool temperature
         t -= dt
+
     return pos
 
 

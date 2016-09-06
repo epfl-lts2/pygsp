@@ -10,7 +10,7 @@ which depends on the particular graph you are trying to build. For specific info
 import importlib
 import sys
 
-__all__ = ['Graph', 'Airfoil', 'Comet', 'Community', 'DavidSensorNet', 'ErdosRenyi', 'FullConnected', 'Grid2d', 'Logo',
+__all__ = ['Graph', 'Airfoil', 'BarabasiAlbert', 'Comet', 'Community', 'DavidSensorNet', 'ErdosRenyi', 'FullConnected', 'Grid2d', 'Logo',
            'LowStretchTree', 'Minnesota', 'Path', 'RandomRing', 'RandomRegular', 'Ring', 'Sensor', 'StochasticBlockModel', 'SwissRoll', 'Torus']
 
 

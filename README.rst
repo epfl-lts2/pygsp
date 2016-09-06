@@ -95,6 +95,8 @@ Another way is to manually download from PyPI, unpack the package and install wi
 
 Instructions and requirements to install pyqtgraph can be found at http://www.pyqtgraph.org/.
 
+If you plan to use Python 3.5, you will need to install manually PyQt5 because there is no source on PyPI for it and PySide is not ported yet.
+
 Testing
 ^^^^^^^
 Execute the project test suite once to make sure you have a working install::

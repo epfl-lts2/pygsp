@@ -17,28 +17,25 @@ class Community(Graph):
     ----------
     N : int
         Number of nodes (default = 256)
-    kwargs : Dict
-        Optional parameters for the construction of the Community graph
-
-        Nc : int
-            Number of communities (default = :math:`round(\sqrt{N}/2)`)
-        min_comm : int
-            Minimum size of the communities (default = round(N/Nc/3))
-        min_deg : int
-            Minimum degree of each node (default = 0, NOT IMPLEMENTED YET)
-        comm_sizes : int
-            Size of the communities (default = random)
-        size_ratio : float
-            Ratio between the radius of world and the radius of communities (default = 1)
-        world_density : float
-            Probability of a random edge between two different communities (default = 1/N)
-        comm_density : float
-            Probability of a random edge inside any community (default = None, not used if None)
-        k_neigh : int
-            Number of intra-community connections (default = None, not used if None or comm_density is defined)
-        epsilon : float
-            Max distance at which two nodes sharing a community are connected
-            (default = :math:`sqrt(2\sqrt{N})/2`, not used if k_neigh or comm_density is defined)
+    Nc : int (optional)
+        Number of communities (default = :math:`round(\sqrt{N}/2)`)
+    min_comm : int (optional)
+        Minimum size of the communities (default = round(N/Nc/3))
+    min_deg : int (optional)
+        Minimum degree of each node (default = 0, NOT IMPLEMENTED YET)
+    comm_sizes : int (optional)
+        Size of the communities (default = random)
+    size_ratio : float (optional)
+        Ratio between the radius of world and the radius of communities (default = 1)
+    world_density : float (optional)
+        Probability of a random edge between two different communities (default = 1/N)
+    comm_density : float (optional)
+        Probability of a random edge inside any community (default = None, not used if None)
+    k_neigh : int (optional)
+        Number of intra-community connections (default = None, not used if None or comm_density is defined)
+    epsilon : float (optional)
+        Max distance at which two nodes sharing a community are connected
+        (default = :math:`sqrt(2\sqrt{N})/2`, not used if k_neigh or comm_density is defined)
 
     Examples
     --------
@@ -110,6 +107,21 @@ class Community(Graph):
             # epsilon-NN among the nodes in the same community (same eps for all communities)
             info['epsilon'] = epsilon
             self.logger.info("GSP_COMMUNITY: Constructed using eps-NN with eps = {}".format(epsilon))
+
+        # Coordinates #
+        info['com_coords'] = info['world_rad'] * np.array(list(zip(
+            np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
+            np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc))))
+
+        coords = np.random.rand(N, 2)  # nodes' coordinates inside the community
+        coords = np.array([[elem[0] * np.cos(2 * np.pi * elem[1]),
+                            elem[0] * np.sin(2 * np.pi * elem[1])] for elem in coords])
+
+        for i in range(N):
+            # set coordinates as an offset from the center of the community it belongs to
+            comm_idx = info['node_com'][i]
+            comm_rad = np.sqrt(info['comm_sizes'][comm_idx])
+            coords[i] = info['com_coords'][comm_idx] + comm_rad * coords[i]
 
         first_node = 0
         for i in range(Nc):
@@ -188,7 +200,7 @@ class Community(Graph):
 
         W = sparse.coo_matrix(tuple(w_data), shape=(N, N))
 
-        for key, value in {'Nc': Nc, 'info': info}:
+        for key, value in {'Nc': Nc, 'info': info}.items():
             setattr(self, key, value)
 
-        super(Community, self).__init__(W=W, gtype='Community', **kwargs)
+        super(Community, self).__init__(W=W, gtype='Community', coords=coords, **kwargs)

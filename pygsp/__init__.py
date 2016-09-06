@@ -12,6 +12,7 @@ You can find detailed documentation on the use of the functions in the subsequen
 from pygsp import graphs
 from pygsp import operators
 from pygsp import utils
+from pygsp import features
 from pygsp import filters
 from pygsp import pointclouds
 from pygsp import data_handling
@@ -19,15 +20,17 @@ from pygsp import optimization
 from pygsp import plotting
 
 # Silence the code checker warning about unused symbols.
+assert data_handling
+assert filters
 assert graphs
 assert operators
-assert utils
-assert filters
 assert pointclouds
-assert data_handling
 assert optimization
+assert pointclouds
+assert features
 assert plotting
+assert utils
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 __email__ = 'LTS2Graph@groupes.epfl.ch'
-__release_date__ = '2015-11-27'
+__release_date__ = '2016-09-06'
