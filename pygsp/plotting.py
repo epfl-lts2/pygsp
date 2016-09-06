@@ -811,8 +811,5 @@ def plot_spectrogramm(G, **kwargs):
                              size=1, brush=cmap.map((spectr.astype(float) - min_spec)/(max_spec - min_spec), 'qcolor'))
     v.addItem(spi)
 
-<<<<<<< HEAD
-    return spectr
-=======
     window_list[str(uuid.uuid4())] = w
->>>>>>> devel
+    return spectr
