@@ -27,8 +27,8 @@ class PointCloud(object):
 
     Examples
     --------
-    >>> from pygsp import pointcloud
-    >>> bunny = pointcloud.PointCloud('bunny')
+    >>> from pygsp import pointclouds
+    >>> bunny = pointclouds.PointCloud('bunny')
     >>> Xin = bunny.Xin
 
 

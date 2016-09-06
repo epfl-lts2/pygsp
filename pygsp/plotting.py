@@ -83,7 +83,7 @@ def plot(O, default_qtg=True, **kwargs):
 
     """
     from graphs import Graph
-    from pointcloud.pointcloud import PointCloud
+    from pointclouds.pointclouds import PointCloud
     from filters import Filter
 
     if issubclass(type(O), Graph):
@@ -378,8 +378,8 @@ def plot_pointcloud(P):
 
     Examples
     --------
-    >>> from pygsp import plotting, pointcloud
-    >>> logo = pointcloud.PointCloud('logo')
+    >>> from pygsp import plotting, pointclouds
+    >>> logo = pointclouds.PointCloud('logo')
     >>> try:
     ...     plotting.plot_pointcloud(logo)
     ... except:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import Graph
-from pygsp.pointcloud import PointCloud
+from pygsp.pointclouds import PointCloud
 from pygsp.utils import distanz
 
 import numpy as np
