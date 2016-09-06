@@ -38,5 +38,4 @@ class Path(Graph):
                                 axis=1)
         plotting = {"limits": np.array([0, N + 1, -1, 1])}
 
-        super(Path, self).__init__(W=W, coords=coords, gtype=self.gtype,
-                                   plotting='path')
+        super(Path, self).__init__(W=W, coords=coords, gtype='path')

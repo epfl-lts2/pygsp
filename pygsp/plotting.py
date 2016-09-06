@@ -247,9 +247,8 @@ def plt_plot_graph(G, savefig=False, show_edges=None, plot_name=''):
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-        # plt.close(fig)
-    # else:
-    #     plt.show()
+    else:
+        plt.show()
 
     # threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
@@ -644,9 +643,8 @@ def plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-        # plt.close(fig)
-    # else:
-    #     plt.show()
+    else:
+        plt.show()
 
 
 def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
@@ -734,15 +732,15 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                 w.addItem(gp)
 
     # Plot signal on top
-    pos = np.arange(0, 1.01, .25)
-    color = np.array([[249, 251, 14, 255], [20, 133, 212, 255], [48, 174, 170, 255],
-                      [210, 184, 87, 255], [53, 42, 135, 255]])
+    pos = [1, 8, 24, 40, 56, 64]
+    color = np.array([[0, 0, 143, 255], [0, 0, 255, 255], [0, 255, 255, 255],
+                      [255, 255, 0, 255], [255, 0, 0, 255], [128, 0, 0, 255]])
     cmap = pg.ColorMap(pos, color)
 
     mininum = min(signal)
     maximum = max(signal)
 
-    normalized_signal = [(float(x) - mininum) / (maximum - mininum) for x in signal]
+    normalized_signal = [1 + 63 *(float(x) - mininum) / (maximum - mininum) for x in signal]
 
     if G.coords.shape[1] == 2:
         gp = pg.ScatterPlotItem(G.coords[:, 0],
