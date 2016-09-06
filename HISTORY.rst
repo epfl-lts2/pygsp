@@ -4,7 +4,7 @@
 History
 =======
 
-0.4.0 (2016-06-17)
+0.4.1 (2016-09-06)
 -----------------
 Added routines to compute coordinates for the graphs.
 
@@ -13,6 +13,8 @@ Added fast filtering of ideal band-pass.
 Implemented graph spectrogramms.
 
 Added the Barabási-Albert model for graphs.
+
+Renamed PointClouds features.
 
 Various fixes.
 

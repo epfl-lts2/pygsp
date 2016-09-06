@@ -14,7 +14,7 @@ if sys.argv[-1] == 'publish':
 
 setup(
     name='PyGSP',
-    version='0.4.0',
+    version='0.4.1',
     description='The official Graph Signal Processing Toolbox',
     long_description=open('README.rst').read(),
     author='Alexandre Lafaye, Basile Châtillon, Lionel Martin, Nicolas Rod (EPFL LTS2)',
@@ -24,8 +24,8 @@ setup(
               'pygsp.pointsclouds', 'pygsp.tests'],
     package_data={'pygsp.pointsclouds': ['misc/*.mat']},
     test_suite='pygsp.tests.test_all.suite',
-    dependency_links = ['https://github.com/pyqtgraph/pyqtgraph@develop#egg=pyqtgraph-dev'],
-    install_requires=['numpy', 'scipy', 'pyopengl', 'pyqtgraph==dev',
+    dependency_links=['https://github.com/pyqtgraph/pyqtgraph@develop#egg=pyqtgraph-0.10.0fork'],
+    install_requires=['numpy', 'scipy', 'pyopengl', 'pyqtgraph<=0.10.0',
                       'matplotlib==1.4.3' if sys.version_info.major == 3 and sys.version_info.minor < 4 else 'matplotlib',
                       'PyQt5' if sys.version_info.major == 3 and sys.version_info.minor == 5 else 'PySide'],
     license="BSD",

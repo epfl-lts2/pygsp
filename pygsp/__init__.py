@@ -29,6 +29,6 @@ assert pointsclouds
 assert plotting
 assert utils
 
-__version__ = '0.4.0'
+__version__ = '0.4.1'
 __email__ = 'LTS2Graph@groupes.epfl.ch'
-__release_date__ = '2015-11-27'
+__release_date__ = '2016-09-06'
