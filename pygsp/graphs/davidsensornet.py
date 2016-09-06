@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import Graph
-from pygsp.pointsclouds import PointsCloud
+from pygsp.pointcloud import PointCloud
 from pygsp.utils import distanz
 
 import numpy as np
@@ -26,12 +26,12 @@ class DavidSensorNet(Graph):
 
     def __init__(self, N=64):
         if N == 64:
-            david64 = PointsCloud("david64")
+            david64 = PointCloud("david64")
             W = david64.W
             coords = david64.coords
 
         elif N == 500:
-            david500 = PointsCloud("david500")
+            david500 = PointCloud("david500")
             W = david500.W
             coords = david500.coords
 

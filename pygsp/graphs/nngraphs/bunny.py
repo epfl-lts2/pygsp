@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import NNGraph
-from pygsp.pointsclouds import PointsCloud
+from pygsp.pointcloud import PointCloud
 
 
 class Bunny(NNGraph):
@@ -21,7 +21,7 @@ class Bunny(NNGraph):
 
     def __init__(self, **kwargs):
 
-        bunny = PointsCloud("bunny")
+        bunny = PointCloud("bunny")
         plotting = {"vertex_size": 10, 'vertex_color': (1, 1, 1, 1), 'edge_color': (.5, .5, .5, 1)}
 
         super(Bunny, self).__init__(Xin=bunny.Xin, epsilon=0.2, NNtype="radius",

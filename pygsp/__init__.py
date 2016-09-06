@@ -13,7 +13,7 @@ from pygsp import graphs
 from pygsp import operators
 from pygsp import utils
 from pygsp import filters
-from pygsp import pointsclouds
+from pygsp import pointcloud
 from pygsp import data_handling
 from pygsp import optimization
 from pygsp import plotting
@@ -23,7 +23,7 @@ assert graphs
 assert operators
 assert utils
 assert filters
-assert pointsclouds
+assert pointcloud
 assert data_handling
 assert optimization
 assert plotting
