@@ -812,4 +812,3 @@ def plot_spectrogramm(G, **kwargs):
     v.addItem(spi)
 
     window_list[str(uuid.uuid4())] = w
-    return spectr
