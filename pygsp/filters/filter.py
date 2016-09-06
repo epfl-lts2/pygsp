@@ -370,5 +370,4 @@ class Filter(object):
 
         """
         from pygsp import plotting
-        plotting.plot_filter(self, **kwargs)
-        plotting.show(getattr(kwargs, 'block', False))
+        plotting.plot_filter(self, show_plot=True, **kwargs)

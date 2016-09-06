@@ -614,7 +614,7 @@ class Graph(object):
         See plotting doc.
         """
         from pygsp import plotting
-        plotting.plot_graph(self, **kwargs)
+        plotting.plot_graph(self, show_plot=True, **kwargs)
 
     def plot_signal(self, signal, **kwargs):
         r"""
@@ -623,7 +623,7 @@ class Graph(object):
         See plotting doc.
         """
         from pygsp import plotting
-        plotting.plot_signal(self, signal, **kwargs)
+        plotting.plot_signal(self, signal, show_plot=True, **kwargs)
 
     def show_spectrogramm(self, **kwargs):
         r"""

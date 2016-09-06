@@ -134,7 +134,7 @@ def plot_graph(G, default_qtg=True, **kwargs):
                           'install matplotlib or pyqtgraph.')
 
 
-def plt_plot_graph(G, savefig=False, show_edges=None, plot_name=''):
+def plt_plot_graph(G, savefig=False, show_edges=None, show_plot=False, plot_name=''):
     r"""
     Plot a graph or an array of graphs with matplotlib.
 
@@ -247,8 +247,8 @@ def plt_plot_graph(G, savefig=False, show_edges=None, plot_name=''):
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-    else:
-        plt.show()
+    elif show_plot:
+        plt.show(False)  # non blocking show
 
     # threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
@@ -405,7 +405,7 @@ def plot_pointcloud(P):
 
 def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
                 x_size=10, plot_eigenvalues=None, show_sum=None,
-                savefig=False, plot_name=None):
+                savefig=False, show_plot=False, plot_name=None):
     r"""
     Plot a system of graph spectral filters.
 
@@ -487,9 +487,8 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-        # plt.close(fig)
-    # else:
-    #     plt.show()
+    elif show_plot:
+        plt.show(False)  # non blocking show
 
 
 def plot_signal(G, signal, default_qtg=True, **kwargs):
@@ -548,7 +547,7 @@ def plot_signal(G, signal, default_qtg=True, **kwargs):
 def plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                     vertex_size=None, vertex_highlight=False, climits=None,
                     colorbar=True, bar=False, bar_width=1, savefig=False,
-                    plot_name=None):
+                    show_plot=False, plot_name=None):
     r"""
     Plot a graph signal in 2D or 3D using matplotlib.
 
@@ -643,8 +642,8 @@ def plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-    else:
-        plt.show()
+    elif show_plot:
+        plt.show(False)  # non blocking show
 
 
 def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
