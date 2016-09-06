@@ -28,7 +28,7 @@ def compute_avg_adj_deg(G):
 
 
 @filterbank_handler
-def compute_tig(filt, method=None, *args, **kwargs):
+def compute_tig(filt, method=None, **kwargs):
     r"""
     Compute the Tig for a given filter or filterbank.
 
@@ -48,7 +48,7 @@ def compute_tig(filt, method=None, *args, **kwargs):
         raise ValueError("Filter object expected as first argument.")
 
     signals = np.eye(filt.G.N)
-    return filt.analysis(signals, method=method, )
+    return filt.analysis(signals, method=method, **kwargs)
 
 
 @filterbank_handler
