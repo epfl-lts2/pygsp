@@ -1,4 +1,4 @@
 test:
   script:
-  - pip install -e . --process-dependency-links 
+  - pip install -e . --process-dependency-links --user
   - xvfb-run python setup.py test
