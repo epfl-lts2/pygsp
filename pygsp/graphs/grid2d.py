@@ -28,29 +28,31 @@ class Grid2d(Graph):
             Mv = Nv
 
         # Create weighted adjacency matrix
-        K = 2*(Nv-1)
-        J = 2*(Mv-1)
+        K = 2*(Nv - 1)
+        J = 2*(Mv - 1)
 
         i_inds = np.zeros((K*Mv + J*Nv), dtype=float)
         j_inds = np.zeros((K*Mv + J*Nv), dtype=float)
 
+        tmpK = np.arange(K, dtype=int)
+        tmpNv1 = np.arange(Nv - 1)
         for i in range(Mv):
-            i_inds[i*K + np.arange(K)] = i*Nv + \
-                np.concatenate((np.arange(Nv-1), np.arange(1, Nv)))
-            j_inds[i*K + np.arange(K)] = i*Nv + \
-                np.concatenate((np.arange(1, Nv), np.arange(Nv-1)))
+            i_inds[i*K + tmpK] = i*Nv + \
+                np.concatenate((tmpNv1, tmpNv1 + 1))
+            j_inds[i*K + tmpK] = i*Nv + \
+                np.concatenate((tmpNv1 + 1, tmpNv1))
 
+        tmp2Nv = np.arange(2*Nv, dtype=int)
+        tmpNv = np.arange(Nv)
         for i in range(Mv-1):
-            i_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = \
-                np.concatenate((i*Nv + np.arange(Nv),
-                                (i+1)*Nv + np.arange(Nv)))
+            i_inds[(K*Mv) + i*2*Nv + tmp2Nv] = \
+                np.concatenate((i*Nv + tmpNv, (i + 1)*Nv + tmpNv))
 
-            j_inds[(K*Mv) + i*2*Nv + np.arange(2*Nv)] = \
-                np.concatenate(((i+1)*Nv + np.arange(Nv),
-                                i*Nv + np.arange(Nv)))
+            j_inds[(K*Mv) + i*2*Nv + tmp2Nv] = \
+                np.concatenate(((i + 1)*Nv + tmpNv, i*Nv + tmpNv))
 
-        self.W = sparse.csc_matrix((np.ones((K*Mv+J*Nv)), (i_inds, j_inds)),
-                                   shape=(Mv*Nv, Mv*Nv))
+        W = sparse.csc_matrix((np.ones((K*Mv + J*Nv)), (i_inds, j_inds)),
+                              shape=(Mv*Nv, Mv*Nv))
 
         xtmp = np.kron(np.ones((Mv, 1)), (np.arange(Nv)/float(Nv)).reshape(Nv,
                                                                            1))
@@ -58,16 +60,13 @@ class Grid2d(Graph):
                                np.arange(Mv)/float(Mv)).reshape(Mv*Nv, 1),
                        axis=0)
 
-        self.coords = np.concatenate((xtmp, ytmp), axis=1)
+        coords = np.concatenate((xtmp, ytmp), axis=1)
 
-        self.N = Nv * Mv
         self.Nv = Nv
         self.Mv = Mv
-        self.gtype = '2d-grid'
-        self.plotting = {"limits": np.array([-1./self.Nv, 1 + 1./self.Nv,
-                                             1./self.Mv, 1 + 1./self.Mv]),
-                         "vertex_size": 30}
+        plotting = {"vertex_size": 30,
+                    "limits": np.array([-1./self.Nv, 1 + 1./self.Nv,
+                                        1./self.Mv, 1 + 1./self.Mv])}
 
-        super(Grid2d, self).__init__(N=self.N, W=self.W, gtype=self.gtype,
-                                     plotting=self.plotting,
-                                     coords=self.coords, **kwargs)
+        super(Grid2d, self).__init__(W=W, gtype='2d-grid', coords=coords,
+                                     plotting=plotting, **kwargs)

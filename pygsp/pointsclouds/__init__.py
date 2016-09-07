@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
 
-r"""
-This module implements some PointsClouds
-
-:class: `PointsCloud`  Class countaining all the PointsClouds
-"""
+r"""This module implements some PointsClouds."""
 
 import importlib
 import sys
-
 
 __all__ = ['PointsCloud']
 

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""
-This module implements some utilitary functions used throughout the PyGSP box.
-"""
+r"""This module implements some utilitary functions used throughout the PyGSP box."""
 
 import numpy as np
 import scipy as sp
@@ -9,17 +7,20 @@ from scipy import sparse
 import logging
 
 
-def build_logger(name):
+def build_logger(name, **kwargs):
     logger = logging.getLogger(name)
 
-    formatter = logging.Formatter("%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s")
+    logging_level = kwargs.pop('logging_level', logging.DEBUG)
 
-    steam_handler = logging.StreamHandler()
-    steam_handler.setLevel(logging.DEBUG)
-    steam_handler.setFormatter(formatter)
+    if not logger.handlers:
+        formatter = logging.Formatter("%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s")
 
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(steam_handler)
+        steam_handler = logging.StreamHandler()
+        steam_handler.setLevel(logging_level)
+        steam_handler.setFormatter(formatter)
+
+        logger.setLevel(logging_level)
+        logger.addHandler(steam_handler)
 
     return logger
 
@@ -47,20 +48,16 @@ def graph_array_handler(func):
 def filterbank_handler(func):
 
     def inner(f, *args, **kwargs):
-        if hasattr(f.g, '__call__'):
-            return func([f], *args, **kwargs)
+        if 'i' in kwargs:
+            return func(f, *args, **kwargs)
+
         if len(f.g) <= 1:
             return func(f, *args, **kwargs)
         elif len(f.g) > 1:
             output = []
-            i = range(len(f.g))
-            for ii in i:
-                output.append(func(f, *args, i=ii, **kwargs))
+            for i in range(len(f.g)):
+                output.append(func(f, *args, i=i, **kwargs))
             return output
-
-        else:
-            raise TypeError("This function only accepts Filters or\
-                            Filters lists")
     return inner
 
 
@@ -70,6 +67,16 @@ def sparsifier(func):
         return sparse.lil_matrix(func(*args, **kwargs))
 
     return inner
+
+
+def pyunlocbox_required(func):
+
+    def inner(*args, **kwargs):
+        try:
+            import pyunlocbox
+        except ImportError:
+            logger.error('Cannot import pyunlocbox')
+        return func(*args, **kwargs)
 
 
 def distanz(x, y=None):
@@ -128,42 +135,7 @@ def distanz(x, y=None):
     return np.sqrt(d)
 
 
-def full_eigen(L):
-    r"""
-    Computes full eigen decomposition on a matrix
-
-    Parameters
-    ----------
-    L : ndarray
-        Matrix to decompose
-
-    Returns
-    -------
-    EVa : ndarray
-        Eigenvalues
-    EVe : ndarray
-        Eigenvectors
-
-    """
-
-    eigenvectors, eigenvalues, _ = np.linalg.svd(L.todense())
-
-    # Sort everything
-
-    inds = np.argsort(eigenvalues)
-    EVa = np.sort(eigenvalues)
-
-    # TODO check if axis are good
-    EVe = eigenvectors[:, inds]
-
-    for val in EVe[0, :].reshape(EVe.shape[0], 1):
-        if val < 0:
-            val = -val
-
-    return EVa, EVe
-
-
-def resistance_distance(M):
+def resistance_distance(M):  # 1 call dans operators.reduction
     r"""
     Compute the resistance distances of a graph.
 
@@ -187,11 +159,7 @@ def resistance_distance(M):
     ----------
     :cite:`klein1993resistance`
 
-
     """
-
-    from pygsp.graphs.gutils import create_laplacian
-
     if sparse.issparse(M):
         L = M.tocsc()
 
@@ -199,8 +167,7 @@ def resistance_distance(M):
         if not M.lap_type == 'combinatorial':
             logger.info('Compute the combinatorial laplacian for the resitance'
                         ' distance')
-            create_laplacian(M, lap_type='combinatorial',
-                             get_laplacian_only=False)
+            M.create_laplacian(lap_type='combinatorial')
         L = M.L.tocsc()
 
     try:
@@ -215,33 +182,3 @@ def resistance_distance(M):
         - pseudo - pseudo.T
 
     return rd
-
-
-def dummy(a, b, c):
-    r"""
-    Short description.
-
-    Long description.
-
-    Parameters
-    ----------
-    a : int
-        Description.
-    b : array_like
-        Description.
-    c : bool
-        Description.
-
-    Returns
-    -------
-    d : ndarray
-        Description.
-
-    Examples
-    --------
-    >>> import pygsp
-    >>> pygsp.utils.dummy(0, [1, 2, 3], True)
-    array([1, 2, 3])
-
-    """
-    return np.array(b)

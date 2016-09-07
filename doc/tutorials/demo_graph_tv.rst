@@ -41,18 +41,17 @@ It is simply a projection on the B2-ball.
 Results and code
 ################
 
->>> import pygsp
->>> from pygsp import graphs, filters, operators, plotting
+>>> from pygsp import graphs, plotting
 >>> import numpy as np
 >>>
 >>> # Create a random sensor graph
 >>> G = graphs.Sensor(N=256, distribute=True)
->>> operators.compute_fourier_basis(G)
+>>> G.compute_fourier_basis()
 >>>
 >>> # Create signal
 >>> graph_value = np.copysign(np.ones(np.shape(G.U[:, 3])[0]), G.U[:, 3])
 >>>
->>> plotting.plot_signal(G, graph_value, savefig=True, plot_name='doc/tutorials/img/original_signal')
+>>> plotting.plt_plot_signal(G, graph_value, savefig=True, plot_name='doc/tutorials/img/original_signal')
 
 .. figure:: img/original_signal.*
 
@@ -66,7 +65,7 @@ This figure shows the original signal on graph.
 >>> sigma = 0.0
 >>> depleted_graph_value = M * (graph_value.reshape(graph_value.size, 1) + sigma * np.random.standard_normal((G.N, 1)))
 >>>
->>> plotting.plot_signal(G, depleted_graph_value, show_edges=True, savefig=True, plot_name='doc/tutorials/img/depleted_signal')
+>>> plotting.plt_plot_signal(G, depleted_graph_value, show_edges=True, savefig=True, plot_name='doc/tutorials/img/depleted_signal')
 
 .. figure:: img/depleted_signal.*
 
@@ -93,7 +92,7 @@ mask and addition of noise. More than half of the vertices are set to 0.
 .. >>> ret = pyunlocboxsolvers.solve([f2, f1], **param)
 .. >>> prox_tv_reconstructed_graph = ret['sol']
 .. >>>
-.. >>> plotting.plot_signal(G, prox_tv_reconstructed_graph, show_edges=True, savefig=True, plot_name='doc/tutorials/img/tv_recons_signal')
+.. >>> plotting.plt_plot_signal(G, prox_tv_reconstructed_graph, show_edges=True, savefig=True, plot_name='doc/tutorials/img/tv_recons_signal')
 
 .. figure:: img/tv_recons_signal.*
 
@@ -114,7 +113,7 @@ The result is presented as following:
 .. >>> ret2 = pyunlocbox.solvers.solve([f3, f1], **param)
 .. >>> prox_tik_reconstructed_graph = ret['sol']
 .. >>>
-.. >>> plotting.plot_signal(G, prox_tik_reconstructed_graph, show_edges=True, savefig=True, plot_name='doc/tutorials/img/tik_recons_signal')
+.. >>> plotting.plt_plot_signal(G, prox_tik_reconstructed_graph, show_edges=True, savefig=True, plot_name='doc/tutorials/img/tik_recons_signal')
 
 .. figure:: img/tik_recons_signal.*
 

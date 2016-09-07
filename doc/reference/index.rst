@@ -1,3 +1,5 @@
+.. _reference-guide:
+
 ===============
 Reference guide
 ===============
@@ -19,9 +21,6 @@ Graphs
 
 .. automodule:: pygsp.graphs
 
-.. inheritance-diagram:: pygsp.graphs
-    :parts: 2
-
 Filters
 -------
 
@@ -33,9 +32,6 @@ Filters
 
 .. automodule:: pygsp.filters
 
-.. inheritance-diagram:: pygsp.filters
-    :parts: 2
-
 Operators
 ---------
 
@@ -46,6 +42,16 @@ Operators
 
     operators
 
+PointsCloud
+-----------
+
+.. automodule:: pygsp.pointsclouds
+
+.. toctree::
+    :maxdepth: 2
+
+    pointsclouds
+
 Plotting
 --------
 
@@ -55,3 +61,43 @@ Plotting
     :maxdepth: 2
 
     plotting
+
+Reduction
+---------
+
+.. automodule:: pygsp.reduction
+
+.. toctree::
+    :maxdepth: 2
+
+    reduction
+
+Optimization
+------------
+
+.. automodule:: pygsp.optimization
+
+.. toctree::
+    :maxdepth: 2
+
+    optimization
+
+Data Handling
+-------------
+
+.. automodule:: pygsp.data_handling
+
+.. toctree::
+    :maxdepth: 2
+
+    data_handling
+
+Utils
+------
+
+.. automodule:: pygsp.utils
+
+.. toctree::
+    :maxdepth: 2
+
+    utils

@@ -21,18 +21,8 @@ class Bunny(NNGraph):
 
     def __init__(self, **kwargs):
 
-        self.NNtype = "radius"
-        self.rescale = True
-        self.center = True
-        self.epsilon = 0.2
-        self.gtype = "Bunny"
-
         bunny = PointsCloud("bunny")
-        self.Xin = bunny.Xin
+        plotting = {"vertex_size": 10, 'vertex_color': (1, 1, 1, 1), 'edge_color': (.5, .5, .5, 1)}
 
-        self.plotting = {"vertex_size": 10}
-
-        super(Bunny, self).__init__(Xin=self.Xin, center=self.center,
-                                    rescale=self.rescale, epsilon=self.epsilon,
-                                    plotting=self.plotting, NNtype=self.NNtype,
-                                    **kwargs)
+        super(Bunny, self).__init__(Xin=bunny.Xin, epsilon=0.2, NNtype="radius",
+                                    plotting=plotting, gtype="Bunny", **kwargs)

@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from pygsp import utils
-from pygsp.graphs.gutils import compute_fourier_basis
+from pygsp.utils import build_logger
 from pygsp.data_handling import adj2vec
 
 import numpy as np
 from scipy import sparse
-from math import sqrt
 
 
-logger = utils.build_logger(__name__)
+logger = build_logger(__name__)
 
 
 def div(G, s):
     r"""
+    Compute Graph divergence of a signal.
+
     Parameters
     ----------
     G : Graph structure
@@ -22,16 +22,19 @@ def div(G, s):
 
     Returns
     -------
+    di : float
+        The graph divergence
+
     """
     if hasattr(G, 'lap_type'):
         if G.lap_type == 'combinatorial':
-            raise NotImplementedError('Not implemented yet. However ask Nathanael it is very easy')
+            raise NotImplementedError('Not implemented yet. However ask Nathanael it is very easy.')
 
     if G.Ne != np.shape(s)[0]:
-        raise ValueError('Signal size not equal to number of edges')
+        raise ValueError('Signal size not equal to number of edges.')
 
     D = grad_mat(G)
-    di = D.getH() * s
+    di = D.T * s
 
     if s.dtype == 'float32':
         di = np.float32(di)
@@ -41,8 +44,15 @@ def div(G, s):
 
 def grad(G, s):
     r"""
-    Graph gradient
-    Usage: gr = gsp_grad(G,s)
+    Compute the Graph gradient.
+
+    Example
+    -------
+    >>> import pygsp
+    >>> import numpy as np
+    >>> G = pygsp.graphs.Logo()
+    >>> s = np.random.rand(G.Ne)
+    >>> grad = pygsp.operators.grad(G, s)
 
     Parameters
     ----------
@@ -52,12 +62,13 @@ def grad(G, s):
 
     Returns
     -------
-    gr : Gradient living on the edges
+    gr : ndarray
+        Gradient living on the edges
 
     """
     if hasattr(G, 'lap_type'):
         if G.lap_type == 'combinatorial':
-            raise NotImplementedError('Not implemented yet. However ask Nathanael it is very easy')
+            raise NotImplementedError('Not implemented yet. However ask Nathanael it is very easy.')
 
     D = grad_mat(G)
     gr = D * s
@@ -68,10 +79,15 @@ def grad(G, s):
     return gr
 
 
-def grad_mat(G):
+def grad_mat(G):  # 1 call (above)
     r"""
-    Gradient sparse matrix of the graph G
-    Usage:  D = gsp_gradient_mat(G);
+    Gradient sparse matrix of the graph G.
+
+    Example
+    -------
+    >>> import pygsp
+    >>> G = pygsp.graphs.Logo()
+    >>> D = grad_mat(G)
 
     Parameters
     ----------
@@ -79,13 +95,12 @@ def grad_mat(G):
 
     Returns
     -------
-    D : Gradient sparse matrix
+    D : ndarray
+        Gradient sparse matrix
 
     """
     if not hasattr(G, 'v_in'):
         G = adj2vec(G)
-        logger.info('To be more efficient you should run: G = adj2vec(G); \
-              before using this proximal operator.')
 
     if hasattr(G, 'Diff'):
         D = G.Diff
@@ -101,13 +116,14 @@ def grad_mat(G):
         Dv[:n] = np.sqrt(G.weights)
         Dv[n:] = -np.sqrt(G.weight)
         D = sparse.csc_matrix((Dv, (Dr, Dc)), shape=(n, G.N))
+        G.Diff = D
 
     return D
 
 
 def gft(G, f):
     r"""
-    Graph Fourier transform
+    Compute Graph Fourier transform.
 
     Parameters
     ----------
@@ -125,19 +141,19 @@ def gft(G, f):
 
     if isinstance(G, Graph):
         if not hasattr(G, 'U'):
-            logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
-            compute_fourier_basis(G)
+            logger.info('Analysis filter has to compute the eigenvalues and the eigenvectors.')
+            G.compute_fourier_basis()
 
         U = G.U
     else:
         U = G
 
-    return np.dot(np.conjugate(U.T), f)
+    return np.dot(np.conjugate(U.T), f)  # True Hermitian here.
 
 
 def igft(G, f_hat):
     r"""
-    Inverse graph Fourier transform
+    Compute inverse graph Fourier transform.
 
     Parameters
     ----------
@@ -147,7 +163,8 @@ def igft(G, f_hat):
 
     Returns
     -------
-    f : Inverse graph Fourier transform of *f_hat*
+    f : ndarray
+        Inverse graph Fourier transform of *f_hat*
 
     """
 
@@ -155,8 +172,8 @@ def igft(G, f_hat):
 
     if isinstance(G, Graph):
         if not hasattr(G, 'U'):
-            logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
-            compute_fourier_basis(G)
+            logger.info('Analysis filter has to compute the eigenvalues and the eigenvectors.')
+            G.compute_fourier_basis()
         U = G.U
 
     else:
@@ -165,34 +182,35 @@ def igft(G, f_hat):
     return np.dot(U, f_hat)
 
 
-def localize(G, g, i):
+def localize(g, i):
     r"""
-    Localize a kernel g to the node i
+    Localize a kernel g to the node i.
 
     Parameters
     ----------
-    G : Graph
     g : Filter
         kernel (or filterbank)
     i : int
-        Indices of vertex
+        Index of vertex
 
     Returns
     -------
-    gt : translate signal
+    gt : ndarray
+        Translated signal
 
     """
-    f = np.zeros((G.N))
+    N = g.G.N
+    f = np.zeros((N))
     f[i - 1] = 1
 
-    gt = sqrt(G.N) * g.analysis(G, f)
+    gt = np.sqrt(N) * g.analysis(f)
 
     return gt
 
 
 def modulate(G, f, k):
     r"""
-    Tranlate the signal f to the node i
+    Tranlate the signal f to the node i.
 
     Parameters
     ----------
@@ -200,11 +218,12 @@ def modulate(G, f, k):
     f : ndarray
         Signal (column)
     k :  int
-        Indices of frequencies
+        Index of frequencies
 
     Returns
     -------
-    fm : Modulated signal
+    fm : ndarray
+        Modulated signal
 
     """
     nt = np.shape(f)[1]

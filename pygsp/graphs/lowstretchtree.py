@@ -19,8 +19,7 @@ class LowStretchTree(Graph):
     --------
     >>> from pygsp import graphs, plotting
     >>> G = graphs.LowStretchTree(k=3)
-
-    # >>> plotting.plot_graph(G)
+    >>> G.plot()
     """
 
     def __init__(self, k=6, **kwargs):
@@ -49,20 +48,16 @@ class LowStretchTree(Graph):
             XCoords = np.concatenate((XCoords, XCoords + 2**p))
             XCoords = np.kron(np.ones((2)), XCoords)
 
-        self.coords = np.concatenate((np.expand_dims(XCoords, axis=1),
-                                      np.expand_dims(YCoords, axis=1)),
-                                     axis=1)
+        W = sparse.csc_matrix((np.ones((np.shape(ii))), (ii, jj)))
+        coords = np.concatenate((XCoords[:, np.newaxis],
+                                 YCoords[:, np.newaxis]),
+                                axis=1)
 
-        self.limits = np.array([0, 2**k + 1, 0, 2**k + 1])
-        self.N = (2**k)**2
-        self.W = sparse.csc_matrix((np.ones((np.shape(ii))), (ii, jj)))
         self.root = 4**(k - 1)
-        self.gtype = "low strech tree"
 
-        self.plotting = {"edges_width": 1.25,
-                         "vertex_sizee": 75}
+        plotting = {"edges_width": 1.25,
+                    "vertex_sizee": 75,
+                    "limits": np.array([0, 2**k + 1, 0, 2**k + 1])}
 
-        super(LowStretchTree, self).__init__(W=self.W, coords=self.coords,
-                                             N=self.N, limits=self.limits,
-                                             root=self.root, gtype=self.gtype,
-                                             plotting=self.plotting, **kwargs)
+        super(LowStretchTree, self).__init__(W=W, coords=coords, plotting=plotting,
+                                             gtype="low strech tree", **kwargs)

@@ -1,14 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-Test suite for the plotting module of the pygsp package.
-"""
+"""Test suite for the plotting module of the pygsp package."""
 
 import sys
 import numpy as np
-import numpy.testing as nptest
-from scipy import sparse
 from pygsp import graphs
 
 # Use the unittest2 backport on Python 2.6 to profit from the new features.
@@ -31,17 +27,15 @@ class FunctionsTestCase(unittest.TestCase):
         def needed_attributes_testing(G):
             self.assertTrue(hasattr(G, 'coords'))
             self.assertTrue(hasattr(G, 'A'))
-            self.assertEqual(ki.shape[0], G.Ne)
-            self.assertEqual(kj.shape[0], G.Ne)
             self.assertEqual(G.N, G.coords.shape[0])
 
         def test_default_graph():
             W = np.arange(16).reshape(4, 4)
-            G = graphs.Graph(W, directed=False)
+            G = graphs.Graph(W)
             ki, kj = np.nonzero(G.A)
+            self.assertEqual(ki.shape[0], G.Ne)
+            self.assertEqual(kj.shape[0], G.Ne)
             needed_attributes_testing(G)
-            # TODO
-            # self.assertEqual(G.L, )
 
         def test_NNGraph():
             Xin = np.arange(90).reshape(30, 3)
@@ -139,19 +133,11 @@ class FunctionsTestCase(unittest.TestCase):
             G = graphs.SwissRoll()
             needed_attributes_testing(G)
 
-    def test_dummy(self):
-        """
-        Dummy test.
-        """
-        a = np.array([1, 2])
-        b = graphs.dummy(1, a, True)
-        nptest.assert_almost_equal(a, b)
-
-
 suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
 
 
 def run():
+    """Run tests."""
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 

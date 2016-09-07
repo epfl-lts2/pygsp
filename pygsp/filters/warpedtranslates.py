@@ -47,8 +47,6 @@ class WarpedTranslates(Filter):
         homemade warping_function.
         (Default is None)
 
-
-
     Returns
     -------
     out : WarpedTranslates

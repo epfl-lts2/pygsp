@@ -8,6 +8,7 @@ g = [lambda x: 5./(5 + x)]
 
 Gs = reduction.kron_pyramid(G, 5, epsilon=0.1)
 graphs.gutils.compute_fourier_basis(Gs)
+graphs.gutils.estimate_lmax(Gs)
 
 f = np.ones((G.N))
 f[np.arange(G.N/2)] = -1

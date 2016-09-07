@@ -23,16 +23,9 @@ class FullConnected(Graph):
 
     def __init__(self, N=10):
 
-        tmp = np.arange(0, N).reshape(N, 1)
+        tmp = np.arange(N).reshape(N, 1)
 
-        self.coords = np.concatenate((np.cos(tmp*2*np.pi/N),
-                                      np.sin(tmp*2*np.pi/N)),
-                                     axis=1)
-        self.W = np.ones((N, N)) - np.identity(N)
-        self.N = N
-        self.gtype = "full"
-        self.plotting = {"limits": np.array([-1, 1, -1, 1])}
+        W = np.ones((N, N)) - np.identity(N)
+        plotting = {'limits': np.array([-1, 1, -1, 1])}
 
-        super(FullConnected, self).__init__(W=self.W, plotting=self.plotting,
-                                            N=self.N, coords=self.coords,
-                                            gtype=self.gtype)
+        super(FullConnected, self).__init__(W=W, gtype='full', plotting=plotting)

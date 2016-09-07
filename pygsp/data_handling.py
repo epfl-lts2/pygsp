@@ -6,15 +6,18 @@ from scipy import sparse
 
 def adj2vec(G):
     r"""
-    Prepare the graph for the gradient computation
+    Prepare the graph for the gradient computation.
 
     Parameters
     ----------
     G : Graph structure
+
     """
+    if not hasattr(G, 'directed'):
+        G.is_directed()
 
     if G.directed:
-        raise NotImplementedError("Not implemented yet")
+        raise NotImplementedError("Not implemented yet.")
 
     else:
         v_i, v_j = (sparse.tril(G.W)).nonzero()
@@ -26,57 +29,17 @@ def adj2vec(G):
         G.weights = weights
         G.Ne = np.shape(v_i)[0]
 
+    # TODO Return vec
+
 
 def mat2vec(d):
+    r"""Not implemented yet"""
     raise NotImplementedError
-
-
-def pyramid_cell2coeff(ca, pe):
-    r"""
-    Cell array to vector transform for the pyramid
-
-    Parameters
-    ----------
-    ca : ndarray
-        Array with the coarse approximation at each level
-    pe : ndarray
-        Array with the prediction errors at each level
-
-    Returns
-    -------
-    coeff : ndarray
-        Array of coefficient
-    """
-    Nl = len(ca) - 1
-    N = 0
-
-    for ele in ca:
-        N += np.shape(ele)[0]
-
-    try:
-        Nt, Nv = np.shape(ca[Nl])
-        coeff = coeff = np.zeros((N, Nv))
-    except ValueError:
-        Nt = np.shape(ca[Nl])[0]
-        coeff = np.zeros((N))
-
-    coeff[:Nt] = ca[Nl]
-
-    ind = Nt
-    for i in range(Nl):
-        Nt = np.shape(ca[Nl - 1 - i])[0]
-        coeff[ind + np.arange(Nt)] = pe[Nl - 1 - i]
-        ind += Nt
-
-    if ind != N:
-        raise ValueError('Something is wrong here: contact the gspbox team.')
-
-    return coeff
 
 
 def repmatline(A, ncol=1, nrow=1):
     r"""
-    This function repeats the matrix A in a specific manner.
+    Repeat the matrix A in a specific manner.
 
     Parameters
     ----------
@@ -93,20 +56,25 @@ def repmatline(A, ncol=1, nrow=1):
     Examples
     --------
 
-    For ncol=2 and nrow=3, the matix
+    For nrow=2 and ncol=3, the matrix
+    ::
 
-                1 2
-                3 4
+        x   =   [1 2 ]
+                [3 4 ]
+
     becomes
-                1 1 1 2 2 2
-                1 1 1 2 2 2
-                3 3 3 4 4 4
-                3 3 3 4 4 4
-    np.repeat(np.repeat(x, nrow, axis=1), ncol,  axis=0)
+    ::
+
+                [1 1 1 2 2 2 ]
+        M   =   [1 1 1 2 2 2 ]
+                [3 3 3 4 4 4 ]
+                [3 3 3 4 4 4 ]
+
+    with::
+        M = np.repeat(np.repeat(x, nrow, axis=1), ncol, axis=0)
 
     """
-
-    if ncol < 0 or nrow < 0:
+    if ncol < 1 or nrow < 1:
         raise ValueError("The number of lines and rows must be greater or\
                          equal to one, or you will get an empty array.")
 
@@ -132,8 +100,8 @@ def vec2mat(d, Nf):
     """
     if len(np.shape(d)) == 1:
         M = np.shape(d)[0]
-        return np.reshape(d, (M/Nf, Nf), order='F')
+        return np.reshape(d, (M / Nf, Nf), order='F')
 
     if len(np.shape(d)) == 2:
         M, N = np.shape(d)
-        return np.reshape(d, (M/Nf, Nf, N), order='F')
+        return np.reshape(d, (M / Nf, Nf, N), order='F')

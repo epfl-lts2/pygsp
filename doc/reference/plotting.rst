@@ -17,3 +17,7 @@ Plot Pointcloud
 Plot Filter
 -----------
 .. autofunction:: pygsp.plotting.plot_filter
+
+Plot Signal
+-----------
+.. autofunction:: pygsp.plotting.plot_signal

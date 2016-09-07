@@ -1,3 +1,5 @@
+.. _filters-api:
+
 ===============
 Filters Objects
 ===============

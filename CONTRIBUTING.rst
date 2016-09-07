@@ -25,7 +25,7 @@ Fix Bugs
 ~~~~~~~~
 
 Look through the GitHub issues for bugs. Anything tagged with "bug"
-is open to whoever wants to implement it.
+is open to whoever wants to fix it.
 
 Implement Features
 ~~~~~~~~~~~~~~~~~~
@@ -62,11 +62,15 @@ Ready to contribute? Here's how to set up `pygsp` for local development.
 
     $ git clone git@github.com:your_name_here/pygsp.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+3. Install your local copy into a virtualenv. Assuming you have `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/>`_ installed, this is how you set up your fork for local development::
 
     $ mkvirtualenv pygsp
     $ cd pygsp/
     $ python setup.py develop
+
+Note: alternatively, the third step could be replaced by::
+
+    $ pip install -e .
 
 4. Create a branch for local development::
 
@@ -84,9 +88,9 @@ Ready to contribute? Here's how to set up `pygsp` for local development.
 
 6. Commit your changes and push your branch to GitHub::
 
-    $ git add .
+    $ git add *
     $ git commit -m "Your detailed description of your changes."
-    $ git push origin name-of-your-bugfix-or-feature
+    $ git push --set-upstream origin name-of-your-branch
 
 7. Submit a pull request through the GitHub website.
 
@@ -99,7 +103,7 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 2.6, 2.7, and 3.3, and for PyPy. Check 
+3. The pull request should work for Python 2.7, 3.2, and 3.4, and for PyPy. Check 
    https://travis-ci.org/epfl-lts2/pygsp/pull_requests
    and make sure that the tests pass for all supported Python versions.
 

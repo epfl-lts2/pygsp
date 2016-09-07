@@ -12,11 +12,22 @@ class Held(Filter):
 
     Inherits its methods from Filters
 
+    This function create a parseval filterbank of :math:`2` filters.
+    The low-pass filter is defined by a function :math:`f_l(x)`
+
+    .. math:: f_{l}=\begin{cases} 1 & \mbox{if }x\leq a\\ \sin\left(2\pi\mu\left(\frac{x}{8a}\right)\right) & \mbox{if }a<x\leq2a\\ 0 & \mbox{if }x>2a \end{cases}
+
+    with
+
+    .. math:: \mu(x) = -1+24x-144*x^2+256*x^3
+
+    The high pass filter is adaptated to obtain a tight frame.
+
     Parameters
     ----------
     G : Graph
     a : float
-        See equation above TODO for this parameter
+        See equation above for this parameter
         The spectrum is scaled between 0 and 2 (default = 2/3)
 
     Returns

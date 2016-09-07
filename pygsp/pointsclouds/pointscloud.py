@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 
-from os import path
 import numpy as np
-
 from scipy import io
+
+from os import path
 
 
 class PointsCloud(object):
     r"""
-    Load the parameters of models and the points
+    Load the parameters of models and the points.
 
     Parameters
     ----------
     name : string
         The name of the point cloud to load.
         Possible arguments : 'airfoil', 'bunny', 'david64', 'david500', 'logo',
-        'two_moons'.
+        'minnesota', two_moons'.
     max_dim : int
         The maximum dimensionality of the points (only valid for two_moons)
         (default is 2)
@@ -30,6 +30,7 @@ class PointsCloud(object):
     >>> from pygsp import pointsclouds
     >>> bunny = pointsclouds.PointsCloud('bunny')
     >>> Xin = bunny.Xin
+
 
     Note
     ----
@@ -98,5 +99,14 @@ class PointsCloud(object):
             self.Xin = twomoonsmat["features"][:max_dim].T
 
         else:
-            raise ValueError("This PointsCloud does not exist. Please verify"
+            raise ValueError("This PointsCloud does not exist. Please verify "
                              "you wrote the right name in lower case.")
+
+    def plot(self, **kwargs):
+        r"""
+        Plot the pointcloud.
+
+        See plotting doc.
+        """
+        from pygsp import plotting
+        plotting.plot_pointcloud(self, **kwargs)
