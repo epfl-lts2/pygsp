@@ -24,7 +24,6 @@ assert data_handling
 assert filters
 assert graphs
 assert operators
-assert pointclouds
 assert optimization
 assert pointclouds
 assert features
