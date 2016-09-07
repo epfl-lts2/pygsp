@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import NNGraph
-from pygsp.pointsclouds import PointsCloud
+from pygsp.pointclouds import PointCloud
 
 import numpy as np
 from math import floor
@@ -57,7 +57,7 @@ class TwoMoons(NNGraph):
     def __init__(self, moontype='standard', sigmag=0.05, N=400, sigmad=0.07, d=0.5):
 
         if moontype == 'standard':
-            two_moons = PointsCloud('two_moons')
+            two_moons = PointCloud('two_moons')
             Xin = two_moons.Xin
 
             gtype = 'Two Moons standard'

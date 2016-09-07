@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pygsp.pointsclouds import PointsCloud
+from pygsp.pointclouds import PointCloud
 from . import Graph
 
 import numpy as np
@@ -27,7 +27,7 @@ class Minnesota(Graph):
     """
 
     def __init__(self, connect=True):
-        minnesota = PointsCloud('minnesota')
+        minnesota = PointCloud('minnesota')
 
         plotting = {"limits": np.array([-98, -89, 43, 50]),
                     "vertex_size": 30}

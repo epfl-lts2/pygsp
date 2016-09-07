@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import Graph
-from pygsp.pointsclouds import PointsCloud
+from pygsp.pointclouds import PointCloud
 
 import numpy as np
 from scipy import sparse
@@ -20,7 +20,7 @@ class Airfoil(Graph):
 
     def __init__(self, **kwargs):
 
-        airfoil = PointsCloud("airfoil")
+        airfoil = PointCloud("airfoil")
         i_inds = airfoil.i_inds
         j_inds = airfoil.j_inds
 
