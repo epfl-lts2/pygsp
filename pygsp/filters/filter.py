@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from pygsp import utils
-from pygsp.operators import fast_filtering, operator
+from .. import utils
+from ..operators import fast_filtering, operator
 
 import numpy as np
 from math import log

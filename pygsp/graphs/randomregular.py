@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import Graph
-from pygsp.utils import build_logger
+from ..utils import build_logger
 
 import numpy as np
 from scipy import sparse

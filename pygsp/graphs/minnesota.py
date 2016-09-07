@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pygsp.pointclouds import PointCloud
+from ..pointclouds import PointCloud
 from . import Graph
 
 import numpy as np

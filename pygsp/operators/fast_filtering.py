@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pygsp.utils import filterbank_handler, build_logger
+from ..utils import filterbank_handler, build_logger
 
 import numpy as np
 import scipy as sp

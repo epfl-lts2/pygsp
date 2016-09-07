@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import NNGraph
-from pygsp.pointclouds import PointCloud
+from ...pointclouds import PointCloud
 
 
 class Bunny(NNGraph):

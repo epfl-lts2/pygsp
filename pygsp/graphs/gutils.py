@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from pygsp import utils
+from .. import utils
 
 import numpy as np
 import scipy as sp

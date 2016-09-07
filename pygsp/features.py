@@ -5,9 +5,9 @@ import numpy as np
 import scipy as sp
 from scipy import sparse
 
-from pygsp.graphs import Graph
-from pygsp.filters import Filter
-from pygsp.utils import filterbank_handler
+from .graphs import Graph
+from .filters import Filter
+from .utils import filterbank_handler
 
 
 def compute_avg_adj_deg(G):

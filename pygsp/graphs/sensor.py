@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import Graph
-from pygsp.utils import distanz
+from ..utils import distanz
 
 import numpy as np
 from scipy import sparse

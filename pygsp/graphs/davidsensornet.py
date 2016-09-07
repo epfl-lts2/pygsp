@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from . import Graph
-from pygsp.pointclouds import PointCloud
-from pygsp.utils import distanz
+from ..pointclouds import PointCloud
+from ..utils import distanz
 
 import numpy as np
 from scipy import sparse
