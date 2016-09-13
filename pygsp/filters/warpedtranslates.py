@@ -2,7 +2,7 @@
 
 import numpy as np
 from . import Filter, HalfCosine, Itersine
-from pygsp import gutils, utils
+from pygsp import utils
 from scipy import sparse
 
 logger = utils.build_logger(__name__)
@@ -16,7 +16,7 @@ class WarpedTranslates(Filter):
     ----------
     G : Graph
     Nf : int
-        Number of filters (default = #TODO)
+        Number of filters (default = 10)
     use_log : bool
         To add on the other warping a log function. This is an alternative
         way of constructing a spectral graph wavelets. These are adapted to
@@ -31,8 +31,9 @@ class WarpedTranslates(Filter):
         Maximum of the log function?
 
     base_filter = str
-        The name of the initial uniform filterbank. 'itersine' and 'half_cosine'
-        are the only two usable values.
+        The name of the initial uniform filterbank. 'itersine' and
+        'half_cosine' are the only two usable values.
+        default is set as 'halfcosine'
 
     warping_type : str
         Creates a warping function according to three different methods :
@@ -62,19 +63,20 @@ class WarpedTranslates(Filter):
 
     """
 
-    def __init__(self, G, Nf=6, use_log=False, logmax=10, base_filter=None,
+    def __init__(self, G, Nf=6, use_log=False, logmax=10,
+                 base_filter='half_cosine',
                  overlap=2, interpolation_type='monocubic',
-                 warping_type='spectrum_approximation',
-                 approx_spectrum=[0, 0],
+                 warping_type='spectrum_interpolation',
+                 approx_spectrum=None,
                  **kwargs):
 
         super(WarpedTranslates, self).__init__(G, **kwargs)
 
         # Check estimate lmax
         # Nocheck
-        lmax = gutils.estimate_lmax(G)
+        lmax = G.estimate_lmax()
 
-        # Choose good case folloeing the warping type:
+        # Choose good case following the warping type:
         # Can be : 'spectrum_interpolation', 'spectrum_approximation', 'custom'
         if warping_type == 'spectrum_interpolation':
             if interpolation_type == 'pwl':
@@ -84,7 +86,7 @@ class WarpedTranslates(Filter):
                 wf = lambda s: self._mono_cubic_warp_fn(approx_spectrum[0],
                                                         approx_spectrum[1], s)
 
-        elif warping_type == 'spectrum_interpolation':
+        elif warping_type == 'spectrum_approximation':
             pass
 
         elif warping_type == 'custom':
@@ -94,9 +96,10 @@ class WarpedTranslates(Filter):
         if use_log:
             xmax = wf(lmax)
             wf = lambda s: np.log(1 + wf(s) /
-                               xmax * lmax * logmax + np.spacing(1))
+                                  xmax * lmax * logmax + np.spacing(1))
 
-        # We have to generate uniform translates covering for half_cosine or itersine
+        # We have to generate uniform translates covering for half_cosine
+        # or itersine
         if isinstance(base_filter, list):
             uniform_filters = []
             for i in range(Nf):
@@ -113,13 +116,14 @@ class WarpedTranslates(Filter):
     def _pwl_warp_fn(self, x, y, x0):
         cut = 1e-4
         if np.max(x0) > np.max(x) + cut or min(x0) < min(x) - cut:
-            logger.error('This function does not allow you to interpolate outside x and y')
+            logger.error('This function does not allow you to interpolate\
+                         outside x and y')
 
         mat_x_y = []
         for ele, ind in enumerate(x):
             mat_x_y.append((x[ind], y[ind]))
 
-        for ele  in mat_x_y:
+        for ele in mat_x_y:
             sorted_x_y = np.sort(mat_x_y[:][0])
             x = sorted_x_y[:][0]
             y = sorted_x_y[:][1]
@@ -142,7 +146,6 @@ class WarpedTranslates(Filter):
 
             return inter_val.reshape(inter_val, x0.size)
 
-
     def _mono_cubic_warp_fn(self, x, y, x0):
         r"""
         Returns interpolated values
@@ -154,17 +157,20 @@ class WarpedTranslates(Filter):
             logger.error('x and y vectors have to be the same size.')
 
         # To make sure the data is sorted and monotonic
-        if np.sort(x) == x and np.sort(y) == y:
+        if (np.sort(x) == x).all() and (np.sort(y) == y).all():
             logger.error('Data points are not monotonic.')
 
         # Compute the slopes of secant lines
         n_pts = x.size
-        Delta = (y[1:] - y[:n_pts])/(x[1:] - x[:n_pts])
+        Delta = (y[1:] - y[:-1])/(x[1:] - x[:-1])
 
         # Initialize tangents m at every data points
-        m = (Delta[:n_pts - 1] + Delta[1:n_pts])/2
+        m = (Delta[:-1] + Delta[1:])/2
         # To mitigate side effects
-        m = Delta[0].append(m).append(Delta[-1])
+        print(np.array(Delta[0]))
+        print(np.array(Delta[-1]))
+        print(m)
+        m = np.append(np.array(Delta[0]), m, np.array(Delta[-1]))
 
         # Check for equal y's to set slope equal to zero
         for k, i in enumerate(Delta):
@@ -173,7 +179,7 @@ class WarpedTranslates(Filter):
                 m[i + 1] = 0
 
         # alpha and beta initialization
-        alpha = m[:n_pts]/Delta
+        alpha = m[:]/Delta
         beta = m[1:-1]/Delta
 
         # Make monotonic
@@ -185,7 +191,7 @@ class WarpedTranslates(Filter):
 
         # Cubic interpolation
         n_pts_inter = x0.size
-        inter_val =  np.zeros(x0.shape)
+        inter_val = np.zeros(x0.shape)
 
         for i in range(n_pts_inter):
             close_ind = np.min(np.abs(x - x0[i]))
@@ -201,7 +207,6 @@ class WarpedTranslates(Filter):
                 + h * m[low_ind] * (t ** 3 - t ** 2)
 
         return inter_val
-
 
     def _spectrum_cdf_approx(self, G, n_pts=25, use_perm=True):
         r"""
