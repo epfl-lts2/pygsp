@@ -19,7 +19,7 @@ try:
     import pyqtgraph.opengl as gl
     qtg_import = True
 except Exception as e:
-    raise ImportError('ERROR : Could not import packages for matplotlib.')
+    print('ERROR : Could not import packages for pyqtgraph.')
     print('Details : {}'.format(e))
     qtg_import = False
 
