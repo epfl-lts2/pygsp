@@ -38,7 +38,7 @@ Let's now create a signal as a Kronecker located on one vertex (e.g. the vertex 
 >>> vertex_delta = 83
 >>> S[vertex_delta] = 1
 >>> Sf_vec = Hk.analysis(S)
->>> Sf = Sf_vec.reshape((Sf_vec.size/len(taus), len(taus)), order='F')
+>>> Sf = Sf_vec.reshape((Sf_vec.size//len(taus), len(taus)), order='F')
 
 Let's plot the signal:
 

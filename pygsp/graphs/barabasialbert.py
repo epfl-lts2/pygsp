@@ -11,17 +11,18 @@ from math import floor
 
 class BarabasiAlbert(Graph):
     r"""
-    Create a random Barabasi-Albert graph.
+    Create a graph following the preferential attachment concept like Barabasi-Albert graphs.
 
     The Barabasi-Albert graph is constructed by connecting nodes in two steps.
-    First, m0 nodes are connected at random. Then, nodes are added one by one.
-    Each node is connected to m of the older nodes with a probability distribution
-    depending of the node-degrees of the other nodes:
-    ::
-        p_n(i) = \frac{k_i}{\sum_j{k_j}}
-    ::
+    First, m0 nodes are created. Then, nodes are added one by one.
 
-    For the moment, we set m0 = m = 1.
+    By lack of clarity, we take the liberty to create it as follows:
+        i) the m0 initial nodes are disconnected
+        ii) each node is connected to m of the older nodes with a probability
+        distribution depending of the node-degrees of the other nodes:
+    ::
+        p_n(i) = \frac{1 + k_i}{\sum_j{1 + k_j}}
+    ::
 
     Parameters
     ----------
@@ -46,19 +47,13 @@ class BarabasiAlbert(Graph):
 
         W = sparse.lil_matrix((N, N))
 
-        if m0 > 1:
-            raise NotImplementedError("Initial connection of the nodes is not "
-                                      "implemented yet. Please keep m0 = 1.")
-
         for i in range(m0, N):
             distr = W.sum(axis=1)
-            if distr.sum() == 0:
-                W[0, 1] = 1
-                W[1, 0] = 1
-            else:
-                connections = np.random.choice(N, size=m, replace=False, p=np.ravel(distr/distr.sum()))
-                for elem in connections:
-                    W[elem, i] = 1
-                    W[i, elem] = 1
+            distr += np.concatenate((np.ones((i, 1)), np.zeros((N-i, 1))))
 
-        super(BarabasiAlbert, self).__init__(W=W, gtype=u"Barabási-Albert", **kwargs)
+            connections = np.random.choice(N, size=m, replace=False, p=np.ravel(distr/distr.sum()))
+            for elem in connections:
+                W[elem, i] = 1
+                # W[i, elem] = 1
+
+        super(BarabasiAlbert, self).__init__(W=W, gtype=u"Barabasi-Albert", **kwargs)

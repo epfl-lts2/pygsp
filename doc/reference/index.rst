@@ -42,15 +42,15 @@ Operators
 
     operators
 
-PointsCloud
+PointCloud
 -----------
 
-.. automodule:: pygsp.pointsclouds
+.. automodule:: pygsp.pointclouds
 
 .. toctree::
     :maxdepth: 2
 
-    pointsclouds
+    pointclouds
 
 Plotting
 --------

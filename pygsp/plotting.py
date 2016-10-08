@@ -89,7 +89,7 @@ def plot(O, default_qtg=True, **kwargs):
 
     if issubclass(type(O), Graph):
         plot_graph(O, default_qtg, **kwargs)
-    elif issubclass(type(O), PointsCloud):
+    elif issubclass(type(O), PointCloud):
         plot_pointcloud(O)
     elif issubclass(type(O), Filter):
         plot_filter(O, **kwargs)
@@ -248,14 +248,13 @@ def plt_plot_graph(G, savefig=False, show_edges=None, plot_name=''):
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-        plt.close(fig)
-    #else:
-    #    plt.show()
+    else:
+        plt.show()
 
     # threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
 
-def pg_plot_graph(G, show_edges=None):
+def pg_plot_graph(G, show_edges=None, plot_name=''):
     r"""
     Plot a graph or an array of graphs.
 
@@ -287,7 +286,7 @@ def pg_plot_graph(G, show_edges=None):
                                   np.expand_dims(kj, axis=1)), axis=1)
 
             w = pg.GraphicsWindow()
-            w.setWindowTitle(G.plotting['plot_name'] or G.gtype if 'plot_name' in G.plotting else G.gtype)
+            w.setWindowTitle(G.plotting['plot_name'] if 'plot_name' in G.plotting else plot_name or G.gtype)
             v = w.addViewBox()
             v.setAspectLocked()
 
@@ -321,7 +320,7 @@ def pg_plot_graph(G, show_edges=None):
             w = gl.GLViewWidget()
             w.opts['distance'] = 10
             w.show()
-            w.setWindowTitle(G.plotting['plot_name'] or G.gtype if 'plot_name' in G.plotting else G.gtype)
+            w.setWindowTitle(G.plotting['plot_name'] if 'plot_name' in G.plotting else plot_name or G.gtype)
 
             # Very dirty way to display a 3d graph
             x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
@@ -379,12 +378,12 @@ def plot_pointcloud(P):
 
     Parameters
     ----------
-    P : PointsClouds object
+    P : PointCloud object
 
     Examples
     --------
-    >>> from pygsp import plotting, pointsclouds
-    >>> logo = pointsclouds.PointsCloud('logo')
+    >>> from pygsp import plotting, pointclouds
+    >>> logo = pointclouds.PointCloud('logo')
     >>> try:
     ...     plotting.plot_pointcloud(logo)
     ... except:
@@ -489,7 +488,7 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-        plt.close(fig)
+        # plt.close(fig)
     # else:
     #     plt.show()
 
@@ -645,14 +644,13 @@ def plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     if savefig:
         plt.savefig(plot_name + '.png')
         plt.savefig(plot_name + '.pdf')
-        plt.close(fig)
-    # else:
-    #     plt.show()
+    else:
+        plt.show()
 
 
 def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                    vertex_size=None, vertex_highlight=False, climits=None,
-                   colorbar=True, bar=False, bar_width=1):
+                   colorbar=True, bar=False, bar_width=1, plot_name=None):
     r"""
     Plot a graph signal in 2D or 3D, with pyqtgraph.
 
@@ -677,15 +675,14 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         window_list = {}
 
     if G.coords.shape[1] == 2:
-        w = pg.GraphicsWindow()
-        w.setWindowTitle(G.gtype)
+        w = pg.GraphicsWindow(plot_name or G.gtype)
         v = w.addViewBox()
     elif G.coords.shape[1] == 3:
         app = QtGui.QApplication([])
         w = gl.GLViewWidget()
         w.opts['distance'] = 10
         w.show()
-        w.setWindowTitle(G.gtype)
+        w.setWindowTitle(plot_name or G.gtype)
 
     # Plot edges
     if show_edges:
@@ -706,12 +703,6 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                 v.addItem(g)
 
             if G.coords.shape[1] == 3:
-                app = QtGui.QApplication([])
-                w = gl.GLViewWidget()
-                w.opts['distance'] = 10
-                w.show()
-                w.setWindowTitle(G.gtype)
-
                 # Very dirty way to display a 3d graph
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
                                     np.expand_dims(G.coords[kj, 0], axis=0)))
@@ -742,15 +733,15 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                 w.addItem(gp)
 
     # Plot signal on top
-    pos = np.arange(0, 1.01, .25)
-    color = np.array([[249, 251, 14, 255], [20, 133, 212, 255], [48, 174, 170, 255],
-                      [210, 184, 87, 255], [53, 42, 135, 255]])
+    pos = [1, 8, 24, 40, 56, 64]
+    color = np.array([[0, 0, 143, 255], [0, 0, 255, 255], [0, 255, 255, 255],
+                      [255, 255, 0, 255], [255, 0, 0, 255], [128, 0, 0, 255]])
     cmap = pg.ColorMap(pos, color)
 
     mininum = min(signal)
     maximum = max(signal)
 
-    normalized_signal = [(float(x) - mininum) / (maximum - mininum) for x in signal]
+    normalized_signal = [1 + 63 *(float(x) - mininum) / (maximum - mininum) for x in signal]
 
     if G.coords.shape[1] == 2:
         gp = pg.ScatterPlotItem(G.coords[:, 0],

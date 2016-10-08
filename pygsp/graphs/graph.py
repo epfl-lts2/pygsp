@@ -199,14 +199,14 @@ class Graph(object):
             Gn.lap_type = self.lap_type
             Gn.create_laplacian()
 
-    def set_coords(self, kind='ring2D', **kwargs):
+    def set_coords(self, kind='spring', **kwargs):
         r"""
         Set coordinates for the vertices.
 
         Parameters
         ----------
         kind : string
-            The kind of display. Default is 'ring2D'.
+            The kind of display. Default is 'spring'.
             Accepting ['community2D', 'manual', 'random2D', 'random3D', 'ring2D', 'spring'].
         coords : np.ndarray
             An array of coordinates in 2D or 3D. Used only if kind is manual.
@@ -615,6 +615,15 @@ class Graph(object):
         """
         from pygsp import plotting
         plotting.plot_graph(self, **kwargs)
+
+    def plot_signal(self, signal, **kwargs):
+        r"""
+        Plot the graph signal.
+
+        See plotting doc.
+        """
+        from pygsp import plotting
+        plotting.plot_signal(self, signal, **kwargs)
 
     def show_spectrogramm(self, **kwargs):
         r"""
