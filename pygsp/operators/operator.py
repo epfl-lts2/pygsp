@@ -113,8 +113,8 @@ def grad_mat(G):  # 1 call (above)
         Dr = np.concatenate((np.arange(n), np.arange(n)))
         Dc[:n] = G.v_in
         Dc[n:] = G.v_out
-        Dv[:n] = np.sqrt(G.weights)
-        Dv[n:] = -np.sqrt(G.weight)
+        Dv[:n] = np.sqrt(G.weights.toarray())
+        Dv[n:] = -Dv[:n]
         D = sparse.csc_matrix((Dv, (Dr, Dc)), shape=(n, G.N))
         G.Diff = D
 
