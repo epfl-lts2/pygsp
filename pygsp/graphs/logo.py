@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import Graph
-from pygsp.pointsclouds import PointsCloud
+from pygsp.pointclouds import PointCloud
 
 import numpy as np
 
@@ -18,7 +18,7 @@ class Logo(Graph):
     """
 
     def __init__(self, **kwargs):
-        logo = PointsCloud("logo")
+        logo = PointCloud("logo")
 
         self.info = logo.info
 

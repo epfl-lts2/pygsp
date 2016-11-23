@@ -14,7 +14,7 @@ from pygsp import operators
 from pygsp import utils
 from pygsp import features
 from pygsp import filters
-from pygsp import pointsclouds
+from pygsp import pointclouds
 from pygsp import data_handling
 from pygsp import optimization
 from pygsp import plotting
@@ -25,7 +25,8 @@ assert filters
 assert graphs
 assert operators
 assert optimization
-assert pointsclouds
+assert pointclouds
+assert features
 assert plotting
 assert utils
 

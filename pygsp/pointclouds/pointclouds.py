@@ -6,7 +6,7 @@ from scipy import io
 from os import path
 
 
-class PointsCloud(object):
+class PointCloud(object):
     r"""
     Load the parameters of models and the points.
 
@@ -22,13 +22,13 @@ class PointsCloud(object):
 
     Returns
     -------
-    The differents informations of the loaded PointsCloud.
+    The differents informations of the loaded PointCloud.
 
 
     Examples
     --------
-    >>> from pygsp import pointsclouds
-    >>> bunny = pointsclouds.PointsCloud('bunny')
+    >>> from pygsp import pointclouds
+    >>> bunny = pointclouds.PointCloud('bunny')
     >>> Xin = bunny.Xin
 
 
@@ -99,7 +99,7 @@ class PointsCloud(object):
             self.Xin = twomoonsmat["features"][:max_dim].T
 
         else:
-            raise ValueError("This PointsCloud does not exist. Please verify "
+            raise ValueError("This PointCloud does not exist. Please verify "
                              "you wrote the right name in lower case.")
 
     def plot(self, **kwargs):

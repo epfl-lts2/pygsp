@@ -8,7 +8,9 @@ try:
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
     plt_import = True
-except:
+except Exception as e:
+    print('ERROR : Could not import packages for matplotlib.')
+    print('Details : {}'.format(e))
     plt_import = False
 
 try:
@@ -16,7 +18,9 @@ try:
     from pyqtgraph.Qt import QtCore, QtGui
     import pyqtgraph.opengl as gl
     qtg_import = True
-except:
+except Exception as e:
+    print('ERROR : Could not import packages for pyqtgraph.')
+    print('Details : {}'.format(e))
     qtg_import = False
 
 
@@ -76,10 +80,7 @@ def plot(O, default_qtg=True, **kwargs):
     --------
     >>> from pygsp import graphs, plotting
     >>> G = graphs.Logo()
-    >>> try:
-    ...     plotting.plot(G, default_qtg=False)
-    ... except Exception as e:
-    ...     print(e)
+    >>> plotting.plot(G, default_qtg=False)
 
     """
     from .graphs import Graph
@@ -88,7 +89,7 @@ def plot(O, default_qtg=True, **kwargs):
 
     if issubclass(type(O), Graph):
         plot_graph(O, default_qtg, **kwargs)
-    elif issubclass(type(O), PointsCloud):
+    elif issubclass(type(O), PointCloud):
         plot_pointcloud(O)
     elif issubclass(type(O), Filter):
         plot_filter(O, **kwargs)
@@ -377,12 +378,12 @@ def plot_pointcloud(P):
 
     Parameters
     ----------
-    P : PointsClouds object
+    P : PointCloud object
 
     Examples
     --------
-    >>> from pygsp import plotting, pointsclouds
-    >>> logo = pointsclouds.PointsCloud('logo')
+    >>> from pygsp import plotting, pointclouds
+    >>> logo = pointclouds.PointCloud('logo')
     >>> try:
     ...     plotting.plot_pointcloud(logo)
     ... except:
