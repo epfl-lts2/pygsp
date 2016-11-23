@@ -100,7 +100,7 @@ def grad_mat(G):  # 1 call (above)
 
     """
     if not hasattr(G, 'v_in'):
-        G = adj2vec(G)
+        adj2vec(G)
 
     if hasattr(G, 'Diff'):
         D = G.Diff
