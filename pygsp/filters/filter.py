@@ -9,7 +9,8 @@ from copy import deepcopy
 
 
 class Filter(object):
-    r"""Parent class for all Filters or Filterbanks, contains the shared methods for those classes."""
+    r"""Parent class for all Filters or Filterbanks,
+        contains the shared methods for those classes."""
 
     def __init__(self, G, filters=None, **kwargs):
 
@@ -39,7 +40,7 @@ class Filter(object):
         s : ndarray
             graph signals to analyse
         method : string
-            wether using an exact method, cheby approx or lanczos
+            wether using an exact method, cheby approx (lanczos not working now)
         cheb_order : int
             Order for chebyshev
 
@@ -72,8 +73,8 @@ class Filter(object):
             cheb_coef = fast_filtering.compute_cheby_coeff(self, m=cheb_order)
             c = fast_filtering.cheby_op(self.G, cheb_coef, s)
 
-        elif method == 'lanczos':  # Lanczos approx
-            c = fast_filtering.lanczos_op(self, s, self.G, order=lanczos_order)
+        # elif method == 'lanczos':  # Lanczos approx
+        #     c = fast_filtering.lanczos_op(self, s, order=lanczos_order)
 
         elif method == 'exact':  # Exact computation
             if not hasattr(self.G, 'e') or not hasattr(self.G, 'U'):
@@ -103,12 +104,12 @@ class Filter(object):
                 tmpN = np.arange(N, dtype=int)
                 for i in range(Nf):
                     if is2d:
-                        c[tmpN + N*i] = operator.igft(self.G, np.tile(fie[i], (Ns, 1)).T *
-                                                      operator.gft(self.G, s))
+                        c[tmpN + N*i] =\
+                            operator.igft(self.G, np.tile(fie[i], (Ns, 1)).T *
+                                          operator.gft(self.G, s))
                     else:
                         c[tmpN + N*i] = operator.igft(self.G, fie[i] *
                                                       operator.gft(self.G, s))
-
 
         else:
             raise ValueError('Unknown method: please select exact, '
