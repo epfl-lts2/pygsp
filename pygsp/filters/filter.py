@@ -40,7 +40,7 @@ class Filter(object):
         s : ndarray
             graph signals to analyse
         method : string
-            wether using an exact method or cheby approx (lanczos not working now)
+            whether using an exact method or cheby approx (lanczos not working now)
         cheb_order : int
             Order for chebyshev
 
