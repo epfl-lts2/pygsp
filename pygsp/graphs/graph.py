@@ -394,9 +394,11 @@ class Graph(object):
         """
         if hasattr(self, 'force_recompute'):
             if force_recompute:
-                self.logger.warning("Directedness for this graph is already known. Recomputing.")
+                self.logger.warning("Directedness for this graph is already known.\
+                                    Recomputing.")
             else:
-                self.logger.error("Directedness for this graph is already known. Stopping.")
+                self.logger.error("Directedness for this graph is already known.\
+                                  Stopping.")
                 return self.directed
 
         if np.diff(np.shape(self.W))[0]:
@@ -405,6 +407,8 @@ class Graph(object):
         is_dir = np.abs(self.W - self.W.T).sum() != 0
 
         self.directed = is_dir
+
+        return is_dir
 
     def extract_components(self):
         r"""
