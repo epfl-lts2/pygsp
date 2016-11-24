@@ -96,7 +96,7 @@ class FunctionsTestCase(unittest.TestCase):
             g = filters.Heat(G)
             c_exact = g.analysis(G, S, method='exact')
             c_cheby = g.analysis(G, S, method='cheby')
-            c_lancz = g.analysis(G, S, method='lanczos')
+            # c_lancz = g.analysis(G, S, method='lanczos')
             self.assertAlmostEqual(c_exact, c_cheby)
             # lanczos analysis is not working for now
             # self.assertAlmostEqual(c_exact, c_lanczos)

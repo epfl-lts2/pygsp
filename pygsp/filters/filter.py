@@ -40,7 +40,7 @@ class Filter(object):
         s : ndarray
             graph signals to analyse
         method : string
-            wether using an exact method, cheby approx (lanczos not working now)
+            wether using an exact method or cheby approx (lanczos not working now)
         cheb_order : int
             Order for chebyshev
 
@@ -73,8 +73,9 @@ class Filter(object):
             cheb_coef = fast_filtering.compute_cheby_coeff(self, m=cheb_order)
             c = fast_filtering.cheby_op(self.G, cheb_coef, s)
 
-        # elif method == 'lanczos':  # Lanczos approx
-        #     c = fast_filtering.lanczos_op(self, s, order=lanczos_order)
+        elif method == 'lanczos':  # Lanczos approx
+            raise NotImplementedError
+            # c = fast_filtering.lanczos_op(self, s, order=lanczos_order)
 
         elif method == 'exact':  # Exact computation
             if not hasattr(self.G, 'e') or not hasattr(self.G, 'U'):
