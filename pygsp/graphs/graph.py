@@ -22,17 +22,28 @@ class Graph(object):
 
     A graph contains the following fields:
 
-        - N : the number of nodes (also called vertices sometimes) in the graph. They represent the different points between which connections may occur.
-        - Ne : the number of edges (also called links sometimes) in the graph. They reprensent the actual connections between the nodes.
-        - W : the weight matrix contains the weights of the connections. It is represented as a NxN matrix of floats. W_i,j = 0 means that there is no connection from i to j.
-        - A : the adjacency matrix defines which edges exist on the graph. It is represented as a NxN matrix of booleans. A_i,j is True if W_i,j > 0.
-        - d : the degree vector of the vertices. It is represented as a Nx1 vector counting the number of connections that each node possesses.
+        - N : the number of nodes (also called vertices sometimes) in the graph.
+            They represent the different points between which connections may occur.
+        - Ne : the number of edges (also called links sometimes) in the graph.
+            They represent the actual connections between the nodes.
+        - W : the weight matrix contains the weights of the connections.
+            It is represented as a NxN matrix of floats. W_i,j = 0 means that there is no connection from i to j.
+        - A : the adjacency matrix defines which edges exist on the graph.
+            It is represented as a NxN matrix of booleans. A_i,j is True if W_i,j > 0.
+        - d : the degree vector of the vertices.
+            It is represented as a Nx1 vector counting the number of connections that each node possesses.
         - gtype : the graph type is a short description of the graph object.
-        - directed : the flag to assess if the graph is directed or not. In this framework, we consider that a graph is directed if and only if its weight matrix is non symmetric.
-        - L : the laplacian matrix. It is represented as a NxN matrix computed from W.
-        - lap_type : the laplacian type determine which kind of laplacian to compute. From a given matrix W, there exist several laplacians that could be computed.
+            It is a string designed to help sorting the graphs
+        - directed : the flag to assess if the graph is directed or not.
+            In this framework, we consider that a graph is directed if and only if its weight matrix is non symmetric.
+        - L : the laplacian matrix.
+            It is represented as a NxN matrix computed from W.
+        - lap_type : the laplacian type determine which kind of laplacian to compute.
+            From a given matrix W, there exist several laplacians that could be computed.
         - coords : the coordinates of the vertices in the 2D or 3D space for plotting.
-        - plotting : all the plotting parameters go here. They depend on the library used for plotting.
+            The default is None
+        - plotting : all the plotting parameters go here.
+            They depend on the library used for plotting.
 
 
     Parameters
