@@ -22,10 +22,7 @@ class Logo(Graph):
 
         self.info = logo.info
 
-        plotting = {"vertex_color": np.array([200., 136., 204.]) / 255,
-                    "edge_color": np.array([0, 136./255, 204./255]),
-                    "limits": np.array([0, 640, -400, 0]),
-                    "vertex_size": 8}
+        plotting = {"limits": np.array([0, 640, -400, 0])}
 
         super(Logo, self).__init__(W=logo.W, coords=logo.coords, gtype='LogoGSP',
                                    plotting=plotting, **kwargs)
