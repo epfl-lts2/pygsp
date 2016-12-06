@@ -84,7 +84,7 @@ def plot(O, default_qtg=True, **kwargs):
 
     """
     from .graphs import Graph
-    from .pointsclouds.pointscloud import PointsCloud
+    from .pointclouds.pointclouds import PointCloud
     from .filters import Filter
 
     if issubclass(type(O), Graph):
