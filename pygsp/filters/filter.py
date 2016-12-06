@@ -9,8 +9,9 @@ from copy import deepcopy
 
 
 class Filter(object):
-    r"""Parent class for all Filters or Filterbanks,
-        contains the shared methods for those classes."""
+    r"""
+    Parent class for all Filters or Filterbanks, contains the shared methods for those classes.
+    """
 
     def __init__(self, G, filters=None, **kwargs):
 
@@ -58,6 +59,8 @@ class Filter(object):
         >>> x = np.arange(G.N**2).reshape(G.N, G.N)
         >>> co = MH.analysis(x)
 
+        References
+        ----------
         :cite:`hammond2011wavelets`
 
         """

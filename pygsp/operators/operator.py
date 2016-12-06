@@ -46,8 +46,8 @@ def grad(G, s):
     r"""
     Compute the Graph gradient.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import pygsp
     >>> import numpy as np
     >>> G = pygsp.graphs.Logo()
@@ -83,8 +83,8 @@ def grad_mat(G):  # 1 call (above)
     r"""
     Gradient sparse matrix of the graph G.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import pygsp
     >>> G = pygsp.graphs.Logo()
     >>> D = grad_mat(G)

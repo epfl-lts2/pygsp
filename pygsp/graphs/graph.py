@@ -17,6 +17,24 @@ class Graph(object):
     It is used to initialize by default every missing field of the subclass graphs.
     It can also be used alone to initialize customs graphs.
 
+
+    **Fields**:
+
+    A graph contains the following fields:
+
+        - N : the number of nodes (also called vertices sometimes) in the graph. They represent the different points between which connections may occur.
+        - Ne : the number of edges (also called links sometimes) in the graph. They reprensent the actual connections between the nodes.
+        - W : the weight matrix contains the weights of the connections. It is represented as a NxN matrix of floats. W_i,j = 0 means that there is no connection from i to j.
+        - A : the adjacency matrix defines which edges exist on the graph. It is represented as a NxN matrix of booleans. A_i,j is True if W_i,j > 0.
+        - d : the degree vector of the vertices. It is represented as a Nx1 vector counting the number of connections that each node possesses.
+        - gtype : the graph type is a short description of the graph object.
+        - directed : the flag to assess if the graph is directed or not. In this framework, we consider that a graph is directed if and only if its weight matrix is non symmetric.
+        - L : the laplacian matrix. It is represented as a NxN matrix computed from W.
+        - lap_type : the laplacian type determine which kind of laplacian to compute. From a given matrix W, there exist several laplacians that could be computed.
+        - coords : the coordinates of the vertices in the 2D or 3D space for plotting.
+        - plotting : all the plotting parameters go here. They depend on the library used for plotting.
+
+
     Parameters
     ----------
     W : sparse matrix or ndarray (data is float)
@@ -29,32 +47,6 @@ class Graph(object):
         Coordinates of the vertices (default is None)
     plotting : dict
         Dictionnary containing the plotting parameters
-
-    Fields
-    ------
-    A graph contains the following fields:
-
-    N : the number of nodes (also called vertices sometimes) in the graph.
-        They represent the different points between which connections may occur.
-    Ne : the number of edges (also called links sometimes) in the graph.
-        They reprensent the actual connections between the nodes.
-    W : the weight matrix contains the weights of the connections.
-        It is represented as a NxN matrix of floats.
-        W_i,j = 0 means that there is no connection from i to j.
-    A : the adjacency matrix defines which edges exist on the graph.
-        It is represented as a NxN matrix of booleans. A_i,j is True if W_i,j > 0.
-    d : the degree vector of the vertices. It is represented as a Nx1 vector
-        counting the number of connections that each node possesses.
-    gtype : the graph type is a short description of the graph object.
-    directed : the flag to assess if the graph is directed or not.
-        In this framework, we consider that a graph is directed
-        if and only if its weight matrix is non symmetric.
-    L : the laplacian matrix. It is represented as a NxN matrix computed from W.
-    lap_type : the laplacian type determine which kind of laplacian to compute.
-        From a given matrix W, there exist several laplacians that could be computed.
-    coords : the coordinates of the vertices in the 2D or 3D space for plotting.
-    plotting : all the plotting parameters go here.
-        They depend on the library used for plotting.
 
 
     Examples
@@ -113,12 +105,12 @@ class Graph(object):
         kwargs: Dictionnary
             The arguments with their new value.
 
-        Return
-        ------
+        Returns
+        -------
         The same Graph with some updated values.
 
-        Note
-        ----
+        Notes
+        -----
         This method is usefull if you want to give a new weight matrix
         (W) and compute the adjacency matrix (A) and more again.
         The valid attributes are ['W', 'A', 'N', 'd', 'Ne', 'gtype',
@@ -318,7 +310,7 @@ class Graph(object):
         with the same starting point in both phases.
 
         Parameters
-        ---------
+        ----------
         force_recompute: bool
             Force to recompute the connectivity if already known.
 
@@ -375,7 +367,7 @@ class Graph(object):
         Define if the graph has directed edges.
 
         Parameters
-        ---------
+        ----------
         force_recompute: bool
             Force to recompute the directedness if already known.
 
@@ -481,8 +473,8 @@ class Graph(object):
         force_recompute: bool
             Force to recompute the Fourier basis if already existing.
 
-        Note
-        ----
+        Notes
+        -----
         'G.compute_fourier_basis()' computes a full eigendecomposition of
         the graph Laplacian G.L:
 
@@ -498,8 +490,8 @@ class Graph(object):
         order that the eigenvalues. Finally, the coherence of the
         Fourier basis is in *G.mu*.
 
-        Example
-        -------
+        Examples
+        --------
         >>> from pygsp import graphs
         >>> N = 50
         >>> G = graphs.Sensor(N)
@@ -507,7 +499,7 @@ class Graph(object):
 
         References
         ----------
-        cite ´chung1997spectral´
+        :cite: ´chung1997spectral´
 
         """
         if hasattr(self, 'e') or hasattr(self, 'U'):
@@ -542,7 +534,7 @@ class Graph(object):
         Parameters
         ----------
         lap_type : string
-            The laplacian type to use. Default is "combinatorial".
+            The laplacian type to use. Default is "combinatorial". Other possible value is 'none', 'normalized' is still not yet implemented.
 
         """
         if np.shape(self.W) == (1, 1):
@@ -640,6 +632,7 @@ class Graph(object):
 
     def _fruchterman_reingold_layout(self, dim=2, k=None, pos=None, fixed=[],
                                      iterations=50, scale=1.0, center=None):
+        # TODO doc
         # Position nodes using Fruchterman-Reingold force-directed algorithm.
 
         if center is None:

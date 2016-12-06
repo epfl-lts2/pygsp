@@ -1,6 +1,6 @@
-========
+================
 GSP Demo Pyramid
-========
+================
 
 In this demonstration file, we show how to reduce a graph using the GSPBox. Then we apply the pyramid to simple signal.
 To start open a python shell (IPython is recommended here) and import the required packages. You would probably also import numpy as you will need it to create matrices and arrays.

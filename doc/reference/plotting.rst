@@ -1,3 +1,5 @@
+.. _plotting-api:
+
 ==================
 Plotting functions
 ==================
