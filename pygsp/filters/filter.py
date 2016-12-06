@@ -245,9 +245,15 @@ class Filter(object):
         return s
 
     def approx(m, N, **kwargs):
+        r"""
+        Not implemented yet
+        """
         raise NotImplementedError
 
     def tighten():
+        r"""
+        Not implemented yet
+        """
         raise NotImplementedError
 
     def filterbank_bounds(self, N=999, bounds=None):
@@ -303,7 +309,7 @@ class Filter(object):
         N = self.G.N
 
         if N > 2000:
-            self.logger.warning('Create a big matrix, you can use other methods.')
+            self.logger.warning('Creating a big matrix, you can use other methods.')
 
         Nf = len(self.g)
         Ft = self.analysis(np.identity(N))
@@ -371,8 +377,7 @@ class Filter(object):
         r"""
         Plot the filter.
 
-        See plotting doc.
-
+        See :ref:`plotting doc<plotting-api>`.
         """
         from pygsp import plotting
         plotting.plot_filter(self, show_plot=True, **kwargs)

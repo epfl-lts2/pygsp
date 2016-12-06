@@ -10,6 +10,7 @@ class Gabor(Filter):
     Gabor Filterbank
 
     Inherits its methods from Filters
+
     Parameters
     ----------
     G : Graph

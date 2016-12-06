@@ -171,13 +171,13 @@ def cheby_rect(G, bounds, signal, **kwargs):
     return r
 
 
-def lanczos_op(fi, s, order=30):
+def lanczos_op(f, s, order=30):
     r"""
     Perform the lanczos approximation of the signal s.
 
     Parameters
     ----------
-    fi: Filter
+    f: Filter
     s : ndarray
         Signal to approximate.
     order : int
@@ -189,9 +189,10 @@ def lanczos_op(fi, s, order=30):
         lanczos approximation of s
 
     """
-    G = fi.G
-    Nf = len(fi.g)
+    G = f.G
+    Nf = len(f.g)
 
+    # To have the right shape for the output array depending on the signal dim
     try:
         Nv = np.shape(s)[1]
         is2d = True
@@ -211,19 +212,30 @@ def lanczos_op(fi, s, order=30):
         Eh, Uh = np.linalg.eig(H)
 
         Eh[Eh < 0] = 0
-        fie = fi.evaluate(Eh)
+        fe = f.evaluate(Eh)
         V = np.dot(V, Uh)
 
         for i in range(Nf):
             if is2d:
-                c[tmpN + i*G.N, j] = np.dot(V, fie[:][i] * np.dot(V.T, s[:, j]))
+                c[tmpN + i*G.N, j] = np.dot(V, fe[:][i] * np.dot(V.T, s[:, j]))
             else:
-                c[tmpN + i*G.N] = np.dot(V, fie[:][i] * np.dot(V.T, s))
+                c[tmpN + i*G.N] = np.dot(V, fe[:][i] * np.dot(V.T, s))
 
     return c
 
 
 def lanczos(A, order, x):
+    r"""
+    TODO short description
+
+    Parameters
+    ----------
+    A: ndarray
+        
+
+    Returns
+    -------
+    """
     try:
         N, M = np.shape(x)
     except ValueError:
