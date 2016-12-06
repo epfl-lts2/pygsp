@@ -127,6 +127,7 @@ def plot_graph(G, default_qtg=True, **kwargs):
 
     """
     if qtg_import and (default_qtg or not plt_import):
+        kwargs.pop('show_plot', None)
         pg_plot_graph(G, **kwargs)
     elif plt_import and not (default_qtg and qtg_import):
         plt_plot_graph(G, **kwargs)
