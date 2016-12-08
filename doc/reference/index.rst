@@ -85,6 +85,16 @@ Data Handling
 
     data_handling
 
+Features
+--------
+
+.. automodule:: pygsp.features
+
+.. toctree::
+    :maxdepth: 2
+
+    features
+
 Utils
 ------
 

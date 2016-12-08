@@ -14,15 +14,18 @@ def compute_cheby_coeff(f, m=30, N=None, *args, **kwargs):
     Compute Chebyshev coefficients for a Filterbank.
 
     Parameters
-    ---------
+    ----------
     f : Filter
         Filterbank with at least 1 filter
     m : int
-        Maximum order of Chebyshev coeff to compute (default = 30)
+        Maximum order of Chebyshev coeff to compute
+        (default = 30)
     N : int
-        Grid order used to compute quadrature (default = m + 1)
+        Grid order used to compute quadrature
+        (default = m + 1)
     i : int
-        Index of the Filterbank element to compute (default = 0)
+        Index of the Filterbank element to compute
+        (default = 0)
 
     Returns
     -------
