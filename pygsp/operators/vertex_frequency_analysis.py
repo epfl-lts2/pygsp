@@ -69,8 +69,8 @@ def gabor_wft(G, f, k):
         G : Graph
         f : ndarray
             Graph signal
-        k : #TODO
-            kernel
+        k : anonymous function
+            Gabor kernel
 
     Returns
     -------

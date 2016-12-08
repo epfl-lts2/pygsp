@@ -545,7 +545,7 @@ class Graph(object):
         Parameters
         ----------
         lap_type : string
-            The laplacian type to use. Default is "combinatorial". Other possible value is 'none', 'normalized' is still not yet implemented.
+            The laplacian type to use. Default is "combinatorial". Other possible value is 'none', 'normalized' is still not yet implemented for directed graphs.
 
         """
         if np.shape(self.W) == (1, 1):
