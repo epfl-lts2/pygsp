@@ -61,7 +61,7 @@ class Filter(object):
 
         References
         ----------
-        :cite:`hammond2011wavelets`
+        See :cite:`hammond2011wavelets`
 
         """
         if not method:
@@ -177,12 +177,12 @@ class Filter(object):
 
         Returns
         -------
-        signal : sythesis signal
+        signal : synthesis signal
 
         Examples
         --------
 
-        Reference
+        References
         ----------
         See :cite:`hammond2011wavelets` for more details.
 

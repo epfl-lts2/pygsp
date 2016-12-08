@@ -510,7 +510,7 @@ class Graph(object):
 
         References
         ----------
-        :cite: ´chung1997spectral´
+        See :cite:`chung1997spectral`
 
         """
         if hasattr(self, 'e') or hasattr(self, 'U'):

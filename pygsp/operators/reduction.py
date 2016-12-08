@@ -41,7 +41,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
 
     References
     ----------
-    See :cite: `spielman2011graph` `rudelson1999random` `rudelson2007sampling`
+    See :cite:`spielman2011graph`, :cite:`rudelson1999random` and :cite:`rudelson2007sampling`.
     for more informations
 
     """
@@ -141,7 +141,9 @@ def interpolate(G, f_subsampled, keep_inds, order=100, reg_eps=0.005, **kwargs):
     f_interpolated : ndarray
         Interpolated graph signal on the full vertex set of G.
 
-    References: :cite: `pesenson2009variational`
+    References
+    ----------
+    See :cite:`pesenson2009variational`
 
     """
     L_reg = G.L + reg_eps * sparse.eye(G.N)
@@ -296,7 +298,9 @@ def kron_reduction(G, ind):
         New graph structure or weight matrix
 
 
-    References: :cite: `dorfler2013kron`
+    References
+    ----------
+    See :cite:`dorfler2013kron`
 
     """
     if isinstance(G, Graph):
@@ -370,7 +374,9 @@ def pyramid_analysis(Gs, f, **kwargs):
     h_filters : list
         Graph spectral filters applied
 
-    References: :cite: `shuman2013framework` `pesenson2009variational`
+    References
+    ----------
+    See :cite:`shuman2013framework` and :cite:`pesenson2009variational`.
 
     """
     if np.shape(f)[0] != Gs[0].N:
