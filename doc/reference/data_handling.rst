@@ -1,3 +1,5 @@
+.. _data_handling-api:
+
 =============
 Data Handling
 =============
@@ -9,10 +11,6 @@ Adj2vec
 Mat2vec
 -------
 .. autofunction:: pygsp.data_handling.mat2vec
-
-Pyramid Cell2coeff
-------------------
-.. autofunction:: pygsp.data_handling.pyramid_cell2coeff
 
 Repmatline
 ----------

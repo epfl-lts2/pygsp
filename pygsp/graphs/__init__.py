@@ -4,7 +4,7 @@ r"""
 This module implements graphs and contains predefined graphs for the most famous ones.
 
 A graph is constructed either from its adjacency matrix, its weight matrix or any other parameter
-which depends on the particular graph you are trying to build. For specific information, :ref:`see details  here<graphs-api>`.
+which depends on the particular graph you are trying to build. For specific information, :ref:`see details here<graphs-api>`.
 """
 
 import importlib

@@ -1,3 +1,5 @@
+.. _utils-api:
+
 =====
 Utils
 =====
@@ -21,10 +23,6 @@ Sparsifier
 Distanz
 -------
 .. autofunction:: pygsp.utils.distanz
-
-Full eigen
-----------
-.. autofunction:: pygsp.utils.full_eigen
 
 Resistance distance
 -------------------

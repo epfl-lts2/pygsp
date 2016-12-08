@@ -12,6 +12,8 @@ Toolbox overview
 Graphs
 ------
 
+.. automodule:: pygsp.graphs
+
 .. toctree::
     :maxdepth: 2
     :hidden:
@@ -19,18 +21,16 @@ Graphs
     graphs
     nngraphs
 
-.. automodule:: pygsp.graphs
-
 Filters
 -------
+
+.. automodule:: pygsp.filters
 
 .. toctree::
     :maxdepth: 2
     :hidden:
 
     filters
-
-.. automodule:: pygsp.filters
 
 Operators
 ---------
@@ -41,9 +41,12 @@ Operators
     :maxdepth: 2
 
     operators
+    reduction
+    fast_filtering
+    vertex_frequency_analysis
 
 PointCloud
------------
+----------
 
 .. automodule:: pygsp.pointclouds
 
@@ -61,16 +64,6 @@ Plotting
     :maxdepth: 2
 
     plotting
-
-Reduction
----------
-
-.. automodule:: pygsp.reduction
-
-.. toctree::
-    :maxdepth: 2
-
-    reduction
 
 Optimization
 ------------
