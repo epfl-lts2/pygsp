@@ -190,7 +190,7 @@ def compute_jackson_cheby_coeff(filter_bounds, delta_lambda, m):
 
     References
     ----------
-    :cite: `tremblay2016compressive`
+    :cite:`tremblay2016compressive`
 
     """
     # Parameters check
