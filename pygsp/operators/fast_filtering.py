@@ -171,6 +171,59 @@ def cheby_rect(G, bounds, signal, **kwargs):
     return r
 
 
+def compute_jackson_cheby_coeff(a, b, lambda_min, lambda_max, m):
+    r"""
+    To compute the m+1 coefficients of the polynomial approximation of an ideal band-pass between a and b, between a range of values defined by lambda_min and lambda_max.
+
+    Parameters
+    ----------
+        a: int
+        b: int
+        lambda_min: int
+        lambda_max: int
+        m: int
+
+    Returns
+    -------
+        ch: ndarray
+        jch: ndarray
+
+    References
+    ----------
+    :cite `tremblay2016compressive`
+
+    """
+    # Scaling and translating to standard cheby interval
+    a1 = (lambda_max-lambda_min)/2
+    a2 = (lambda_max+lambda_min)/2
+
+    # Scaling bounds of the band pass according to lrange
+    a = (a-a2)/a1
+    b = (b-a2)/a1
+
+    # First compute cheby coeffs
+    ch = np.arange(float(m+1))
+    ch[0] = (1/(2*np.pi))*(np.arccos(a)-np.arccos(b))
+    for i in ch[1:]:
+        ch[i] = (2/(np.pi * i)) * \
+            (np.sin(i * np.arccos(a)) - np.sin(i * np.arccos(b)))
+
+    # Then compute jackson coeffs
+    jch = np.arange(float(m+1))
+    alpha = (np.pi/(m+2))
+    for i in jch:
+        jch[i] = (1/np.sin(alpha)) * \
+            ((1 - i/(m+2)) * np.sin(alpha) * np.cos(i * alpha) +
+             (1/(m+2)) * np.cos(alpha) * np.sin(i * alpha))
+
+    # Combine jackson and cheby coeffs
+    jch = ch * jch
+
+    jch
+
+    return np.transpose(ch), np.transpose(jch)
+
+
 def lanczos_op(fi, s, order=30):
     r"""
     Perform the lanczos approximation of the signal s.
