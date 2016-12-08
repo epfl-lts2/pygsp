@@ -171,7 +171,7 @@ def cheby_rect(G, bounds, signal, **kwargs):
     return r
 
 
-def compute_jackson_cheby_coeff(a, b, lambda_min, lambda_max, m):
+def compute_jackson_cheby_coeff(filter_bounds, delta_lambda, m):
     r"""
     To compute the m+1 coefficients of the polynomial approximation of
     an ideal band-pass between a and b, between a range of values defined
@@ -179,10 +179,10 @@ def compute_jackson_cheby_coeff(a, b, lambda_min, lambda_max, m):
 
     Parameters
     ----------
-        a: int
-        b: int
-        lambda_min: int
-        lambda_max: int
+        filter_bounds: list
+            [a, b]
+        delta_lambda: list
+            [lambda_min, lambda_max]
         m: int
 
     Returns
@@ -195,20 +195,28 @@ def compute_jackson_cheby_coeff(a, b, lambda_min, lambda_max, m):
     :cite `tremblay2016compressive`
 
     """
+    # Parameters check
+    if delta_lambda[0] > filter_bounds[0] or delta_lambda[1] < filter_bounds[1]:
+        logger.error("Bounds of the filter are out of the lambda values")
+        raise()
+    elif delta_lambda[0] > delta_lambda[1]:
+        logger.error("lambda_min is greater than lambda_max")
+        raise()
+
     # Scaling and translating to standard cheby interval
-    a1 = (lambda_max-lambda_min)/2
-    a2 = (lambda_max+lambda_min)/2
+    a1 = (delta_lambda[1]-delta_lambda[0])/2
+    a2 = (delta_lambda[1]+delta_lambda[0])/2
 
     # Scaling bounds of the band pass according to lrange
-    a = (a-a2)/a1
-    b = (b-a2)/a1
+    filter_bounds[0] = (filter_bounds[0]-a2)/a1
+    filter_bounds[1] = (filter_bounds[1]-a2)/a1
 
     # First compute cheby coeffs
     ch = np.arange(float(m+1))
-    ch[0] = (1/(2*np.pi))*(np.arccos(a)-np.arccos(b))
+    ch[0] = (2/(np.pi))*(np.arccos(filter_bounds[0])-np.arccos(filter_bounds[1]))
     for i in ch[1:]:
         ch[i] = (2/(np.pi * i)) * \
-            (np.sin(i * np.arccos(a)) - np.sin(i * np.arccos(b)))
+            (np.sin(i * np.arccos(filter_bounds[0])) - np.sin(i * np.arccos(filter_bounds[1])))
 
     # Then compute jackson coeffs
     jch = np.arange(float(m+1))
