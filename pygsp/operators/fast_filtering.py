@@ -173,7 +173,9 @@ def cheby_rect(G, bounds, signal, **kwargs):
 
 def compute_jackson_cheby_coeff(a, b, lambda_min, lambda_max, m):
     r"""
-    To compute the m+1 coefficients of the polynomial approximation of an ideal band-pass between a and b, between a range of values defined by lambda_min and lambda_max.
+    To compute the m+1 coefficients of the polynomial approximation of
+    an ideal band-pass between a and b, between a range of values defined
+    by lambda_min and lambda_max.
 
     Parameters
     ----------
@@ -219,9 +221,7 @@ def compute_jackson_cheby_coeff(a, b, lambda_min, lambda_max, m):
     # Combine jackson and cheby coeffs
     jch = ch * jch
 
-    jch
-
-    return np.transpose(ch), np.transpose(jch)
+    return ch, jch
 
 
 def lanczos_op(f, s, order=30):
