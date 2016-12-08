@@ -173,26 +173,24 @@ def cheby_rect(G, bounds, signal, **kwargs):
 
 def compute_jackson_cheby_coeff(filter_bounds, delta_lambda, m):
     r"""
-    To compute the m+1 coefficients of the polynomial approximation of
-    an ideal band-pass between a and b, between a range of values defined
-    by lambda_min and lambda_max.
+    To compute the m+1 coefficients of the polynomial approximation of an ideal band-pass between a and b, between a range of values defined by lambda_min and lambda_max.
 
     Parameters
     ----------
-        filter_bounds: list
-            [a, b]
-        delta_lambda: list
-            [lambda_min, lambda_max]
-        m: int
+    filter_bounds : list
+        [a, b]
+    delta_lambda : list
+        [lambda_min, lambda_max]
+    m : int
 
     Returns
     -------
-        ch: ndarray
-        jch: ndarray
+    ch : ndarray
+    jch : ndarray
 
     References
     ----------
-    :cite `tremblay2016compressive`
+    :cite: `tremblay2016compressive`
 
     """
     # Parameters check
