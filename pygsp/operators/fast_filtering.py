@@ -174,6 +174,65 @@ def cheby_rect(G, bounds, signal, **kwargs):
     return r
 
 
+def compute_jackson_cheby_coeff(filter_bounds, delta_lambda, m):
+    r"""
+    To compute the m+1 coefficients of the polynomial approximation of an ideal band-pass between a and b, between a range of values defined by lambda_min and lambda_max.
+
+    Parameters
+    ----------
+    filter_bounds : list
+        [a, b]
+    delta_lambda : list
+        [lambda_min, lambda_max]
+    m : int
+
+    Returns
+    -------
+    ch : ndarray
+    jch : ndarray
+
+    References
+    ----------
+    :cite:`tremblay2016compressive`
+
+    """
+    # Parameters check
+    if delta_lambda[0] > filter_bounds[0] or delta_lambda[1] < filter_bounds[1]:
+        logger.error("Bounds of the filter are out of the lambda values")
+        raise()
+    elif delta_lambda[0] > delta_lambda[1]:
+        logger.error("lambda_min is greater than lambda_max")
+        raise()
+
+    # Scaling and translating to standard cheby interval
+    a1 = (delta_lambda[1]-delta_lambda[0])/2
+    a2 = (delta_lambda[1]+delta_lambda[0])/2
+
+    # Scaling bounds of the band pass according to lrange
+    filter_bounds[0] = (filter_bounds[0]-a2)/a1
+    filter_bounds[1] = (filter_bounds[1]-a2)/a1
+
+    # First compute cheby coeffs
+    ch = np.arange(float(m+1))
+    ch[0] = (2/(np.pi))*(np.arccos(filter_bounds[0])-np.arccos(filter_bounds[1]))
+    for i in ch[1:]:
+        ch[i] = (2/(np.pi * i)) * \
+            (np.sin(i * np.arccos(filter_bounds[0])) - np.sin(i * np.arccos(filter_bounds[1])))
+
+    # Then compute jackson coeffs
+    jch = np.arange(float(m+1))
+    alpha = (np.pi/(m+2))
+    for i in jch:
+        jch[i] = (1/np.sin(alpha)) * \
+            ((1 - i/(m+2)) * np.sin(alpha) * np.cos(i * alpha) +
+             (1/(m+2)) * np.cos(alpha) * np.sin(i * alpha))
+
+    # Combine jackson and cheby coeffs
+    jch = ch * jch
+
+    return ch, jch
+
+
 def lanczos_op(f, s, order=30):
     r"""
     Perform the lanczos approximation of the signal s.
@@ -234,7 +293,6 @@ def lanczos(A, order, x):
     Parameters
     ----------
     A: ndarray
-        
 
     Returns
     -------
