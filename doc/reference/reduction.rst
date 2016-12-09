@@ -4,32 +4,41 @@ Reduction functions
 
 Graph Sparsify
 --------------
-.. autofunction:: pygsp.reduction.graph_sparsify
+.. autofunction:: pygsp.operators.reduction.graph_sparsify
 
 Interpolate
 -----------
-.. autofunction:: pygsp.reduction.interpolate
+.. autofunction:: pygsp.operators.reduction.interpolate
 
-Kron Pyramid
-------------
-.. autofunction:: pygsp.reduction.kron_pyramid
+Graph Multiresolution
+---------------------
+.. autofunction:: pygsp.operators.reduction.graph_multiresolution
 
 Kron Reduction
 --------------
-.. autofunction:: pygsp.reduction.kron_reduction
+.. autofunction:: pygsp.operators.reduction.kron_reduction
 
 Pyramid Analysis
 ----------------
-.. autofunction:: pygsp.reduction.pyramid_analysis
+.. autofunction:: pygsp.operators.reduction.pyramid_analysis
+
+Pyramid Cell2coeff
+------------------
+.. autofunction:: pygsp.operators.reduction.pyramid_cell2coeff
 
 Pyramid Synthesis
 -----------------
-.. autofunction:: pygsp.reduction.pyramid_synthesis
+.. autofunction:: pygsp.operators.reduction.pyramid_synthesis
+
+Pyramid Single Interpolation
+----------------------------
+.. autofunction:: pygsp.operators.reduction.pyramid_single_interpolation
 
 Tree Depths
 -----------
-.. autofunction:: pygsp.reduction.tree_depths
+.. autofunction:: pygsp.operators.reduction.tree_depths
 
 Tree Multiresolution
 --------------------
-.. autofunction:: pygsp.reduction.tree_multiresolution
+.. autofunction:: pygsp.operators.reduction.tree_multiresolution
+

@@ -9,8 +9,9 @@ from copy import deepcopy
 
 
 class Filter(object):
-    r"""Parent class for all Filters or Filterbanks,
-        contains the shared methods for those classes."""
+    r"""
+    Parent class for all Filters or Filterbanks, contains the shared methods for those classes.
+    """
 
     def __init__(self, G, filters=None, **kwargs):
 
@@ -58,7 +59,9 @@ class Filter(object):
         >>> x = np.arange(G.N**2).reshape(G.N, G.N)
         >>> co = MH.analysis(x)
 
-        :cite:`hammond2011wavelets`
+        References
+        ----------
+        See :cite:`hammond2011wavelets`
 
         """
         if not method:
@@ -174,12 +177,12 @@ class Filter(object):
 
         Returns
         -------
-        signal : sythesis signal
+        signal : synthesis signal
 
         Examples
         --------
 
-        Reference
+        References
         ----------
         See :cite:`hammond2011wavelets` for more details.
 
@@ -242,9 +245,15 @@ class Filter(object):
         return s
 
     def approx(m, N, **kwargs):
+        r"""
+        Not implemented yet
+        """
         raise NotImplementedError
 
     def tighten():
+        r"""
+        Not implemented yet
+        """
         raise NotImplementedError
 
     def filterbank_bounds(self, N=999, bounds=None):
@@ -300,7 +309,7 @@ class Filter(object):
         N = self.G.N
 
         if N > 2000:
-            self.logger.warning('Create a big matrix, you can use other methods.')
+            self.logger.warning('Creating a big matrix, you can use other methods.')
 
         Nf = len(self.g)
         Ft = self.analysis(np.identity(N))
@@ -368,8 +377,7 @@ class Filter(object):
         r"""
         Plot the filter.
 
-        See plotting doc.
-
+        See :ref:`plotting doc<plotting-api>`.
         """
         from pygsp import plotting
         plotting.plot_filter(self, show_plot=True, **kwargs)

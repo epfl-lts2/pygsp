@@ -3,7 +3,7 @@
 """
 This toolbox is splitted in different modules taking care of the different aspects of Graph Signal Processing.
 
-Those modules are : Graphs, Filters, Operators and PointClouds.
+Those modules are : :ref:`Graphs <graphs-api>`, :ref:`Filters <filters-api>`, :ref:`Operators <operators-api>`, :ref:`PointCloud <pointclouds-api>`, :ref:`Plotting <plotting-api>`, :ref:`Data Handling <data_handling-api>` and :ref:`Utils <utils-api>`.
 
 You can find detailed documentation on the use of the functions in the subsequent pages.
 """

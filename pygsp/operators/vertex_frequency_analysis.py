@@ -15,18 +15,18 @@ def generalized_wft(G, g, f, lowmemory=True):
 
     Parameters
     ----------
-    G : Graph
-    g : ndarray or Filter
-        Window (graph signal or kernel)
-    f : ndarray
-        Graph signal
-    lowmemory : bool
-        use less memory (default=True)
+        G : Graph
+        g : ndarray or Filter
+            Window (graph signal or kernel)
+        f : ndarray
+            Graph signal
+        lowmemory : bool
+            use less memory (default=True)
 
     Returns
     -------
-    C : ndarray
-        Coefficients
+        C : ndarray
+            Coefficients
 
     """
     Nf = np.shape(f)[1]
@@ -66,15 +66,16 @@ def gabor_wft(G, f, k):
 
     Parameters
     ----------
-    G : Graph
-    f : ndarray
-        Graph signal
-    k : #TODO
-        kernel
+        G : Graph
+        f : ndarray
+            Graph signal
+        k : anonymous function
+            Gabor kernel
 
     Returns
     -------
-    C : Coefficient.
+        C : Coefficient.
+
     """
     from pygsp.filters import Gabor
 
@@ -95,13 +96,13 @@ def gwft_frame_matrix(G, g):
 
     Parameters
     ----------
-    G : Graph
-    g : window
+        G : Graph
+        g : window
 
     Returns
     -------
-    F : ndarray
-        Frame
+        F : ndarray
+            Frame
     """
 
     if G.N > 256:
@@ -120,18 +121,19 @@ def ngwft(G, f, g, lowmemory=True):
 
     Parameters
     ----------
-    G : Graph
-    f : ndarray
-        Graph signal
-    g : ndarray
-        Window
-    lowmemory : bool
-        Use less memory. (default = True)
+        G : Graph
+        f : ndarray
+            Graph signal
+        g : ndarray
+            Window
+        lowmemory : bool
+            Use less memory. (default = True)
 
     Returns
     -------
-    C : ndarray
-        Coefficients
+        C : ndarray
+            Coefficients
+
     """
 
     if not hasattr(G, 'U'):
@@ -167,13 +169,13 @@ def ngwft_frame_matrix(G, g):
 
     Parameters
     ----------
-    G : Graph
-    g : ndarray
-        Window
+        G : Graph
+        g : ndarray
+            Window
 
     Output parameters:
-    F : ndarray
-        Frame
+        F : ndarray
+            Frame
     """
     if G.N > 256:
         logger.warning('It will create a big matrix, you can use other methods.')

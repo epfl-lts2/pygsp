@@ -28,8 +28,8 @@ def graph_sparsify(M, epsilon, maxiter=10):
     Mnew : Graph or sparse matrix
         New graph structure or sparse matrix
 
-    Note
-    ----
+    Notes
+    -----
     Epsilon should be between 1/sqrt(N) and 1
 
     Examples
@@ -39,9 +39,9 @@ def graph_sparsify(M, epsilon, maxiter=10):
     >>> epsilon = 0.4
     >>> G2 = operators.graph_sparsify(G, epsilon)
 
-    Reference
-    ---------
-    See :cite: `spielman2011graph` `rudelson1999random` `rudelson2007sampling`
+    References
+    ----------
+    See :cite:`spielman2011graph`, :cite:`rudelson1999random` and :cite:`rudelson2007sampling`.
     for more informations
 
     """
@@ -58,7 +58,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
     if not 1./np.sqrt(N) <= epsilon < 1:
         raise ValueError('GRAPH_SPARSIFY: Epsilon out of required range')
 
-    # pas sparse
+    # Not sparse
     resistance_distances = resistance_distance(L).toarray()
     # Get the Weight matrix
     if isinstance(M, Graph):
@@ -141,7 +141,9 @@ def interpolate(G, f_subsampled, keep_inds, order=100, reg_eps=0.005, **kwargs):
     f_interpolated : ndarray
         Interpolated graph signal on the full vertex set of G.
 
-    References: pesenson2009variational
+    References
+    ----------
+    See :cite:`pesenson2009variational`
 
     """
     L_reg = G.L + reg_eps * sparse.eye(G.N)
@@ -207,8 +209,8 @@ def graph_multiresolution(G, levels, **kwargs):
     Gs : ndarray
         The graph layers.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import pygsp
     >>> levels = 5
     >>> G = pygsp.graphs.Sensor(N=256)
@@ -296,7 +298,9 @@ def kron_reduction(G, ind):
         New graph structure or weight matrix
 
 
-    References: dorfler2013kron
+    References
+    ----------
+    See :cite:`dorfler2013kron`
 
     """
     if isinstance(G, Graph):
@@ -370,7 +374,9 @@ def pyramid_analysis(Gs, f, **kwargs):
     h_filters : list
         Graph spectral filters applied
 
-    References: shuman2013framework pesenson2009variational
+    References
+    ----------
+    See :cite:`shuman2013framework` and :cite:`pesenson2009variational`.
 
     """
     if np.shape(f)[0] != Gs[0].N:
@@ -427,6 +433,7 @@ def pyramid_cell2coeff(ca, pe):
     -------
     coeff : ndarray
         Array of coefficient
+
     """
     Nl = len(ca) - 1
     N = 0
@@ -556,7 +563,7 @@ def pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
 
     Returns
     -------
-    finer_approx : 
+    finer_approx :
         Coarse approximation of the signal on a higher resolution graph.
 
     """

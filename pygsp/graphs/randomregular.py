@@ -103,8 +103,8 @@ class RandomRegular(Graph):
         and if it's legal (doesn't create a loop nor a double edge)
         add it to the graph
 
-        Reference
-        ---------
+        References
+        ----------
         http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.67.7957&rep=rep1&type=pdf
         (This code has been adapted from matlab to python)
 
