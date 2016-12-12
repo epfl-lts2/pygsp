@@ -46,8 +46,8 @@ def grad(G, s):
     r"""
     Compute the Graph gradient.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import pygsp
     >>> import numpy as np
     >>> G = pygsp.graphs.Logo()
@@ -83,8 +83,8 @@ def grad_mat(G):  # 1 call (above)
     r"""
     Gradient sparse matrix of the graph G.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import pygsp
     >>> G = pygsp.graphs.Logo()
     >>> D = grad_mat(G)
@@ -100,7 +100,7 @@ def grad_mat(G):  # 1 call (above)
 
     """
     if not hasattr(G, 'v_in'):
-        G = adj2vec(G)
+        adj2vec(G)
 
     if hasattr(G, 'Diff'):
         D = G.Diff
@@ -113,8 +113,8 @@ def grad_mat(G):  # 1 call (above)
         Dr = np.concatenate((np.arange(n), np.arange(n)))
         Dc[:n] = G.v_in
         Dc[n:] = G.v_out
-        Dv[:n] = np.sqrt(G.weights)
-        Dv[n:] = -np.sqrt(G.weight)
+        Dv[:n] = np.sqrt(G.weights.toarray())
+        Dv[n:] = -Dv[:n]
         D = sparse.csc_matrix((Dv, (Dr, Dc)), shape=(n, G.N))
         G.Diff = D
 

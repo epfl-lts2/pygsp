@@ -15,7 +15,7 @@ class Bunny(NNGraph):
 
     References
     ----------
-    :cite:`turk1994zippered`
+    See :cite:`turk1994zippered`
 
     """
 

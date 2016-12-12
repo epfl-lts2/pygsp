@@ -8,7 +8,9 @@ try:
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
     plt_import = True
-except:
+except Exception as e:
+    print('ERROR : Could not import packages for matplotlib.')
+    print('Details : {}'.format(e))
     plt_import = False
 
 try:
@@ -16,7 +18,9 @@ try:
     from pyqtgraph.Qt import QtCore, QtGui
     import pyqtgraph.opengl as gl
     qtg_import = True
-except:
+except Exception as e:
+    print('ERROR : Could not import packages for pyqtgraph.')
+    print('Details : {}'.format(e))
     qtg_import = False
 
 
@@ -76,14 +80,11 @@ def plot(O, default_qtg=True, **kwargs):
     --------
     >>> from pygsp import graphs, plotting
     >>> G = graphs.Logo()
-    >>> try:
-    ...     plotting.plot(G, default_qtg=False)
-    ... except Exception as e:
-    ...     print(e)
+    >>> plotting.plot(G, default_qtg=False)
 
     """
     from .graphs import Graph
-    from .pointsclouds.pointscloud import PointsCloud
+    from .pointclouds.pointclouds import PointCloud
     from .filters import Filter
 
     if issubclass(type(O), Graph):
@@ -126,6 +127,7 @@ def plot_graph(G, default_qtg=True, **kwargs):
 
     """
     if qtg_import and (default_qtg or not plt_import):
+        kwargs.pop('show_plot', None)
         pg_plot_graph(G, **kwargs)
     elif plt_import and not (default_qtg and qtg_import):
         plt_plot_graph(G, **kwargs)

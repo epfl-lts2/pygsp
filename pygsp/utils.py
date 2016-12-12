@@ -155,7 +155,7 @@ def resistance_distance(M):  # 1 call dans operators.reduction
     >>>
     >>>
 
-    Reference
+    References
     ----------
     :cite:`klein1993resistance`
 

@@ -14,15 +14,18 @@ def compute_cheby_coeff(f, m=30, N=None, *args, **kwargs):
     Compute Chebyshev coefficients for a Filterbank.
 
     Parameters
-    ---------
+    ----------
     f : Filter
         Filterbank with at least 1 filter
     m : int
-        Maximum order of Chebyshev coeff to compute (default = 30)
+        Maximum order of Chebyshev coeff to compute
+        (default = 30)
     N : int
-        Grid order used to compute quadrature (default = m + 1)
+        Grid order used to compute quadrature
+        (default = m + 1)
     i : int
-        Index of the Filterbank element to compute (default = 0)
+        Index of the Filterbank element to compute
+        (default = 0)
 
     Returns
     -------
@@ -171,13 +174,72 @@ def cheby_rect(G, bounds, signal, **kwargs):
     return r
 
 
-def lanczos_op(fi, s, order=30):
+def compute_jackson_cheby_coeff(filter_bounds, delta_lambda, m):
+    r"""
+    To compute the m+1 coefficients of the polynomial approximation of an ideal band-pass between a and b, between a range of values defined by lambda_min and lambda_max.
+
+    Parameters
+    ----------
+    filter_bounds : list
+        [a, b]
+    delta_lambda : list
+        [lambda_min, lambda_max]
+    m : int
+
+    Returns
+    -------
+    ch : ndarray
+    jch : ndarray
+
+    References
+    ----------
+    :cite:`tremblay2016compressive`
+
+    """
+    # Parameters check
+    if delta_lambda[0] > filter_bounds[0] or delta_lambda[1] < filter_bounds[1]:
+        logger.error("Bounds of the filter are out of the lambda values")
+        raise()
+    elif delta_lambda[0] > delta_lambda[1]:
+        logger.error("lambda_min is greater than lambda_max")
+        raise()
+
+    # Scaling and translating to standard cheby interval
+    a1 = (delta_lambda[1]-delta_lambda[0])/2
+    a2 = (delta_lambda[1]+delta_lambda[0])/2
+
+    # Scaling bounds of the band pass according to lrange
+    filter_bounds[0] = (filter_bounds[0]-a2)/a1
+    filter_bounds[1] = (filter_bounds[1]-a2)/a1
+
+    # First compute cheby coeffs
+    ch = np.arange(float(m+1))
+    ch[0] = (2/(np.pi))*(np.arccos(filter_bounds[0])-np.arccos(filter_bounds[1]))
+    for i in ch[1:]:
+        ch[i] = (2/(np.pi * i)) * \
+            (np.sin(i * np.arccos(filter_bounds[0])) - np.sin(i * np.arccos(filter_bounds[1])))
+
+    # Then compute jackson coeffs
+    jch = np.arange(float(m+1))
+    alpha = (np.pi/(m+2))
+    for i in jch:
+        jch[i] = (1/np.sin(alpha)) * \
+            ((1 - i/(m+2)) * np.sin(alpha) * np.cos(i * alpha) +
+             (1/(m+2)) * np.cos(alpha) * np.sin(i * alpha))
+
+    # Combine jackson and cheby coeffs
+    jch = ch * jch
+
+    return ch, jch
+
+
+def lanczos_op(f, s, order=30):
     r"""
     Perform the lanczos approximation of the signal s.
 
     Parameters
     ----------
-    fi: Filter
+    f: Filter
     s : ndarray
         Signal to approximate.
     order : int
@@ -189,9 +251,10 @@ def lanczos_op(fi, s, order=30):
         lanczos approximation of s
 
     """
-    G = fi.G
-    Nf = len(fi.g)
+    G = f.G
+    Nf = len(f.g)
 
+    # To have the right shape for the output array depending on the signal dim
     try:
         Nv = np.shape(s)[1]
         is2d = True
@@ -211,19 +274,29 @@ def lanczos_op(fi, s, order=30):
         Eh, Uh = np.linalg.eig(H)
 
         Eh[Eh < 0] = 0
-        fie = fi.evaluate(Eh)
+        fe = f.evaluate(Eh)
         V = np.dot(V, Uh)
 
         for i in range(Nf):
             if is2d:
-                c[tmpN + i*G.N, j] = np.dot(V, fie[:][i] * np.dot(V.T, s[:, j]))
+                c[tmpN + i*G.N, j] = np.dot(V, fe[:][i] * np.dot(V.T, s[:, j]))
             else:
-                c[tmpN + i*G.N] = np.dot(V, fie[:][i] * np.dot(V.T, s))
+                c[tmpN + i*G.N] = np.dot(V, fe[:][i] * np.dot(V.T, s))
 
     return c
 
 
 def lanczos(A, order, x):
+    r"""
+    TODO short description
+
+    Parameters
+    ----------
+    A: ndarray
+
+    Returns
+    -------
+    """
     try:
         N, M = np.shape(x)
     except ValueError:

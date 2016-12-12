@@ -5,6 +5,7 @@
 
 import sys
 from pygsp import graphs, filters
+from numpy import zeros
 
 # Use the unittest2 backport on Python 2.6 to profit from the new features.
 if sys.version_info < (2, 7):
@@ -77,9 +78,30 @@ class FunctionsTestCase(unittest.TestCase):
         def test_simpletf(G):
             g = filters.Simpletf(G, Nf=4)
 
+        # Warped translates are not implemented yet
         def test_warpedtranslates(G):
             pass
             # gw = filters.warpedtranslates(G, g))
+
+        """
+        Test of the different methods implemented for the filter analysis
+        Checks if the 'exact', 'cheby' or 'lanczos' produce the same output
+        of a Heat kernel on the Logo graph
+        """
+        def test_analysis(G):
+            # Using Kronecker signal at the node 8.3
+            S = zeros(G.N)
+            vertex_delta = 83
+            S[vertex_delta] = 1
+            g = filters.Heat(G)
+            c_exact = g.analysis(G, S, method='exact')
+            c_cheby = g.analysis(G, S, method='cheby')
+            # c_lancz = g.analysis(G, S, method='lanczos')
+            self.assertAlmostEqual(c_exact, c_cheby)
+            # lanczos analysis is not working for now
+            # self.assertAlmostEqual(c_exact, c_lanczos)
+
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
 

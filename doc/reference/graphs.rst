@@ -140,30 +140,20 @@ SwissRoll
     :show-inheritance:
     :members:
 
-Check Connectivity
-------------------
-.. autofunction:: pygsp.graphs.check_connectivity
+Barabasi-Albert
+---------------
+
+.. autoclass:: pygsp.graphs.barabasialbert
+    :undoc-members:
+    :show-inheritance:
+
+Stochastic Block Model
+----------------------
+
+.. autoclass:: pygsp.graphs.stochasticblockmodel
+    :undoc-members:
+    :show-inheritance:
 
 Check Weights
 -------------
-.. autofunction:: pygsp.graphs.check_weights
-
-Compute Fourier Basis
----------------------
-.. autofunction:: pygsp.graphs.compute_fourier_basis
-
-Create Laplacian
-----------------
-.. autofunction:: pygsp.graphs.create_laplacian
-
-Estimate Lmax
--------------
-.. autofunction:: pygsp.graphs.estimate_lmax
-
-Is directed
------------
-.. autofunction:: pygsp.graphs.is_directed
-
-Symetrize
----------
-.. autofunction:: pygsp.graphs.symetrize
+.. autofunction:: pygsp.graphs.gutils.check_weights

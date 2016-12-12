@@ -54,6 +54,6 @@ class BarabasiAlbert(Graph):
             connections = np.random.choice(N, size=m, replace=False, p=np.ravel(distr/distr.sum()))
             for elem in connections:
                 W[elem, i] = 1
-                # W[i, elem] = 1
+                W[i, elem] = 1
 
         super(BarabasiAlbert, self).__init__(W=W, gtype=u"Barabasi-Albert", **kwargs)
