@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from pygsp.utils import build_logger
-from pygsp.graphs import gutils
+from ..utils import build_logger
+from .gutils import check_weights
 
 import numpy as np
 import scipy as sp
@@ -79,7 +79,7 @@ class Graph(object):
 
         self.N = shapes[0]
         self.W = sparse.lil_matrix(W)
-        gutils.check_weights(self.W)
+        check_weights(self.W)
 
         self.A = self.W > 0
         self.Ne = self.W.nnz

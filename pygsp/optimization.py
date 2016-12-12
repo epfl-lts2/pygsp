@@ -3,9 +3,9 @@ r"""
 This module provides optimization tools to accelarate graph signal processing as a whole.
 """
 
-from pygsp.data_handling import adj2vec
-from pygsp.operators import operator
-from pygsp.utils import build_logger
+from .data_handling import adj2vec
+from .operators import operator
+from .utils import build_logger
 
 logger = build_logger(__name__)
 

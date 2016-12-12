@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from pygsp import data_handling
-from pygsp.operators import operator
-from pygsp.utils import build_logger
+from .. import data_handling
+from ..operators import operator
+from ..utils import build_logger
 
 import numpy as np
 

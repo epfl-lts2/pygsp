@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .. import Graph
-from pygsp.graphs import gutils
+from .. import gutils
 
 import numpy as np
 from scipy import sparse, spatial

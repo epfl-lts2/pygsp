@@ -2,7 +2,7 @@
 r"""This module implements some utilitary functions used throughout the PyGSP box."""
 
 import numpy as np
-import scipy as sp
+from scipy import kron, ones
 from scipy import sparse
 import logging
 
@@ -129,8 +129,8 @@ def distanz(x, y=None):
     yy = (y*y).sum(axis=0)
     xy = np.dot(x.T, y)
 
-    d = abs(sp.kron(sp.ones((cy, 1)), xx).T +
-            sp.kron(sp.ones((cx, 1)), yy) - 2*xy)
+    d = abs(kron(ones((cy, 1)), xx).T +
+            kron(ones((cx, 1)), yy) - 2*xy)
 
     return np.sqrt(d)
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from pygsp.utils import build_logger
-from pygsp.data_handling import adj2vec
+from ..utils import build_logger
+from ..data_handling import adj2vec
 
 import numpy as np
 from scipy import sparse
