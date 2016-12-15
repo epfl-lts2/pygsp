@@ -3,6 +3,7 @@
 from ..utils import build_logger
 from .gutils import check_weights
 
+from time import time
 import numpy as np
 import scipy as sp
 from scipy import sparse
@@ -613,6 +614,119 @@ class Graph(object):
 
         lmax = np.real(lmax)
         self.lmax = lmax.sum()
+
+    def fast_estimate_lk(self, k, f='lp-jch', order=50, nb_est=1,
+                         nb_features=None, max_calls=10, hints=None):
+        r"""
+        Makes a fast estimation of the k-th value of any graph Laplacian
+
+        Parameters
+        ----------
+            G : Graph structure
+            k : int
+            f : string
+                Valid strings are 'lp-jch', 'lp-ch' and 'expwin'
+                Default is 'lp-jch'
+            order : int
+            nb_est : int
+            nb_features : int
+            max_calls : int
+            hints : dict
+                fields: 'lambda_min', 'lambda_min', 'c_min', 'c_max'
+                Only fill the data you want, the rest will be filled automatically
+
+        Returns
+        -------
+            lambda_k : int
+
+
+        Examples
+        --------
+        >>> from pygsp import utils, graphs
+        >>> G = graphs.Logo()
+        >>> k = 8
+        >>> l_k = fast_estimate_lk(G, k)
+
+        TODO doc
+        """
+
+        t = time.time()
+        # add thing
+        elapsed = time.time() - t
+
+        # Arguments checking
+        if not nb_features:
+            nb_features = np.round(2 * np.log(self.N))
+
+        if f is not ('lp-jch' or 'lp-ch' or 'expwin'):
+            self.logger.error("f parameter is not ")
+            raise()
+
+        # Fill for missing hints
+        if hints:
+            if not hints['lambda_min'] or not hints['c_min']:
+                hints['lambda_min'] = 0
+                hints['c_min'] = 0
+            if not hints['lambda_max'] or not hints['c_max']:
+                hints['lambda_max'] = self.lmax
+                hints['c_max'] = self.N
+
+            # Assign hints
+            lmin = hints['lambda_min']
+            lmax = hints['lambda_max']
+            cmin = hints['c_min']
+            cmax = hints['c_max']
+        # Else just assign defaults
+        else:
+            lmin = 0
+            lmax = self.lmax
+            cmin = 0
+            cmax = self.N
+
+
+        for i in range(nb_est):
+            rand_sig = np.random.rand(self.N, nb_features)/np.sqrt(nb_features)
+
+            # Reset l_est
+            l_est = lmin + (k-cmin)*(lmax-lmin)/(cmax-cmin)
+
+            def _rec_estimate(self, k, signal, l_est, lmin, lmax, cmin, cmax,
+                              lbest=None, cbest=None, nb_calls=None):
+
+                r"""
+                Parameters
+                ----------
+                    k : int
+                    signal : ndarray
+                    l_est : int
+                    lmin : int
+                    lmax : int
+                    cmin : int
+                    cmax : int
+                    lbest : int
+                    cbest : int
+                    nb_calls : int
+
+                Returns
+                -------
+                    lk : int
+                    count : int
+                    nb_calls : int
+
+                TODO doc
+                """
+
+                nb_calls += 1
+
+                if 
+
+                # TODO remove
+                lk, count, nb_calls = None
+                return lk, count, nb_calls
+
+        # TODO remove
+        lambda_k = None
+        return lambda_k
 
     def plot(self, **kwargs):
         r"""
