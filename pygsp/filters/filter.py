@@ -223,7 +223,7 @@ class Filter(object):
                                  'The function will compute it for you.')
                 self.G.estimate_lmax()
 
-            cheb_coeffs = operator.compute_cheby_coeff(self, m=order, N=order + 1)
+            cheb_coeffs = fast_filtering.compute_cheby_coeff(self, m=order, N=order + 1)
             s = np.zeros((N, np.shape(c)[1]))
             tmpN = np.arange(N, dtype=int)
 
