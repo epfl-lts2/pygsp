@@ -93,7 +93,7 @@ As we can see, the wavelets atoms are stacked on the low frequency part of the s
 If we want to get a better coverage of the graph spectrum, we could have used the WarpedTranslates filter bank.
 
 >>> S_vec = Wk.analysis(S)
->>> S = S_vec.reshape((S_vec.size/Nf, Nf), order='F')
+>>> S = S_vec.reshape((S_vec.size//Nf, Nf), order='F')
 >>> pygsp.plotting.plt_plot_signal(G, S[:, 0], savefig=True, plot_name='doc/tutorials/img/wavelet_filtering')
 
 
