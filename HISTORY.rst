@@ -4,6 +4,13 @@
 History
 =======
 
+0.4.2 (2017-04-27)
+------------------
+Improve documentation.
+
+Various fixes.
+
+
 0.4.1 (2016-09-06)
 ------------------
 Added routines to compute coordinates for the graphs.
