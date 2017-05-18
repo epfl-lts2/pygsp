@@ -51,3 +51,6 @@ docs/_build
 .ropeproject
 
 .eggs/*
+
+# Mac OS garbage
+.DS_Store
