@@ -16,4 +16,4 @@ git+https://github.com/pyqtgraph/pyqtgraph@develop#egg=pyqtgraph-dev
 # -r dev_requirements.txt
 
 # Required for efficiently dealing with images
-skimage
+scikit-image
