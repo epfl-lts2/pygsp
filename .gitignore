@@ -54,3 +54,6 @@ docs/_build
 
 # Mac OS garbage
 .DS_Store
+
+# Jupyter notebook
+.ipynb_checkpoints/
