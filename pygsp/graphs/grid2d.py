@@ -32,19 +32,20 @@ class Grid2d(Graph):
         # (Rodrigo) I think using a single shape parameter, and calling the
         # dimensions of the grid 'height' (h) and 'width' (w) make more sense
         # than the previous Nv and Mv.
+        h = shape[0]
         try:
-            h, w = shape
+            w = shape[1]
         except ValueError:
-            h = shape[0]
             w = h
 
-        # Filling up the weight matrix this way is faster than looping through
-        # all the grid points:
+        # (Rodrigo) Filling up the weight matrix this way is faster than
+        # looping through all the grid points:
         diag_1 = np.ones((h * w - 1,))
         diag_1[(w - 1)::w] = 0
-        diag_3 = np.ones((h * w - 3,))
-        W = sparse.diags(diagonals=[diag_1, diag_3],
-                         offsets=[-1, -3],
+        stride = w
+        diag_2 = np.ones((h * w - stride,))
+        W = sparse.diags(diagonals=[diag_1, diag_2],
+                         offsets=[-1, -stride],
                          shape=(h * w, h * w),
                          format='csr',
                          dtype='float')

@@ -17,10 +17,11 @@ class ImgPatches(Graph):
     img : array
         Input image.
     patch_shape : tuple, optional
-        Dimensions of the patch window. Syntax : (height, width).
-    n_nbrs : int
+        Dimensions of the patch window. Syntax: (height, width), or (height,),
+        in which case width = height.
+    n_nbrs : int, optional
         Number of neighbors to consider
-    dist_type : string
+    dist_type : string, optional
         Type of distance between patches to compute. See
         :func:`pyflann.index.set_distance_type` for possible options.
 
@@ -36,18 +37,31 @@ class ImgPatches(Graph):
     def __init__(self, img, patch_shape=(3, 3), n_nbrs=8,
                  dist_type='euclidean', **kwargs):
         try:
-            h, w, _ = img.shape
+            h, w, d = img.shape
         except ValueError:
             try:
                 h, w = img.shape
+                d = 1
             except ValueError:
                 print("Image should be a 2-d array.")
 
-        pad_width = (int((patch_shape[0] - 1) / 2),
-                     int((patch_shape[1] - 1) / 2))
-        img_pad = pad(img, pad_width=pad_width, mode='edge')
-        patches = view_as_windows(img_pad, window_shape=patch_shape)
-        X = patches.reshape((h * w, patch_shape[0] * patch_shape[1]))
+        try:
+            r, c = patch_shape
+        except ValueError:
+            r = patch_shape[0]
+            c = r
+        if d <= 1:
+            pad_width = ((int((r - 0.5) / 2.), int((r + 0.5) / 2.)),
+                         (int((c - 0.5) / 2.), int((c + 0.5) / 2.)))
+        else:
+            pad_width = ((int((r - 0.5) / 2.), int((r + 0.5) / 2.)),
+                         (int((c - 0.5) / 2.), int((c + 0.5) / 2.)),
+                         (0, 0))
+        img_pad = pad(img, pad_width=pad_width, mode='symmetric')
+
+        patches = view_as_windows(img_pad,
+                                  window_shape=tuple(np.maximum((r, c, d), 1)))
+        X = patches.reshape((h * w, r * c * d))
 
         set_distance_type(dist_type)
         flann = FLANN()

@@ -10,7 +10,7 @@ __all__ = ['NNGraph',
            'Sphere',
            'TwoMoons',
            'ImgPatches',
-           'ImgPatchesGrid2d']
+           'Grid2dImgPatches']
 
 for class_to_import in __all__:
     setattr(sys.modules[__name__],
