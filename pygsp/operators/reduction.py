@@ -67,7 +67,11 @@ def graph_sparsify(M, epsilon, maxiter=10):
         W = np.diag(L.diagonal()) - L.toarray()
         W[W < 1e-10] = 0
 
-    W = sparse.csc_matrix(W)
+    W = sparse.coo_matrix(W)
+    W.data[W.data < 1e-10] = 0
+    W = W.tocsc()
+    W.eliminate_zeros()
+
 
     start_nodes, end_nodes, weights = sparse.find(sparse.tril(W))
 
@@ -85,7 +89,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
         C = 4 * C0
         q = round(N * np.log(N) * 9 * C**2 / (epsilon**2))
 
-        results = stats.rv_discrete(values=(np.arange(np.shape(Pe)[0]), Pe)).rvs(size=q)
+        results = stats.rv_discrete(values=(np.arange(np.shape(Pe)[0]), Pe)).rvs(size=int(q))
         spin_counts = stats.itemfreq(results).astype(int)
         per_spin_weights = weights / (q * Pe)
 
@@ -340,6 +344,9 @@ def kron_reduction(G, ind):
         Snew = Lnew.diagonal() - np.ravel(Wnew.sum(0))
         if np.linalg.norm(Snew, 2) >= np.spacing(1000):
             Wnew = Wnew + sparse.diags(Snew, 0)
+
+        # Removing diagonal for stability
+        Wnew = Wnew - Wnew.diagonal()
 
         coords = G.coords[ind, :] if len(G.coords.shape) else np.ndarray(None)
         Gnew = Graph(W=Wnew, coords=coords, lap_type=G.lap_type,
