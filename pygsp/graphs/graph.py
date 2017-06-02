@@ -88,8 +88,8 @@ class Graph(object):
         self.gtype = gtype
         self.lap_type = lap_type
 
-        # (Rodrigo): This check was inside self.is_connected(), but they should
-        # be independent of each other.
+        # (Rodrigo): This check in only inside self.is_connected(), but I
+        # think they should be independent of each other.
         if not hasattr(self, 'directed'):
             self.is_directed()
 
@@ -369,6 +369,9 @@ class Graph(object):
                 self.logger.error(
                     "Connectivity for this graph is already known. Stopping.")
                 return self.connected
+
+        if not hasattr(self, 'directed'):
+            self.is_directed()
 
         if self.A.shape[0] != self.A.shape[1]:
             self.logger.error(
