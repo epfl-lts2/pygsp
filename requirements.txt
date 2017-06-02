@@ -17,3 +17,4 @@ git+https://github.com/pyqtgraph/pyqtgraph@develop#egg=pyqtgraph-dev
 
 # Required for efficiently dealing with images
 scikit-image
+pyflann
