@@ -576,6 +576,30 @@ class Graph(object):
 
         self.L = L
 
+    def create_incidence_matrix(self):
+        r"""
+        Compute a new incidence matrix B and associated edge weight matrix We
+
+        The combinatorial graph laplacian can be recovered with L = B.T W B
+        """
+        if not hasattr(self, 'directed'):
+            self.is_directed()
+
+        if self.directed or not self.connected:
+            raise NotImplementedError('Focusing on connected non directed graphs first.')
+
+        start_nodes, end_nodes, weights = sparse.find(sparse.tril(self.W))
+
+        data = np.concatenate([np.ones(self.Ne/2), -np.ones(self.Ne/2)])
+        row = np.concatenate([np.arange(self.Ne/2), np.arange(self.Ne/2)])
+        col = np.concatenate([start_nodes, end_nodes])
+
+        self.B = sparse.coo_matrix((data, (row, col)),
+                                   shape=(self.Ne/2, self.N) ).tocsc()
+        self.Wb = sparse.diags(weights,0)
+        self.start_nodes = start_nodes
+        self.end_nodes = end_nodes
+
     def estimate_lmax(self, force_recompute=False):
         r"""
         Estimate the maximal eigenvalue.

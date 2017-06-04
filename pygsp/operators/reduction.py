@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""This module contains functionalities for the reduction of graphs' vertex set while keeping the graph structure."""
 
-from ..utils import resistance_distance, build_logger
+from ..utils import resistance_distance, build_logger, extract_submatrix, splu_inv_dot, approx_resistance_distance
 from ..graphs import Graph
 from ..filters import Filter
 
@@ -12,7 +12,7 @@ from scipy.sparse.linalg import eigs, spsolve
 logger = build_logger(__name__)
 
 
-def graph_sparsify(M, epsilon, maxiter=10):
+def graph_sparsify(M, epsilon, maxiter=10, fast=True):
     r"""
     Sparsify a graph using Spielman-Srivastava algorithm.
 
@@ -22,6 +22,10 @@ def graph_sparsify(M, epsilon, maxiter=10):
         Graph structure or a Laplacian matrix
     epsilon : int
         Sparsification parameter
+
+    fast : bool
+        Whether to use the fast resistance distance from :cite:`spielman2011graph`
+        or exact value
 
     Returns
     -------
@@ -49,35 +53,26 @@ def graph_sparsify(M, epsilon, maxiter=10):
     if isinstance(M, Graph):
         if not M.lap_type == 'combinatorial':
             raise NotImplementedError
-        L = M.L
+        g = M
+        g.create_incidence_matrix()
     else:
-        L = M
+        g = Graph(W=sparse.diags(M.diagonal()) - M, lap_type='combinatorial')
+        g.create_incidence_matrix()
 
-    N = np.shape(L)[0]
+    N = g.N
 
     if not 1./np.sqrt(N) <= epsilon < 1:
         raise ValueError('GRAPH_SPARSIFY: Epsilon out of required range')
 
-    # Not sparse
-    resistance_distances = resistance_distance(L).toarray()
-    # Get the Weight matrix
-    if isinstance(M, Graph):
-        W = M.W
+    if fast:
+        Re = approx_resistance_distance(g, epsilon)
     else:
-        W = np.diag(L.diagonal()) - L.toarray()
-        W[W < 1e-10] = 0
-
-    W = sparse.coo_matrix(W)
-    W.data[W.data < 1e-10] = 0
-    W = W.tocsc()
-    W.eliminate_zeros()
-
-
-    start_nodes, end_nodes, weights = sparse.find(sparse.tril(W))
+        Re = resistance_distance(g.L).toarray()
+        Re = Re[g.start_nodes, g.end_nodes]
 
     # Calculate the new weights.
-    weights = np.maximum(0, weights)
-    Re = np.maximum(0, resistance_distances[start_nodes, end_nodes])
+    weights = np.maximum(0, g.Wb.diagonal())
+    Re = np.maximum(0, Re)
     Pe = weights * Re
     Pe = Pe / np.sum(Pe)
 
@@ -97,7 +92,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
         counts[spin_counts[:, 0]] = spin_counts[:, 1]
         new_weights = counts * per_spin_weights
 
-        sparserW = sparse.csc_matrix((new_weights, (start_nodes, end_nodes)),
+        sparserW = sparse.csc_matrix((new_weights, (g.start_nodes, g.end_nodes)),
                                      shape=(N, N))
         sparserW = sparserW + sparserW.T
         sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
@@ -327,27 +322,18 @@ def kron_reduction(G, ind):
     N = np.shape(L)[0]
     ind_comp = np.setdiff1d(np.arange(N, dtype=int), ind)
 
-    L_red = L[np.ix_(ind, ind)]
-    L_in_out = L[np.ix_(ind, ind_comp)]
-    L_out_in = L[np.ix_(ind_comp, ind)].tocsc()
-    L_comp = L[np.ix_(ind_comp, ind_comp)].tocsc()
+    L_red = extract_submatrix(L,ind, ind)
+    L_in_out = extract_submatrix(L, ind, ind_comp)
+    L_out_in = L_in_out.transpose().tocsc()
+    L_comp = extract_submatrix(L,ind_comp, ind_comp).tocsc()
 
-    Lnew = L_red - L_in_out.dot(spsolve(L_comp, L_out_in))
+    Lnew = L_red - L_in_out.dot(splu_inv_dot(L_comp, L_out_in))
 
-    # Make the laplacian symmetric if it is almost symmetric!
-    if np.abs(Lnew - Lnew.T).sum() < np.spacing(1) * np.abs(Lnew).sum():
-        Lnew = (Lnew + Lnew.T) / 2.
+    # Enforces symmetric Laplacian
+    Lnew = (Lnew + Lnew.T) / 2.
 
     if isinstance(G, Graph):
-        # Suppress the diagonal ? This is a good question?
         Wnew = sparse.diags(Lnew.diagonal(), 0) - Lnew
-        Snew = Lnew.diagonal() - np.ravel(Wnew.sum(0))
-        if np.linalg.norm(Snew, 2) >= np.spacing(1000):
-            Wnew = Wnew + sparse.diags(Snew, 0)
-
-        # Removing diagonal for stability
-        Wnew = Wnew - Wnew.diagonal()
-
         coords = G.coords[ind, :] if len(G.coords.shape) else np.ndarray(None)
         Gnew = Graph(W=Wnew, coords=coords, lap_type=G.lap_type,
                      plotting=G.plotting, gtype='Kron reduction')
