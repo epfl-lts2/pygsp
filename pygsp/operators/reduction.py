@@ -20,12 +20,17 @@ def graph_sparsify(M, epsilon, maxiter=10, fast=True):
     ----------
     M : Graph or sparse matrix
         Graph structure or a Laplacian matrix
-    epsilon : int
+
+    epsilon : float
         Sparsification parameter
+
+    maxiter : int (optional)
+        Number of iterations in successive attempts at reducing the sparsification
+        parameter to preserve connectivity. (default: 10)
 
     fast : bool
         Whether to use the fast resistance distance from :cite:`spielman2011graph`
-        or exact value
+        or exact value. (default: True)
 
     Returns
     -------
@@ -35,6 +40,11 @@ def graph_sparsify(M, epsilon, maxiter=10, fast=True):
     Notes
     -----
     Epsilon should be between 1/sqrt(N) and 1
+
+    The resistance distances computed by the `fast` option are approximate but
+    that approximation is included in the graph sparsification bounds of the
+    Spielman-Srivastava algorithm. Without this option, distances are computed
+    by blunt matrix inversion which does not scale for large graphs.
 
     Examples
     --------
@@ -274,7 +284,7 @@ def graph_multiresolution(G, levels, **kwargs):
     return Gs
 
 
-def kron_reduction(G, ind):
+def kron_reduction(G, ind, threshold=np.spacing(1)):
     r"""
     Compute the kron reduction.
 
@@ -290,12 +300,22 @@ def kron_reduction(G, ind):
         Graph structure or weight matrix
     ind : list
         indices of the nodes to keep
+    threshold: float
+        Threshold applied to the reduced Laplacian matrix to remove numerical
+        noise. (default: marchine precision)
 
     Returns
     -------
     Gnew : Graph or sparse matrix
         New graph structure or weight matrix
 
+    Notes
+    -----
+    For large graphs, with default thresholding value, the kron reduction can
+    lead to an extremely large number of edges, most of which have very small
+    weight. In this situation, a larger thresholding can remove most of these
+    unnecessary edges, an approximation that also makes subsequent spasrsification
+    much faster.
 
     References
     ----------
@@ -328,6 +348,12 @@ def kron_reduction(G, ind):
     L_comp = extract_submatrix(L,ind_comp, ind_comp).tocsc()
 
     Lnew = L_red - L_in_out.dot(splu_inv_dot(L_comp, L_out_in))
+
+    # Threshold excedingly small values for stability
+    Lnew = Lnew.tocoo()
+    Lnew.data[abs(Lnew.data) < threshold] = 0
+    Lnew = Lnew.tocsc()
+    Lnew.eliminate_zeros()
 
     # Enforces symmetric Laplacian
     Lnew = (Lnew + Lnew.T) / 2.

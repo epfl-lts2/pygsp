@@ -578,9 +578,11 @@ class Graph(object):
 
     def create_incidence_matrix(self):
         r"""
-        Compute a new incidence matrix B and associated edge weight matrix We
+        Compute a new incidence matrix B and associated edge weight matrix Wb.
 
-        The combinatorial graph laplacian can be recovered with L = B.T W B
+        The combinatorial graph laplacian can be recovered with L = B.T Wb B
+        For convenience, the heads and tails of each edge are saved in two
+        additional attributes start_nodes and end_nodes.
         """
         if not hasattr(self, 'directed'):
             self.is_directed()

@@ -184,8 +184,39 @@ def resistance_distance(M):  # 1 call dans operators.reduction
     return rd
 
 def approx_resistance_distance(g, epsilon):
-    """
-    Computes the resistance distance using the ST algorithm
+    r"""
+    Compute the resistance distances of each edge of a graph using the
+    Spielman-Srivastava algorithm.
+
+    Parameters
+    ----------
+    g : Graph
+        Graph structure
+
+    epsilon: float
+        Sparsification parameter
+
+    Returns
+    -------
+    rd : ndarray
+        distance for every edge in the graph
+
+    Examples
+    --------
+    >>>
+    >>>
+    >>>
+
+    Notes
+    -----
+    This implementation avoids the blunt matrix inversion of the exact distance
+    distance and can scale to very large graphs. The approximation error is
+    included in the budget of Spielman-Srivastava sparsification algorithm.
+
+    References
+    ----------
+    :cite:`klein1993resistance` :cite:`spielman2011graph`
+
     """
     g.create_incidence_matrix()
     n = g.N
@@ -199,7 +230,7 @@ def approx_resistance_distance(g, epsilon):
 
 def extract_submatrix(M, ind_rows, ind_cols):
     r"""
-    Extract a bloc from the provided sparse matrix
+    Extract a bloc of specific rows and columns from a sparse matrix.
 
     Parameters
     ----------
@@ -219,6 +250,14 @@ def extract_submatrix(M, ind_rows, ind_cols):
     sub_M: sparse matrix
         Submatrix obtained from M keeping only the requested rows and columns
 
+    Examples
+    --------
+    >>> # Extracting first diagonal block from a sparse matrix
+    >>> M = sparse.csc_matrix((16, 16))
+    >>> ind_row = range(8); ind_col = range(8)
+    >>> block = extract_submatrix(M, ind_row, ind_col)
+    >>> block.shape
+    (8, 8)
     """
     M = M.tocoo()
 
@@ -238,10 +277,33 @@ def extract_submatrix(M, ind_rows, ind_cols):
 
 def splu_inv_dot(A, B, threshold=np.spacing(1)):
     """
-    Compute A^{-1}B for sparse matrices A and B, assuming A is SDD,
-    using superLU
+    Compute A^{-1}B for sparse matrix A assuming A is Symmetric Diagonally
+    Dominant (SDD).
+
+    Parameters
+    ----------
+    A : sparse matrix
+        Input SDD matrix to invert, in CSC or CSR form.
+
+    B : sparse matrix
+        Matrix or vector of the right hand side
+
+    threshold: float, optional
+        Threshold to apply to result as to remove numerical noise before
+        conversion to sparse format. (default: machine precision)
+
+    Returns
+    -------
+    res: sparse matrix
+        Result of A^{-1}B
+
+    Notes
+    -----
+    This inversion by sparse linear system solving is optimized for SDD matrices
+    such as Graph Laplacians. Note that B is converted to a dense matrix before
+    being sent to splu, which is more computationally efficient but can lead to
+    very large memory usage if B is large.
     """
-    s = A.shape
     # Compute the LU decomposition of A
     lu = sparse.linalg.splu(A,
                         diag_pivot_thresh=A.diagonal().min()*0.5,
