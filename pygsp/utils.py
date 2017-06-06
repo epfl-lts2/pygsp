@@ -193,7 +193,7 @@ def symmetrize(W, symmetrize_type='average'):
     ----------
     W : array_like
         Square matrix to be symmetrized
-    symm_type : string
+    symmetrize_type : string
         'average' : symmetrize by averaging with the transpose.
         'full' : symmetrize by filling in the holes in the transpose.
 
@@ -212,6 +212,7 @@ def symmetrize(W, symmetrize_type='average'):
         else:
             # numpy boolean subtract is deprecated in python 3
             mask = np.logical_xor(np.logical_or(A, A.T), A).astype('float')
-        return W + mask.multiply(W.T) if sparse_flag else W + (mask * W.T)
+        W += mask.multiply(W.T) if sparse_flag else (mask * W.T)
+        return (W + W.T) / 2.  # Resolve ambiguous entries
     else:
         return W
