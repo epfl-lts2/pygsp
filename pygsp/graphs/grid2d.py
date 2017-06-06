@@ -12,33 +12,35 @@ class Grid2d(Graph):
 
     Parameters
     ----------
-    shape : tuple
-        Dimensions of the 2-dimensional grid. Syntax: (height, width), or
-        (height,), in which case one has width = height.
+    shape : int or tuple, optional
+        Dimensions of the 2-dimensional grid. Syntax: (height, width),
+        (height,), or height, where the last two options imply width = height.
+        Default is shape = (3,).
 
     Notes
     -----
     The total number of nodes on the graph is N = height * width, that is, the
-    number of point in the grid.
+    number of points in the grid.
 
     Examples
     --------
     >>> from pygsp import graphs
-    >>> G = graphs.Grid2d(shape=(32,))
+    >>> G = graphs.Grid2d(shape=(32,)
 
     """
 
     def __init__(self, shape=(3,), **kwargs):
-        # (Rodrigo) I think using a single shape parameter, and calling the
-        # dimensions of the grid 'height' (h) and 'width' (w) make more sense
-        # than the previous Nv and Mv.
-        h = shape[0]
+        # Parse shape
         try:
-            w = shape[1]
+            h, w = shape
         except ValueError:
+            h = shape[0]
+            w = h
+        except TypeError:
+            h = shape
             w = h
 
-        # (Rodrigo) Filling up the weight matrix this way is faster than
+        # Filling up the weight matrix this way is faster than
         # looping through all the grid points:
         diag_1 = np.ones((h * w - 1,))
         diag_1[(w - 1)::w] = 0
