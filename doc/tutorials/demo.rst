@@ -35,8 +35,8 @@ Looks good isn't it? Now we can start to analyse the graph. The next step to com
 You can now access the eigenvalues of the fourier basis with G.e and the eigenvectors G.U, they look like sinuses on the graph.
 Let's plot the second and third eigenvector, as the one is only constant.
 
->>> pygsp.plotting.plt_plot_signal(G, G.U[:, 2], savefig=True, vertex_size=50, plot_name='doc/tutorials/img/logo_second_eigenvector')
->>> pygsp.plotting.plt_plot_signal(G, G.U[:, 3], savefig=True, vertex_size=50, plot_name='doc/tutorials/img/logo_third_eigenvector')
+>>> pygsp.plotting.plt_plot_signal(G, G.U[:, 1], savefig=True, vertex_size=50, plot_name='doc/tutorials/img/logo_second_eigenvector')
+>>> pygsp.plotting.plt_plot_signal(G, G.U[:, 2], savefig=True, vertex_size=50, plot_name='doc/tutorials/img/logo_third_eigenvector')
 
 .. figure:: img/logo_second_eigenvector.*
 
