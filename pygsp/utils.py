@@ -252,10 +252,12 @@ def extract_submatrix(M, ind_rows, ind_cols):
 
     Examples
     --------
+    >>> import scipy.sparse as sparse
+    >>> from pygsp import utils
     >>> # Extracting first diagonal block from a sparse matrix
     >>> M = sparse.csc_matrix((16, 16))
     >>> ind_row = range(8); ind_col = range(8)
-    >>> block = extract_submatrix(M, ind_row, ind_col)
+    >>> block = utils.extract_submatrix(M, ind_row, ind_col)
     >>> block.shape
     (8, 8)
     """
