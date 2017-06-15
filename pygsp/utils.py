@@ -260,6 +260,7 @@ def extract_submatrix(M, ind_rows, ind_cols):
     >>> block = utils.extract_submatrix(M, ind_row, ind_col)
     >>> block.shape
     (8, 8)
+    
     """
     M = M.tocoo()
 
