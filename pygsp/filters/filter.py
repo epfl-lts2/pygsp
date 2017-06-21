@@ -10,7 +10,8 @@ from copy import deepcopy
 
 class Filter(object):
     r"""
-    Parent class for all Filters or Filterbanks, contains the shared methods for those classes.
+    Parent class for all Filters or Filterbanks, contains the shared methods
+    for those classes.
     """
 
     def __init__(self, G, filters=None, **kwargs):
@@ -32,7 +33,8 @@ class Filter(object):
         else:
             self.g = []
 
-    def analysis(self, s, method=None, cheb_order=30, lanczos_order=30, **kwargs):
+    def analysis(self, s, method=None, cheb_order=30, lanczos_order=30,
+                 **kwargs):
         r"""
         Operator to analyse a filterbank
 
@@ -41,7 +43,8 @@ class Filter(object):
         s : ndarray
             graph signals to analyse
         method : string
-            whether using an exact method or cheby approx (lanczos not working now)
+            whether using an exact method or cheby approx (lanczos not working
+            now)
         cheb_order : int
             Order for chebyshev
 
@@ -66,7 +69,7 @@ class Filter(object):
         """
         if not method:
             method = 'exact' if hasattr(self.G, 'U') else 'cheby'
-        self.logger.info('The analysis method is {}'.format(method))
+            self.logger.info('The analysis method is {}'.format(method))
 
         if method == 'cheby':  # Chebyshev approx
             if not hasattr(self.G, 'lmax'):
@@ -108,12 +111,13 @@ class Filter(object):
                 tmpN = np.arange(N, dtype=int)
                 for i in range(Nf):
                     if is2d:
-                        c[tmpN + N*i] =\
+                        c[tmpN + N * i] = \
                             operator.igft(self.G, np.tile(fie[i], (Ns, 1)).T *
                                           operator.gft(self.G, s))
                     else:
-                        c[tmpN + N*i] = operator.igft(self.G, fie[i] *
-                                                      operator.gft(self.G, s))
+                        c[tmpN + N * i] = \
+                            operator.igft(self.G, fie[i] *
+                                          operator.gft(self.G, s))
 
         else:
             raise ValueError('Unknown method: please select exact, '
@@ -215,7 +219,7 @@ class Filter(object):
                 for i in range(Nf):
                     s += operator.igft(np.conjugate(self.G.U),
                                        np.tile(fie[:][i], (Nv, 1)).T *
-                                       operator.gft(self.G, c[N*i + tmpN]))
+                                       operator.gft(self.G, c[N * i + tmpN]))
 
         elif method == 'cheby':
             if hasattr(self.G, 'lmax'):
@@ -223,19 +227,22 @@ class Filter(object):
                                  'The function will compute it for you.')
                 self.G.estimate_lmax()
 
-            cheb_coeffs = fast_filtering.compute_cheby_coeff(self, m=order, N=order + 1)
+            cheb_coeffs = fast_filtering.compute_cheby_coeff(
+                self, m=order, N=order + 1)
             s = np.zeros((N, np.shape(c)[1]))
             tmpN = np.arange(N, dtype=int)
 
             for i in range(Nf):
-                s = s + operator.cheby_op(self.G, cheb_coeffs[i], c[i*N + tmpN])
+                s = s + operator.cheby_op(self.G,
+                                          cheb_coeffs[i], c[i * N + tmpN])
 
         elif method == 'lanczos':
             s = np.zeros((N, np.shape(c)[1]))
             tmpN = np.arange(N, dtype=int)
 
             for i in range(Nf):
-                s += fast_filtering.lanczos_op(self.G, self.g[i], c[i*N + tmpN],
+                s += fast_filtering.lanczos_op(self.G, self.g[i],
+                                               c[i * N + tmpN],
                                                order=order)
 
         else:
@@ -285,7 +292,8 @@ class Filter(object):
                 self.G.estimate_lmax()
 
             if not hasattr(self.G, 'e'):
-                self.logger.info('FILTERBANK_BOUNDS: Has to compute Fourier basis.')
+                self.logger.info(
+                    'FILTERBANK_BOUNDS: Has to compute Fourier basis.')
                 self.G.compute_fourier_basis()
 
             rng = self.G.e
@@ -309,7 +317,8 @@ class Filter(object):
         N = self.G.N
 
         if N > 2000:
-            self.logger.warning('Creating a big matrix, you can use other methods.')
+            self.logger.warning(
+                'Creating a big matrix, you can use other methods.')
 
         Nf = len(self.g)
         Ft = self.analysis(np.identity(N))
@@ -317,7 +326,7 @@ class Filter(object):
         tmpN = np.arange(N, dtype=int)
 
         for i in range(Nf):
-            F[:, N*i + tmpN] = Ft[N*i + tmpN]
+            F[:, N * i + tmpN] = Ft[N * i + tmpN]
 
         return F
 
@@ -340,8 +349,8 @@ class Filter(object):
             Scale
 
         """
-        smin = t1/lmax
-        smax = t2/lmin
+        smin = t1 / lmax
+        smax = t2 / lmin
 
         s = np.exp(np.linspace(log(smax), log(smin), Nscales))
 
@@ -360,7 +369,7 @@ class Filter(object):
 
             s = np.zeros((N, M))
             for i in range(N):
-                    s[i] = np.linalg.pinv(np.expand_dims(gcoeff[i], axis=1))
+                s[i] = np.linalg.pinv(np.expand_dims(gcoeff[i], axis=1))
 
             ret = s[:, n]
             return ret

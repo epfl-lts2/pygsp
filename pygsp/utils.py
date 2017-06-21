@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-r"""This module implements some utilitary functions used throughout the PyGSP box."""
+r"""
+This module implements some utilitary functions used throughout the PyGSP box.
+"""
 
 import numpy as np
+import logging
+
 from scipy import kron, ones
 from scipy import sparse
-import logging
 
 
 def build_logger(name, **kwargs):
@@ -215,4 +218,4 @@ def symmetrize(W, symmetrize_type='average'):
         W += mask.multiply(W.T) if sparse_flag else (mask * W.T)
         return (W + W.T) / 2.  # Resolve ambiguous entries
     else:
-        return W
+        raise ValueError("Unknown symmetrize type.")

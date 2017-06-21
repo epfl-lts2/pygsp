@@ -2,7 +2,7 @@
 
 from . import ImgPatches
 from .. import Grid2d
-from .. import Graph
+from ..graph import Graph
 
 
 class Grid2dImgPatches(Graph):
@@ -33,12 +33,14 @@ class Grid2dImgPatches(Graph):
 
     """
 
-    def __init__(self, img, patch_shape, n_nbrs,
+    def __init__(self, img, patch_shape=(3, 3), n_nbrs=8,
                  aggregate=lambda Wp, Wg: Wp + Wg, **kwargs):
         Gg = Grid2d(shape=img.shape)
         Gp = ImgPatches(img=img, patch_shape=patch_shape, n_nbrs=n_nbrs)
+        gtype = '{}_{}'.format(Gg.gtype, Gp.gtype)
         super(Grid2dImgPatches, self).__init__(W=aggregate(Gp.W, Gg.W),
-                                               gtype=Gg.gtype + Gp.gtype,
+                                               gtype=gtype,
                                                coords=Gg.coords,
                                                plotting=Gg.plotting,
+                                               perform_all_checks=False,
                                                **kwargs)

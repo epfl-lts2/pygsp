@@ -97,7 +97,7 @@ class Graph(object):
         self.gtype = gtype
         self.lap_type = lap_type
 
-        # (Rodrigo): This check in only inside self.is_connected(), but I
+        # (Rodrigo): This check is only inside self.is_connected(), but I
         # think they should be independent of each other.
         if not hasattr(self, 'directed'):
             self.is_directed()

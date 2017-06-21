@@ -60,8 +60,7 @@ class Grid2d(Graph):
 
         self.h = h
         self.w = w
-        plotting = {"vertex_size": 30,
-                    "limits": np.array([-1. / self.w, 1 + 1. / self.w,
+        plotting = {"limits": np.array([-1. / self.w, 1 + 1. / self.w,
                                         1. / self.h, 1 + 1. / self.h])}
 
         super(Grid2d, self).__init__(W=W, gtype='2d-grid', coords=coords,
