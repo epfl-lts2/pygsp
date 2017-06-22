@@ -32,10 +32,11 @@ class Grid2d(Graph):
     def __init__(self, shape=(3,), **kwargs):
         # Parse shape
         try:
-            h, w = shape
-        except ValueError:
             h = shape[0]
-            w = h
+            try:
+                w = shape[1]
+            except ValueError:
+                w = h
         except TypeError:
             h = shape
             w = h
