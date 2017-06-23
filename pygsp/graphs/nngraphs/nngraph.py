@@ -112,16 +112,14 @@ class NNGraph(Graph):
             spv = np.zeros((N * k))
 
             if self.use_flann:
-                """
-                I don't know if the parameters here are optimized for the
-                trade-off between accuracy and speed. I simply copied the
-                parameters used in the python example in FLANN's User Manual.
-                """
                 set_distance_type(dist_type, order=order)
                 flann = FLANN()
+
+                # Default FLANN parameters (I tried changing the algorithm and
+                # testing performance on huge matrices, but the default one
+                # seems to work best).
                 NN, D = flann.nn(Xout, Xout, num_neighbors=(k + 1),
-                                 algorithm="kmeans", branching=32,
-                                 iterations=7, checks=16)
+                                 algorithm='kdtree')
 
             else:
                 kdt = spatial.KDTree(Xout)
