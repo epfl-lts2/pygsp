@@ -23,7 +23,10 @@ A whole list of preconstructed graphs can be used as well as core functions to c
     - Cube
     - Sphere
     - TwoMoons
+    - ImgPatches
+    - Grid2dImgPatches
   - Airfoil
+  - BarabasiAlbert
   - Comet
   - Community
   - DavidSensorNet
@@ -39,7 +42,7 @@ A whole list of preconstructed graphs can be used as well as core functions to c
   - Ring
   - Sensor
   - StochasticBlockModel
-  - Swiss roll
+  - SwissRoll
   - Torus
 
 On these graphs, filters can be applied to do signal processing. To this end, there is also a list of predefined filters on this toolbox::
@@ -79,7 +82,7 @@ For a classic UNIX system, you will need python-dev(el) (or equivalent) installe
     $ sudo apt-get install python-dev liblapack-dev libatlas-dev gcc gfortran
 
 Then, try again to install the pygsp::
-    
+
     $ pip install pygsp
 
 Plotting
@@ -109,7 +112,8 @@ Authors
 * Basile Châtillon <basile.chatillon@epfl.ch>,
 * Alexandre Lafaye <alexandre.lafaye@epfl.ch>,
 * Lionel Martin <lionel.martin@epfl.ch>,
-* Nicolas Rod <nicolas.rod@epfl.ch>
+* Nicolas Rod <nicolas.rod@epfl.ch>,
+* Rodrigo Pena <rodrigo.pena@epfl.ch>
 
 Acknowledgment
 --------------
