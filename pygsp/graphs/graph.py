@@ -14,34 +14,43 @@ class Graph(object):
     r"""
     The main graph object.
 
-    It is used to initialize by default every missing field of the subclass graphs.
-    It can also be used alone to initialize customs graphs.
+    It is used to initialize by default every missing field of the subclass
+    graphs. It can also be used by itself to initialize customs graphs.
 
 
     **Fields**:
 
     A graph contains the following fields:
 
-        - N : the number of nodes (also called vertices sometimes) in the graph.
-            They represent the different points between which connections may occur.
+        - N : the number of nodes (also called vertices sometimes) in the
+        graph.
+            They represent the different points between which connections may
+            occur.
         - Ne : the number of edges (also called links sometimes) in the graph.
             They represent the actual connections between the nodes.
         - W : the weight matrix contains the weights of the connections.
-            It is represented as a NxN matrix of floats. W_i,j = 0 means that there is no connection from i to j.
+            It is represented as an N-by-N matrix of floats.
+            :math:`W_{i,j} = 0` means that there is no direct connection from
+            i to j.
         - A : the adjacency matrix defines which edges exist on the graph.
-            It is represented as a NxN matrix of booleans. A_i,j is True if W_i,j > 0.
+            It is represented as an N-by-N matrix of booleans.
+            :math:`A_{i,j}` is True if :math:`W_{i,j} > 0`.
         - d : the degree vector of the vertices.
-            It is represented as a Nx1 vector counting the number of connections that each node possesses.
+            It is represented as a Nx1 vector counting the number of
+            connections that each node possesses.
         - gtype : the graph type is a short description of the graph object.
             It is a string designed to help sorting the graphs
         - directed : the flag to assess if the graph is directed or not.
-            In this framework, we consider that a graph is directed if and only if its weight matrix is non symmetric.
-        - L : the laplacian matrix.
-            It is represented as a NxN matrix computed from W.
-        - lap_type : the laplacian type determine which kind of laplacian to compute.
-            From a given matrix W, there exist several laplacians that could be computed.
-        - coords : the coordinates of the vertices in the 2D or 3D space for plotting.
-            The default is None
+            In this framework, we consider that a graph is directed if and
+            only if its weight matrix is non symmetric.
+        - L : the graph Laplacian matrix.
+            It is represented as an N-by-N matrix computed from W.
+        - lap_type : string that determines which kind of laplacian to compute.
+            From a given matrix W, there exist several Laplacians that could
+            be computed.
+        - coords : the coordinates of the vertices in the 2D or 3D space for
+        plotting.
+            The default is None.
         - plotting : all the plotting parameters go here.
             They depend on the library used for plotting.
 
@@ -68,8 +77,9 @@ class Graph(object):
     >>> G = graphs.Graph(W)
 
     """
+
     def __init__(self, W, gtype='unknown', lap_type='combinatorial',
-                 coords=None, plotting={}, **kwargs):
+                 coords=None, plotting={}, perform_all_checks=True, **kwargs):
 
         self.logger = build_logger(__name__, **kwargs)
 
@@ -87,9 +97,19 @@ class Graph(object):
         self.gtype = gtype
         self.lap_type = lap_type
 
-        self.is_connected()
-        if not self.connected:
-            self.logger.warning('Graph is not connected!')
+        # (Rodrigo): This check is only inside self.is_connected(), but I
+        # think they should be independent of each other.
+        if not hasattr(self, 'directed'):
+            self.is_directed()
+
+        # (Rodrigo): I don't think this should be called by default when we
+        # create the graph. It is very expensive for big graphs. For now I kept
+        # the default behavior as is, but added a flag that allows the user to
+        # turn this off.
+        if perform_all_checks:
+            self.is_connected()
+            if not self.connected:
+                self.logger.warning('Graph is not connected!')
 
         self.create_laplacian(lap_type)
 
@@ -146,16 +166,22 @@ class Graph(object):
             if i in valid_attributes:
                 graph_attr[i] = getattr(self, i)
             else:
-                self.logger.warning('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
+                self.logger.warning(('Your attribute {} does not figure in '
+                                     'the valid attributes, which are '
+                                     '{}').format(i, valid_attributes))
 
         for i in kwargs:
             if i in valid_attributes:
                 if i in graph_attr:
-                    self.logger.info('You already give this attribute in the args. Therefore, it will not be recaculate.')
+                    self.logger.info('You already gave this attribute as '
+                                     'an argument. Therefore, it will not '
+                                     'be recomputed.')
                 else:
                     graph_attr[i] = kwargs[i]
             else:
-                self.logger.warning('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
+                self.logger.warning(('Your attribute {} does not figure in '
+                                     'the valid attributes, which are '
+                                     '{}').format(i, valid_attributes))
 
         from nngraphs import NNGraph
         if isinstance(self, NNGraph):
@@ -210,7 +236,8 @@ class Graph(object):
         ----------
         kind : string
             The kind of display. Default is 'spring'.
-            Accepting ['community2D', 'manual', 'random2D', 'random3D', 'ring2D', 'spring'].
+            Accepting ['community2D', 'manual', 'random2D', 'random3D',
+            'ring2D', 'spring'].
         coords : np.ndarray
             An array of coordinates in 2D or 3D. Used only if kind is manual.
             Set the coordinates to this array as is.
@@ -223,7 +250,8 @@ class Graph(object):
         >>> G.plot()
 
         """
-        if kind not in ['community2D', 'manual', 'random2D', 'random3D', 'ring2D', 'spring']:
+        if kind not in ['community2D', 'manual', 'random2D', 'random3D',
+                        'ring2D', 'spring']:
             raise ValueError('Unexpected kind argument. Got {}.'.format(kind))
 
         if kind == 'manual':
@@ -234,12 +262,13 @@ class Graph(object):
                     coords.shape[0] == self.N and 2 <= coords.shape[1] <= 3:
                 self.coords = coords
             else:
-                raise ValueError('Expecting coords to be a list or ndarray of size Nx2 or Nx3.')
+                raise ValueError('Expecting coords to be a list or ndarray '
+                                 'of size Nx2 or Nx3.')
 
         elif kind == 'ring2D':
             tmp = np.arange(self.N).reshape(self.N, 1)
-            self.coords = np.concatenate((np.cos(tmp*2*np.pi/self.N),
-                                          np.sin(tmp*2*np.pi/self.N)),
+            self.coords = np.concatenate((np.cos(tmp * 2 * np.pi / self.N),
+                                          np.sin(tmp * 2 * np.pi / self.N)),
                                          axis=1)
 
         elif kind == 'random2D':
@@ -253,30 +282,37 @@ class Graph(object):
 
         elif kind == 'community2D':
             if not hasattr(self, 'info') or 'node_com' not in self.info:
-                ValueError('Missing arguments to the graph to be able to compute community coordinates.')
+                ValueError('Missing arguments to the graph to be able to '
+                           'compute community coordinates.')
 
             if 'world_rad' not in self.info:
                 self.info['world_rad'] = np.sqrt(self.N)
 
             if 'comm_sizes' not in self.info:
                 counts = Counter(self.info['node_com'])
-                self.info['comm_sizes'] = np.array([cnt[1] for cnt in sorted(counts.items())])
+                self.info['comm_sizes'] = np.array([cnt[1] for cnt
+                                                    in sorted(counts.items())])
 
             Nc = self.info['comm_sizes'].shape[0]
 
-            self.info['com_coords'] = self.info['world_rad'] * np.array(list(zip(
-                np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
-                np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc))))
+            self.info['com_coords'] = self.info['world_rad'] * \
+                np.array(list(zip(
+                    np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
+                    np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc))))
 
-            coords = np.random.rand(self.N, 2)  # nodes' coordinates inside the community
+            # Coordinates of the nodes inside their communities
+            coords = np.random.rand(self.N, 2)
             self.coords = np.array([[elem[0] * np.cos(2 * np.pi * elem[1]),
-                                elem[0] * np.sin(2 * np.pi * elem[1])] for elem in coords])
+                                     elem[0] * np.sin(2 * np.pi * elem[1])]
+                                    for elem in coords])
 
             for i in range(self.N):
-                # set coordinates as an offset from the center of the community it belongs to
+                # Set coordinates as an offset from the center of the community
+                # it belongs to
                 comm_idx = self.info['node_com'][i]
                 comm_rad = np.sqrt(self.info['comm_sizes'][comm_idx])
-                self.coords[i] = self.info['com_coords'][comm_idx] + comm_rad * self.coords[i]
+                self.coords[i] = self.info['com_coords'][comm_idx] + \
+                    comm_rad * self.coords[i]
 
     def subgraph(self, ind):
         r"""
@@ -305,7 +341,7 @@ class Graph(object):
         if not isinstance(ind, list) and not isinstance(ind, np.ndarray):
             raise TypeError('The indices must be a list or a ndarray.')
 
-        N = len(ind)
+        # N = len(ind) # Assigned but never used
 
         sub_W = self.W.tocsr()[ind, :].tocsc()[:, ind]
         return Graph(sub_W, gtype="sub-{}".format(self.gtype))
@@ -315,10 +351,12 @@ class Graph(object):
         Check the strong connectivity of the input graph.
 
         It uses DFS travelling on graph to ensure that each node is visited.
-        For undirected graphs, starting at any vertex and trying to access all others is enough.
-        For directed graphs, one needs to check that a random vertex is accessible by all others
-        and can access all others. Thus, we can transpose the adjacency matrix and compute again
-        with the same starting point in both phases.
+        For undirected graphs, starting at any vertex and trying to access all
+        others is enough.
+        For directed graphs, one needs to check that a random vertex is
+        accessible by all others
+        and can access all others. Thus, we can transpose the adjacency matrix
+        and compute again with the same starting point in both phases.
 
         Parameters
         ----------
@@ -341,16 +379,19 @@ class Graph(object):
         """
         if hasattr(self, 'force_recompute'):
             if force_recompute:
-                self.logger.warning("Connectivity for this graph is already known. Recomputing.")
+                self.logger.warning("Connectivity for this graph is already "
+                                    "known. Recomputing.")
             else:
-                self.logger.error("Connectivity for this graph is already known. Stopping.")
+                self.logger.error("Connectivity for this graph is already "
+                                  "known. Stopping.")
                 return self.connected
 
         if not hasattr(self, 'directed'):
             self.is_directed()
 
         if self.A.shape[0] != self.A.shape[1]:
-            self.logger.error('Inconsistant shape to test connectedness. Set to False.')
+            self.logger.error("Inconsistent shape to test connectedness. "
+                              "Set to False.")
             self.connected = False
             return False
 
@@ -363,8 +404,11 @@ class Graph(object):
                 if not visited[v]:
                     visited[v] = True
 
-                    # Add indices of nodes not visited yet and accessible from v
-                    stack.update(set([idx for idx in adj_matrix[v, :].nonzero()[1] if not visited[idx]]))
+                    # Add indices of nodes not visited yet and accessible from
+                    # v
+                    stack.update(set([idx
+                                      for idx in adj_matrix[v, :].nonzero()[1]
+                                      if not visited[idx]]))
 
             if not visited.all():
                 self.connected = False
@@ -397,15 +441,16 @@ class Graph(object):
         """
         if hasattr(self, 'force_recompute'):
             if force_recompute:
-                self.logger.warning("Directedness for this graph is already known.\
-                                    Recomputing.")
+                self.logger.warning("Directedness for this graph is already "
+                                    "known. Recomputing.")
             else:
-                self.logger.error("Directedness for this graph is already known.\
-                                  Stopping.")
+                self.logger.error("Directedness for this graph is already "
+                                  "known. Stopping.")
                 return self.directed
 
         if np.diff(np.shape(self.W))[0]:
-            raise ValueError("Matrix dimensions mismatch, expecting square matrix.")
+            raise ValueError("Matrix dimensions mismatch, expecting square "
+                             "matrix.")
 
         is_dir = np.abs(self.W - self.W.T).sum() != 0
 
@@ -417,13 +462,16 @@ class Graph(object):
         r"""
         Split the graph into several connected components.
 
-        See the doc of `is_connected` for the method used to determine connectedness.
+        See the doc of `is_connected` for the method used to determine
+        connectedness.
 
         Returns
         -------
         graphs : list
-            A list of graph structures. Each having its own node list and weight matrix.
-            If the graph is directed, add into the info parameter the information about the source nodes and the sink nodes.
+            A list of graph structures. Each having its own node list and
+            weight matrix. If the graph is directed, add into the info
+            parameter the information about the source nodes and the sink
+            nodes.
 
         Examples
         --------
@@ -440,7 +488,8 @@ class Graph(object):
             self.is_directed()
 
         if self.A.shape[0] != self.A.shape[1]:
-            self.logger.error('Inconsistant shape to extract components. Square matrix required.')
+            self.logger.error('Inconsistant shape to extract components. '
+                              'Square matrix required.')
             return None
 
         if self.directed:
@@ -449,10 +498,10 @@ class Graph(object):
         graphs = []
 
         visited = np.zeros(self.A.shape[0], dtype=bool)
-        indices = []
+        # indices = [] # Assigned but never used
 
         while not visited.all():
-            stack = set([np.nonzero(visited == False)[0][0]])
+            stack = set([np.nonzero(visited is False)[0][0]])
             comp = []
 
             while len(stack):
@@ -461,18 +510,22 @@ class Graph(object):
                     comp.append(v)
                     visited[v] = True
 
-                    # Add indices of nodes not visited yet and accessible from v
-                    stack.update(set([idx for idx in self.A[v, :].nonzero()[1] if not visited[idx]]))
+                    # Add indices of nodes not visited yet and accessible from
+                    # v
+                    stack.update(set([idx for idx in self.A[v, :].nonzero()[1]
+                                      if not visited[idx]]))
 
             comp = sorted(comp)
-            self.logger.info('Constructing subgraph for component of size {}.'.format(len(comp)))
+            self.logger.info(('Constructing subgraph for component of '
+                              'size {}.').format(len(comp)))
             G = self.subgraph(comp)
             G.info = {'orig_idx': comp}
             graphs.append(G)
 
         return graphs
 
-    def compute_fourier_basis(self, smallest_first=True, force_recompute=False, **kwargs):
+    def compute_fourier_basis(self, smallest_first=True, force_recompute=False,
+                              **kwargs):
         r"""
         Compute the fourier basis of the graph.
 
@@ -515,14 +568,16 @@ class Graph(object):
         """
         if hasattr(self, 'e') or hasattr(self, 'U'):
             if force_recompute:
-                self.logger.warning("This graph already has a Fourier basis. Recomputing.")
+                self.logger.warning("This graph already has a Fourier basis."
+                                    " Recomputing.")
             else:
-                self.logger.error("This graph already has a Fourier basis. Stopping.")
+                self.logger.error("This graph already has a Fourier basis. "
+                                  "Stopping.")
                 return
 
         if self.N > 3000:
-            self.logger.warning("Performing full eigendecomposition of a large "
-                           "matrix may take some time.")
+            self.logger.warning("Performing full eigendecomposition of a "
+                                "large matrix may take some time.")
 
         if not hasattr(self, 'L'):
             raise AttributeError("Graph Laplacian is missing")
@@ -545,7 +600,9 @@ class Graph(object):
         Parameters
         ----------
         lap_type : string
-            The laplacian type to use. Default is "combinatorial". Other possible value is 'none', 'normalized' is still not yet implemented for directed graphs.
+            The laplacian type to use. Default is "combinatorial". Other
+            possible values are 'none' and 'normalized', which are not yet
+            implemented for directed graphs.
 
         """
         if np.shape(self.W) == (1, 1):
@@ -559,7 +616,9 @@ class Graph(object):
 
         if self.directed:
             if lap_type == 'combinatorial':
-                L = 0.5*(sparse.diags(np.ravel(self.W.sum(0)), 0) + sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W - self.W.T).tocsc()
+                L = 0.5 * (sparse.diags(np.ravel(self.W.sum(0)), 0) +
+                           sparse.diags(np.ravel(self.W.sum(1)), 0) -
+                           self.W - self.W.T).tocsc()
             elif lap_type == 'normalized':
                 raise NotImplementedError('Yet. Ask Nathanael.')
             elif lap_type == 'none':
@@ -569,7 +628,8 @@ class Graph(object):
             if lap_type == 'combinatorial':
                 L = (sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W).tocsc()
             elif lap_type == 'normalized':
-                D = sparse.diags(np.ravel(np.power(self.W.sum(1), -0.5)), 0).tocsc()
+                D = sparse.diags(
+                    np.ravel(np.power(self.W.sum(1), -0.5)), 0).tocsc()
                 L = sparse.identity(self.N) - D * self.W * D
             elif lap_type == 'none':
                 L = sparse.lil_matrix(0)
@@ -604,11 +664,13 @@ class Graph(object):
                 return
 
         try:
-            # On robustness purposes, increasing the error by 1 percent
-            lmax = 1.01 * sparse.linalg.eigs(self.L, k=1, tol=5e-3, ncv=10)[0][0]
+            # For robustness purposes, increase the error by 1 percent
+            lmax = 1.01 * \
+                sparse.linalg.eigs(self.L, k=1, tol=5e-3, ncv=10)[0][0]
 
         except sparse.linalg.ArpackNoConvergence:
-            self.logger.warning('GSP_ESTIMATE_LMAX: Cannot use default method.')
+            self.logger.warning('GSP_ESTIMATE_LMAX: '
+                                'Cannot use default method.')
             lmax = 2. * np.max(self.d)
 
         lmax = np.real(lmax)
@@ -667,7 +729,8 @@ class Graph(object):
         if k is None and fixed is not None:
             # We must adjust k by domain size for layouts that are not near 1x1
             k = dom_size / np.sqrt(self.N)
-        pos = _sparse_fruchterman_reingold(self.A, dim, k, pos_arr, fixed, iterations)
+        pos = _sparse_fruchterman_reingold(
+            self.A, dim, k, pos_arr, fixed, iterations)
 
         if fixed is None:
             pos = _rescale_layout(pos, scale=scale) + center
@@ -682,8 +745,8 @@ def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
     # make sure we have a LIst of Lists representation
     try:
         A = A.tolil()
-    except:
-        A = (coo_matrix(A)).tolil()
+    except Exception:
+        A = (sparse.coo_matrix(A)).tolil()
 
     if pos is None:
         # random initial positions
@@ -695,12 +758,12 @@ def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
 
     # optimal distance between nodes
     if k is None:
-        k = np.sqrt(1.0/nnodes)
+        k = np.sqrt(1.0 / nnodes)
 
     # simple cooling scheme.
     # linearly step down by dt on each iteration so last iteration is size dt.
     t = 0.1
-    dt = t/float(iterations+1)
+    dt = t / float(iterations + 1)
 
     displacement = np.zeros((dim, nnodes))
     for iteration in range(iterations):
@@ -710,7 +773,7 @@ def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
             if i in fixed:
                 continue
             # difference between this row's node position and all others
-            delta = (pos[i]-pos).T
+            delta = (pos[i] - pos).T
             # distance between points
             distance = np.sqrt((delta**2).sum(axis=0))
             # enforce minimum distance of 0.01
@@ -719,11 +782,11 @@ def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
             Ai = np.asarray(A[i, :].toarray())
             # displacement "force"
             displacement[:, i] += \
-                (delta*(k*k/distance**2-Ai*distance/k)).sum(axis=1)
+                (delta * (k * k / distance**2 - Ai * distance / k)).sum(axis=1)
         # update positions
         length = np.sqrt((displacement**2).sum(axis=0))
         length = np.where(length < 0.01, 0.1, length)
-        pos += (displacement*t/length).T
+        pos += (displacement * t / length).T
         # cool temperature
         t -= dt
 
@@ -740,5 +803,5 @@ def _rescale_layout(pos, scale=1):
         lim = max(pos[:, i].max(), lim)
     # rescale to (-scale,scale) in all directions, preserves aspect
     for i in range(pos.shape[1]):
-        pos[:, i] *= scale/lim
+        pos[:, i] *= scale / lim
     return pos

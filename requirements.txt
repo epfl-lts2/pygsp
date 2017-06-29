@@ -14,3 +14,7 @@ git+https://github.com/pyqtgraph/pyqtgraph@develop#egg=pyqtgraph-dev
 
 # Additional development requirements
 # -r dev_requirements.txt
+
+# Required for efficiently dealing with images
+scikit-image
+pyflann

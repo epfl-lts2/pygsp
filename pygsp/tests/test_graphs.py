@@ -37,7 +37,12 @@ class FunctionsTestCase(unittest.TestCase):
 
         def test_NNGraph():
             Xin = np.arange(90).reshape(30, 3)
-            G = graphs.NNGraph(Xin)
+            dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
+            for dist_type in dist_types:
+                G1 = graphs.NNGraph(Xin, NNtype='knn', dist_type=dist_type)
+                G2 = graphs.NNGraph(Xin, use_flann=True, NNtype='knn',
+                                    dist_type=dist_type)
+                G3 = graphs.NNGraph(Xin, NNtype='radius', dist_type=dist_type)
 
         def test_Bunny():
             G = graphs.Bunny()
@@ -52,9 +57,6 @@ class FunctionsTestCase(unittest.TestCase):
         def test_TwoMoons():
             G = graphs.TwoMoons()
             G2 = graphs.TwoMoons(moontype='synthetised')
-
-        def test_Grid2d():
-            G = graphs.Grid2d()
 
         def test_Torus():
             G = graphs.Torus()
@@ -102,6 +104,25 @@ class FunctionsTestCase(unittest.TestCase):
 
         def test_SwissRoll():
             G = graphs.SwissRoll()
+
+        def test_Grid2d():
+            G = graphs.Grid2d(shape=(3, 2))
+            self.assertEqual([G.h, G.w], [3, 2])
+            G = graphs.Grid2d(shape=(3,))
+            self.assertEqual([G.h, G.w], [3, 3])
+            G = graphs.Grid2d(shape=3)
+            self.assertEqual([G.h, G.w], [3, 3])
+
+        def test_ImgPatches():
+            from skimage import data, img_as_float
+            img = img_as_float(data.camera()[::16, ::16])
+            G = graphs.ImgPatches(img=img, patch_shape=(3, 3))
+
+        def test_Grid2dImgPatches():
+            from skimage import data, img_as_float
+            img = img_as_float(data.camera()[::16, ::16])
+            G = graphs.Grid2dImgPatches(img=img, patch_shape=(3, 3))
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
 

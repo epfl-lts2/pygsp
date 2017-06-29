@@ -10,7 +10,8 @@ from copy import deepcopy
 
 class Filter(object):
     r"""
-    Parent class for all Filters or Filterbanks, contains the shared methods for those classes.
+    Parent class for all Filters or Filterbanks, contains the shared methods
+    for those classes.
     """
 
     def __init__(self, G, filters=None, **kwargs):
@@ -32,7 +33,8 @@ class Filter(object):
         else:
             self.g = []
 
-    def analysis(self, s, method=None, cheb_order=30, lanczos_order=30, **kwargs):
+    def analysis(self, s, method=None, cheb_order=30, lanczos_order=30,
+                 **kwargs):
         r"""
         Operator to analyse a filterbank
 
@@ -41,7 +43,8 @@ class Filter(object):
         s : ndarray
             graph signals to analyse
         method : string
-            whether using an exact method or cheby approx (lanczos not working now)
+            whether using an exact method or cheby approx (lanczos not working
+            now)
         cheb_order : int
             Order for chebyshev
 
@@ -108,12 +111,13 @@ class Filter(object):
                 tmpN = np.arange(N, dtype=int)
                 for i in range(Nf):
                     if is2d:
-                        c[tmpN + N * i] =\
+                        c[tmpN + N * i] = \
                             operator.igft(self.G, np.tile(fie[i], (Ns, 1)).T *
                                           operator.gft(self.G, s))
                     else:
-                        c[tmpN + N * i] = operator.igft(self.G, fie[i] *
-                                                        operator.gft(self.G, s))
+                        c[tmpN + N * i] = \
+                            operator.igft(self.G, fie[i] *
+                                          operator.gft(self.G, s))
 
         else:
             raise ValueError('Unknown method: please select exact, '
@@ -237,7 +241,8 @@ class Filter(object):
             tmpN = np.arange(N, dtype=int)
 
             for i in range(Nf):
-                s += fast_filtering.lanczos_op(self.G, self.g[i], c[i * N + tmpN],
+                s += fast_filtering.lanczos_op(self.G, self.g[i],
+                                               c[i * N + tmpN],
                                                order=order)
 
         else:
