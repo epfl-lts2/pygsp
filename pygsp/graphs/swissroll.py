@@ -42,7 +42,7 @@ class SwissRoll(Graph):
                  noise=False, srtype='uniform'):
 
         if s is None:
-            s = sqrt(2./N)
+            s = sqrt(2. / N)
 
         y1 = np.random.rand(N)
         y2 = np.random.rand(N)
@@ -54,9 +54,9 @@ class SwissRoll(Graph):
         tt *= pi
 
         if dim == 2:
-            x = np.array((tt*np.cos(tt), tt * np.sin(tt)))
+            x = np.array((tt * np.cos(tt), tt * np.sin(tt)))
         elif dim == 3:
-            x = np.array((tt*np.cos(tt), 21 * y2, tt * np.sin(tt)))
+            x = np.array((tt * np.cos(tt), 21 * y2, tt * np.sin(tt)))
 
         if noise:
             x += np.random.randn(*x.shape)
@@ -64,12 +64,12 @@ class SwissRoll(Graph):
         self.x = x
         self.dim = dim
 
+        coords = self.rescale_center(x)
         dist = distanz(coords)
         W = np.exp(-np.power(dist, 2) / (2. * s**2))
         W -= np.diag(np.diag(W))
         W[W < thresh] = 0
 
-        coords = self.rescale_center(x)
         plotting = {'limits': np.array([-1, 1, -1, 1, -1, 1])}
         gtype = 'swiss roll {}'.format(srtype)
 

@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-r"""This module implements some utilitary functions used throughout the PyGSP box."""
+r"""
+This module implements some utilitary functions used throughout the PyGSP box.
+"""
 
 import numpy as np
+import logging
+
 from scipy import kron, ones
 from scipy import sparse
-import logging
 
 
 def build_logger(name, **kwargs):
@@ -13,7 +16,8 @@ def build_logger(name, **kwargs):
     logging_level = kwargs.pop('logging_level', logging.DEBUG)
 
     if not logger.handlers:
-        formatter = logging.Formatter("%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s")
 
         steam_handler = logging.StreamHandler()
         steam_handler.setLevel(logging_level)
@@ -125,12 +129,12 @@ def distanz(x, y=None):
     if rx != ry:
         raise("The sizes of x and y do not fit")
 
-    xx = (x*x).sum(axis=0)
-    yy = (y*y).sum(axis=0)
+    xx = (x * x).sum(axis=0)
+    yy = (y * y).sum(axis=0)
     xy = np.dot(x.T, y)
 
     d = abs(kron(ones((cy, 1)), xx).T +
-            kron(ones((cx, 1)), yy) - 2*xy)
+            kron(ones((cx, 1)), yy) - 2 * xy)
 
     return np.sqrt(d)
 
@@ -182,3 +186,36 @@ def resistance_distance(M):  # 1 call dans operators.reduction
         - pseudo - pseudo.T
 
     return rd
+
+
+def symmetrize(W, symmetrize_type='average'):
+    r"""
+    Symmetrize a square matrix
+
+    Parameters
+    ----------
+    W : array_like
+        Square matrix to be symmetrized
+    symmetrize_type : string
+        'average' : symmetrize by averaging with the transpose.
+        'full' : symmetrize by filling in the holes in the transpose.
+
+    """
+    if W.shape[0] != W.shape[1]:
+        raise ValueError("Matrix must be square")
+
+    sparse_flag = True if sparse.issparse(W) else False
+
+    if symmetrize_type == 'average':
+        return (W + W.T) / 2.
+    elif symmetrize_type == 'full':
+        A = (W > 0)
+        if sparse_flag:
+            mask = ((A + A.T) - A).astype('float')
+        else:
+            # numpy boolean subtract is deprecated in python 3
+            mask = np.logical_xor(np.logical_or(A, A.T), A).astype('float')
+        W += mask.multiply(W.T) if sparse_flag else (mask * W.T)
+        return (W + W.T) / 2.  # Resolve ambiguous entries
+    else:
+        raise ValueError("Unknown symmetrize type.")

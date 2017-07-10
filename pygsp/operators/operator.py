@@ -26,12 +26,8 @@ def div(G, s):
         The graph divergence
 
     """
-    if hasattr(G, 'lap_type'):
-        if G.lap_type == 'combinatorial':
-            raise NotImplementedError('Not implemented yet. However ask Nathanael it is very easy.')
-
     if G.Ne != np.shape(s)[0]:
-        raise ValueError('Signal size not equal to number of edges.')
+        raise ValueError('Signal size is different from the number of edges.')
 
     D = grad_mat(G)
     di = D.T * s
@@ -66,9 +62,8 @@ def grad(G, s):
         Gradient living on the edges
 
     """
-    if hasattr(G, 'lap_type'):
-        if G.lap_type == 'combinatorial':
-            raise NotImplementedError('Not implemented yet. However ask Nathanael it is very easy.')
+    if G.N != np.shape(s)[0]:
+        raise ValueError('Signal size is different from the number of nodes.')
 
     D = grad_mat(G)
     gr = D * s
@@ -103,18 +98,33 @@ def grad_mat(G):  # 1 call (above)
         adj2vec(G)
 
     if hasattr(G, 'Diff'):
+        if not sparse.issparse(G.Diff):
+            G.Diff = sparse.csc_matrix(G.Diff)
         D = G.Diff
 
     else:
         n = G.Ne
-        Dc = np.ones((2 * n))
-        Dv = np.ones((2 * n))
-
         Dr = np.concatenate((np.arange(n), np.arange(n)))
+        Dc = np.ones((2 * n))
         Dc[:n] = G.v_in
         Dc[n:] = G.v_out
-        Dv[:n] = np.sqrt(G.weights.toarray())
-        Dv[n:] = -Dv[:n]
+        Dv = np.ones((2 * n))
+
+        try:
+            if G.lap_type == 'combinatorial':
+                Dv[:n] = np.sqrt(G.weights.toarray())
+                Dv[n:] = -Dv[:n]
+
+            elif G.lap_type == 'normalized':
+                Dv[:n] = np.sqrt(G.weights.toarray() / G.d[G.v_in])
+                Dv[n:] = -np.sqrt(G.weights.toarray() / G.d[G.v_out])
+
+            else:
+                raise NotImplementedError('grad not implemented yet for ' +
+                                          'this type of graph Laplacian.')
+        except AttributeError as err:
+            print('Graph does not have lap_type attribute: ' + str(err))
+
         D = sparse.csc_matrix((Dv, (Dr, Dc)), shape=(n, G.N))
         G.Diff = D
 
@@ -141,7 +151,8 @@ def gft(G, f):
 
     if isinstance(G, Graph):
         if not hasattr(G, 'U'):
-            logger.info('Analysis filter has to compute the eigenvalues and the eigenvectors.')
+            logger.info('Analysis filter has to compute the eigenvalues ' +
+                        'and the eigenvectors.')
             G.compute_fourier_basis()
 
         U = G.U
@@ -172,7 +183,8 @@ def igft(G, f_hat):
 
     if isinstance(G, Graph):
         if not hasattr(G, 'U'):
-            logger.info('Analysis filter has to compute the eigenvalues and the eigenvectors.')
+            logger.info('Analysis filter has to compute the eigenvalues ' +
+                        'and the eigenvectors.')
             G.compute_fourier_basis()
         U = G.U
 
@@ -227,7 +239,8 @@ def modulate(G, f, k):
 
     """
     nt = np.shape(f)[1]
-    fm = np.sqrt(G.N)*np.kron(np.ones((nt, 1)), f)*np.kron(np.ones((1, nt)), G.U[:, k])
+    fm = np.sqrt(G.N) * np.kron(np.ones((nt, 1)), f) * \
+        np.kron(np.ones((1, nt)), G.U[:, k])
 
     return fm
 
@@ -253,6 +266,6 @@ def translate(G, f, i):
     fhat = gft(G, f)
     nt = np.shape(f)[1]
 
-    ft = np.sqrt(G.N)*igft(G, fhat, np.kron(np.ones((1, nt)), G.U[i]))
+    ft = np.sqrt(G.N) * igft(G, fhat, np.kron(np.ones((1, nt)), G.U[i]))
 
     return ft
