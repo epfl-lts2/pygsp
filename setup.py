@@ -30,6 +30,7 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
+        'scikit-image',
         'pyopengl',
         'pyqtgraph<=0.10.1',
         'matplotlib==1.4.3' if sys.version_info.major == 3 and sys.version_info.minor < 4 else 'matplotlib',
