@@ -4,8 +4,14 @@ import numpy as np
 
 from .. import Graph
 from ...utils import symmetrize
-from pyflann import *
 from scipy import sparse, spatial
+
+try:
+    import pyflann as fl
+    pfl_import = True
+except Exception as e:
+    print('ERROR : Could not import pyflann. Try to install it for faster kNN computations.')
+    pfl_import = False
 
 
 class NNGraph(Graph):
@@ -111,9 +117,9 @@ class NNGraph(Graph):
             spj = np.zeros((N * k))
             spv = np.zeros((N * k))
 
-            if self.use_flann:
-                set_distance_type(dist_type, order=order)
-                flann = FLANN()
+            if self.use_flann and pfl_import:
+                fl.set_distance_type(dist_type, order=order)
+                flann = fl.FLANN()
 
                 # Default FLANN parameters (I tried changing the algorithm and
                 # testing performance on huge matrices, but the default one
