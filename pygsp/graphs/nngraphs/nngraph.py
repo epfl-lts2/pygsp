@@ -8,6 +8,7 @@ from scipy import sparse, spatial
 
 try:
     import pyflann as fl
+    pfl_import = True
 except Exception as e:
     print('ERROR : Could not import pyflann. Try to install it for faster kNN computations.')
     pfl_import = False
