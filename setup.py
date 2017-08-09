@@ -34,7 +34,7 @@ setup(
         'pyopengl',
         'pyqtgraph<=0.10.1',
         'matplotlib==1.4.3' if sys.version_info.major == 3 and sys.version_info.minor < 4 else 'matplotlib',
-        'PyQt5' if sys.version_info.major == 3 and sys.version_info.minor == 5 else 'PySide',
+        'PyQt5' if sys.version_info >= (3, 5) else 'PySide',
 	'pyflann' if sys.version_info.major == 2 else 'pyflann3'],
     license="BSD",
     keywords='graph signal processing toolbox filters pointclouds',
