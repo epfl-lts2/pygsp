@@ -155,7 +155,7 @@ class Graph(object):
         >>> newW[1] = 1
         >>> G.update_graph_attr('N', 'd', W=newW)
 
-        Updates all attributes of G excepted 'N' and 'd'
+        Updates all attributes of G except 'N' and 'd'
 
         """
         graph_attr = {}
