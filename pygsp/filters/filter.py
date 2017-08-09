@@ -232,7 +232,7 @@ class Filter(object):
             tmpN = np.arange(N, dtype=int)
 
             for i in range(Nf):
-                s = s + operator.cheby_op(self.G,
+                s = s + fast_filtering.cheby_op(self.G,
                                           cheb_coeffs[i], c[i * N + tmpN])
 
         elif method == 'lanczos':
