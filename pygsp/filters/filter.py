@@ -154,7 +154,6 @@ class Filter(object):
         """
         i = kwargs.pop('i', 0)
 
-        fd = np.zeros(x.size)
         fd = self.g[i](x)
         return fd
 
@@ -287,10 +286,6 @@ class Filter(object):
             rng = np.linspace(xmin, xmax, N)
 
         else:
-            if not hasattr(self.G, 'lmax'):
-                self.logger.info('FILTERBANK_BOUNDS: Has to estimate lmax.')
-                self.G.estimate_lmax()
-
             if not hasattr(self.G, 'e'):
                 self.logger.info(
                     'FILTERBANK_BOUNDS: Has to compute Fourier basis.')
