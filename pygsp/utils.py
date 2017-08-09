@@ -127,7 +127,7 @@ def distanz(x, y=None):
 
     # Size verification
     if rx != ry:
-        raise("The sizes of x and y do not fit")
+        raise ValueError("The sizes of x and y do not fit")
 
     xx = (x * x).sum(axis=0)
     yy = (y * y).sum(axis=0)
