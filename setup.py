@@ -33,7 +33,7 @@ setup(
         'scikit-image',
         'pyopengl',
         'pyqtgraph<=0.10.1',
-        'matplotlib==1.4.3' if sys.version_info.major == 3 and sys.version_info.minor < 4 else 'matplotlib',
+        'matplotlib',
         'PyQt5' if sys.version_info >= (3, 5) else 'PySide',
 	'pyflann' if sys.version_info.major == 2 else 'pyflann3'],
     license="BSD",
@@ -52,5 +52,6 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
 )
