@@ -6,7 +6,7 @@ This module implements filters and contains predefined filters that can be direc
 A filter is associated to a graph and is defined with one or several function(s).
 We define by Filterbank a list of filters applied to a single graph.
 Tools for the analysis, the synthesis and the evaluation are provided to work with the filters on the graphs.
-For specific information, :ref:`see details here<graphs-api>`.
+For specific information, :ref:`see details here<filters-api>`.
 """
 
 import importlib
