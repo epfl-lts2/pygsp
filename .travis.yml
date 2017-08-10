@@ -24,5 +24,4 @@ install:
   - python setup.py install
 
 script:
-  - echo hello
-#  - xvfb-run python setup.py test
+  - xvfb-run python setup.py test
