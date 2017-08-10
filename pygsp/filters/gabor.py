@@ -29,10 +29,10 @@ class Gabor(Filter):
 
     Examples
     --------
-    >>> from pygsp import grpahs, filters
+    >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> k = lambda x: x/(1.-x)
-    >>> g = filters.Gabor(G, k);
+    >>> F = filters.Gabor(G, k);
 
     Author: Nathanael Perraudin
     Date  : 13 June 2014
@@ -47,8 +47,6 @@ class Gabor(Filter):
 
         Nf = np.shape(G.e)[0]
 
-        g = []
+        self.g = []
         for i in range(Nf):
-            g.append(lambda x, ii=i: k(x - G.e[ii]))
-
-        return g
+            self.g.append(lambda x, ii=i: k(x - G.e[ii]))
