@@ -2,19 +2,29 @@
 numpy
 scipy
 
-# Required for plotting
-matplotlib==1.4.3 ; python_version < '3.4'
-matplotlib ; python_version >= '3.4'
-
+# Required for plotting.
+matplotlib
 PySide ; python_version < '3.5'
 PyQt5 ; python_version >= '3.5'
-
 pyopengl
 git+https://github.com/pyqtgraph/pyqtgraph@develop#egg=pyqtgraph-dev
 
-# Additional development requirements
-# -r dev_requirements.txt
-
-# Required for efficiently dealing with images
+# Required to efficiently deal with images.
 scikit-image
 pyflann3
+
+# Required to build documentation.
+sphinx
+numpydoc
+sphinxcontrib-bibtex
+sphinx-rtd-theme
+
+# Required for packaging.
+wheel
+
+# Required for code style checking.
+flake8
+
+# Required for extended testing.
+tox
+virtualenv
