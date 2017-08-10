@@ -14,15 +14,6 @@ python:
 addons:
   apt:
     packages:
-    - python-dev
-    - pkg-config
-    - libfreetype6-dev
-    - libpng-dev
-    - liblapack-dev
-    - libatlas-dev
-    - gfortran
-    - libatlas-base-dev
-    - libx11-xcb1
     - xvfb
 
 before_install:
