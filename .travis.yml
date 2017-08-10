@@ -14,14 +14,14 @@ python:
 addons:
   apt:
     packages:
-    - xvfb
+      - xvfb
 
 before_install:
-    - pip install -U pip
-    - pip install -U -r requirements.txt
+  - pip install -U pip
+  - pip install -U -r requirements.txt
 
 install:
-    - python setup.py install
+  - python setup.py install
 
 script:
-    - xvfb-run python setup.py test
+  - xvfb-run python setup.py test
