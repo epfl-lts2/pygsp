@@ -29,6 +29,14 @@ Expwin
     :show-inheritance:
     :members:
 
+Gabor
+-----
+
+.. autoclass:: pygsp.filters.Gabor
+    :undoc-members:
+    :show-inheritance:
+    :members:
+
 HalfCosine
 ----------
 
