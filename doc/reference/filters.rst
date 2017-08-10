@@ -45,6 +45,22 @@ HalfCosine
     :show-inheritance:
     :members:
 
+Heat
+----
+
+.. autoclass:: pygsp.filters.Heat
+    :undoc-members:
+    :show-inheritance:
+    :members:
+
+Held
+----
+
+.. autoclass:: pygsp.filters.Held
+    :undoc-members:
+    :show-inheritance:
+    :members:
+
 Itersine
 --------
 
@@ -65,22 +81,6 @@ Meyer
 -----
 
 .. autoclass:: pygsp.filters.Meyer
-    :undoc-members:
-    :show-inheritance:
-    :members:
-
-SimpleTf
---------
-
-.. autoclass:: pygsp.filters.SimpleTf
-    :undoc-members:
-    :show-inheritance:
-    :members:
-
-WarpedTranslates
-----------------
-
-.. autoclass:: pygsp.filters.WarpedTranslates
     :undoc-members:
     :show-inheritance:
     :members:
@@ -109,18 +109,18 @@ Simoncelli
     :show-inheritance:
     :members:
 
-Held
-----
+SimpleTf
+--------
 
-.. autoclass:: pygsp.filters.Held
+.. autoclass:: pygsp.filters.SimpleTf
     :undoc-members:
     :show-inheritance:
     :members:
 
-Heat
-----
+WarpedTranslates
+----------------
 
-.. autoclass:: pygsp.filters.Heat
+.. autoclass:: pygsp.filters.WarpedTranslates
     :undoc-members:
     :show-inheritance:
     :members:
