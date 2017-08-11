@@ -62,7 +62,7 @@ Ready to contribute? Here's how to set up `pygsp` for local development.
 
     $ git clone git@github.com:your_name_here/pygsp.git
 
-3. Install your local copy into a virtualenv. Assuming you have `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/>`_ installed, this is how you set up your fork for local development::
+3. Install your local copy into a virtualenv. Assuming you have `virtualenvwrapper <https://virtualenvwrapper.readthedocs.io/en/latest/>`_ installed, this is how you set up your fork for local development::
 
     $ mkvirtualenv pygsp
     $ cd pygsp/
