@@ -25,6 +25,7 @@ coveralls
 
 # Required for packaging.
 wheel
+twine
 
 # Required for code style checking.
 flake8

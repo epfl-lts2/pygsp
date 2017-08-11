@@ -37,12 +37,10 @@ doc:
 	sphinx-build -b html -d doc/_build/doctrees doc doc/_build/html
 	sphinx-build -b linkcheck -d doc/_build/doctrees doc doc/_build/linkcheck
 
-release: clean
-	python setup.py register
-	python setup.py sdist upload
-	python setup.py bdist_wheel --universal
-
 dist: clean
 	python setup.py sdist
 	python setup.py bdist_wheel --universal
 	ls -l dist
+
+release: dist
+	twine upload dist/*
