@@ -3,7 +3,7 @@
 help:
 	@echo "clean-build - remove build artifacts"
 	@echo "clean-pyc - remove Python file artifacts"
-	@echo "flake8 - check style with flake8"
+	@echo "lint - check style"
 	@echo "test - run tests quickly with the default Python"
 	@echo "coverage - check code coverage quickly with the default Python"
 	@echo "doc - generate Sphinx HTML documentation, including API doc"
@@ -23,8 +23,8 @@ clean-pyc:
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 
-flake8:
-	python setup.py flake8
+lint:
+	flake8 --doctests
 
 test:
 	python setup.py test
