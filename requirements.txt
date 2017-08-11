@@ -4,10 +4,10 @@ scipy
 
 # Required for plotting.
 matplotlib
+pyqtgraph
 PySide ; python_version < '3.5'
 PyQt5 ; python_version >= '3.5'
 pyopengl
-git+https://github.com/pyqtgraph/pyqtgraph@develop#egg=pyqtgraph-dev
 
 # Required to efficiently deal with images.
 scikit-image
