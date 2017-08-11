@@ -4,14 +4,14 @@ help:
 	@echo "clean-build - remove build artifacts"
 	@echo "clean-pyc - remove Python file artifacts"
 	@echo "lint - check style"
-	@echo "test - run tests quickly with the default Python"
-	@echo "coverage - check code coverage quickly with the default Python"
+	@echo "test - run tests and check coverage"
 	@echo "doc - generate Sphinx HTML documentation, including API doc"
 	@echo "release - package and upload a release"
 	@echo "dist - package"
 
 clean: clean-build clean-pyc
-	rm -fr htmlcov/
+	rm -rf .coverage
+	rm -rf htmlcov
 	# Documentation.
 	rm -rf doc/_build
 
@@ -29,13 +29,9 @@ lint:
 	flake8 --doctests
 
 test:
-	python setup.py test
-
-coverage:
-	coverage run --source pyGSP setup.py test
-	coverage report -m
+	coverage run --branch --source pygsp setup.py test
+	coverage report
 	coverage html
-	open htmlcov/index.html
 
 doc:
 	sphinx-build -b html -d doc/_build/doctrees doc doc/_build/html

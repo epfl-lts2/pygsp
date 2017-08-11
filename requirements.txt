@@ -19,6 +19,10 @@ numpydoc
 sphinxcontrib-bibtex
 sphinx-rtd-theme
 
+# Required for testing.
+coverage
+coveralls
+
 # Required for packaging.
 wheel
 
