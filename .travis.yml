@@ -23,7 +23,7 @@ install:
 
 script:
 # - make lint
-  - xvfb-run make test
+  - make test
   - make doc
 
 after_success:

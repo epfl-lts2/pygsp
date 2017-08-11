@@ -29,7 +29,7 @@ lint:
 	flake8 --doctests
 
 test:
-	coverage run --branch --source pygsp setup.py test
+	xvfb-run coverage run --branch --source pygsp setup.py test
 	coverage report
 	coverage html
 
