@@ -24,4 +24,6 @@ install:
   - python setup.py install
 
 script:
+# - make lint
   - xvfb-run python setup.py test
+  - make doc
