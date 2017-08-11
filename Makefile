@@ -12,6 +12,8 @@ help:
 
 clean: clean-build clean-pyc
 	rm -fr htmlcov/
+	# Documentation.
+	rm -rf doc/_build
 
 clean-build:
 	rm -fr build/
@@ -36,8 +38,8 @@ coverage:
 	open htmlcov/index.html
 
 doc:
-	$(MAKE) -C doc clean
-	$(MAKE) -C doc html
+	sphinx-build -b html -d doc/_build/doctrees doc doc/_build/html
+	sphinx-build -b linkcheck -d doc/_build/doctrees doc doc/_build/linkcheck
 
 release: clean
 	python setup.py register
