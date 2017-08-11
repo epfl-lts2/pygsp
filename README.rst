@@ -10,6 +10,9 @@ PyGSP: Graph Signal Processing in Python
 .. image:: https://img.shields.io/travis/epfl-lts2/pygsp.svg
    :target: https://travis-ci.org/epfl-lts2/pygsp
 
+.. image:: https://img.shields.io/coveralls/epfl-lts2/pygsp.svg
+   :target: https://coveralls.io/github/epfl-lts2/pygsp
+
 .. image:: https://img.shields.io/pypi/v/pygsp.svg
    :target: https://pypi.python.org/pypi/PyGSP
 
