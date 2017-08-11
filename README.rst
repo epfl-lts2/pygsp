@@ -4,6 +4,9 @@
 PyGSP: Graph Signal Processing in Python
 ========================================
 
+.. image:: https://readthedocs.org/projects/pygsp/badge/?version=latest
+   :target: https://pygsp.readthedocs.io/en/latest/
+
 .. image:: https://img.shields.io/travis/epfl-lts2/pygsp.svg
    :target: https://travis-ci.org/epfl-lts2/pygsp
 
@@ -19,7 +22,7 @@ PyGSP: Graph Signal Processing in Python
 .. image:: https://img.shields.io/github/stars/epfl-lts2/pygsp.svg?style=social
    :target: https://github.com/epfl-lts2/pygsp
 
-* Documentation: https://lts2.epfl.ch/pygsp/
+* Documentation: https://pygsp.readthedocs.io
 * Development: https://github.com/epfl-lts2/pygsp
 * Matlab counterpart: https://github.com/epfl-lts2/gspbox
 
