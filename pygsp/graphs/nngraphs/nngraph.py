@@ -24,10 +24,9 @@ class NNGraph(Graph):
         Input points, Should be an `N`-by-`d` matrix, where `N` is the number
         of nodes in the graph and `d` is the dimension of the feature space.
     NNtype : string, optional
-        Type of nearest neighbor graph to create. The options are:
-            'knn' : k-Nearest Neighbors
-            'radius' : epsilon-Nearest Neighbors
-        (default is 'knn')
+        Type of nearest neighbor graph to create. The options are 'knn' for
+        k-Nearest Neighbors or 'radius' for epsilon-Nearest Neighbors (default
+        is 'knn').
     use_flann : bool, optional
         Use Fast Library for Approximate Nearest Neighbors (FLANN) or not.
         (default is False)

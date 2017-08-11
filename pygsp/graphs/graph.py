@@ -23,9 +23,8 @@ class Graph(object):
     A graph contains the following fields:
 
         - N : the number of nodes (also called vertices sometimes) in the
-        graph.
-            They represent the different points between which connections may
-            occur.
+            graph. They represent the different points between which
+            connections may occur.
         - Ne : the number of edges (also called links sometimes) in the graph.
             They represent the actual connections between the nodes.
         - W : the weight matrix contains the weights of the connections.
@@ -49,8 +48,7 @@ class Graph(object):
             From a given matrix W, there exist several Laplacians that could
             be computed.
         - coords : the coordinates of the vertices in the 2D or 3D space for
-        plotting.
-            The default is None.
+            plotting. The default is None.
         - plotting : all the plotting parameters go here.
             They depend on the library used for plotting.
 
