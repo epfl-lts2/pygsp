@@ -3,9 +3,10 @@ r"""
 This module implements some utilitary functions used throughout the PyGSP box.
 """
 
-import numpy as np
 import logging
+from functools import wraps
 
+import numpy as np
 from scipy import kron, ones
 from scipy import sparse
 
@@ -50,6 +51,7 @@ def graph_array_handler(func):
 
 
 def filterbank_handler(func):
+    @wraps(func)
 
     def inner(f, *args, **kwargs):
         if 'i' in kwargs:
