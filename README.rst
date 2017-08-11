@@ -86,17 +86,10 @@ The PyGSP is available on PyPI::
 
     $ pip install pygsp
 
-It can be installed in development mode with::
+Contributing
+------------
 
-    $ git clone git@github.com:epfl-lts2/pygsp.git
-    $ pip install -e pygsp
-
-Testing
-^^^^^^^
-
-Execute the project test suite once to make sure you have a working install::
-
-    $ python setup.py test
+See :ref:`contributing`.
 
 Authors
 -------
