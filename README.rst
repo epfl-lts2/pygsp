@@ -25,9 +25,14 @@ PyGSP: Graph Signal Processing in Python
 .. image:: https://img.shields.io/github/stars/epfl-lts2/pygsp.svg?style=social
    :target: https://github.com/epfl-lts2/pygsp
 
-* Documentation: https://pygsp.readthedocs.io
-* Development: https://github.com/epfl-lts2/pygsp
-* Matlab counterpart: https://github.com/epfl-lts2/gspbox
+The PyGSP is a Python package to ease `Signal Processing on Graphs
+<https://arxiv.org/abs/1211.0053>`_
+(a `Matlab counterpart <https://lts2.epfl.ch/gsp>`_
+exists). It is a free software, distributed under the BSD license, and
+available on `PyPI <https://pypi.python.org/pypi/PyGSP>`_. The
+documentation is available on `Read the Docs
+<https://pygsp.readthedocs.io>`_ and development takes place on `GitHub
+<https://github.com/epfl-lts2/pygsp>`_.
 
 Features
 --------
@@ -91,17 +96,10 @@ Contributing
 
 See :ref:`contributing`.
 
-Authors
--------
+Acknowledgments
+---------------
 
-* Basile Châtillon <basile.chatillon@epfl.ch>,
-* Alexandre Lafaye <alexandre.lafaye@epfl.ch>,
-* Lionel Martin <lionel.martin@epfl.ch>,
-* Nicolas Rod <nicolas.rod@epfl.ch>,
-* Rodrigo Pena <rodrigo.pena@epfl.ch>
-* Michaël Defferrard <michael.defferrard@epfl.ch>
-
-Acknowledgment
---------------
-
-This project has been partly funded by the Swiss National Science Foundation under grant 200021_154350 "Towards Signal Processing on Graphs".
+The PyGSP was started in 2014 as an academic open-source project for
+research purpose at the `EPFL LTS2 laboratory <https://lts2.epfl.ch>`_.
+This project has been partly funded by the Swiss National Science Foundation
+under grant 200021_154350 "Towards Signal Processing on Graphs".
