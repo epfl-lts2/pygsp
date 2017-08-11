@@ -1,25 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import sys
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
 
-if sys.argv[-1] == 'publish':
-    os.system('python setup.py sdist upload')
-    sys.exit()
 
 setup(
     name='PyGSP',
     version='0.4.2',
-    description='The official Graph Signal Processing Toolbox',
+    description='Graph Signal Processing in Python',
     long_description=open('README.rst').read(),
-    author='Alexandre Lafaye, Basile Châtillon, Lionel Martin, Nicolas Rod (EPFL LTS2)',
-    author_email='alexandre.lafaye@epfl.ch, basile.chatillon@epfl.ch, lionel.martin@epfl.ch, nicolas.rod@epfl.ch',
-    url='https://github.com/epfl-lts2/',
+    author='EPFL LTS2',
+    url='https://github.com/epfl-lts2/pygsp',
     packages=['pygsp', 'pygsp.filters', 'pygsp.graphs',
               'pygsp.graphs.nngraphs', 'pygsp.operators',
               'pygsp.pointclouds', 'pygsp.tests'],
@@ -33,14 +25,14 @@ setup(
         'PyQt5' if sys.version_info >= (3, 5) else 'PySide',
         'pyopengl',
         'scikit-image',
-	'pyflann' if sys.version_info.major == 2 else 'pyflann3'],
+        'pyflann' if sys.version_info.major == 2 else 'pyflann3'],
     license="BSD",
-    keywords='graph signal processing toolbox filters pointclouds',
+    keywords='graph signal processing',
     platforms='any',
     classifiers=[
         'Topic :: Scientific/Engineering :: Mathematics',
         'Environment :: Console',
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
