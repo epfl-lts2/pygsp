@@ -46,3 +46,4 @@ Given the pyramid, the coarsest approximation and the prediction errors, we will
 Here are the final errors for each signal after reconstruction.
 >>> err = np.linalg.norm(f_pred-f)/np.linalg.norm(f)
 >>> err2 = np.linalg.norm(f_pred2-f2)/np.linalg.norm(f2)
+>>> assert (err < 1e-10) & (err2 < 1e-10)
