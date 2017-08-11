@@ -24,7 +24,3 @@ wheel
 
 # Required for code style checking.
 flake8
-
-# Required for extended testing.
-tox
-virtualenv
