@@ -1,29 +1,25 @@
-.PHONY: clean-pyc clean-build doc clean
+.PHONY: help clean lint test doc dist release
 
 help:
-	@echo "clean-build - remove build artifacts"
-	@echo "clean-pyc - remove Python file artifacts"
-	@echo "lint - check style"
-	@echo "test - run tests and check coverage"
-	@echo "doc - generate Sphinx HTML documentation, including API doc"
-	@echo "release - package and upload a release"
-	@echo "dist - package"
+	@echo "clean    remove non-source files"
+	@echo "lint     check style"
+	@echo "test     run tests and check coverage"
+	@echo "doc      generate HTML documentation and check links"
+	@echo "dist     package (source & wheel)"
+	@echo "release  package and upload to PyPI"
 
-clean: clean-build clean-pyc
-	rm -rf .coverage
-	rm -rf htmlcov
+clean:
+	# Python files.
+	find . -name '__pycache__' -exec rm -rf {} +
 	# Documentation.
 	rm -rf doc/_build
-
-clean-build:
-	rm -fr build/
-	rm -fr dist/
-	rm -fr *.egg-info
-
-clean-pyc:
-	find . -name '*.pyc' -exec rm -f {} +
-	find . -name '*.pyo' -exec rm -f {} +
-	find . -name '*~' -exec rm -f {} +
+	# Coverage.
+	rm -rf .coverage
+	rm -rf htmlcov
+	# Package build.
+	rm -rf build
+	rm -rf dist
+	rm -rf *.egg-info
 
 lint:
 	flake8 --doctests
