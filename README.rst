@@ -94,7 +94,7 @@ The PyGSP is available on PyPI::
 Contributing
 ------------
 
-See :ref:`contributing`.
+See the guidelines for contributing in ``CONTRIBUTING.rst``.
 
 Acknowledgments
 ---------------
