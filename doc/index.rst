@@ -1,19 +1,11 @@
-===================
-PyGSP documentation
-===================
-.. toctree::
-   :maxdepth: 2
+.. include:: ../README.rst
 
-   readme
+.. toctree::
+   :hidden:
+
+   Home <self>
    tutorials/index
    reference/index
    contributing
    history
    references
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
