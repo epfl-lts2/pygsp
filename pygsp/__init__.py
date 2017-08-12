@@ -41,5 +41,4 @@ assert plotting
 assert utils
 
 __version__ = '0.4.2'
-__email__ = 'LTS2Graph@groupes.epfl.ch'
 __release_date__ = '2017-04-27'
