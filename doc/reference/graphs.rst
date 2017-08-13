@@ -143,16 +143,18 @@ SwissRoll
 Barabasi-Albert
 ---------------
 
-.. autoclass:: pygsp.graphs.barabasialbert
+.. autoclass:: pygsp.graphs.BarabasiAlbert
     :undoc-members:
     :show-inheritance:
+    :members:
 
 Stochastic Block Model
 ----------------------
 
-.. autoclass:: pygsp.graphs.stochasticblockmodel
+.. autoclass:: pygsp.graphs.StochasticBlockModel
     :undoc-members:
     :show-inheritance:
+    :members:
 
 Check Weights
 -------------

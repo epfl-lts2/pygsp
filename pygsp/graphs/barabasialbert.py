@@ -17,12 +17,11 @@ class BarabasiAlbert(Graph):
     First, m0 nodes are created. Then, nodes are added one by one.
 
     By lack of clarity, we take the liberty to create it as follows:
-        i) the m0 initial nodes are disconnected
-        ii) each node is connected to m of the older nodes with a probability
-        distribution depending of the node-degrees of the other nodes:
-    ::
-        p_n(i) = \frac{1 + k_i}{\sum_j{1 + k_j}}
-    ::
+
+        1. the m0 initial nodes are disconnected,
+        2. each node is connected to m of the older nodes with a probability
+           distribution depending of the node-degrees of the other nodes,
+           :math:`p_n(i) = \frac{1 + k_i}{\sum_j{1 + k_j}}`.
 
     Parameters
     ----------
