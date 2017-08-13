@@ -1,8 +1,6 @@
-================
-GSP Wavelet Demo
-================
-
-* Introduction to spectral graph wavelet with the PyGSP
+=======================================
+Introduction to spectral graph wavelets
+=======================================
 
 Description
 -----------

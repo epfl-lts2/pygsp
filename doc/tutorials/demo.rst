@@ -1,6 +1,6 @@
-========
-GSP Demo
-========
+=========================
+Introduction to the PyGSP
+=========================
 
 This tutorial shows basic operations of the toolbox.
 To start open a python shell (IPython is recommended here) and import the pygsp. You would probably also import numpy as you will need it to create matrices and arrays.
@@ -13,7 +13,6 @@ The first step is to create a graph, there's a general class that can be used to
 >>> np.random.seed(42) # We will use a seed to make reproducible results
 >>> W = np.random.rand(400, 400)
 >>> G = pygsp.graphs.Graph(W)
-
 
 You have now a graph structure ready to be used everywhere in the box! Check the :ref:`reference-guide` to know more about the Graph class and it's subclasses.
 You can also check the included methods for all graphs with the usual help function.
@@ -70,8 +69,7 @@ You can also put multiple functions in a list to define a filterbank!
 
 Here's our low pass filter.
 
-
-To accompain our new filter, let's create a nice signal on the logo by setting each letter to a certain value and then adding some random noise.
+To go with our new filter, let's create a nice signal on the logo by setting each letter to a certain value and then adding some random noise.
 
 >>> f = np.zeros((G.N,))
 >>> f[G.info['idx_g']-1] = - 1
@@ -92,7 +90,6 @@ Finally here's the noisy signal and the denoised version right under.
 .. image:: img/noisy_logo.*
 .. image:: img/denoised_logo.*
 
-So here are the basics for the PyGSP toolbox, if you want more informations you can check the doc in :ref:`the reference guide section <reference-guide>`.
-
+So here are the basics for the PyGSP toolbox, please check the other tutorials or the `reference guide <reference-guide>` for more.
 
 Enjoy the toolbox!

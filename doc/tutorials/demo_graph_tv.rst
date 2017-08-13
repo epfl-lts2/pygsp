@@ -1,9 +1,9 @@
-************************************************************************
-GSP Graph TV Demo - Reconstruction of missing sample on a graph using TV
-************************************************************************
+=====================================================
+Reconstruction of missing samples on a graph using TV
+=====================================================
 
 Description
-###########
+-----------
 
 Reconstruction of missing sample on a graph using TV
 
@@ -39,7 +39,7 @@ This previous problem has an identical solution as:
 It is simply a projection on the B2-ball.
 
 Results and code
-################
+----------------
 
 >>> from pygsp import graphs, plotting
 >>> import numpy as np
@@ -98,9 +98,8 @@ mask and addition of noise. More than half of the vertices are set to 0.
 
 This figure shows the reconstructed signal thanks to the algorithm.
 
-
 Comparison with Tikhonov regularization
-#######################################
+---------------------------------------
 
 We can also use the Tikhonov regularizer that will promote smoothness.
 In this case, we solve:
