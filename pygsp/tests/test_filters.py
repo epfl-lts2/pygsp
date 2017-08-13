@@ -3,15 +3,9 @@
 
 """Test suite for the filters module of the pygsp package."""
 
-import sys
+import unittest
 from pygsp import graphs, filters
 from numpy import zeros
-
-# Use the unittest2 backport on Python 2.6 to profit from the new features.
-if sys.version_info < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest
 
 
 class FunctionsTestCase(unittest.TestCase):
