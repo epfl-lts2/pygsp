@@ -20,7 +20,7 @@ class Comet(Graph):
     Examples
     --------
     >>> from pygsp import graphs
-    >>> G = graphs.Comet() # (== graphs.Comet(Nv=32, k=12))
+    >>> G = graphs.Comet()
 
     """
 

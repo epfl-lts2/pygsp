@@ -47,7 +47,7 @@ def grad(G, s):
     >>> import pygsp
     >>> import numpy as np
     >>> G = pygsp.graphs.Logo()
-    >>> s = np.random.rand(G.Ne)
+    >>> s = np.random.rand(G.N)
     >>> grad = pygsp.operators.grad(G, s)
 
     Parameters
@@ -82,7 +82,7 @@ def grad_mat(G):  # 1 call (above)
     --------
     >>> import pygsp
     >>> G = pygsp.graphs.Logo()
-    >>> D = grad_mat(G)
+    >>> D = pygsp.operators.grad_mat(G)
 
     Parameters
     ----------

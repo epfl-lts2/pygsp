@@ -25,7 +25,7 @@ class Grid2d(Graph):
     Examples
     --------
     >>> from pygsp import graphs
-    >>> G = graphs.Grid2d(shape=(32,)
+    >>> G = graphs.Grid2d(shape=(32,))
 
     """
 
@@ -35,7 +35,7 @@ class Grid2d(Graph):
             h = shape[0]
             try:
                 w = shape[1]
-            except ValueError:
+            except IndexError:
                 w = h
         except TypeError:
             h = shape

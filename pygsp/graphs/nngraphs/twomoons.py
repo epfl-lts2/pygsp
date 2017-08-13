@@ -15,9 +15,9 @@ class TwoMoons(NNGraph):
     ----------
     moontype : string
         You have the freedom to chose if you want to create a standard
-        two_moons graph or a synthetised one (default is 'standard').
+        two_moons graph or a synthesized one (default is 'standard').
         'standard' : Create a two_moons graph from a based graph.
-        'synthetised' : Create a synthetised two_moon
+        'synthesized' : Create a synthesized two_moon
     sigmag : float
         Variance of the distance kernel (default = 0.05)
     N : int
@@ -32,11 +32,11 @@ class TwoMoons(NNGraph):
     --------
     >>> from pygsp import graphs
     >>> G1 = graphs.TwoMoons(moontype='standard')
-    >>> G2 = graphs.TwoMoons(moontype='synthetised', N=1000, sigmad=0.1, d=1)
+    >>> G2 = graphs.TwoMoons(moontype='synthesized', N=1000, sigmad=0.1, d=1)
 
     """
 
-    def create_arc_moon(N, sigmad, d, number):
+    def _create_arc_moon(self, N, sigmad, d, number):
         phi = np.random.rand(N, 1) * np.pi
         r = 1
         rb = sigmad * np.random.normal(size=(N, 1))
@@ -64,17 +64,17 @@ class TwoMoons(NNGraph):
             self.labels = 2*(np.where(np.arange(1, N + 1).reshape(N, 1) > 1000,
                                       1, 0) + 1)
 
-        elif moontype == 'synthetised':
-            gtype = 'Two Moons synthetised'
+        elif moontype == 'synthesized':
+            gtype = 'Two Moons synthesized'
 
             N1 = floor(N/2.)
             N2 = N - N1
 
             # Moon 1
-            Coordmoon1 = self.create_arc_moon(N1, sigmad, d, 1)
+            Coordmoon1 = self._create_arc_moon(N1, sigmad, d, 1)
 
             # Moon 2
-            Coordmoon2 = self.create_arc_moon(N2, sigmad, d, 2)
+            Coordmoon2 = self._create_arc_moon(N2, sigmad, d, 2)
 
             Xin = np.concatenate((Coordmoon1, Coordmoon2))
             self.labels = 2*(np.where(np.arange(1, N + 1).reshape(N, 1) >

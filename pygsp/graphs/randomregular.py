@@ -80,7 +80,7 @@ class RandomRegular(Graph):
         Create a simple d-regular undirected graph.
 
         simple = without loops or double edges
-        d-reglar = each vertex is adjecent to d edges
+        d-regular = each vertex is adjacent to d edges
 
         Parameters
         ----------
@@ -127,7 +127,7 @@ class RandomRegular(Graph):
         repetition = 1
 
         # check that there are no loops nor parallel edges
-        while np.size(U) and repetition < matIter:
+        while np.size(U) and repetition < maxIter:
             edgesTested += 1
 
             # print(progess)

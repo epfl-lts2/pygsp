@@ -215,13 +215,15 @@ def graph_multiresolution(G, levels, **kwargs):
 
     Examples
     --------
+    >>> import numpy as np
     >>> import pygsp
     >>> levels = 5
+    >>> np.random.seed(42)
     >>> G = pygsp.graphs.Sensor(N=256)
     >>> Gs = pygsp.operators.graph_multiresolution(G, levels)
     >>> for idx in range(levels):
-    ...     Gs[i].plotting['plot_name'] = 'Reduction level: {}'.format(idx)
-    ...     Gs[i].plot()
+    ...     Gs[idx].plotting['plot_name'] = 'Reduction level: {}'.format(idx)
+    ...     Gs[idx].plot()
 
     """
     # lambd = float(kwargs.pop('lambd', 0.025))

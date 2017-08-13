@@ -181,10 +181,9 @@ class Graph(object):
                                      'the valid attributes, which are '
                                      '{}').format(i, valid_attributes))
 
-        from nngraphs import NNGraph
+        from .nngraphs import NNGraph
         if isinstance(self, NNGraph):
             super(NNGraph, self).__init__(**graph_attr)
-
         else:
             super(type(self), self).__init__(**graph_attr)
 
@@ -474,9 +473,10 @@ class Graph(object):
         Examples
         --------
         >>> from scipy import sparse
-        >>> from pygsp import graphs
+        >>> import pygsp
         >>> W = sparse.rand(10, 10, 0.2)
-        >>> G = graphs.Graph(W=W)
+        >>> W = pygsp.utils.symmetrize(W)
+        >>> G = pygsp.graphs.Graph(W=W)
         >>> components = G.extract_components()
         >>> has_sinks = 'sink' in components[0].info
         >>> sinks_0 = components[0].info['sink'] if has_sinks else []
@@ -486,12 +486,12 @@ class Graph(object):
             self.is_directed()
 
         if self.A.shape[0] != self.A.shape[1]:
-            self.logger.error('Inconsistant shape to extract components. '
+            self.logger.error('Inconsistent shape to extract components. '
                               'Square matrix required.')
             return None
 
         if self.directed:
-            raise NotImplementedError('Focusing on non directed graphs first.')
+            raise NotImplementedError('Focusing on undirected graphs first.')
 
         graphs = []
 
@@ -499,7 +499,7 @@ class Graph(object):
         # indices = [] # Assigned but never used
 
         while not visited.all():
-            stack = set([np.nonzero(visited is False)[0][0]])
+            stack = set(np.nonzero(~visited)[0])
             comp = []
 
             while len(stack):

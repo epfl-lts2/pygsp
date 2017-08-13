@@ -26,18 +26,17 @@ def check_weights(W):
     has_inf_val : bool
         True if the matrix has infinite values else false
     has_nan_value : bool
-        True if the matrix has a not a number value else false
+        True if the matrix has a "not a number" value else false
     is_not_square : bool
         True if the matrix is not square else false
     diag_is_not_zero : bool
-        True if the matrix diagonal has not only zero value else false
+        True if the matrix diagonal has not only zeros else false
 
     Examples
     --------
     >>> from scipy import sparse
     >>> from pygsp.graphs import gutils
-    >>> np.random.seed(42)
-    >>> W = sparse.rand(10,10,0.2)
+    >>> W = sparse.rand(10, 10, 0.2)
     >>> weights_chara = gutils.check_weights(W)
 
     """
