@@ -127,13 +127,5 @@ class FunctionsTestCase(unittest.TestCase):
             G = graphs.SwissRoll()
             needed_attributes_testing(G)
 
+
 suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
-
-
-def run():
-    """Run tests."""
-    unittest.TextTestRunner(verbosity=2).run(suite)
-
-
-if __name__ == '__main__':
-    run()

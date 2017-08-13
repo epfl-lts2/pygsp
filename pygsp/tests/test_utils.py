@@ -117,13 +117,5 @@ class FunctionsTestCase(unittest.TestCase):
 
         # test_distanz(x, y)
 
+
 suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
-
-
-def run():
-    """Run tests."""
-    unittest.TextTestRunner(verbosity=2).run(suite)
-
-
-if __name__ == '__main__':
-    run()

@@ -96,14 +96,4 @@ class FunctionsTestCase(unittest.TestCase):
             # self.assertAlmostEqual(c_exact, c_lanczos)
 
 
-
 suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
-
-
-def run():
-    """Run tests."""
-    unittest.TextTestRunner(verbosity=2).run(suite)
-
-
-if __name__ == '__main__':
-    run()
