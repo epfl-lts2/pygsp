@@ -1,5 +1,3 @@
-.. _utils-api:
-
 =====
 Utils
 =====
@@ -27,3 +25,11 @@ Distanz
 Resistance distance
 -------------------
 .. autofunction:: pygsp.utils.resistance_distance
+
+Symmetrize
+----------
+.. autofunction:: pygsp.utils.symmetrize
+
+Rescale and center
+------------------
+.. autofunction:: pygsp.utils.rescale_center

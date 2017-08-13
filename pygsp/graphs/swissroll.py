@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import Graph
-from ..utils import distanz
+from ..utils import distanz, rescale_center
 
 import numpy as np
 from math import sqrt, pi
@@ -64,7 +64,7 @@ class SwissRoll(Graph):
         self.x = x
         self.dim = dim
 
-        coords = self.rescale_center(x)
+        coords = rescale_center(x)
         dist = distanz(coords)
         W = np.exp(-np.power(dist, 2) / (2. * s**2))
         W -= np.diag(np.diag(W))
@@ -75,34 +75,3 @@ class SwissRoll(Graph):
 
         super(SwissRoll, self).__init__(W=W, coords=coords.T,
                                         plotting=plotting, gtype=gtype)
-
-    def rescale_center(self, x):
-        r"""
-        Rescaling the dataset.
-
-        Rescaling the dataset, previously and mainly used in the SwissRoll
-        graph.
-
-        Parameters
-        ----------
-        x : ndarray
-            Dataset to be rescaled.
-
-        Returns
-        -------
-        r : ndarray
-            Rescaled dataset.
-
-        Examples
-        --------
-        >>> from pygsp import utils
-        >>> utils.dummy(0, [1, 2, 3], True)
-        array([1, 2, 3])
-
-        """
-        N = x.shape[1]
-        y = x - np.kron(np.ones((1, N)), np.mean(x, axis=1)[:, np.newaxis])
-        c = np.amax(y)
-        r = y / c
-
-        return r

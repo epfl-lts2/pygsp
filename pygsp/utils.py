@@ -221,3 +221,35 @@ def symmetrize(W, symmetrize_type='average'):
         return (W + W.T) / 2.  # Resolve ambiguous entries
     else:
         raise ValueError("Unknown symmetrize type.")
+
+
+def rescale_center(x):
+    r"""
+    Rescale and center data, e.g. embedding coordinates.
+
+    Parameters
+    ----------
+    x : ndarray
+        Data to be rescaled.
+
+    Returns
+    -------
+    r : ndarray
+        Rescaled data.
+
+    Examples
+    --------
+    >>> import pygsp
+    >>> x = np.array([[1, 6], [2, 5], [3, 4]])
+    >>> pygsp.utils.rescale_center(x)
+    array([[-1. ,  1. ],
+           [-0.6,  0.6],
+           [-0.2,  0.2]])
+
+    """
+    N = x.shape[1]
+    y = x - np.kron(np.ones((1, N)), np.mean(x, axis=1)[:, np.newaxis])
+    c = np.amax(y)
+    r = y / c
+
+    return r
