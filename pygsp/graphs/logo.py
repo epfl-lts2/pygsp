@@ -8,7 +8,7 @@ import numpy as np
 
 class Logo(Graph):
     r"""
-    Create a graph with the GSP Logo.
+    Create a graph with the GSP logo.
 
     Examples
     --------
