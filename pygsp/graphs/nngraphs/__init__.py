@@ -7,10 +7,10 @@ import sys
 __all__ = ['NNGraph',
            'Bunny',
            'Cube',
-           'Sphere',
-           'TwoMoons',
            'ImgPatches',
-           'Grid2dImgPatches']
+           'Grid2dImgPatches',
+           'Sphere',
+           'TwoMoons']
 
 for class_to_import in __all__:
     setattr(sys.modules[__name__],
