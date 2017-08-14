@@ -1,11 +1,9 @@
-=====================================================
-Reconstruction of missing samples on a graph using TV
-=====================================================
+===============================================
+Reconstruction of missing samples with graph TV
+===============================================
 
 Description
 -----------
-
-Reconstruction of missing sample on a graph using TV
 
 In this demo, we try to reconstruct missing sample of a piece-wise smooth signal on a graph. To do so, we will minimize the well-known TV norm defined on the graph.
 

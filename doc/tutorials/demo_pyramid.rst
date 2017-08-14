@@ -1,6 +1,6 @@
-============================================
-Graph multiresolution: reduction and pyramid
-============================================
+===================================
+Graph multiresolution: Kron pyramid
+===================================
 
 In this demonstration file, we show how to reduce a graph using the PyGSP. Then we apply the pyramid to simple signal.
 To start open a python shell (IPython is recommended here) and import the required packages. You would probably also import numpy as you will need it to create matrices and arrays.
