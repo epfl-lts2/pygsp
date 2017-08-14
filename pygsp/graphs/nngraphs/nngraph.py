@@ -162,27 +162,14 @@ class NNGraph(Graph):
         else:
             raise ValueError('Unknown type : allowed values are knn, radius')
 
-        """
-        Before, we were calling this same snippet in each of the conditional
-        statements above, so it's better to call it only once, after the
-        conditional statements have been evaluated.
-        """
         W = sparse.csc_matrix((spv, (spi, spj)), shape=(N, N))
 
         # Sanity check
         if np.shape(W)[0] != np.shape(W)[1]:
             raise ValueError('Weight matrix W is not square')
 
-        # Enforce symmetry
-        """
-        This conditional statement costs the same amount of computation as the
-        symmetrization itself, so it's better to simply call utils.symmetrize
-        no matter what
-        if np.abs(W - W.T).sum():
-            W = utils.symmetrize(W, symmetrize_type=symmetrize_type)
-        else:
-            pass
-        """
+        # Enforce symmetry. Note that checking symmetry with
+        # np.abs(W - W.T).sum() is as costly as the symmetrization itself.
         W = symmetrize(W, symmetrize_type=symmetrize_type)
 
         super(NNGraph, self).__init__(W=W, gtype=gtype, plotting=plotting,
