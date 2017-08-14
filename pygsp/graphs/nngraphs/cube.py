@@ -3,7 +3,6 @@
 from . import NNGraph
 
 import numpy as np
-from math import floor
 
 
 class Cube(NNGraph):
@@ -44,7 +43,7 @@ class Cube(NNGraph):
                 pts = np.random.rand(self.nb_pts, self.nb_pts)
 
             elif self.nb_dim == 3:
-                n = floor(self.nb_pts/6.)
+                n = self.nb_pts // 6
 
                 pts = np.zeros((n*6, 3))
                 pts[:n, 1:] = np.random.rand(n, 2)

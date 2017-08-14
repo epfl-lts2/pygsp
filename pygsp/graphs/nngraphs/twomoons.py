@@ -4,7 +4,6 @@ from . import NNGraph
 from ...pointclouds import PointCloud
 
 import numpy as np
-from math import floor
 
 
 class TwoMoons(NNGraph):
@@ -67,7 +66,7 @@ class TwoMoons(NNGraph):
         elif moontype == 'synthesized':
             gtype = 'Two Moons synthesized'
 
-            N1 = floor(N/2.)
+            N1 = N // 2
             N2 = N - N1
 
             # Moon 1

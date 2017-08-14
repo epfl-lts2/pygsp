@@ -4,7 +4,6 @@ from . import Graph
 
 import numpy as np
 from scipy import sparse
-from math import floor
 
 
 class Ring(Graph):
@@ -40,7 +39,7 @@ class Ring(Graph):
         j_inds = np.zeros((2 * num_edges))
 
         tmpN = np.arange(N, dtype=int)
-        for i in range(min(k, floor((N - 1)/2.))):
+        for i in range(min(k, (N - 1) // 2)):
             i_inds[2*i * N + tmpN] = tmpN
             j_inds[2*i * N + tmpN] = np.remainder(tmpN + i + 1, N)
             i_inds[(2*i + 1)*N + tmpN] = np.remainder(tmpN + i + 1, N)

@@ -5,8 +5,6 @@ from ..utils import build_logger
 
 import numpy as np
 from scipy import sparse
-import random as rd
-from math import floor
 
 
 class RandomRegular(Graph):
@@ -72,8 +70,8 @@ class RandomRegular(Graph):
                                   "{}/{}.".format(edgesTested, n*k/2))
 
             # chose at random 2 half edges
-            i1 = floor(rd.random()*np.shape(U)[0])
-            i2 = floor(rd.random()*np.shape(U)[0])
+            i1 = np.random.randint(0, np.shape(U)[0])
+            i2 = np.random.randint(0, np.shape(U)[0])
             v1 = U[i1]
             v2 = U[i2]
 

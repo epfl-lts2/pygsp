@@ -5,8 +5,6 @@ from pygsp.utils import build_logger
 
 import numpy as np
 from scipy import sparse
-import random as rd
-from math import floor
 
 
 class BarabasiAlbert(Graph):
