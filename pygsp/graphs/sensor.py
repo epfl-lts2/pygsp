@@ -34,7 +34,40 @@ class Sensor(Graph):
 
     """
 
-    def get_nc_connection(self, W, param_nc):
+    def __init__(self, N=64, Nc=2, regular=False, n_try=50,
+                 distribute=False, connected=True, **kwargs):
+
+        self.Nc = Nc
+        self.regular = regular
+        self.n_try = n_try
+        self.distribute = distribute
+
+        if connected:
+            for x in range(self.n_try):
+                W, coords = self._create_weight_matrix(N, distribute,
+                                                       regular, Nc)
+                self.W = W
+                self.A = W > 0
+
+                if self.is_connected():
+                    break
+
+                elif x == self.n_try - 1:
+                    self.logger.warning('Graph is not connected.')
+        else:
+            W, coords = self._create_weight_matrix(N, distribute, regular, Nc)
+
+        W = sparse.lil_matrix(W)
+        W = (W + W.T) / 2.
+
+        gtype = 'regular sensor' if self.regular else 'sensor'
+
+        plotting = {'limits': np.array([0, 1, 0, 1])}
+
+        super(Sensor, self).__init__(W=W, coords=coords, gtype=gtype,
+                                     plotting=plotting, **kwargs)
+
+    def _get_nc_connection(self, W, param_nc):
         Wtmp = W
         W = np.zeros(np.shape(W))
 
@@ -50,7 +83,7 @@ class Sensor(Graph):
 
         return W
 
-    def create_weight_matrix(self, N, param_distribute, param_regular, param_Nc):
+    def _create_weight_matrix(self, N, param_distribute, param_regular, param_Nc):
         XCoords = np.zeros((N, 1))
         YCoords = np.zeros((N, 1))
 
@@ -78,46 +111,12 @@ class Sensor(Graph):
         W -= np.diag(np.diag(W))
 
         if param_regular:
-            W = self.get_nc_connection(W, param_Nc)
+            W = self._get_nc_connection(W, param_Nc)
 
         else:
-            W2 = self.get_nc_connection(W, param_Nc)
+            W2 = self._get_nc_connection(W, param_Nc)
             W = np.where(W < T, 0, W)
             W = np.where(W2 > 0, W2, W)
 
         W = sparse.csc_matrix(W)
         return W, coords
-
-    def __init__(self, N=64, Nc=2, regular=False, n_try=50,
-                 distribute=False, connected=True, **kwargs):
-
-        self.Nc = Nc
-        self.regular = regular
-        self.n_try = n_try
-        self.distribute = distribute
-
-        if connected:
-            for x in range(self.n_try):
-                W, coords = self.create_weight_matrix(N, distribute,
-                                                      regular, Nc)
-                self.W = W
-                self.A = W > 0
-
-                if self.is_connected():
-                    break
-
-                elif x == self.n_try - 1:
-                    self.logger.warning('Graph is not connected.')
-        else:
-            W, coords = self.create_weight_matrix(N, distribute,
-                                                  regular, Nc)
-
-        W = sparse.lil_matrix(W)
-        W = (W + W.T) / 2.
-
-        gtype = 'regular sensor' if self.regular else 'sensor'
-
-        plotting = {'limits': np.array([0, 1, 0, 1])}
-
-        super(Sensor, self).__init__(W=W, coords=coords, gtype=gtype,
-                                     plotting=plotting, **kwargs)
