@@ -1,34 +1,30 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
-
 import numpy as np
-from math import pi
+
+from . import Filter
 
 
 class Simoncelli(Filter):
     r"""
-    Simoncelli Filterbank
+    Simoncelli filterbank
 
-    Inherits its methods from Filters
 
     This function create a parseval filterbank of :math:`2`.
-    The low-pass filter is defined by a function :math:`f_l(x)`.
+    The low-pass filter is defined by the function
 
-    .. math:: f_{l}=\begin{cases} 1 & \mbox{if }x\leq a\\ \cos\left(\frac{\pi}{2}\frac{\log\left(\frac{x}{2}\right)}{\log(2)}\right) & \mbox{if }a<x\leq2a\\ 0 & \mbox{if }x>2a \end{cases}
+    .. math:: f_{l}=\begin{cases} 1 & \mbox{if }x\leq a\\
+            \cos\left(\frac{\pi}{2}\frac{\log\left(\frac{x}{2}\right)}{\log(2)}\right) & \mbox{if }a<x\leq2a\\
+            0 & \mbox{if }x>2a \end{cases}
 
-    The high pass filter is is adaptated to obtain a tight frame.
+    The high pass filter is adapted to obtain a tight frame.
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     a : float
-        See equation above for this parameter
-        The spectrum is scaled between 0 and 2 (default = 2/3)
-
-    Returns
-    -------
-    out : Simoncelli
+        See above equation for this parameter.
+        The spectrum is scaled between 0 and 2 (default = 2/3).
 
     Examples
     --------
@@ -58,7 +54,7 @@ class Simoncelli(Filter):
             r3ind = (val >= l2)
 
             y[r1ind] = 1
-            y[r2ind] = np.cos(pi/2 * np.log(val[r2ind]/float(a)) / np.log(2))
+            y[r2ind] = np.cos(np.pi/2 * np.log(val[r2ind]/float(a)) / np.log(2))
             y[r3ind] = 0
 
             return y

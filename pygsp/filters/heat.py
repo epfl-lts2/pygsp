@@ -1,29 +1,23 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
-
-from numpy import linalg
 import numpy as np
+from numpy import linalg
+
+from . import Filter
 
 
 class Heat(Filter):
     r"""
-    Heat Filterbank
-
-    Inherits its methods from Filters
+    Heat filterbank
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     tau : int or list of ints
         Scaling parameter. (default = 10)
     normalize : bool
         Normalize the kernel (works only if the eigenvalues are
         present in the graph). (default = 0)
-
-    Returns
-    -------
-    out : Heat
 
     Examples
     --------

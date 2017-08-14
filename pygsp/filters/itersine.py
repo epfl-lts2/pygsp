@@ -1,29 +1,24 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
-
 import numpy as np
-from math import pi
+
+from . import Filter
 
 
 class Itersine(Filter):
     r"""
-    Create a itersine filterbanks
+    Itersine filterbank
 
-    This function create a itersine half overlap filterbank of Nf filters
-    Going from 0 to lambda_max
+    Create an itersine half overlap filterbank of Nf filters.
+    Going from 0 to lambda_max.
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     Nf : int (optional)
         Number of filters from 0 to lmax. (default = 6)
     overlap : int (optional)
         (default = 2)
-
-    Returns
-    -------
-    out : Itersine
 
     Examples
     --------
@@ -36,7 +31,7 @@ class Itersine(Filter):
         super(Itersine, self).__init__(G, **kwargs)
 
         def k(x):
-            return np.sin(0.5*pi*np.power(np.cos(x*pi), 2)) * ((x >= -0.5)*(x <= 0.5))
+            return np.sin(0.5*np.pi*np.power(np.cos(x*np.pi), 2)) * ((x >= -0.5)*(x <= 0.5))
 
         scale = G.lmax/(Nf - overlap + 1.)*overlap
         g = []

@@ -1,21 +1,18 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
-
 import numpy as np
 from scipy import optimize
-from math import exp
+
+from . import Filter
 
 
 class Abspline(Filter):
     r"""
-    Abspline Filterbank
-
-    Inherits its methods from Filters
+    Abspline filterbank
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     Nf : int
         Number of filters from 0 to lmax (default = 6)
     lpfactor : int
@@ -25,10 +22,6 @@ class Abspline(Filter):
     t : ndarray
         Vector of scale to be used (Initialized by default at
         the value of the log scale)
-
-    Returns
-    -------
-    out : Abspline
 
     Examples
     --------
@@ -86,7 +79,7 @@ class Abspline(Filter):
 
         lminfac = .4 * G.lmin
 
-        self.g = [lambda x: 1.2 * exp(-1) * gl(x / lminfac)]
+        self.g = [lambda x: 1.2 * np.exp(-1) * gl(x / lminfac)]
         for i in range(0, Nf - 1):
             self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
 

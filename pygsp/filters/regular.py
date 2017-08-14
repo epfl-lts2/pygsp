@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
-
 import numpy as np
-from math import pi
+
+from . import Filter
 
 
 class Regular(Filter):
     r"""
-    Regular Filterbank
-
-    Inherits its methods from Filters
+    Regular filterbank
 
     This function creates a parseval filterbank :math:`2` filters.
     The low-pass filter is defined by a function :math:`f_l(x)`
@@ -26,20 +23,15 @@ class Regular(Filter):
 
     .. math:: f_{l}= \sin\left( \frac{\pi}{4} \left( 1+ \sin\left(\frac{\pi}{2} \sin\left(\frac{\pi}{2}(x-1)\right)\right) \right) \right)
 
-    And so for other degrees :math:`d`
+    And so forth for other degrees :math:`d`.
 
-    The high pass filter is adaptated to obtain a tight frame.
+    The high pass filter is adapted to obtain a tight frame.
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     d : float
-        See equations above for this parameter
-        Degree (default = 3)
-
-    Returns
-    -------
-    out : Regular
+        Degree (default = 3). See above equations.
 
     Examples
     --------
@@ -59,11 +51,11 @@ class Regular(Filter):
 
         def regular(val, d):
             if d == 0:
-                return np.sin(pi / 4.*val)
+                return np.sin(np.pi / 4.*val)
 
             else:
-                output = np.sin(pi*(val - 1) / 2.)
+                output = np.sin(np.pi*(val - 1) / 2.)
                 for i in range(2, d):
-                    output = np.sin(pi*output / 2.)
+                    output = np.sin(np.pi*output / 2.)
 
-                return np.sin(pi / 4.*(1 + output))
+                return np.sin(np.pi / 4.*(1 + output))

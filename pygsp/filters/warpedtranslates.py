@@ -5,26 +5,26 @@ from . import Filter
 
 class WarpedTranslates(Filter):
     r"""
-    Creates a vertex frequency filterbank
+    Vertex frequency filterbank
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     Nf : int
         Number of filters
 
-    Returns
-    -------
-    out : WarpedTranslates
+    References
+    ----------
+    See :cite:`shuman2013spectrum`
 
     Examples
     --------
-    Not Implemented for now
-    # >>> from pygsp import graphs, filters
-    # >>> G = graphs.Logo()
-    # >>> F = filters.WarpedTranslates(G)
-
-    See :cite:`shuman2013spectrum`
+    >>> from pygsp import graphs, filters
+    >>> G = graphs.Logo()
+    >>> F = filters.WarpedTranslates(G)
+    Traceback (most recent call last):
+      ...
+    NotImplementedError
 
     """
 

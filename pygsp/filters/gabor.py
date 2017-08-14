@@ -1,31 +1,24 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
-
 import numpy as np
+
+from . import Filter
 
 
 class Gabor(Filter):
-    """
-    Gabor Filterbank
-
-    Inherits its methods from Filters
+    r"""
+    Gabor filterbank
 
     Parameters
     ----------
-    G : Graph
-        Graph structur
+    G : graph
     k : lambda function
         kernel
 
-    Returns
-    -------
-    g : Gabor
-
-    Note
-    ----
+    Notes
+    -----
     This function create a filterbank with the kernel *k*. Every filter is
-    centered in a different frequency
+    centered in a different frequency.
 
     Examples
     --------
@@ -34,8 +27,6 @@ class Gabor(Filter):
     >>> k = lambda x: x/(1.-x)
     >>> F = filters.Gabor(G, k);
 
-    Author: Nathanael Perraudin
-    Date  : 13 June 2014
     """
     def __init__(self, G, k, **kwargs):
         super(Gabor, self).__init__(G, **kwargs)

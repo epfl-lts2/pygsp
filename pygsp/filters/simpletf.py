@@ -1,29 +1,22 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
-
 import numpy as np
-from math import pi
+
+from . import Filter
 
 
 class SimpleTf(Filter):
     r"""
-    SimpleTf Filterbank
-
-    Inherits its methods from Filters
+    SimpleTf filterbank
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     Nf : int
         Number of filters from 0 to lmax (default = 6)
     t : ndarray
         Vector of scale to be used (Initialized by default at the value
         of the log scale)
-
-    Returns
-    -------
-    out : SimpleTf
 
     Examples
     --------
@@ -56,7 +49,7 @@ class SimpleTf(Filter):
             l2 = 0.5
             l3 = 1.
 
-            h = lambda x: np.sin(pi*x/2.)**2
+            h = lambda x: np.sin(np.pi*x/2.)**2
 
             r1ind = x < l1
             r2ind = (x >= l1) * (x < l2)

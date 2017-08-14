@@ -1,34 +1,29 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
-
 import numpy as np
-from math import pi
+
+from . import Filter
 
 
 class Papadakis(Filter):
     r"""
-    Papadakis Filterbank
-
-    Inherits its methods from Filters
+    Papadakis filterbank
 
     This function create a parseval filterbank of :math:`2`.
-    The low-pass filter is defined by a function :math:`f_l(x)`
+    The low-pass filter is defined by the function
 
-    .. math:: f_{l}=\begin{cases} 1 & \mbox{if }x\leq a\\ \sqrt{1-\frac{\sin\left(\frac{3\pi}{2a}x\right)}{2}} & \mbox{if }a<x\leq \frac{5a}{3} \\ 0 & \mbox{if }x>\frac{5a}{3} \end{cases}
+    .. math:: f_{l}=\begin{cases} 1 & \mbox{if }x\leq a\\
+            \sqrt{1-\frac{\sin\left(\frac{3\pi}{2a}x\right)}{2}} & \mbox{if }a<x\leq \frac{5a}{3} \\
+            0 & \mbox{if }x>\frac{5a}{3} \end{cases}
 
-    The high pass filter is adaptated to obtain a tight frame.
+    The high pass filter is adapted to obtain a tight frame.
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     a : float
-        See equation above for this parameter
-        The spectrum is scaled between 0 and 2 (default = 3/4)
-
-    Returns
-    -------
-    out : Papadakis
+        See above equation for this parameter.
+        The spectrum is scaled between 0 and 2 (default = 3/4).
 
     Examples
     --------
@@ -56,7 +51,7 @@ class Papadakis(Filter):
             r3ind = val >= l2
 
             y[r1ind] = 1
-            y[r2ind] = np.sqrt((1 - np.sin(3*pi/(2*a) * val[r2ind]))/2.)
+            y[r2ind] = np.sqrt((1 - np.sin(3*np.pi/(2*a) * val[r2ind]))/2.)
             y[r3ind] = 0
 
             return y

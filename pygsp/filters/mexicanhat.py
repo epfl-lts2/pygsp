@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
-
 import numpy as np
-from math import exp
+
+from . import Filter
 
 
 class MexicanHat(Filter):
     r"""
-    Mexican hat Filterbank
-
-    Inherits its methods from Filters
+    Mexican hat filterbank
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     Nf : int
         Number of filters from 0 to lmax (default = 6)
     lpfactor : int
@@ -27,10 +24,6 @@ class MexicanHat(Filter):
     normalize : bool
         Wether to normalize the wavelet by the factor/sqrt(t).
         (default = False)
-
-    Returns
-    -------
-    out : MexicanHat
 
     Examples
     --------
@@ -55,7 +48,7 @@ class MexicanHat(Filter):
 
         lminfac = .4 * G.lmin
 
-        g = [lambda x: 1.2 * exp(-1) * gl(x / lminfac)]
+        g = [lambda x: 1.2 * np.exp(-1) * gl(x / lminfac)]
 
         for i in range(Nf - 1):
             if normalize:

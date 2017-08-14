@@ -1,27 +1,21 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
-
 import numpy as np
+
+from . import Filter
 
 
 class Expwin(Filter):
     r"""
-    Expwin Filterbank
-
-    Inherits its methods from Filters
+    Expwin filterbank
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     bmax : float
         Maximum relative band (default = 0.2)
     a : int
         Slope parameter (default = 1)
-
-    Returns
-    -------
-    out : Expwin
 
     Examples
     --------
@@ -30,6 +24,7 @@ class Expwin(Filter):
     >>> F = filters.Expwin(G)
 
     """
+
     def __init__(self, G, bmax=0.2, a=1., **kwargs):
         super(Expwin, self).__init__(G, **kwargs)
 

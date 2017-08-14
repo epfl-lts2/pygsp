@@ -1,26 +1,19 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
-
 import numpy as np
-from math import pi
+
+from . import Filter
 
 
 class Meyer(Filter):
     r"""
-    Meyer Filterbank
-
-    Inherits its methods from Filters
+    Meyer filterbank
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     Nf : int
         Number of filters from 0 to lmax (default = 6)
-
-    Returns
-    -------
-    out : Meyer
 
     Examples
     --------
@@ -80,10 +73,10 @@ class Meyer(Filter):
             r = np.empty(x.shape)
             if kerneltype is 'sf':
                 r[r1ind] = 1
-                r[r2ind] = np.cos((pi/2) * v(np.abs(x[r2ind])/l1 - 1))
+                r[r2ind] = np.cos((np.pi/2) * v(np.abs(x[r2ind])/l1 - 1))
             elif kerneltype is 'wavelet':
-                r[r2ind] = np.sin((pi/2) * v(np.abs(x[r2ind])/l1 - 1))
-                r[r3ind] = np.cos((pi/2) * v(np.abs(x[r3ind])/l2 - 1))
+                r[r2ind] = np.sin((np.pi/2) * v(np.abs(x[r2ind])/l1 - 1))
+                r[r3ind] = np.cos((np.pi/2) * v(np.abs(x[r3ind])/l2 - 1))
             else:
                 raise TypeError('Unknown kernel type ', kerneltype)
 
