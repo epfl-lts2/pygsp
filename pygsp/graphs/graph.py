@@ -540,11 +540,9 @@ class Graph(object):
         'G.compute_fourier_basis()' computes a full eigendecomposition of
         the graph Laplacian G.L:
 
-        .. L = U Lambda U*
-
         .. math:: {\cal L} = U \Lambda U^*
 
-        where $\Lambda$ is a diagonal matrix of the Laplacian eigenvalues.
+        where :math:`\Lambda` is a diagonal matrix of eigenvalues.
 
         *G.e* is a column vector of length *G.N* containing the Laplacian
         eigenvalues. The largest eigenvalue is stored in *G.lmax*.
