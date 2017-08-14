@@ -40,4 +40,3 @@ for class_to_import in __all__:
                     class_to_import))
 
 from .nngraphs import *
-from .gutils import *

@@ -155,7 +155,3 @@ Stochastic Block Model
     :undoc-members:
     :show-inheritance:
     :members:
-
-Check Weights
--------------
-.. autofunction:: pygsp.graphs.gutils.check_weights

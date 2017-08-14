@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from ..utils import build_logger
-from .gutils import check_weights
+import math
+from collections import Counter
 
 import numpy as np
 import scipy as sp
 from scipy import sparse
 
-from collections import Counter
+from ..utils import build_logger
 
 
 class Graph(object):
@@ -87,7 +87,7 @@ class Graph(object):
 
         self.N = shapes[0]
         self.W = sparse.lil_matrix(W)
-        check_weights(self.W)
+        self.check_weights()
 
         self.A = self.W > 0
         self.Ne = self.W.nnz
@@ -122,6 +122,65 @@ class Graph(object):
 
         if isinstance(plotting, dict):
             self.plotting.update(plotting)
+
+    def check_weights(self):
+        r"""
+        Check the characteristics of the weights matrix.
+
+        Returns
+        -------
+        A dict of bools containing informations about the matrix
+
+        has_inf_val : bool
+            True if the matrix has infinite values else false
+        has_nan_value : bool
+            True if the matrix has a "not a number" value else false
+        is_not_square : bool
+            True if the matrix is not square else false
+        diag_is_not_zero : bool
+            True if the matrix diagonal has not only zeros else false
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pygsp import graphs
+        >>> W = np.arange(4).reshape(2, 2)
+        >>> G = graphs.Graph(W)
+        >>> G.check_weights()  # doctest: +NORMALIZE_WHITESPACE
+        {'has_inf_val': False, 'has_nan_value': False,
+                'is_not_square': False, 'diag_is_not_zero': True}
+
+        """
+
+        has_inf_val = False
+        diag_is_not_zero = False
+        is_not_square = False
+        has_nan_value = False
+
+        if math.isinf(self.W.sum()):
+            self.logger.warning("GSP_TEST_WEIGHTS: There is an infinite "
+                                "value in the weight matrix")
+            has_inf_val = True
+
+        if abs(self.W.diagonal()).sum() != 0:
+            self.logger.warning("GSP_TEST_WEIGHTS: The main diagonal of "
+                                "the weight matrix is not 0!")
+            diag_is_not_zero = True
+
+        if self.W.get_shape()[0] != self.W.get_shape()[1]:
+            self.logger.warning("GSP_TEST_WEIGHTS: The weight matrix is "
+                                "not square!")
+            is_not_square = True
+
+        if math.isnan(self.W.sum()):
+            self.logger.warning("GSP_TEST_WEIGHTS: There is an NaN "
+                                "value in the weight matrix")
+            has_nan_value = True
+
+        return {'has_inf_val': has_inf_val,
+                'has_nan_value': has_nan_value,
+                'is_not_square': is_not_square,
+                'diag_is_not_zero': diag_is_not_zero}
 
     def update_graph_attr(self, *args, **kwargs):
         r"""

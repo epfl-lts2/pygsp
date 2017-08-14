@@ -87,7 +87,7 @@ class FunctionsTestCase(unittest.TestCase):
             self.assertTrue(lmax <= G.lmax and G.lmax <= 1.02 * lmax)
 
         def test_check_weights(G, w_c):
-            self.assertEqual(graphs.gutils.check_weights(G.W), w_c)
+            self.assertEqual(G.check_weights(), w_c)
 
         def test_is_connected(G, is_conn, **kwargs):
             self.assertEqual(G.is_connected(), is_conn)
