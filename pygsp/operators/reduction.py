@@ -168,7 +168,10 @@ def interpolate(G, f_subsampled, keep_inds, order=100, reg_eps=0.005, **kwargs):
     return green_kernel.analysis(f_interpolated, order=order, **kwargs)
 
 
-def graph_multiresolution(G, levels, **kwargs):
+def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
+                          downsampling_method='largest_eigenvector',
+                          reduction_method='kron', compute_full_eigen=False,
+                          reg_eps=0.005):
     r"""
     Compute a pyramid of graphs using the kron reduction.
 
@@ -186,32 +189,31 @@ def graph_multiresolution(G, levels, **kwargs):
         The graph to reduce.
     levels : int
         Number of level of decomposition
-    params : dict
-        lambd : float
-            Stability parameter. It adds self loop to the graph to give the
-            algorithm some stability (default = 0.025). [UNUSED?!]
-        sparsify : bool
-            To perform a spectral sparsification step immediately after
-            the graph reduction (default is True).
-        sparsify_eps : float
-            Parameter epsilon used in the spectral sparsification
-            (default is min(10/sqrt(G.N),.3)).
-        downsampling_method: string
-            The graph downsampling method (default is 'largest_eigenvector').
-        reduction_method : string
-            The graph reduction method (default is 'kron')
-        compute_full_eigen : bool
-            To also compute the graph Laplacian eigenvalues and eigenvectors
-            for every graph in the multiresolution sequence (default is False).
-        reg_eps : float
-            The regularized graph Laplacian is $\bar{L}=L+\epsilon I$.
-            A smaller epsilon may lead to better regularization, but will also
-            require a higher order Chebyshev approximation. (default is 0.005)
+    lambd : float
+        Stability parameter. It adds self loop to the graph to give the
+        algorithm some stability (default = 0.025). [UNUSED?!]
+    sparsify : bool
+        To perform a spectral sparsification step immediately after
+        the graph reduction (default is True).
+    sparsify_eps : float
+        Parameter epsilon used in the spectral sparsification
+        (default is min(10/sqrt(G.N),.3)).
+    downsampling_method: string
+        The graph downsampling method (default is 'largest_eigenvector').
+    reduction_method : string
+        The graph reduction method (default is 'kron')
+    compute_full_eigen : bool
+        To also compute the graph Laplacian eigenvalues and eigenvectors
+        for every graph in the multiresolution sequence (default is False).
+    reg_eps : float
+        The regularized graph Laplacian is :math:`\bar{L}=L+\epsilon I`.
+        A smaller epsilon may lead to better regularization, but will also
+        require a higher order Chebyshev approximation. (default is 0.005)
 
     Returns
     -------
-    Gs : ndarray
-        The graph layers.
+    Gs : list
+        A list of graph layers.
 
     Examples
     --------
@@ -226,13 +228,8 @@ def graph_multiresolution(G, levels, **kwargs):
     ...     Gs[idx].plot()
 
     """
-    # lambd = float(kwargs.pop('lambd', 0.025))
-    sparsify = bool(kwargs.pop('sparsify', True))
-    sparsify_eps = float(kwargs.pop('sparsify_eps', min(10./np.sqrt(G.N), 0.3)))
-    downsampling_method = kwargs.pop('downsampling_method', 'largest_eigenvector')
-    reduction_method = kwargs.pop('downsampling_method', 'kron')
-    compute_full_eigen = bool(kwargs.pop('compute_full_eigen', False))
-    reg_eps = float(kwargs.pop('reg_eps', 0.005))
+    if sparsify_eps is None:
+        sparsify_eps = min(10. / np.sqrt(G.N), 0.3)
 
     if compute_full_eigen:
         if not hasattr(G, 'e') or not hasattr(G, 'U'):

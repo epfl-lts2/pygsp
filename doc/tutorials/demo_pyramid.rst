@@ -17,7 +17,7 @@ For this demo we will be using a Sensor graph with 512 nodes.
 The function graph_multiresolution computes the graph pyramid for you:
 
 >>> levels = 5
->>> Gs = graph_multiresolution(G, levels, epsilon=0.1, sparsify=False)
+>>> Gs = graph_multiresolution(G, levels, sparsify=False)
 
 Next, we will compute the fourier basis of our different graph layers:
 >>> for gr in Gs:
