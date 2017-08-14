@@ -217,12 +217,11 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
 
     Examples
     --------
-    >>> import numpy as np
     >>> import pygsp
     >>> levels = 5
-    >>> np.random.seed(42)
-    >>> G = pygsp.graphs.Sensor(N=256)
-    >>> Gs = pygsp.operators.graph_multiresolution(G, levels)
+    >>> G = pygsp.graphs.Sensor(N=512)
+    >>> G.compute_fourier_basis()
+    >>> Gs = pygsp.operators.graph_multiresolution(G, levels, sparsify=False)
     >>> for idx in range(levels):
     ...     Gs[idx].plotting['plot_name'] = 'Reduction level: {}'.format(idx)
     ...     Gs[idx].plot()
