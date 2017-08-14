@@ -146,9 +146,10 @@ class Graph(object):
         >>> from pygsp import graphs
         >>> W = np.arange(4).reshape(2, 2)
         >>> G = graphs.Graph(W)
-        >>> G.check_weights()  # doctest: +NORMALIZE_WHITESPACE
-        {'has_inf_val': False, 'has_nan_value': False,
-                'is_not_square': False, 'diag_is_not_zero': True}
+        >>> cw = G.check_weights()
+        >>> cw == {'has_inf_val': False, 'has_nan_value': False,
+        ...        'is_not_square': False, 'diag_is_not_zero': True}
+        True
 
         """
 
