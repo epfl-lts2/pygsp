@@ -8,7 +8,7 @@ to solve some real problems.
 .. toctree::
     :maxdepth: 1
 
-    demo
-    demo_wavelet
-    demo_graph_tv
-    demo_pyramid
+    intro
+    wavelet
+    graph_tv
+    pyramid
