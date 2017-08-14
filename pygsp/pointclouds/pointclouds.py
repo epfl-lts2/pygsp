@@ -8,13 +8,13 @@ from os import path
 
 class PointCloud(object):
     r"""
-    Load the parameters of models and the points.
+    Load model parameters and points.
 
     Parameters
     ----------
     name : string
         The name of the point cloud to load.
-        Possible arguments : 'airfoil', 'bunny', 'david64', 'david500', 'logo',
+        Possible arguments: 'airfoil', 'bunny', 'david64', 'david500', 'logo',
         'minnesota', two_moons'.
     max_dim : int
         The maximum dimensionality of the points (only valid for two_moons)
@@ -22,25 +22,22 @@ class PointCloud(object):
 
     Returns
     -------
-    The differents informations of the loaded PointCloud.
+    A PointCloud object with data and parameters.
 
+    Notes
+    -----
+    The bunny is the model from the Stanford Computer Graphics Laboratory
+    (see reference).
+
+    References
+    ----------
+    See :cite:`turk1994zippered` for more informations.
 
     Examples
     --------
     >>> from pygsp import pointclouds
     >>> bunny = pointclouds.PointCloud('bunny')
     >>> Xin = bunny.Xin
-
-
-    Note
-    ----
-    The bunny is the model from the Stanford Computer Graphics Laboratory
-    (see reference).
-
-
-    References
-    ----------
-    See :cite:`turk1994zippered` for more informations.
 
     """
 
@@ -104,9 +101,7 @@ class PointCloud(object):
 
     def plot(self, **kwargs):
         r"""
-        Plot the pointcloud.
-
-        See plotting doc.
+        Plot the pointcloud. See :func:`pygsp.plotting.plot_pointcloud`.
         """
         from pygsp import plotting
         plotting.plot_pointcloud(self, **kwargs)
