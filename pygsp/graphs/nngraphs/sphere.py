@@ -24,8 +24,7 @@ class Sphere(NNGraph):
     Examples
     --------
     >>> from pygsp import graphs
-    >>> radius = 5
-    >>> G = graphs.Sphere(radius=radius)
+    >>> G = graphs.Sphere(radius=5)
 
     """
 
