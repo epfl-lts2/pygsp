@@ -29,7 +29,7 @@ class Ring(Graph):
         if 2*k > N:
             raise ValueError('Too many neighbors requested.')
 
-        # Create weighted adjancency matrix
+        # Create weighted adjacency matrix
         if 2*k == N:
             num_edges = N * (k - 1) + N / 2.
         else:
