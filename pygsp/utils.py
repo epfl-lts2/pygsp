@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+
 r"""
-This module implements some utilitary functions used throughout the PyGSP box.
+The :mod:`pygsp.utils` module implements some utility functions used throughout
+the package.
 """
 
 import logging
@@ -87,7 +89,7 @@ def pyunlocbox_required(func):
 
 def distanz(x, y=None):
     r"""
-    Calculate the distanz between two colon vectors
+    Calculate the distance between two colon vectors.
 
     Parameters
     ----------
@@ -104,10 +106,12 @@ def distanz(x, y=None):
     Examples
     --------
     >>> import numpy as np
-    >>> from pygsp import utils
-    >>> x = np.random.rand(16)
-    >>> y = np.random.rand(16)
-    >>> distanz = utils.distanz(x, y)
+    >>> from pygsp.utils import distanz
+    >>> x = np.arange(3)
+    >>> distanz(x, x)
+    array([[ 0.,  1.,  2.],
+           [ 1.,  0.,  1.],
+           [ 2.,  1.,  0.]])
 
     """
     try:
@@ -141,7 +145,7 @@ def distanz(x, y=None):
     return np.sqrt(d)
 
 
-def resistance_distance(M):  # 1 call dans operators.reduction
+def resistance_distance(M):
     r"""
     Compute the resistance distances of a graph.
 
@@ -155,17 +159,11 @@ def resistance_distance(M):  # 1 call dans operators.reduction
     rd : sparse matrix
         distance matrix
 
-    Examples
-    --------
-    >>>
-    >>>
-    >>>
-
     References
     ----------
     :cite:`klein1993resistance`
-
     """
+
     if sparse.issparse(M):
         L = M.tocsc()
 
@@ -192,7 +190,7 @@ def resistance_distance(M):  # 1 call dans operators.reduction
 
 def symmetrize(W, symmetrize_type='average'):
     r"""
-    Symmetrize a square matrix
+    Symmetrize a square matrix.
 
     Parameters
     ----------
@@ -201,6 +199,21 @@ def symmetrize(W, symmetrize_type='average'):
     symmetrize_type : string
         'average' : symmetrize by averaging with the transpose.
         'full' : symmetrize by filling in the holes in the transpose.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pygsp.utils import symmetrize
+    >>> x = np.array([[1,0],[3,4.]])
+    >>> x
+    array([[ 1.,  0.],
+           [ 3.,  4.]])
+    >>> symmetrize(x)
+    array([[ 1. ,  1.5],
+           [ 1.5,  4. ]])
+    >>> symmetrize(x, symmetrize_type='full')
+    array([[ 1.,  3.],
+           [ 3.,  4.]])
 
     """
     if W.shape[0] != W.shape[1]:
@@ -220,7 +233,7 @@ def symmetrize(W, symmetrize_type='average'):
         W += mask.multiply(W.T) if sparse_flag else (mask * W.T)
         return (W + W.T) / 2.  # Resolve ambiguous entries
     else:
-        raise ValueError("Unknown symmetrize type.")
+        raise ValueError("Unknown symmetrization type.")
 
 
 def rescale_center(x):
