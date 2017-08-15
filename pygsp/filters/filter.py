@@ -158,6 +158,9 @@ class Filter(object):
         return fd
 
     def inverse(self, c, **kwargs):
+        r"""
+        Not implemented yet.
+        """
         raise NotImplementedError
 
     def synthesis(self, c, order=30, method=None, **kwargs):
@@ -168,7 +171,7 @@ class Filter(object):
         ----------
         G : Graph structure.
         c : Transform coefficients
-        method : Select the method ot be used for the computation.
+        method : Select the method to be used for the computation.
             - 'exact' : Exact method using the graph Fourier matrix
             - 'cheby' : Chebyshev polynomial approximation
             - 'lanczos' : Lanczos approximation
@@ -252,13 +255,13 @@ class Filter(object):
 
     def approx(m, N, **kwargs):
         r"""
-        Not implemented yet
+        Not implemented yet.
         """
         raise NotImplementedError
 
     def tighten():
         r"""
-        Not implemented yet
+        Not implemented yet.
         """
         raise NotImplementedError
 
@@ -279,6 +282,16 @@ class Filter(object):
         -------
         lower : Filterbank lower bound
         upper : Filterbank upper bound
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pygsp import graphs, filters
+        >>> G = graphs.Logo()
+        >>> MH = filters.MexicanHat(G)
+        >>> bounds = MH.filterbank_bounds()
+        >>> print('lower={:.3f}, upper={:.3f}'.format(bounds[0], bounds[1]))
+        lower=0.178, upper=0.270
 
         """
         if bounds:
@@ -307,6 +320,14 @@ class Filter(object):
         Returns
         -------
         F : Frame
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from pygsp import graphs, filters
+        >>> G = graphs.Logo()
+        >>> MH = filters.MexicanHat(G)
+        >>> matrix = MH.filterbank_matrix()
 
         """
         N = self.G.N
