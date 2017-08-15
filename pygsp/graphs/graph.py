@@ -83,11 +83,10 @@ class Graph(object):
 
         self.logger = build_logger(__name__, **kwargs)
 
-        shapes = np.shape(W)
-        if len(shapes) != 2 or shapes[0] != shapes[1]:
-            self.logger.error('W has incorrect shape {}'.format(shapes))
+        if len(W.shape) != 2 or W.shape[0] != W.shape[1]:
+            self.logger.error('W has incorrect shape {}'.format(W.shape))
 
-        self.N = shapes[0]
+        self.N = W.shape[0]
         self.W = sparse.lil_matrix(W)
         self.check_weights()
 
@@ -118,12 +117,9 @@ class Graph(object):
         else:
             self.coords = np.ndarray(None)
 
-        # Plotting default parameters
         self.plotting = {'vertex_size': 10, 'edge_width': 1,
                          'edge_style': '-', 'vertex_color': 'b'}
-
-        if isinstance(plotting, dict):
-            self.plotting.update(plotting)
+        self.plotting.update(plotting)
 
     def check_weights(self):
         r"""
