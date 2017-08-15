@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
+r"""
+The :mod:`pygsp.data_handling` module implements some functions to manipulate
+data which might prove useful when using the toolbox.
+"""
+
 import numpy as np
 from scipy import sparse
-
 
 def adj2vec(G):
     r"""
@@ -33,7 +37,7 @@ def adj2vec(G):
 
 
 def mat2vec(d):
-    r"""Not implemented yet"""
+    r"""Not implemented yet."""
     raise NotImplementedError
 
 
@@ -44,39 +48,34 @@ def repmatline(A, ncol=1, nrow=1):
     Parameters
     ----------
     A : ndarray
-    ncol : Integer
+    ncol : int
         default is 1
-    nrow : Integer
+    nrow : int
         default is 1
 
     Returns
     -------
-    Ar : Matrix
+    Ar : ndarray
 
     Examples
     --------
-
-    For nrow=2 and ncol=3, the matrix
-    ::
-
-        x   =   [1 2 ]
-                [3 4 ]
-
-    becomes
-    ::
-
-                [1 1 1 2 2 2 ]
-        M   =   [1 1 1 2 2 2 ]
-                [3 3 3 4 4 4 ]
-                [3 3 3 4 4 4 ]
-
-    with::
-        M = np.repeat(np.repeat(x, nrow, axis=1), ncol, axis=0)
+    >>> from pygsp.data_handling import repmatline
+    >>> import numpy as np
+    >>> x = np.array([[1, 2], [3, 4]])
+    >>> x
+    array([[1, 2],
+           [3, 4]])
+    >>> repmatline(x, nrow=2, ncol=3)
+    array([[1, 1, 1, 2, 2, 2],
+           [1, 1, 1, 2, 2, 2],
+           [3, 3, 3, 4, 4, 4],
+           [3, 3, 3, 4, 4, 4]])
 
     """
+
     if ncol < 1 or nrow < 1:
-        raise ValueError("The number of lines and rows must be greater or\
-                         equal to one, or you will get an empty array.")
+        raise ValueError('The number of lines and rows must be greater or '
+                         'equal to one, or you will get an empty array.')
 
     return np.repeat(np.repeat(A, ncol, axis=1), nrow, axis=0)
 
@@ -87,10 +86,10 @@ def vec2mat(d, Nf):
 
     Parameters
     ----------
-    d : Ndarray
+    d : ndarray
         Data
     Nf : int
-        Number of filter
+        Number of filters
 
     Returns
     -------
