@@ -10,8 +10,8 @@ from copy import deepcopy
 
 class Filter(object):
     r"""
-    Parent class for all Filters or Filterbanks, contains the shared methods
-    for those classes.
+    Base class for all filters or filterbanks.
+    Define the interface and implement shared methods.
     """
 
     def __init__(self, G, filters=None, **kwargs):
@@ -381,7 +381,7 @@ class Filter(object):
         r"""
         Plot the filter.
 
-        See :ref:`plotting doc<plotting-api>`.
+        See :func:`pygsp.plotting.plot_filter`.
         """
         from pygsp import plotting
-        plotting.plot_filter(self, show_plot=True, **kwargs)
+        plotting.plot_filter(self, **kwargs)

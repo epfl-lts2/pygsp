@@ -101,7 +101,9 @@ class PointCloud(object):
 
     def plot(self, **kwargs):
         r"""
-        Plot the pointcloud. See :func:`pygsp.plotting.plot_pointcloud`.
+        Plot the pointcloud.
+
+        See :func:`pygsp.plotting.plot_pointcloud`.
         """
         from pygsp import plotting
         plotting.plot_pointcloud(self, **kwargs)

@@ -39,7 +39,7 @@ It is simply a projection on the B2-ball.
 Results and code
 ----------------
 
->>> from pygsp import graphs, plotting
+>>> from pygsp import graphs
 >>> import numpy as np
 >>>
 >>> # Create a random sensor graph
@@ -49,7 +49,7 @@ Results and code
 >>> # Create signal
 >>> graph_value = np.copysign(np.ones(np.shape(G.U[:, 3])[0]), G.U[:, 3])
 >>>
->>> plotting.plt_plot_signal(G, graph_value, savefig=True, plot_name='doc/tutorials/img/original_signal')
+>>> G.plot_signal(graph_value, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/original_signal')
 
 .. figure:: img/original_signal.*
 
@@ -63,7 +63,7 @@ This figure shows the original signal on graph.
 >>> sigma = 0.0
 >>> depleted_graph_value = M * (graph_value.reshape(graph_value.size, 1) + sigma * np.random.standard_normal((G.N, 1)))
 >>>
->>> plotting.plt_plot_signal(G, depleted_graph_value, show_edges=True, savefig=True, plot_name='doc/tutorials/img/depleted_signal')
+>>> G.plot_signal(depleted_graph_value, show_edges=True, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/depleted_signal')
 
 .. figure:: img/depleted_signal.*
 
@@ -90,7 +90,7 @@ mask and addition of noise. More than half of the vertices are set to 0.
 .. >>> ret = pyunlocbox.solvers.solve([f2, f1], **param)
 .. >>> prox_tv_reconstructed_graph = ret['sol']
 .. >>>
-.. >>> plotting.plt_plot_signal(G, prox_tv_reconstructed_graph, show_edges=True, savefig=True, plot_name='doc/tutorials/img/tv_recons_signal')
+.. >>> G.plot_signal(prox_tv_reconstructed_graph, show_edges=True, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/tv_recons_signal')
 
 .. figure:: img/tv_recons_signal.*
 
@@ -110,7 +110,7 @@ The result is presented as following:
 .. >>> ret = pyunlocbox.solvers.solve([f3, f1], **param)
 .. >>> prox_tik_reconstructed_graph = ret['sol']
 .. >>>
-.. >>> plotting.plt_plot_signal(G, prox_tik_reconstructed_graph, show_edges=True, savefig=True, plot_name='doc/tutorials/img/tik_recons_signal')
+.. >>> G.plot_signal(prox_tik_reconstructed_graph, show_edges=True, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/tik_recons_signal')
 
 .. figure:: img/tik_recons_signal.*
 

@@ -40,10 +40,10 @@ Let's now create a signal as a Kronecker located on one vertex (e.g. the vertex 
 
 Let's plot the signal:
 
->>> pygsp.plotting.plt_plot_signal(G, Sf[:,0], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/heat_tau_1')
->>> pygsp.plotting.plt_plot_signal(G, Sf[:,1], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/heat_tau_10')
->>> pygsp.plotting.plt_plot_signal(G, Sf[:,2], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/heat_tau_25')
->>> pygsp.plotting.plt_plot_signal(G, Sf[:,3], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/heat_tau_50')
+>>> G.plot_signal(Sf[:,0], vertex_size=20, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/heat_tau_1')
+>>> G.plot_signal(Sf[:,1], vertex_size=20, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/heat_tau_10')
+>>> G.plot_signal(Sf[:,2], vertex_size=20, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/heat_tau_25')
+>>> G.plot_signal(Sf[:,3], vertex_size=20, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/heat_tau_50')
 
 .. figure:: img/heat_tau_1.*
     :alt: Tau = 1
@@ -92,7 +92,7 @@ If we want to get a better coverage of the graph spectrum, we could have used th
 
 >>> S_vec = Wk.analysis(S)
 >>> S = S_vec.reshape((S_vec.size//Nf, Nf), order='F')
->>> pygsp.plotting.plt_plot_signal(G, S[:, 0], savefig=True, plot_name='doc/tutorials/img/wavelet_filtering')
+>>> G.plot_signal(S[:, 0], default_qtg=False, savefig=True, plot_name='doc/tutorials/img/wavelet_filtering')
 
 
 We can visualize the filtering by one atom the same way the did for the Heat kernel, by placing a Kronecker delta at one specific vertex.
@@ -103,10 +103,10 @@ We can visualize the filtering by one atom the same way the did for the Heat ker
 ...     S[vertex_delta + i * G.N, i] = 1
 >>> Sf = Wk.synthesis(S)
 
->>> pygsp.plotting.plt_plot_signal(G, Sf[:,0], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/wavelet_1')
->>> pygsp.plotting.plt_plot_signal(G, Sf[:,1], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/wavelet_2')
->>> pygsp.plotting.plt_plot_signal(G, Sf[:,2], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/wavelet_3')
->>> pygsp.plotting.plt_plot_signal(G, Sf[:,3], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/wavelet_4')
+>>> G.plot_signal(Sf[:,0], vertex_size=20, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/wavelet_1')
+>>> G.plot_signal(Sf[:,1], vertex_size=20, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/wavelet_2')
+>>> G.plot_signal(Sf[:,2], vertex_size=20, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/wavelet_3')
+>>> G.plot_signal(Sf[:,3], vertex_size=20, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/wavelet_4')
 
 .. figure:: img/wavelet_1.*
 .. figure:: img/wavelet_2.*
@@ -123,10 +123,10 @@ We can visualize the filtering by one atom the same way the did for the Heat ker
 >>> d = s_map_out[:, :, 0]**2 + s_map_out[:, :, 1]**2 + s_map_out[:, :, 2]**2
 >>> d = np.sqrt(d)
 
->>> pygsp.plotting.plt_plot_signal(G, d[:, 1], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/curv_scale_1')
->>> pygsp.plotting.plt_plot_signal(G, d[:, 2], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/curv_scale_2')
->>> pygsp.plotting.plt_plot_signal(G, d[:, 3], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/curv_scale_3')
->>> pygsp.plotting.plt_plot_signal(G, d[:, 4], vertex_size=20, savefig=True, plot_name='doc/tutorials/img/curv_scale_4')
+>>> G.plot_signal(d[:, 1], vertex_size=20, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/curv_scale_1')
+>>> G.plot_signal(d[:, 2], vertex_size=20, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/curv_scale_2')
+>>> G.plot_signal(d[:, 3], vertex_size=20, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/curv_scale_3')
+>>> G.plot_signal(d[:, 4], vertex_size=20, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/curv_scale_4')
 
 .. figure:: img/curv_scale_1.*
 .. figure:: img/curv_scale_2.*
