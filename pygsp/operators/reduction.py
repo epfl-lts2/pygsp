@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-r"""This module contains functionalities for the reduction of graphs' vertex set while keeping the graph structure."""
 
 from ..utils import resistance_distance, build_logger
 from ..graphs import Graph
@@ -541,7 +540,7 @@ def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
 
 def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
     r"""
-    Sythesize a single level of the graph pyramid transform.
+    Synthesize a single level of the graph pyramid transform.
 
     Parameters
     ----------

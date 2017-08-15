@@ -222,7 +222,7 @@ def localize(g, i):
 
 def modulate(G, f, k):
     r"""
-    Tranlate the signal f to the node i.
+    Modulation the signal f to the frequency k.
 
     Parameters
     ----------
@@ -247,7 +247,7 @@ def modulate(G, f, k):
 
 def translate(G, f, i):
     r"""
-    Tranlate the signal f to the node i
+    Translate the signal f to the node i.
 
     Parameters
     ----------
