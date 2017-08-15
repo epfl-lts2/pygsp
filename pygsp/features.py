@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+
 r"""
-This module implements different feature extraction techniques based on
-Graphs and Filters of the GSP box.
+The :mod:`pygsp.features` module implements different feature extraction
+techniques based on :mod:`pygsp.graphs` and :mod:`pygsp.filters`.
 """
 
 import numpy as np
@@ -15,14 +16,14 @@ from skimage.util import view_as_windows, pad
 def compute_avg_adj_deg(G):
     r"""
     Compute the average adjacency degree for each node.
-    Average adjacency degree is the average of the degrees of a node and its
-    neighbors.
+
+    The average adjacency degree is the average of the degrees of a node and
+    its neighbors.
 
     Parameters
     ----------
-    G: Graph object
-        The graph on which the statistic is extracted
-
+    G: Graph
+        Graph on which the statistic is extracted
     """
     if not isinstance(G, Graph):
         raise ValueError("Graph object expected as first argument.")
@@ -58,11 +59,11 @@ def compute_tig(filt, method=None, **kwargs):
 def compute_norm_tig(filt, method=None, *args, **kwargs):
     r"""
     Compute the :math:`\ell_2` norm of the Tig.
-    See `compute_tig`.
+    See :func:`compute_tig`.
 
     Parameters
     ----------
-    filt: Filter object
+    filt: Filter
         The filter (or filterbank)
     method: string (optional)
         Which method to use. Accept 'cheby', 'exact'
@@ -79,8 +80,8 @@ def compute_spectrogram(G, atom=None, M=100, method=None, **kwargs):
 
     Parameters
     ----------
-    G : Graph object
-        The graph on which to compute the spectrogram.
+    G : Graph
+        Graph on which to compute the spectrogram.
     atom : Filter kernel (optional)
         Kernel to use in the spectrogram (default = exp(-M*(x/lmax)²)).
     M : int (optional)
