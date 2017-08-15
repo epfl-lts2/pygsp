@@ -762,35 +762,35 @@ def pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         window_list[str(uuid.uuid4())] = app
 
 
-def plot_spectrogramm(G, **kwargs):
+def plot_spectrogram(G, **kwargs):
     r"""
-    Plot the spectrogramm of the given graph.
+    Plot the spectrogram of the given graph.
 
     Parameters
     ----------
     G : Graph object
         Graph to analyse.
     node_idx : ndarray
-        Order to sort the nodes in the spectrogramm
+        Order to sort the nodes in the spectrogram
 
     Example
     --------
     >>> import numpy as np
     >>> from pygsp import graphs, plotting
     >>> G = graphs.Ring(15)
-    >>> plotting.plot_spectrogramm(G)
+    >>> plotting.plot_spectrogram(G)
 
     """
     global window_list
-    from pygsp.features import compute_spectrogramm
+    from pygsp.features import compute_spectrogram
     if 'window_list' not in globals():
         window_list = {}
 
     if not qtg_import:
-        raise NotImplementedError("You need pyqtgraph to plot the spectrogramm at the moment. Please install dependency and retry.")
+        raise NotImplementedError("You need pyqtgraph to plot the spectrogram at the moment. Please install dependency and retry.")
 
     if not hasattr(G, 'spectr'):
-        compute_spectrogramm(G)
+        compute_spectrogram(G)
 
     M = G.spectr.shape[1]
     node_idx = kwargs.pop('node_idx', None)

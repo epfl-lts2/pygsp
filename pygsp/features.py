@@ -72,7 +72,7 @@ def compute_norm_tig(filt, method=None, *args, **kwargs):
     return np.linalg.norm(tig, axis=1, ord=2)
 
 
-def compute_spectrogramm(G, atom=None, M=100, method=None, **kwargs):
+def compute_spectrogram(G, atom=None, M=100, method=None, **kwargs):
     r"""
     Compute the norm of the Tig for all nodes with a kernel shifted along the
     spectral axis.
@@ -80,9 +80,9 @@ def compute_spectrogramm(G, atom=None, M=100, method=None, **kwargs):
     Parameters
     ----------
     G : Graph object
-        The graph on which to compute the spectrogramm.
+        The graph on which to compute the spectrogram.
     atom : Filter kernel (optional)
-        Kernel to use in the spectrogramm (default = exp(-M*(x/lmax)²)).
+        Kernel to use in the spectrogram (default = exp(-M*(x/lmax)²)).
     M : int (optional)
         Number of samples on the spectral scale. (default = 100)
 

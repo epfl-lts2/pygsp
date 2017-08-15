@@ -750,14 +750,14 @@ class Graph(object):
         from pygsp import plotting
         plotting.plot_signal(self, signal, show_plot=True, **kwargs)
 
-    def show_spectrogramm(self, **kwargs):
+    def show_spectrogram(self, **kwargs):
         r"""
-        Plot the spectrogramm for the graph object.
+        Plot the spectrogram for the graph object.
 
-        See plotting doc on spectrogramm.
+        See plotting doc on spectrogram.
         """
         from pygsp import plotting
-        plotting.plot_spectrogramm(self, **kwargs)
+        plotting.plot_spectrogram(self, **kwargs)
 
     def _fruchterman_reingold_layout(self, dim=2, k=None, pos=None, fixed=[],
                                      iterations=50, scale=1.0, center=None):
