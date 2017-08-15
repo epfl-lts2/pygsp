@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+
 r"""
-This module provides optimization tools to accelarate graph signal processing as a whole.
+The :mod:`pygsp.optimization` module provides tools for convex optimization on
+graphs.
 """
 
 from .data_handling import adj2vec
@@ -16,10 +18,10 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
 
     This function computes the TV proximal operator for graphs. The TV norm
     is the one norm of the gradient. The gradient is defined in the
-    function :func:`~pygsp.operator.grad`.
-    This function require the PyUNLocBoX to be executed.
+    function :func:`pygsp.operators.grad`.
+    This function requires the PyUNLocBoX to be executed.
 
-    pygsp.optimization.prox_tv(y, gamma, param) solves:
+    This function solves:
 
     :math:`sol = \min_{z} \frac{1}{2} \|x - z\|_2^2 + \gamma  \|x\|_{TV}`
 
@@ -42,7 +44,7 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
     tol: float
         Stops criterion for the loop. The algorithm will stop if :
         :math:`\frac{n(t) - n(t - 1)} {n(t)} < tol`
-        where :math: `n(t) = f(x) + 0.5 \|x-y\|_2^2` is the objective function at iteration :math:`t`
+        where :math:`n(t) = f(x) + 0.5 \|x-y\|_2^2` is the objective function at iteration :math:`t`
         (default = :math:`10e-4`)
     maxit: int
         Maximum iteration. (default = 200)
