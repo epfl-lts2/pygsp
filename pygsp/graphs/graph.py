@@ -12,60 +12,62 @@ from ..utils import build_logger
 
 class Graph(object):
     r"""
-    The main graph object.
+    The base graph class.
 
-    It is used to initialize by default every missing field of the subclass
-    graphs. It can also be used by itself to initialize customs graphs.
-
-
-    **Fields**:
-
-    A graph contains the following fields:
-
-        - N : the number of nodes (also called vertices sometimes) in the
-            graph. They represent the different points between which
-            connections may occur.
-        - Ne : the number of edges (also called links sometimes) in the graph.
-            They represent the actual connections between the nodes.
-        - W : the weight matrix contains the weights of the connections.
-            It is represented as an N-by-N matrix of floats.
-            :math:`W_{i,j} = 0` means that there is no direct connection from
-            i to j.
-        - A : the adjacency matrix defines which edges exist on the graph.
-            It is represented as an N-by-N matrix of booleans.
-            :math:`A_{i,j}` is True if :math:`W_{i,j} > 0`.
-        - d : the degree vector of the vertices.
-            It is represented as a Nx1 vector counting the number of
-            connections that each node possesses.
-        - gtype : the graph type is a short description of the graph object.
-            It is a string designed to help sorting the graphs
-        - directed : the flag to assess if the graph is directed or not.
-            In this framework, we consider that a graph is directed if and
-            only if its weight matrix is non symmetric.
-        - L : the graph Laplacian matrix.
-            It is represented as an N-by-N matrix computed from W.
-        - lap_type : string that determines which kind of laplacian to compute.
-            From a given matrix W, there exist several Laplacians that could
-            be computed.
-        - coords : the coordinates of the vertices in the 2D or 3D space for
-            plotting. The default is None.
-        - plotting : all the plotting parameters go here.
-            They depend on the library used for plotting.
-
+    * Provide a common interface to graph objects.
+    * Can be instantiated to construct custom graphs from a weight matrix.
+    * Initialize attributes for derived classes.
 
     Parameters
     ----------
-    W : sparse matrix or ndarray (data is float)
-        Weight matrix. Mandatory.
+    W : sparse matrix or ndarray
+        weight matrix which encodes the graph
     gtype : string
-        Graph type (default is "unknown")
-    lap_type : string
+        graph type (default is 'unknown')
+    lap_type : 'none', 'normalized', 'combinatorial'
         Laplacian type (default is 'combinatorial')
     coords : ndarray
-        Coordinates of the vertices (default is None)
+        vertices coordinates (default is None)
     plotting : dict
-        Dictionnary containing the plotting parameters
+        plotting parameters
 
+    Attributes
+    ----------
+
+    N : int
+        the number of nodes / vertices in the graph.
+    Ne : int
+        the number of edges / links in the graph, i.e. connections between
+        nodes.
+    W : ndarray
+        the weight matrix which contains the weights of the connections.
+        It is represented as an N-by-N matrix of floats.
+        :math:`W_{i,j} = 0` means that there is no direct connection from
+        i to j.
+    A : sparse matrix or ndarray
+        the adjacency matrix defines which edges exist on the graph.
+        It is represented as an N-by-N matrix of booleans.
+        :math:`A_{i,j}` is True if :math:`W_{i,j} > 0`.
+    d : ndarray
+        the degree vector is a vector of length N which represents the number
+        of edges connected to each node.
+    gtype : string
+        the graph type is a short description of the graph object designed to
+        help sorting the graphs.
+    directed : bool
+        indicates if the graph is directed or not.
+        In this framework, we consider that a graph is directed if and
+        only if its weight matrix is non symmetric.
+    L : sparse matrix or ndarray
+        the graph Laplacian, an N-by-N matrix computed from W.
+    lap_type : 'none', 'normalized', 'combinatorial'
+        determines which kind of Laplacian will be computed by
+        :func:`create_laplacian`.
+    coords : ndarray
+        vertices coordinates in 2D or 3D space. Used for plotting only. Default
+        is None.
+    plotting : dict
+        plotting parameters.
 
     Examples
     --------
@@ -519,7 +521,7 @@ class Graph(object):
         r"""
         Split the graph into several connected components.
 
-        See the doc of `is_connected` for the method used to determine
+        See :func:`is_connected` for the method used to determine
         connectedness.
 
         Returns
@@ -656,7 +658,7 @@ class Graph(object):
         Parameters
         ----------
         lap_type : string
-            The laplacian type to use. Default is "combinatorial". Other
+            The laplacian type to use. Default is 'combinatorial'. Other
             possible values are 'none' and 'normalized', which are not yet
             implemented for directed graphs.
 
@@ -736,16 +738,16 @@ class Graph(object):
         r"""
         Plot the graph.
 
-        See plotting doc.
+        See :func:`pygsp.plotting.plot_graph`.
         """
         from pygsp import plotting
         plotting.plot_graph(self, show_plot=True, **kwargs)
 
     def plot_signal(self, signal, **kwargs):
         r"""
-        Plot the graph signal.
+        Plot a signal on that graph.
 
-        See plotting doc.
+        See :func:`pygsp.plotting.plot_signal`.
         """
         from pygsp import plotting
         plotting.plot_signal(self, signal, show_plot=True, **kwargs)
@@ -754,7 +756,7 @@ class Graph(object):
         r"""
         Plot the spectrogram for the graph object.
 
-        See plotting doc on spectrogram.
+        See :func:`pygsp.plotting.plot_spectrogram`.
         """
         from pygsp import plotting
         plotting.plot_spectrogram(self, **kwargs)
