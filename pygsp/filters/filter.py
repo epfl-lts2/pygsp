@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from .. import utils
-from ..operators import fast_filtering, operator
-
-import numpy as np
 from math import log
 from copy import deepcopy
+
+import numpy as np
+
+from .. import utils
+from ..operators import operator
+from . import approximations
 
 
 class Filter(object):
@@ -76,12 +78,12 @@ class Filter(object):
                 self.logger.info('FILTER_ANALYSIS: computing lmax.')
                 self.G.estimate_lmax()
 
-            cheb_coef = fast_filtering.compute_cheby_coeff(self, m=cheb_order)
-            c = fast_filtering.cheby_op(self.G, cheb_coef, s)
+            cheb_coef = approximations.compute_cheby_coeff(self, m=cheb_order)
+            c = approximations.cheby_op(self.G, cheb_coef, s)
 
         elif method == 'lanczos':  # Lanczos approx
             raise NotImplementedError
-            # c = fast_filtering.lanczos_op(self, s, order=lanczos_order)
+            # c = approximations.lanczos_op(self, s, order=lanczos_order)
 
         elif method == 'exact':  # Exact computation
             if not hasattr(self.G, 'e') or not hasattr(self.G, 'U'):
@@ -229,13 +231,13 @@ class Filter(object):
                                  'The function will compute it for you.')
                 self.G.estimate_lmax()
 
-            cheb_coeffs = fast_filtering.compute_cheby_coeff(
+            cheb_coeffs = approximations.compute_cheby_coeff(
                 self, m=order, N=order + 1)
             s = np.zeros((N, np.shape(c)[1]))
             tmpN = np.arange(N, dtype=int)
 
             for i in range(Nf):
-                s = s + fast_filtering.cheby_op(self.G,
+                s = s + approximations.cheby_op(self.G,
                                           cheb_coeffs[i], c[i * N + tmpN])
 
         elif method == 'lanczos':
@@ -243,7 +245,7 @@ class Filter(object):
             tmpN = np.arange(N, dtype=int)
 
             for i in range(Nf):
-                s += fast_filtering.lanczos_op(self.G, self.g[i],
+                s += approximations.lanczos_op(self.G, self.g[i],
                                                c[i * N + tmpN],
                                                order=order)
 
