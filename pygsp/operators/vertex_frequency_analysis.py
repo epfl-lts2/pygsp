@@ -42,7 +42,7 @@ def generalized_wft(G, g, f, lowmemory=True):
 
     if not lowmemory:
         # Compute the Frame into a big matrix
-        Frame = gwft_frame_matrix(G, g)
+        Frame = _gwft_frame_matrix(G, g)
 
         C = np.dot(Frame.T, f)
         C = np.reshape(C, (G.N, G.N, Nf), order='F')
@@ -90,7 +90,7 @@ def gabor_wft(G, f, k):
     return C
 
 
-def gwft_frame_matrix(G, g):
+def _gwft_frame_matrix(G, g):
     r"""
     Create the matrix of the GWFT frame
 
@@ -142,7 +142,7 @@ def ngwft(G, f, g, lowmemory=True):
 
     if lowmemory:
         # Compute the Frame into a big matrix
-        Frame = ngwft_frame_matrix(G, g)
+        Frame = _ngwft_frame_matrix(G, g)
         C = np.dot(Frame.T, f)
         C = np.reshape(C, (G.N, G.N), order='F')
 
@@ -163,7 +163,7 @@ def ngwft(G, f, g, lowmemory=True):
     return C
 
 
-def ngwft_frame_matrix(G, g):
+def _ngwft_frame_matrix(G, g):
     r"""
     Create the matrix of the GWFT frame
 

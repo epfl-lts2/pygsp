@@ -529,7 +529,7 @@ def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
             ca.append(s_pred + pe[levels - i - 1])
 
         else:
-            ca.append(pyramid_single_interpolation(Gs[levels - i - 1], ca[i],
+            ca.append(_pyramid_single_interpolation(Gs[levels - i - 1], ca[i],
                       pe[levels - i - 1], h_filters[levels - i - 1],
                       use_landweber=use_landweber, **kwargs))
 
@@ -539,7 +539,7 @@ def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
     return reconstruction, ca
 
 
-def pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
+def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
     r"""
     Sythesize a single level of the graph pyramid transform.
 
@@ -622,7 +622,7 @@ def pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
         finer_approx = spsolve(Ta.T * Ta, Ta.T * np.concatenate((ca, pe), axis=0))
 
 
-def tree_depths(A, root):
+def _tree_depths(A, root):
     r"""Empty docstring. TODO."""
     if not Graph(A=A).is_connected():
         raise ValueError('Graph is not connected')
@@ -691,7 +691,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         Gs[0].compute_fourier_basis()
 
     subsampled_vertex_indices = []
-    depths, parents = tree_depths(G.A, root)
+    depths, parents = _tree_depths(G.A, root)
     old_W = G.W
 
     for lev in range(Nlevel):
