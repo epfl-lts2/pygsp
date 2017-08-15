@@ -7,7 +7,6 @@ Test suite for the utils module of the pygsp package.
 
 import unittest
 import numpy as np
-import numpy.testing as nptest
 from scipy import sparse
 from pygsp import utils, graphs, operators
 
