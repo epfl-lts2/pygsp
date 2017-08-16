@@ -39,8 +39,8 @@ It is simply a projection on the B2-ball.
 Results and code
 ----------------
 
->>> from pygsp import graphs
 >>> import numpy as np
+>>> from pygsp import graphs
 >>>
 >>> # Create a random sensor graph
 >>> G = graphs.Sensor(N=256, distribute=True)

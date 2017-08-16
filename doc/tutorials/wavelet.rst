@@ -10,9 +10,9 @@ The wavelets are a special type of filterbank, in this demo we will show you how
 In this demo we will show you how to compute the wavelet coefficients of a graph and visualize them.
 First let's import the toolbox, numpy and load a graph.
 
->>> import pygsp
 >>> import numpy as np
->>> G = pygsp.graphs.Bunny()
+>>> from pygsp import graphs, filters
+>>> G = graphs.Bunny()
 
 This graph is a nearest-neighbor graph of a pointcloud of the Stanford bunny. It will allow us to get interesting visual results using wavelets.
 
@@ -28,7 +28,7 @@ Simple filtering
 Before tackling wavelets, we can see the effect of one filter localized on the graph. So we can first design a few heat kernel filters
 
 >>> taus = [1, 10, 25, 50]
->>> Hk = pygsp.filters.Heat(G, taus, normalize=False)
+>>> Hk = filters.Heat(G, taus, normalize=False)
 
 Let's now create a signal as a Kronecker located on one vertex (e.g. the vertex 83)
 
@@ -72,10 +72,10 @@ Let's plot the signal:
 Visualizing wavelets atoms
 --------------------------
 
-Let's now replace the Heat filter by a filter bank of wavelets. We can create a filter bank using one of the predefined filters such as pygsp.filters.MexicanHat.
+Let's now replace the Heat filter by a filter bank of wavelets. We can create a filter bank using one of the predefined filters such as :func:`pygsp.filters.MexicanHat`.
 
 >>> Nf = 6
->>> Wk = pygsp.filters.MexicanHat(G, Nf)
+>>> Wk = filters.MexicanHat(G, Nf)
 
 We can now plot the filter bank spectrum :
 
@@ -113,8 +113,8 @@ We can visualize the filtering by one atom the same way the did for the Heat ker
 .. figure:: img/wavelet_3.*
 .. figure:: img/wavelet_4.*
 
->>> G = pygsp.graphs.Bunny()
->>> Wk = pygsp.filters.MexicanHat(G, Nf)
+>>> G = graphs.Bunny()
+>>> Wk = filters.MexicanHat(G, Nf)
 >>> s_map = G.coords
 
 >>> s_map_out = Wk.analysis(s_map)
