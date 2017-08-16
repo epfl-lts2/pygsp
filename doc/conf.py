@@ -21,6 +21,9 @@ copyright = 'EPFL LTS2'
 
 pygments_style = 'sphinx'
 html_theme = 'sphinx_rtd_theme'
+html_theme_options = {
+    'navigation_depth': 2,
+}
 latex_elements = {
     'papersize': 'a4paper',
     'pointsize': '10pt',
