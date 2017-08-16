@@ -9,14 +9,35 @@ Tools for the analysis, the synthesis and the evaluation are provided to work wi
 For specific information, :ref:`see details here<filters-api>`.
 """
 
-import importlib
-import sys
+from pygsp import utils as _utils
 
-__all__ = ['Filter', 'Abspline', 'Expwin', 'Gabor', 'HalfCosine', 'Heat', 'Held', 'Itersine', 'MexicanHat', 'Meyer',
-           'Papadakis', 'Regular', 'Simoncelli', 'SimpleTf', 'WarpedTranslates']
+_FILTERS = [
+    'Filter',
+    'Abspline',
+    'Expwin',
+    'Gabor',
+    'HalfCosine',
+    'Heat',
+    'Held',
+    'Itersine',
+    'MexicanHat',
+    'Meyer',
+    'Papadakis',
+    'Regular',
+    'Simoncelli',
+    'SimpleTf',
+    'WarpedTranslates'
+]
+_APPROXIMATIONS = [
+    'compute_cheby_coeff',
+    'compute_jackson_cheby_coeff',
+    'cheby_op',
+    'cheby_rect',
+    'lanczos',
+    'lanczos_op'
+]
 
-# Automaticaly import all classes from subfiles defined in __all__
-for class_to_import in __all__:
-    setattr(sys.modules[__name__], class_to_import, getattr(importlib.import_module('.' + class_to_import.lower(), 'pygsp.filters'), class_to_import))
+__all__ = _FILTERS + _APPROXIMATIONS
 
-from .approximations import *
+_utils.import_classes(_FILTERS, 'filters', 'filters')
+_utils.import_functions(_APPROXIMATIONS, 'filters.approximations', 'filters')

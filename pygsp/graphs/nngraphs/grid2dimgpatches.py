@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import ImgPatches
-from .. import Graph, Grid2d
+from pygsp.graphs import Graph, Grid2d, ImgPatches
 
 
 class Grid2dImgPatches(Graph):
@@ -25,10 +24,10 @@ class Grid2dImgPatches(Graph):
 
     Examples
     --------
-    >>> from pygsp.graphs import nngraphs
+    >>> from pygsp import graphs
     >>> from skimage import data, img_as_float
     >>> img = img_as_float(data.camera()[::32, ::32])
-    >>> G = nngraphs.Grid2dImgPatches(img)
+    >>> G = graphs.Grid2dImgPatches(img)
 
     """
 

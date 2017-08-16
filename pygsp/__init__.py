@@ -13,30 +13,20 @@ You can find detailed documentation on the use of the functions in the
 subsequent pages.
 """
 
-# When importing the toolbox, you surely want these modules.
-from pygsp import data_handling
-from pygsp import optimization
-from pygsp import plotting
-from pygsp import utils
-from pygsp import filters
-from pygsp import graphs
+from pygsp import utils as _utils
 
-# Module features have to be imported after graphs and filters, otherwise we
-# get a circular dependency error.
-from pygsp import features
+__all__ = [
+    'graphs',
+    'filters',
+    'operators',
+    'plotting',
+    'features',
+    'data_handling',
+    'optimization',
+    'utils',
+]
 
-from pygsp import operators
-
-
-# Silence the code checker warning about unused symbols.
-assert data_handling
-assert filters
-assert graphs
-assert operators
-assert optimization
-assert features
-assert plotting
-assert utils
+_utils.import_modules(__all__[::-1], 'pygsp', 'pygsp')
 
 __version__ = '0.4.2'
 __release_date__ = '2017-04-27'

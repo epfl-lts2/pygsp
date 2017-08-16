@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from . import NNGraph
-from ...utils import loadmat
+from pygsp.graphs import NNGraph
+from pygsp.utils import loadmat
 
 
 class Bunny(NNGraph):

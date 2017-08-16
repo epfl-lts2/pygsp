@@ -6,7 +6,7 @@ import numpy as np
 from scipy import sparse
 from scipy.linalg import svd
 
-from ..utils import build_logger
+from pygsp.utils import build_logger
 
 
 class Graph(object):
@@ -238,7 +238,7 @@ class Graph(object):
                                      'the valid attributes, which are '
                                      '{}').format(i, valid_attributes))
 
-        from .nngraphs import NNGraph
+        from pygsp.graphs import NNGraph
         if isinstance(self, NNGraph):
             super(NNGraph, self).__init__(**graph_attr)
         else:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from . import NNGraph
-from ...features import patch_features
+from pygsp.graphs import NNGraph
+from pygsp.features import patch_features
 
 
 class ImgPatches(NNGraph):
@@ -23,10 +23,10 @@ class ImgPatches(NNGraph):
 
     Examples
     --------
-    >>> from pygsp.graphs import nngraphs
+    >>> from pygsp import graphs
     >>> from skimage import data, img_as_float
     >>> img = img_as_float(data.camera()[::2, ::2])
-    >>> G = nngraphs.ImgPatches(img)
+    >>> G = graphs.ImgPatches(img)
 
     """
 

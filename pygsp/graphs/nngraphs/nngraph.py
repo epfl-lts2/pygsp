@@ -4,8 +4,8 @@ import numpy as np
 from scipy.sparse import csc_matrix
 from scipy.spatial import KDTree
 
-from .. import Graph
-from ...utils import symmetrize
+from pygsp.graphs import Graph
+from pygsp.utils import symmetrize
 
 try:
     import pyflann as fl

@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from . import NNGraph
+from pygsp.graphs import NNGraph
 
 
 class Cube(NNGraph):
