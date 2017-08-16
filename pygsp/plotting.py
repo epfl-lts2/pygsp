@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 r"""
-The :mod:`pygsp.plotting` module implements functionality to plot the PyGSP
-main objects with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
+The :mod:`pygsp.plotting` module implements functionality to plot PyGSP objects
+with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
 <https://matplotlib.org>`_ drawing backend:
 
 * graphs from :mod:`pygsp.graphs` with :func:`plot_graph`,
   :func:`plot_spectrogram`, and :func:`plot_signal`,
-* filters from :mod:`pygsp.filters` with :func:`plot_filter`,
-* point clouds from :mod:`pygsp.pointclouds` with :func:`plot_pointcloud`.
+* filters from :mod:`pygsp.filters` with :func:`plot_filter`.
 
 """
 
@@ -70,13 +69,13 @@ def plot(O, **kwargs):
     r"""
     Main plotting function.
 
-    This convenience function either calls :func:`plot_graph`,
-    :func:`plot_pointcloud` or :func:`plot_filter` given the type of the passed
-    object. Parameters can be passed to those functions.
+    This convenience function either calls :func:`plot_graph` or
+    :func:`plot_filter` given the type of the passed object. Parameters can be
+    passed to those functions.
 
     Parameters
     ----------
-    O : Graph, Filter, PointCloud
+    O : Graph, Filter
         object to plot
 
     Examples
@@ -87,18 +86,14 @@ def plot(O, **kwargs):
 
     """
     from .graphs import Graph
-    from .pointclouds import PointCloud
     from .filters import Filter
 
     if issubclass(type(O), Graph):
         plot_graph(O, **kwargs)
-    elif issubclass(type(O), PointCloud):
-        plot_pointcloud(O, **kwargs)
     elif issubclass(type(O), Filter):
         plot_filter(O, **kwargs)
     else:
-        raise TypeError('Unrecognized object type, be sure it is a '
-                        'PointCloud, a Filter or a Graph.')
+        raise TypeError('Unrecognized object type, i.e. not Graph or Filter.')
 
 
 def plot_graph(G, default_qtg=True, **kwargs):
@@ -230,6 +225,7 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name
                             marker='o', markersize=G.plotting['vertex_size'],
                             markerfacecolor=G.plotting['vertex_color'])
     else:
+        # TODO: is ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo') faster?
         if G.coords.shape[1] == 2:
             ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
                        s=G.plotting['vertex_size'],
@@ -360,36 +356,6 @@ def _pg_plot_graph(G, show_edges=None, plot_name=''):
             w.addItem(gp)
 
             window_list[str(uuid.uuid4())] = app
-
-
-def plot_pointcloud(P):
-    r"""
-    Plot the coordinates of a pointcloud.
-
-    Parameters
-    ----------
-    P : PointCloud
-        Point cloud to plot.
-
-    Examples
-    --------
-    >>> from pygsp import plotting, pointclouds
-    >>> logo = pointclouds.PointCloud('logo')
-    >>> plotting.plot_pointcloud(logo)
-
-    """
-    if P.coords.shape[1] == 2:
-        fig = plt.figure(plid.plot_id)
-        plid.plot_id += 1
-        ax = fig.add_subplot(111)
-        ax.plot(P.coords[:, 0], P.coords[:, 1], 'bo')
-        # plt.show()
-    if P.coords.shape[1] == 3:
-        fig = plt.figure(plid.plot_id)
-        plid.plot_id += 1
-        ax = fig.add_subplot(111, projection='3d')
-        ax.plot(P.coords[:, 0], P.coords[:, 1], P.coords[:, 2], 'bo')
-        # plt.show()
 
 
 def plot_filter(filters, npoints=1000, line_width=4, x_width=3,

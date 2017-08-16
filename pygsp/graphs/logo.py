@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-from ..pointclouds import PointCloud
-
 import numpy as np
+
+from . import Graph
+from ..utils import loadmat
 
 
 class Logo(Graph):
@@ -18,11 +18,15 @@ class Logo(Graph):
     """
 
     def __init__(self, **kwargs):
-        logo = PointCloud("logo")
 
-        self.info = logo.info
+        data = loadmat('pointclouds/logogsp')
+
+        self.info = {"idx_g": data["idx_g"],
+                     "idx_s": data["idx_s"],
+                     "idx_p": data["idx_p"]}
 
         plotting = {"limits": np.array([0, 640, -400, 0])}
 
-        super(Logo, self).__init__(W=logo.W, coords=logo.coords, gtype='LogoGSP',
-                                   plotting=plotting, **kwargs)
+        super(Logo, self).__init__(W=data['W'], coords=data['coords'],
+                                   gtype='LogoGSP', plotting=plotting,
+                                   **kwargs)

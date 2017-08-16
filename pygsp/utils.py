@@ -7,10 +7,13 @@ the package.
 
 import logging
 from functools import wraps
+from pkgutil import get_data
+from io import BytesIO
 
 import numpy as np
 from scipy import kron, ones
 from scipy import sparse
+from scipy.io import loadmat as scipy_loadmat
 
 
 def build_logger(name, **kwargs):
@@ -85,6 +88,34 @@ def pyunlocbox_required(func):
         except ImportError:
             logger.error('Cannot import pyunlocbox')
         return func(*args, **kwargs)
+
+
+def loadmat(path):
+    r"""
+    Load a matlab data file.
+
+    Parameters
+    ----------
+    path : string
+        Path to the mat file from the data folder, without the .mat extension.
+
+    Returns
+    -------
+    data : dict
+        dictionary with variable names as keys, and loaded matrices as
+        values.
+
+    Examples
+    --------
+    >>> from pygsp.utils import loadmat
+    >>> data = loadmat('pointclouds/bunny')
+    >>> data['bunny'].shape
+    (2503, 3)
+
+    """
+    data = get_data('pygsp', 'data/' + path + '.mat')
+    data = BytesIO(data)
+    return scipy_loadmat(data)
 
 
 def distanz(x, y=None):

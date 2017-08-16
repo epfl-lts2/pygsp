@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from ..pointclouds import PointCloud
-from . import Graph
-
 import numpy as np
+
+from . import Graph
+from ..utils import loadmat
 
 
 class Minnesota(Graph):
@@ -15,26 +15,29 @@ class Minnesota(Graph):
     connect : bool
         Change the graph to be connected. (default = True)
 
+    References
+    ----------
+    See :cite:`gleich`
+
     Examples
     --------
     >>> from pygsp import graphs
     >>> G = graphs.Minnesota()
 
-    References
-    ----------
-    See :cite:`gleich`
-
     """
 
     def __init__(self, connect=True):
-        minnesota = PointCloud('minnesota')
+
+        data = loadmat('pointclouds/minnesota')
+        self.labels = data['labels']
+        A = data['A']
 
         plotting = {"limits": np.array([-98, -89, 43, 50]),
                     "vertex_size": 30}
 
         if connect:
             # Edit adjacency matrix
-            A = (minnesota.A > 0).astype(int)
+            A = (A > 0).astype(int)
 
             # clean minnesota graph
             A.setdiag(0)
@@ -58,5 +61,5 @@ class Minnesota(Graph):
         else:
             gtype = 'minnesota-disconnected'
 
-        super(Minnesota, self).__init__(W=A, coords=minnesota.coords,
+        super(Minnesota, self).__init__(W=A, coords=data['xy'],
                                         gtype=gtype, plotting=plotting)

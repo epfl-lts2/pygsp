@@ -16,7 +16,7 @@ except Exception as e:
 
 class NNGraph(Graph):
     r"""
-    Creates a graph from a pointcloud.
+    Create a nearest-neighbor graph from a point cloud.
 
     Parameters
     ----------
@@ -71,11 +71,7 @@ class NNGraph(Graph):
                  plotting={}, symmetrize_type='average', dist_type='euclidean',
                  order=0, **kwargs):
 
-        if Xin is None:
-            raise ValueError('You must enter a Xin to process the NNgraph')
-        else:
-            self.Xin = Xin
-
+        self.Xin = Xin
         self.NNtype = NNtype
         self.use_flann = use_flann
         self.center = center

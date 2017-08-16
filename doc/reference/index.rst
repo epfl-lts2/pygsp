@@ -10,7 +10,6 @@ Reference guide
     graphs
     filters
     operators
-    pointclouds
     plotting
     features
     data_handling

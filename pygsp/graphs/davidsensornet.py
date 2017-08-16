@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-from ..pointclouds import PointCloud
-from ..utils import distanz
-
 import numpy as np
-from scipy import sparse
+
+from . import Graph
+from ..utils import loadmat, distanz
 
 
 class DavidSensorNet(Graph):
@@ -15,25 +13,31 @@ class DavidSensorNet(Graph):
     Parameters
     ----------
     N : int
-        Number of vertices (default = 64)
+        Number of vertices (default = 64). Values of 64 and 500 yield
+        pre-computed and saved graphs. Other values yield randomly generated
+        graphs.
 
     Examples
     --------
     >>> from pygsp import graphs
+    >>> G = graphs.DavidSensorNet(N=64)
     >>> G = graphs.DavidSensorNet(N=500)
+    >>> G = graphs.DavidSensorNet(N=123)
 
     """
 
     def __init__(self, N=64):
         if N == 64:
-            david64 = PointCloud("david64")
-            W = david64.W
-            coords = david64.coords
+            data = loadmat('pointclouds/david64')
+            assert data['N'][0, 0] == N
+            W = data['W']
+            coords = data['coords']
 
         elif N == 500:
-            david500 = PointCloud("david500")
-            W = david500.W
-            coords = david500.coords
+            data = loadmat('pointclouds/david500')
+            assert data['N'][0, 0] == N
+            W = data['W']
+            coords = data['coords']
 
         else:
             coords = np.random.rand(N, 2)

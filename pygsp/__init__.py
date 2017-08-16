@@ -26,7 +26,6 @@ from pygsp import graphs
 from pygsp import features
 
 from pygsp import operators
-from pygsp import pointclouds
 
 
 # Silence the code checker warning about unused symbols.
@@ -35,7 +34,6 @@ assert filters
 assert graphs
 assert operators
 assert optimization
-assert pointclouds
 assert features
 assert plotting
 assert utils

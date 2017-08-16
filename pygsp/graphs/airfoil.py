@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-from ..pointclouds import PointCloud
-
 import numpy as np
-from scipy import sparse
+from scipy.sparse import coo_matrix
+
+from . import Graph
+from ..utils import loadmat
 
 
 class Airfoil(Graph):
@@ -20,20 +20,17 @@ class Airfoil(Graph):
 
     def __init__(self, **kwargs):
 
-        airfoil = PointCloud("airfoil")
-        i_inds = airfoil.i_inds
-        j_inds = airfoil.j_inds
+        data = loadmat('pointclouds/airfoil')
+        coords = np.concatenate((data['x'], data['y']), axis=1)
 
-        A = sparse.coo_matrix((np.ones((12289)),
-                              (np.reshape(i_inds - 1, (12289)),
-                               np.reshape(j_inds - 1, (12289)))),
-                              shape=(4253, 4253))
+        i_inds = np.reshape(data['i_inds'] - 1, 12289)
+        j_inds = np.reshape(data['j_inds'] - 1, 12289)
+        A = coo_matrix((np.ones(12289), (i_inds, j_inds)), shape=(4253, 4253))
         W = (A + A.T) / 2.
 
         plotting = {"vertex_size": 30,
-                    "limits": np.array([-1e-4, 1.01*np.max(airfoil.x),
-                                        -1e-4, 1.01*np.max(airfoil.y)])}
+                    "limits": np.array([-1e-4, 1.01*data['x'].max(),
+                                        -1e-4, 1.01*data['y'].max()])}
 
-        super(Airfoil, self).__init__(W=W, coords=airfoil.coords,
-                                      plotting=plotting, gtype='Airfoil',
-                                      **kwargs)
+        super(Airfoil, self).__init__(W=W, coords=coords, plotting=plotting,
+                                      gtype='Airfoil', **kwargs)
