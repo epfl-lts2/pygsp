@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
 
-"""
-This toolbox is splitted in different modules taking care of the different
-aspects of Graph Signal Processing.
+r"""
+The :mod:`pygsp` package is mainly organized around the following three
+modules:
 
-Those modules are : :ref:`Graphs <graphs-api>`, :ref:`Filters <filters-api>`,
-:ref:`Operators <operators-api>`, :ref:`PointCloud <pointclouds-api>`,
-:ref:`Plotting <plotting-api>`, :ref:`Data Handling <data_handling-api>` and
-:ref:`Utils <utils-api>`.
+* :mod:`pygsp.graphs` to create and manipulate various kinds of graphs,
+* :mod:`pygsp.filters` to create and manipulate various graph filters,
+* :mod:`pygsp.operators` to apply various operators to graph signals.
 
-You can find detailed documentation on the use of the functions in the
-subsequent pages.
+Moreover, the following modules provide additional functionality:
+
+* :mod:`pygsp.plotting` to plot,
+* :mod:`pygsp.features` to compute features on graphs,
+* :mod:`pygsp.data_handling` to manipulate data,
+* :mod:`pygsp.optimization` to help solving convex optimization problems,
+* :mod:`pygsp.utils` for various utilities.
+
 """
 
 from pygsp import utils as _utils
