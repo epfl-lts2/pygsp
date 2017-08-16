@@ -2,6 +2,6 @@
 Optimization
 ============
 
-Prox TV
--------
-.. autofunction:: pygsp.optimization.prox_tv
+.. automodule:: pygsp.optimization
+    :members:
+    :undoc-members:

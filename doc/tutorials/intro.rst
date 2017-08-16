@@ -14,7 +14,7 @@ The first step is to create a graph, there's a general class that can be used to
 >>> W = np.random.rand(400, 400)
 >>> G = pygsp.graphs.Graph(W)
 
-You have now a graph structure ready to be used everywhere in the box! Check the :ref:`reference-guide` to know more about the Graph class and it's subclasses.
+You have now a graph structure ready to be used everywhere in the box! Check the :mod:`pygsp.graphs` module to know more about the Graph class and it's subclasses.
 You can also check the included methods for all graphs with the usual help function.
 
 For the next steps of the demo, we will be using the logo graph bundled with the toolbox :
@@ -32,7 +32,7 @@ Looks good isn't it? Now we can start to analyse the graph. The next step to com
 >>> G.compute_fourier_basis()
 
 You can now access the eigenvalues of the fourier basis with G.e and the eigenvectors G.U, they look like sinuses on the graph.
-Let's plot the second and third eigenvector, as the one is only constant.
+Let's plot the second and third eigenvectors, as the first is constant.
 
 >>> G.plot_signal(G.U[:, 1], vertex_size=50, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/logo_second_eigenvector')
 >>> G.plot_signal(G.U[:, 2], vertex_size=50, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/logo_third_eigenvector')
@@ -90,6 +90,6 @@ Finally here's the noisy signal and the denoised version right under.
 .. image:: img/noisy_logo.*
 .. image:: img/denoised_logo.*
 
-So here are the basics for the PyGSP toolbox, please check the other tutorials or the `reference guide <reference-guide>` for more.
+So here are the basics for the PyGSP toolbox, please check the other tutorials or the reference guide for more.
 
 Enjoy the toolbox!

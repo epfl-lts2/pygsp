@@ -1,13 +1,7 @@
-.. _pointclouds-api:
+============
+Point Clouds
+============
 
-===========
-PointClouds
-===========
-
-PointCloud Class
-----------------
-
-.. autoclass:: pygsp.pointclouds.PointCloud
-    :undoc-members:
-    :show-inheritance:
+.. automodule:: pygsp.pointclouds
     :members:
+    :undoc-members:

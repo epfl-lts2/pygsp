@@ -3,4 +3,5 @@ Features
 ========
 
 .. automodule:: pygsp.features
-   :members:
+    :members:
+    :undoc-members:
