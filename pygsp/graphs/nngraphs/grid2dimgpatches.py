@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import ImgPatches
-from .. import Grid2d
-from ..graph import Graph
+from .. import Graph, Grid2d
 
 
 class Grid2dImgPatches(Graph):

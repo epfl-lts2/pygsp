@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-
 import numpy as np
-from scipy import sparse
+from scipy.sparse import csc_matrix
+
+from . import Graph
 
 
 class Torus(Graph):
@@ -65,8 +65,8 @@ class Torus(Graph):
         j_inds[K*Mv + (Mv - 1)*2*Nv + tmp2Nv] = \
             np.concatenate(((Mv - 1)*Nv + tmpNv, tmpNv))
 
-        W = sparse.csc_matrix((np.ones((K*Mv + J*Nv)), (i_inds, j_inds)),
-                              shape=(Mv*Nv, Mv*Nv))
+        W = csc_matrix((np.ones((K*Mv + J*Nv)), (i_inds, j_inds)),
+                       shape=(Mv*Nv, Mv*Nv))
 
         # Create coordinate
         T = 1.5 + np.sin(np.arange(Mv)*2*np.pi/Mv).reshape(1, Mv)

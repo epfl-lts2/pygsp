@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from . import NNGraph
-
 import numpy as np
+
+from . import NNGraph
 
 
 class Cube(NNGraph):

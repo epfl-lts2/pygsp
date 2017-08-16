@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-
 import numpy as np
-from scipy import sparse
+from scipy.sparse import csc_matrix
+
+from . import Graph
 
 
 class Path(Graph):
@@ -31,8 +31,8 @@ class Path(Graph):
         inds_i = np.concatenate((np.arange(N - 1), np.arange(1, N)))
         inds_j = np.concatenate((np.arange(1, N), np.arange(N - 1)))
 
-        W = sparse.csc_matrix((np.ones((2*(N - 1))), (inds_i, inds_j)),
-                              shape=(N, N))
+        W = csc_matrix((np.ones((2*(N - 1))), (inds_i, inds_j)),
+                       shape=(N, N))
         coords = np.concatenate(((np.arange(N) + 1)[:, np.newaxis],
                                  np.zeros((N, 1))),
                                 axis=1)

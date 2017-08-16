@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-from pygsp.utils import build_logger
-
 from collections import Counter
 from copy import deepcopy
+
 import numpy as np
-from scipy import sparse, spatial
+from scipy.sparse import coo_matrix
+from scipy.spatial import KDTree
+
+from . import Graph
+from ..utils import build_logger
 
 
 class Community(Graph):
@@ -139,7 +141,7 @@ class Community(Graph):
 
             elif k_neigh:
                 comm_coords = coords[first_node:first_node + com_siz]
-                kdtree = spatial.KDTree(comm_coords)
+                kdtree = KDTree(comm_coords)
                 __, indices = kdtree.query(comm_coords, k=k_neigh + 1)
 
                 pairs_set = set()
@@ -151,7 +153,7 @@ class Community(Graph):
 
             else:
                 comm_coords = coords[first_node:first_node + com_siz]
-                kdtree = spatial.KDTree(comm_coords)
+                kdtree = KDTree(comm_coords)
                 pairs_set = kdtree.query_pairs(epsilon)
 
                 w_data[0] += [1] * len(pairs_set)
@@ -198,7 +200,7 @@ class Community(Graph):
         w_data[1][1] += tmp_w_data
         w_data[1] = tuple(w_data[1])
 
-        W = sparse.coo_matrix(tuple(w_data), shape=(N, N))
+        W = coo_matrix(tuple(w_data), shape=(N, N))
 
         for key, value in {'Nc': Nc, 'info': info}.items():
             setattr(self, key, value)

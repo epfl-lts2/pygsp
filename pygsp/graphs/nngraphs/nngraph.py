@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from scipy.sparse import csc_matrix
+from scipy.spatial import KDTree
 
 from .. import Graph
 from ...utils import symmetrize
-from scipy import sparse, spatial
 
 try:
     import pyflann as fl
@@ -123,7 +124,7 @@ class NNGraph(Graph):
                                  algorithm='kdtree')
 
             else:
-                kdt = spatial.KDTree(Xout)
+                kdt = KDTree(Xout)
                 D, NN = kdt.query(Xout, k=(k + 1),
                                   p=dist_translation[dist_type])
 
@@ -135,7 +136,7 @@ class NNGraph(Graph):
 
         elif self.NNtype == 'radius':
 
-            kdt = spatial.KDTree(Xout)
+            kdt = KDTree(Xout)
             D, NN = kdt.query(Xout, k=None, distance_upper_bound=epsilon,
                               p=dist_translation[dist_type])
             count = 0
@@ -158,7 +159,7 @@ class NNGraph(Graph):
         else:
             raise ValueError('Unknown type : allowed values are knn, radius')
 
-        W = sparse.csc_matrix((spv, (spi, spj)), shape=(N, N))
+        W = csc_matrix((spv, (spi, spj)), shape=(N, N))
 
         # Sanity check
         if np.shape(W)[0] != np.shape(W)[1]:

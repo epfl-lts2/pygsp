@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import numpy as np
+from scipy.sparse import lil_matrix, csc_matrix
+
 from . import Graph
 from ..utils import distanz
-
-import numpy as np
-from scipy import sparse
-from math import ceil, sqrt, log
 
 
 class Sensor(Graph):
@@ -57,7 +56,7 @@ class Sensor(Graph):
         else:
             W, coords = self._create_weight_matrix(N, distribute, regular, Nc)
 
-        W = sparse.lil_matrix(W)
+        W = lil_matrix(W)
         W = (W + W.T) / 2.
 
         gtype = 'regular sensor' if self.regular else 'sensor'
@@ -88,7 +87,7 @@ class Sensor(Graph):
         YCoords = np.zeros((N, 1))
 
         if param_distribute:
-            mdim = int(ceil(sqrt(N)))
+            mdim = int(np.ceil(np.sqrt(N)))
             for i in range(mdim):
                 for j in range(mdim):
                     if i*mdim + j < N:
@@ -105,7 +104,7 @@ class Sensor(Graph):
         # Compute the distanz between all the points
         target_dist_cutoff = 2*N**(-0.5)
         T = 0.6
-        s = sqrt(-target_dist_cutoff**2/(2*log(T)))
+        s = np.sqrt(-target_dist_cutoff**2/(2*np.log(T)))
         d = distanz(x=coords.T)
         W = np.exp(-d**2/(2.*s**2))
         W -= np.diag(np.diag(W))
@@ -118,5 +117,5 @@ class Sensor(Graph):
             W = np.where(W < T, 0, W)
             W = np.where(W2 > 0, W2, W)
 
-        W = sparse.csc_matrix(W)
+        W = csc_matrix(W)
         return W, coords

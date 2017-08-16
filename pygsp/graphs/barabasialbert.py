@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-from pygsp.utils import build_logger
-
 import numpy as np
-from scipy import sparse
+from scipy.sparse import lil_matrix
+
+from . import Graph
+from ..utils import build_logger
 
 
 class BarabasiAlbert(Graph):
@@ -42,7 +42,7 @@ class BarabasiAlbert(Graph):
             raise ValueError("GSP_BarabasiAlbert: The parameter m "
                              "cannot be above m0.")
 
-        W = sparse.lil_matrix((N, N))
+        W = lil_matrix((N, N))
 
         for i in range(m0, N):
             distr = W.sum(axis=1)

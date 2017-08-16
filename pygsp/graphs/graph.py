@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import math
 from collections import Counter
 
 import numpy as np
-import scipy as sp
 from scipy import sparse
+from scipy.linalg import svd
 
 from ..utils import build_logger
 
@@ -156,7 +155,7 @@ class Graph(object):
         is_not_square = False
         has_nan_value = False
 
-        if math.isinf(self.W.sum()):
+        if np.isinf(self.W.sum()):
             self.logger.warning("GSP_TEST_WEIGHTS: There is an infinite "
                                 "value in the weight matrix")
             has_inf_val = True
@@ -171,7 +170,7 @@ class Graph(object):
                                 "not square!")
             is_not_square = True
 
-        if math.isnan(self.W.sum()):
+        if np.isnan(self.W.sum()):
             self.logger.warning("GSP_TEST_WEIGHTS: There is an NaN "
                                 "value in the weight matrix")
             has_nan_value = True
@@ -636,7 +635,7 @@ class Graph(object):
         if not hasattr(self, 'L'):
             raise AttributeError("Graph Laplacian is missing")
 
-        eigenvectors, eigenvalues, _ = sp.linalg.svd(self.L.todense())
+        eigenvectors, eigenvalues, _ = svd(self.L.todense())
 
         inds = np.argsort(eigenvalues)
         if not smallest_first:

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-
 import numpy as np
-from scipy import sparse
+from scipy.sparse import csc_matrix
+
+from . import Graph
 
 
 class LowStretchTree(Graph):
@@ -48,7 +48,7 @@ class LowStretchTree(Graph):
             XCoords = np.concatenate((XCoords, XCoords + 2**p))
             XCoords = np.kron(np.ones((2)), XCoords)
 
-        W = sparse.csc_matrix((np.ones((np.shape(ii))), (ii, jj)))
+        W = csc_matrix((np.ones((np.shape(ii))), (ii, jj)))
         coords = np.concatenate((XCoords[:, np.newaxis],
                                  YCoords[:, np.newaxis]),
                                 axis=1)

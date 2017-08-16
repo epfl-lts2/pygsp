@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy import sparse
+from scipy.sparse import csr_matrix
 
 from . import Graph
 
@@ -92,7 +92,7 @@ class StochasticBlockModel(Graph):
                 nb_row = 0
                 nb_col += 1
 
-        W = sparse.csr_matrix((csr_data, (csr_i, csr_j)), shape=(N, N))
+        W = csr_matrix((csr_data, (csr_i, csr_j)), shape=(N, N))
 
         if undirected:
             W = W + W.T

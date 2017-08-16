@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-
 import numpy as np
-from scipy import sparse
+from scipy.sparse import csc_matrix
+
+from . import Graph
 
 
 class Comet(Graph):
@@ -34,8 +34,8 @@ class Comet(Graph):
                                  np.arange(k + 1, Nv),
                                  np.arange(k, Nv - 1)))
 
-        W = sparse.csc_matrix((np.ones(np.size(i_inds)), (i_inds, j_inds)),
-                              shape=(Nv, Nv))
+        W = csc_matrix((np.ones(np.size(i_inds)), (i_inds, j_inds)),
+                       shape=(Nv, Nv))
 
         tmpcoords = np.zeros((Nv, 2))
         inds = np.arange(k) + 1

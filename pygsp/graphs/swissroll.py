@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import numpy as np
+
 from . import Graph
 from ..utils import distanz, rescale_center
-
-import numpy as np
-from math import sqrt, pi
 
 
 class SwissRoll(Graph):
@@ -42,7 +41,7 @@ class SwissRoll(Graph):
                  noise=False, srtype='uniform'):
 
         if s is None:
-            s = sqrt(2. / N)
+            s = np.sqrt(2. / N)
 
         y1 = np.random.rand(N)
         y2 = np.random.rand(N)
@@ -51,7 +50,7 @@ class SwissRoll(Graph):
             tt = np.sqrt((b * b - a * a) * y1 + a * a)
         elif srtype == 'classic':
             tt = (b - a) * y1 + a
-        tt *= pi
+        tt *= np.pi
 
         if dim == 2:
             x = np.array((tt * np.cos(tt), tt * np.sin(tt)))

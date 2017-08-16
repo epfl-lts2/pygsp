@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-from pygsp.utils import build_logger
-
 import numpy as np
-from scipy import sparse
+from scipy.sparse import csr_matrix
+
+from . import Graph
+from ..utils import build_logger
 
 
 class ErdosRenyi(Graph):
@@ -61,7 +61,7 @@ class ErdosRenyi(Graph):
             else:
                 indices = tuple(map(lambda coord: coord[indices], np.tril_indices(N, -1)))
 
-            matrix = sparse.csr_matrix((np.ones(nb_elem), indices), shape=(N, N))
+            matrix = csr_matrix((np.ones(nb_elem), indices), shape=(N, N))
             self.W = matrix if directed else matrix + matrix.T
             self.A = self.W > 0
             is_connected = self.is_connected()
