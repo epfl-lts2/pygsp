@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-r"""This module implements the main operators for the PyGSP box."""
 
-from .operator import *
+from .difference import *
+from .transforms import *
+from .localization import *
 from .reduction import *
-from .vertex_frequency_analysis import *

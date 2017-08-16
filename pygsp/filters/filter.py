@@ -6,7 +6,7 @@ from copy import deepcopy
 import numpy as np
 
 from .. import utils
-from ..operators import operator
+from ..operators.transforms import gft, igft
 from . import approximations
 
 
@@ -105,21 +105,19 @@ class Filter(object):
 
             if Nf == 1:
                 if is2d:
-                    return operator.igft(self.G, np.tile(fie, (Ns, 1)).T *
-                                         operator.gft(self.G, s))
+                    fs = np.tile(fie, (Ns, 1)).T * gft(self.G, s)
+                    return igft(self.G, fs)
                 else:
-                    return operator.igft(self.G, fie * operator.gft(self.G, s))
+                    return igft(self.G, fie * gft(self.G, s))
             else:
                 tmpN = np.arange(N, dtype=int)
                 for i in range(Nf):
                     if is2d:
-                        c[tmpN + N * i] = \
-                            operator.igft(self.G, np.tile(fie[i], (Ns, 1)).T *
-                                          operator.gft(self.G, s))
+                        fs = np.tile(fie[i], (Ns, 1)).T * gft(self.G, s)
+                        c[tmpN + N * i] = igft(self.G, fs)
                     else:
-                        c[tmpN + N * i] = \
-                            operator.igft(self.G, fie[i] *
-                                          operator.gft(self.G, s))
+                        fs = fie[i] * gft(self.G, s)
+                        c[tmpN + N * i] = igft(self.G, fs)
 
         else:
             raise ValueError('Unknown method: please select exact, '
@@ -216,14 +214,13 @@ class Filter(object):
             tmpN = np.arange(N, dtype=int)
 
             if Nf == 1:
-                s += operator.igft(np.conjugate(self.G.U),
-                                   np.tile(fie, (Nv, 1)).T *
-                                   operator.gft(self.G, c[tmpN]))
+                fc = np.tile(fie, (Nv, 1)).T * gft(self.G, c[tmpN])
+                s += igft(np.conjugate(self.G.U), fc)
             else:
                 for i in range(Nf):
-                    s += operator.igft(np.conjugate(self.G.U),
-                                       np.tile(fie[:][i], (Nv, 1)).T *
-                                       operator.gft(self.G, c[N * i + tmpN]))
+                    fc = gft(self.G, c[N * i + tmpN])
+                    fc *= np.tile(fie[:][i], (Nv, 1)).T
+                    s += igft(np.conjugate(self.G.U), fc)
 
         elif method == 'cheby':
             if hasattr(self.G, 'lmax'):

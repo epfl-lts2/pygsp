@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from ..utils import resistance_distance, build_logger
-from ..graphs import Graph
-from ..filters import Filter
-
 import numpy as np
 from scipy import sparse, stats
 from scipy.sparse.linalg import eigs, spsolve
+
+from ..utils import build_logger, resistance_distance
+from ..graphs import Graph
+from ..filters import Filter
+
 
 logger = build_logger(__name__)
 

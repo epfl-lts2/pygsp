@@ -6,7 +6,7 @@ graphs.
 """
 
 from .data_handling import adj2vec
-from .operators import operator
+from .operators.difference import grad, div
 from .utils import build_logger
 
 logger = build_logger(__name__)
@@ -81,9 +81,9 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
             return G.Diff * At(D.T * x)
     else:
         def l1_a(x):
-            return operator.grad(G, A(x))
+            return grad(G, A(x))
 
         def l1_at(x):
-            return operator.div(G, x)
+            return div(G, x)
 
     pyunlocbox.prox_l1(x, gamma, A=l1_a, At=l1_at, tight=tight, maxit=maxit, verbose=verbose, tol=tol)

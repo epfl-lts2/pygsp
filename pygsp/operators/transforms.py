@@ -1,12 +1,75 @@
 # -*- coding: utf-8 -*-
 
-from .. import data_handling
-from ..operators import operator
-from ..utils import build_logger
-
 import numpy as np
 
+from ..utils import build_logger
+from ..data_handling import vec2mat, repmatline
+
+
 logger = build_logger(__name__)
+
+
+def gft(G, f):
+    r"""
+    Compute Graph Fourier transform.
+
+    Parameters
+    ----------
+    G : Graph or Fourier basis
+    f : ndarray
+        must be in 2d, even if the second dim is 1 signal
+
+    Returns
+    -------
+    f_hat : ndarray
+        Graph Fourier transform of *f*
+    """
+
+    from pygsp.graphs import Graph
+
+    if isinstance(G, Graph):
+        if not hasattr(G, 'U'):
+            logger.info('Analysis filter has to compute the eigenvalues ' +
+                        'and the eigenvectors.')
+            G.compute_fourier_basis()
+
+        U = G.U
+    else:
+        U = G
+
+    return np.dot(np.conjugate(U.T), f)  # True Hermitian here.
+
+
+def igft(G, f_hat):
+    r"""
+    Compute inverse graph Fourier transform.
+
+    Parameters
+    ----------
+    G : Graph or Fourier basis
+    f_hat : ndarray
+        Signal
+
+    Returns
+    -------
+    f : ndarray
+        Inverse graph Fourier transform of *f_hat*
+
+    """
+
+    from pygsp.graphs import Graph
+
+    if isinstance(G, Graph):
+        if not hasattr(G, 'U'):
+            logger.info('Analysis filter has to compute the eigenvalues ' +
+                        'and the eigenvectors.')
+            G.compute_fourier_basis()
+        U = G.U
+
+    else:
+        U = G
+
+    return np.dot(U, f_hat)
 
 
 def generalized_wft(G, g, f, lowmemory=True):
@@ -36,9 +99,9 @@ def generalized_wft(G, g, f, lowmemory=True):
         G.compute_fourier_basis()
 
     if isinstance(g, list):
-        g = operator.igft(G, g[0](G.e))
+        g = igft(G, g[0](G.e))
     elif hasattr(g, '__call__'):
-        g = operator.igft(G, g(G.e))
+        g = igft(G, g(G.e))
 
     if not lowmemory:
         # Compute the Frame into a big matrix
@@ -85,7 +148,7 @@ def gabor_wft(G, f, k):
     g = Gabor(G, k)
 
     C = g.analysis(f)
-    C = data_handling.vec2mat(C, G.N).T
+    C = vec2mat(C, G.N).T
 
     return C
 
@@ -110,7 +173,7 @@ def _gwft_frame_matrix(G, g):
 
     ghat = np.dot(G.U.T, g)
     Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*G.U.T))
-    F = data_handling.repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
+    F = repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
 
     return F
 
@@ -183,7 +246,7 @@ def _ngwft_frame_matrix(G, g):
     ghat = np.dot(G.U.T, g)
     Ftrans = np.sqrt(g.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.T))
 
-    F = data_handling.repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
+    F = repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
 
     # Normalization
     F /= np.kron((np.ones((G.N)), np.sqrt(np.sum(np.power(np.abs(F), 2),
