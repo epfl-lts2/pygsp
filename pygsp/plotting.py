@@ -12,10 +12,11 @@ with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
 """
 
 import numpy as np
-import uuid
 
 try:
     import matplotlib.pyplot as plt
+    # Not used directly, but needed for 3D projection.
+    from mpl_toolkits.mplot3d import Axes3D  # noqa
     plt_import = True
 except Exception as e:
     print('ERROR : Could not import packages for matplotlib.')
@@ -23,7 +24,7 @@ except Exception as e:
     plt_import = False
 
 try:
-    import pyqtgraph as pg
+    import pyqtgraph as qtg
     from pyqtgraph.Qt import QtGui
     import pyqtgraph.opengl as gl
     qtg_import = True
@@ -33,14 +34,34 @@ except Exception as e:
     qtg_import = False
 
 
-class plid():
-    r"""Not so clean way of generating plot_ids."""
-
-    def __init__(self):
-        self.plot_id = 0
+_qtg_windows = []
+_qtg_applications = []
+_plt_figures = []
 
 
-plid = plid()
+def close_all():
+    r"""
+    Close all opened windows.
+
+    """
+
+    # Windows can be closed by releasing all references to them so they can be
+    # garbage collected. Not necessary to call close().
+    global _qtg_windows
+    for window in _qtg_windows:
+        window.close()
+    _qtg_windows = []
+
+    # Segmentation faults when executing test_plotting.
+    # global _qtg_applications
+    # for application in _qtg_applications:
+    #     application.quit()
+    # _qtg_applications = []
+
+    global _plt_figures
+    for fig in _plt_figures:
+        plt.close(fig)
+    _plt_figures = []
 
 
 def show(block=False, **kwargs):
@@ -131,9 +152,11 @@ def plot_graph(G, default_qtg=True, **kwargs):
     if not hasattr(G, 'coords'):
         raise AttributeError('Graph has no coordinate set. '
                              'Please run G.set_coords() first.')
+    if G.coords.shape[1] not in [2, 3]:
+        raise AttributeError('Coordinates should be in 2 or 3D space.')
 
     if qtg_import and (default_qtg or not plt_import):
-        _pg_plot_graph(G, **kwargs)
+        _qtg_plot_graph(G, **kwargs)
     elif plt_import and not (default_qtg and qtg_import):
         _plt_plot_graph(G, **kwargs)
     else:
@@ -146,8 +169,9 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
 
-    fig = plt.figure(plid.plot_id)
-    plid.plot_id += 1
+    fig = plt.figure()
+    global _plt_figures
+    _plt_figures.append(fig)
 
     if not plot_name:
         plot_name = u"Plot of {}".format(G.gtype)
@@ -155,8 +179,15 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name
     if show_edges is None:
         show_edges = G.Ne < 10000
 
-    if 'edge_color' not in G.plotting:
-        G.plotting['edge_color'] = np.array([255, 88, 41])/255.
+    try:
+        vertex_size = G.plotting['vertex_size']
+    except KeyError:
+        vertex_size = 100
+
+    try:
+        edge_color = G.plotting['edge_color']
+    except KeyError:
+        edge_color = np.array([255, 88, 41]) / 255.
 
     # Matplotlib graph initialization in 2D and 3D
     if G.coords.shape[1] == 2:
@@ -178,18 +209,18 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name
 
                 if isinstance(G.plotting['vertex_color'], list):
                     ax.plot(x, y, linewidth=G.plotting['edge_width'],
-                            color=G.plotting['edge_color'],
+                            color=edge_color,
                             linestyle=G.plotting['edge_style'],
                             marker='', zorder=1)
 
                     ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
-                               s=G.plotting['vertex_size'],
+                               s=vertex_size,
                                c=G.plotting['vertex_color'], zorder=2)
                 else:
                     ax.plot(x, y, linewidth=G.plotting['edge_width'],
-                            color=G.plotting['edge_color'],
+                            color=edge_color,
                             linestyle=G.plotting['edge_style'],
-                            marker='o', markersize=G.plotting['vertex_size'],
+                            marker='o', markersize=vertex_size,
                             markerfacecolor=G.plotting['vertex_color'])
 
             if G.coords.shape[1] == 3:
@@ -215,19 +246,19 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name
                     y3 = y2[i:i + 2]
                     z3 = z2[i:i + 2]
                     ax.plot(x3, y3, z3, linewidth=G.plotting['edge_width'],
-                            color=G.plotting['edge_color'],
+                            color=edge_color,
                             linestyle=G.plotting['edge_style'],
-                            marker='o', markersize=G.plotting['vertex_size'],
+                            marker='o', markersize=vertex_size,
                             markerfacecolor=G.plotting['vertex_color'])
     else:
         # TODO: is ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo') faster?
         if G.coords.shape[1] == 2:
             ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
-                       s=G.plotting['vertex_size'],
+                       s=vertex_size,
                        c=G.plotting['vertex_color'])
         if G.coords.shape[1] == 3:
             ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
-                       marker='o', s=G.plotting['vertex_size'],
+                       marker='o', s=vertex_size,
                        c=G.plotting['vertex_color'])
 
     # Save plot as PNG or show it in a window
@@ -240,12 +271,9 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name
     # threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
 
-def _pg_plot_graph(G, show_edges=None, plot_name=''):
+def _qtg_plot_graph(G, show_edges=None, plot_name=''):
 
     # TODO handling when G is a list of graphs
-    global window_list
-    if 'window_list' not in globals():
-        window_list = {}
 
     if show_edges is None:
         show_edges = G.Ne < 10000
@@ -258,42 +286,43 @@ def _pg_plot_graph(G, show_edges=None, plot_name=''):
             adj = np.concatenate((np.expand_dims(ki, axis=1),
                                   np.expand_dims(kj, axis=1)), axis=1)
 
-            w = pg.GraphicsWindow()
-            w.setWindowTitle(G.plotting['plot_name'] if 'plot_name' in G.plotting else plot_name or G.gtype)
-            v = w.addViewBox()
-            v.setAspectLocked()
+            window = qtg.GraphicsWindow()
+            window.setWindowTitle(G.plotting['plot_name'] if 'plot_name' in G.plotting else plot_name or G.gtype)
+            view = window.addViewBox()
+            view.setAspectLocked()
 
             extra_args = {}
             if isinstance(G.plotting['vertex_color'], list):
-                extra_args['symbolPen'] = [pg.mkPen(v_col) for v_col in G.plotting['vertex_color']]
-                extra_args['brush'] = [pg.mkBrush(v_col) for v_col in G.plotting['vertex_color']]
+                extra_args['symbolPen'] = [qtg.mkPen(v_col) for v_col in G.plotting['vertex_color']]
+                extra_args['brush'] = [qtg.mkBrush(v_col) for v_col in G.plotting['vertex_color']]
             elif isinstance(G.plotting['vertex_color'], int):
                 extra_args['symbolPen'] = G.plotting['vertex_color']
                 extra_args['brush'] = G.plotting['vertex_color']
 
             # Define syntaxic sugar mapping keywords for the display options
-            for plot_args, pg_args in [('vertex_size', 'size'), ('vertex_mask', 'mask'), ('edge_color', 'pen')]:
+            for plot_args, qtg_args in [('vertex_size', 'size'), ('vertex_mask', 'mask'), ('edge_color', 'pen')]:
                 if plot_args in G.plotting:
-                    G.plotting[pg_args] = G.plotting.pop(plot_args)
+                    G.plotting[qtg_args] = G.plotting.pop(plot_args)
 
-            for pg_args in ['size', 'mask', 'pen', 'symbolPen']:
-                if pg_args in G.plotting:
-                    extra_args[pg_args] = G.plotting[pg_args]
+            for qtg_args in ['size', 'mask', 'pen', 'symbolPen']:
+                if qtg_args in G.plotting:
+                    extra_args[qtg_args] = G.plotting[qtg_args]
 
             if not show_edges:
                 extra_args['pen'] = None
 
-            g = pg.GraphItem(pos=G.coords, adj=adj, **extra_args)
-            v.addItem(g)
+            g = qtg.GraphItem(pos=G.coords, adj=adj, **extra_args)
+            view.addItem(g)
 
-            window_list[str(uuid.uuid4())] = w
+            global _qtg_windows
+            _qtg_windows.append(window)
 
         elif G.coords.shape[1] == 3:
-            app = QtGui.QApplication([])
-            w = gl.GLViewWidget()
-            w.opts['distance'] = 10
-            w.show()
-            w.setWindowTitle(G.plotting['plot_name'] if 'plot_name' in G.plotting else plot_name or G.gtype)
+            application = QtGui.QApplication([])
+            widget = gl.GLViewWidget()
+            widget.opts['distance'] = 10
+            widget.show()
+            widget.setWindowTitle(G.plotting['plot_name'] if 'plot_name' in G.plotting else plot_name or G.gtype)
 
             # Very dirty way to display a 3d graph
             x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
@@ -320,29 +349,34 @@ def _pg_plot_graph(G, show_edges=None, plot_name=''):
             extra_args = {'color': (0, 0, 1, 1)}
             if 'vertex_color' in G.plotting:
                 if isinstance(G.plotting['vertex_color'], list):
-                    extra_args['color'] = np.array([pg.glColor(pg.mkPen(v_col).color()) for v_col in G.plotting['vertex_color']])
+                    extra_args['color'] = np.array([qtg.glColor(qtg.mkPen(v_col).color()) for v_col in G.plotting['vertex_color']])
                 elif isinstance(G.plotting['vertex_color'], int):
-                    extra_args['color'] = pg.glColor(pg.mkPen(G.plotting['vertex_color']).color())
+                    extra_args['color'] = qtg.glColor(qtg.mkPen(G.plotting['vertex_color']).color())
                 else:
                     extra_args['color'] = G.plotting['vertex_color']
 
             # Define syntaxic sugar mapping keywords for the display options
-            for plot_args, pg_args in [('vertex_size', 'size')]:
+            for plot_args, qtg_args in [('vertex_size', 'size')]:
                 if plot_args in G.plotting:
-                    G.plotting[pg_args] = G.plotting.pop(plot_args)
+                    G.plotting[qtg_args] = G.plotting.pop(plot_args)
 
-            for pg_args in ['size']:
-                if pg_args in G.plotting:
-                    extra_args[pg_args] = G.plotting[pg_args]
+            for qtg_args in ['size']:
+                if qtg_args in G.plotting:
+                    extra_args[qtg_args] = G.plotting[qtg_args]
 
             if show_edges:
-                g = gl.GLLinePlotItem(pos=pts, mode='lines', color=G.plotting['edge_color'])
-                w.addItem(g)
+                try:
+                    edge_color = G.plotting['edge_color']
+                except KeyError:
+                    edge_color = np.array([255, 88, 41]) / 255.
+                g = gl.GLLinePlotItem(pos=pts, mode='lines', color=edge_color)
+                widget.addItem(g)
 
             gp = gl.GLScatterPlotItem(pos=G.coords, **extra_args)
-            w.addItem(gp)
+            widget.addItem(gp)
 
-            window_list[str(uuid.uuid4())] = app
+            global _qtg_applications
+            _qtg_applications.append(application)
 
 
 def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
@@ -402,9 +436,10 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     fd = filters.evaluate(lambdas)
 
     # Plot the filter
+    fig = plt.figure()
+    global _plt_figures
+    _plt_figures.append(fig)
     size = len(fd)
-    fig = plt.figure(plid.plot_id)
-    plid.plot_id += 1
     ax = fig.add_subplot(111)
     if len(filters.g) == 1:
         ax.plot(lambdas, fd, linewidth=line_width)
@@ -484,7 +519,7 @@ def plot_signal(G, signal, default_qtg=True, **kwargs):
                              'Please run G.set_coords() first.')
 
     if qtg_import and (default_qtg or not plt_import):
-        _pg_plot_signal(G, signal, **kwargs)
+        _qtg_plot_signal(G, signal, **kwargs)
     elif plt_import and not (default_qtg and qtg_import):
         _plt_plot_signal(G, signal, **kwargs)
     else:
@@ -497,8 +532,9 @@ def _plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                      colorbar=True, bar=False, bar_width=1, savefig=False,
                      show_plot=False, plot_name=None):
 
-    fig = plt.figure(plid.plot_id)
-    plid.plot_id += 1
+    fig = plt.figure()
+    global _plt_figures
+    _plt_figures.append(fig)
 
     if np.sum(np.abs(signal.imag)) > 1e-10:
         raise ValueError("Can't display complex signal.")
@@ -519,7 +555,6 @@ def _plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     elif G.coords.shape[1] == 3:
         ax = fig.add_subplot(111, projection='3d')
 
-    # Plot edges
     if show_edges:
         ki, kj = np.nonzero(G.A)
 
@@ -575,7 +610,7 @@ def _plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         plt.show(False)  # non blocking show
 
 
-def _pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
+def _qtg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                     vertex_size=None, vertex_highlight=False, climits=None,
                     colorbar=True, bar=False, bar_width=1, plot_name=None):
 
@@ -591,20 +626,15 @@ def _pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         cmax = 1.01 * np.max(signal)
         climits = [cmin, cmax]
 
-    # pygtgraph window initialization in 2D and 3D
-    global window_list
-    if 'window_list' not in globals():
-        window_list = {}
-
     if G.coords.shape[1] == 2:
-        w = pg.GraphicsWindow(plot_name or G.gtype)
-        v = w.addViewBox()
+        window = qtg.GraphicsWindow(plot_name or G.gtype)
+        view = window.addViewBox()
     elif G.coords.shape[1] == 3:
-        app = QtGui.QApplication([])
-        w = gl.GLViewWidget()
-        w.opts['distance'] = 10
-        w.show()
-        w.setWindowTitle(plot_name or G.gtype)
+        application = QtGui.QApplication([])
+        widget = gl.GLViewWidget()
+        widget.opts['distance'] = 10
+        widget.show()
+        widget.setWindowTitle(plot_name or G.gtype)
 
     # Plot edges
     if show_edges:
@@ -616,9 +646,9 @@ def _pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                 adj = np.concatenate((np.expand_dims(ki, axis=1),
                                       np.expand_dims(kj, axis=1)), axis=1)
 
-                g = pg.GraphItem(pos=G.coords, adj=adj, symbolBrush=None,
+                g = qtg.GraphItem(pos=G.coords, adj=adj, symbolBrush=None,
                                  symbolPen=None)
-                v.addItem(g)
+                view.addItem(g)
 
             if G.coords.shape[1] == 3:
                 # Very dirty way to display a 3d graph
@@ -647,14 +677,14 @@ def _pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
 
                 gp = gl.GLScatterPlotItem(pos=G.coords, color=(1., 0., 0., 1))
 
-                w.addItem(g)
-                w.addItem(gp)
+                widget.addItem(g)
+                widget.addItem(gp)
 
     # Plot signal on top
     pos = [1, 8, 24, 40, 56, 64]
     color = np.array([[0, 0, 143, 255], [0, 0, 255, 255], [0, 255, 255, 255],
                       [255, 255, 0, 255], [255, 0, 0, 255], [128, 0, 0, 255]])
-    cmap = pg.ColorMap(pos, color)
+    cmap = qtg.ColorMap(pos, color)
 
     mininum = min(signal)
     maximum = max(signal)
@@ -662,22 +692,22 @@ def _pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     normalized_signal = [1 + 63 *(float(x) - mininum) / (maximum - mininum) for x in signal]
 
     if G.coords.shape[1] == 2:
-        gp = pg.ScatterPlotItem(G.coords[:, 0],
+        gp = qtg.ScatterPlotItem(G.coords[:, 0],
                                 G.coords[:, 1],
                                 size=vertex_size,
                                 brush=cmap.map(normalized_signal, 'qcolor'))
-        v.addItem(gp)
+        view.addItem(gp)
     if G.coords.shape[1] == 3:
-        gp = gl.GLScatterPlotItem(G.coords[:, 0], G.coords[:, 1],
-                                  G.coords[:, 2], size=vertex_size, c=signal)
-        w.addItem(gp)
-
+        gp = gl.GLScatterPlotItem(pos=G.coords, size=vertex_size, color=signal)
+        widget.addItem(gp)
 
     # Multiple windows handling
     if G.coords.shape[1] == 2:
-        window_list[str(uuid.uuid4())] = w
+        global _qtg_windows
+        _qtg_windows.append(window)
     elif G.coords.shape[1] == 3:
-        window_list[str(uuid.uuid4())] = app
+        global _qtg_applications
+        _qtg_applications.append(application)
 
 
 def plot_spectrogram(G, node_idx=None):
@@ -699,10 +729,7 @@ def plot_spectrogram(G, node_idx=None):
     >>> plotting.plot_spectrogram(G)
 
     """
-    global window_list
     from pygsp.features import compute_spectrogram
-    if 'window_list' not in globals():
-        window_list = {}
 
     if not qtg_import:
         raise NotImplementedError("You need pyqtgraph to plot the spectrogram at the moment. Please install dependency and retry.")
@@ -717,16 +744,17 @@ def plot_spectrogram(G, node_idx=None):
     pos = np.array([0., 0.25, 0.5, 0.75, 1.])
     color = np.array([[20, 133, 212, 255], [53, 42, 135, 255], [48, 174, 170, 255],
                      [210, 184, 87, 255], [249, 251, 14, 255]], dtype=np.ubyte)
-    cmap = pg.ColorMap(pos, color)
+    cmap = qtg.ColorMap(pos, color)
 
-    w = pg.GraphicsWindow()
+    w = qtg.GraphicsWindow()
     w.setWindowTitle("Spectrogramm of {}".format(G.gtype))
     v = w.addPlot(labels={'bottom': 'nodes',
                           'left': 'frequencies {}:{:.2f}:{:.2f}'.format(0, G.lmax/M, G.lmax)})
     v.setAspectLocked()
 
-    spi = pg.ScatterPlotItem(np.repeat(np.arange(G.N), M), np.ravel(np.tile(np.arange(M), (1, G.N))), pxMode=False, symbol='s',
+    spi = qtg.ScatterPlotItem(np.repeat(np.arange(G.N), M), np.ravel(np.tile(np.arange(M), (1, G.N))), pxMode=False, symbol='s',
                              size=1, brush=cmap.map((spectr.astype(float) - min_spec)/(max_spec - min_spec), 'qcolor'))
     v.addItem(spi)
 
-    window_list[str(uuid.uuid4())] = w
+    global _qtg_windows
+    _qtg_windows.append(w)
