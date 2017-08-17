@@ -16,7 +16,6 @@ import uuid
 
 try:
     import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
     plt_import = True
 except Exception as e:
     print('ERROR : Could not import packages for matplotlib.')
@@ -25,7 +24,7 @@ except Exception as e:
 
 try:
     import pyqtgraph as pg
-    from pyqtgraph.Qt import QtCore, QtGui
+    from pyqtgraph.Qt import QtGui
     import pyqtgraph.opengl as gl
     qtg_import = True
 except Exception as e:
@@ -129,6 +128,10 @@ def plot_graph(G, default_qtg=True, **kwargs):
     >>> plotting.plot_graph(G, default_qtg=False)
 
     """
+    if not hasattr(G, 'coords'):
+        raise AttributeError('Graph has no coordinate set. '
+                             'Please run G.set_coords() first.')
+
     if qtg_import and (default_qtg or not plt_import):
         _pg_plot_graph(G, **kwargs)
     elif plt_import and not (default_qtg and qtg_import):
@@ -154,9 +157,6 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name
 
     if 'edge_color' not in G.plotting:
         G.plotting['edge_color'] = np.array([255, 88, 41])/255.
-
-    if not hasattr(G, 'coords'):
-        raise AttributeError('G has no coordinate set. Please run G.set_coords() first.')
 
     # Matplotlib graph initialization in 2D and 3D
     if G.coords.shape[1] == 2:
@@ -246,10 +246,6 @@ def _pg_plot_graph(G, show_edges=None, plot_name=''):
     global window_list
     if 'window_list' not in globals():
         window_list = {}
-
-    if not G.coords.shape:
-        raise AttributeError('G has no coordinate set. Please run G.set_coords() first.')
-
 
     if show_edges is None:
         show_edges = G.Ne < 10000
@@ -483,6 +479,10 @@ def plot_signal(G, signal, default_qtg=True, **kwargs):
     >>> plotting.plot_signal(G, signal, default_qtg=False)
 
     """
+    if not hasattr(G, 'coords'):
+        raise AttributeError('Graph has no coordinate set. '
+                             'Please run G.set_coords() first.')
+
     if qtg_import and (default_qtg or not plt_import):
         _pg_plot_signal(G, signal, **kwargs)
     elif plt_import and not (default_qtg and qtg_import):

@@ -103,11 +103,6 @@ class Graph(object):
 
         self.create_laplacian(lap_type)
 
-        if isinstance(coords, np.ndarray) and 2 <= len(np.shape(coords)) <= 3:
-            self.coords = coords
-        else:
-            self.coords = np.ndarray(None)
-
         self.plotting = {'vertex_size': 10, 'edge_width': 1,
                          'edge_style': '-', 'vertex_color': 'b'}
         self.plotting.update(plotting)
