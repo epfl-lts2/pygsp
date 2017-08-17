@@ -658,14 +658,13 @@ class Graph(object):
             implemented for directed graphs.
 
         """
-        if np.shape(self.W) == (1, 1):
+        if self.W.shape == (1, 1):
             self.L = sparse.lil_matrix(0)
             return
 
-        if lap_type in ['combinatorial', 'normalized', 'none']:
-            self.lap_type = lap_type
-        else:
-            raise AttributeError('Unknown laplacian type!')
+        if lap_type not in ['combinatorial', 'normalized', 'none']:
+            raise AttributeError('Unknown laplacian type {}'.format(lap_type))
+        self.lap_type = lap_type
 
         if self.directed:
             if lap_type == 'combinatorial':

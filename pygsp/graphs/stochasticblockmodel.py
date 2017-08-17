@@ -99,7 +99,7 @@ class StochasticBlockModel(Graph):
 
             if not no_self_loop:
                 # avoid doubling the self loops with the above sum
-                W[np.arange(N), np.arange(N)] /= 2.
+                W[range(N), range(N)] = (W.diagonal() == 2)
 
         self.info = {'node_com': z, 'comm_sizes': np.bincount(z),
                      'world_rad': np.sqrt(N)}

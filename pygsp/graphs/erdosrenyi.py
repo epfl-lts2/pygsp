@@ -4,14 +4,13 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 from . import Graph
-from ..utils import build_logger
 
 
 class ErdosRenyi(Graph):
     r"""
     Create a random Erdos Renyi graph.
 
-    The Erdos Renyi graph is constructed by connecting nodes randomly. Each 
+    The Erdos Renyi graph is constructed by connecting nodes randomly. Each
     edge is included in the graph with probability p independent from every
     other edge. All edge weights are equal to 1.
 

@@ -35,6 +35,22 @@ class FunctionsTestCase(unittest.TestCase):
         self.assertEqual(ki.shape[0], G.Ne)
         self.assertEqual(kj.shape[0], G.Ne)
 
+    def test_laplacian(self):
+        # TODO: should test correctness.
+
+        G = graphs.StochasticBlockModel(undirected=True)
+        self.assertFalse(G.is_directed())
+        G.create_laplacian(lap_type='combinatorial')
+        G.create_laplacian(lap_type='normalized')
+        G.create_laplacian(lap_type='none')
+
+        G = graphs.StochasticBlockModel(undirected=False)
+        self.assertTrue(G.is_directed())
+        G.create_laplacian(lap_type='combinatorial')
+        G.create_laplacian(lap_type='none')
+        self.assertRaises(NotImplementedError, G.create_laplacian,
+                          lap_type='normalized')
+
     def test_nngraph(self):
         Xin = np.arange(90).reshape(30, 3)
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
@@ -99,6 +115,12 @@ class FunctionsTestCase(unittest.TestCase):
         graphs.Sensor(connected=True)
         graphs.Sensor(connected=False)
 
+    def test_stochasticblockmodel(self):
+        graphs.StochasticBlockModel(undirected=True)
+        graphs.StochasticBlockModel(undirected=False)
+        graphs.StochasticBlockModel(no_self_loop=True)
+        graphs.StochasticBlockModel(no_self_loop=False)
+
     def test_airfoil(self):
         graphs.Airfoil()
 
@@ -110,6 +132,8 @@ class FunctionsTestCase(unittest.TestCase):
     def test_erdosreny(self):
         graphs.ErdosRenyi(connected=False)
         graphs.ErdosRenyi(connected=True)
+        graphs.ErdosRenyi(directed=False)
+        # graphs.ErdosRenyi(directed=True)  # TODO: bug in implementation
 
     def test_fullconnected(self):
         graphs.FullConnected()
