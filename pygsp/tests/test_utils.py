@@ -3,12 +3,15 @@
 
 """
 Test suite for the utils module of the pygsp package.
+
 """
 
 import unittest
+
 import numpy as np
 from scipy import sparse
-from pygsp import utils, graphs, operators
+
+from pygsp import utils, graphs
 
 
 class FunctionsTestCase(unittest.TestCase):
@@ -22,7 +25,8 @@ class FunctionsTestCase(unittest.TestCase):
     def test_utils(self):
         # Data init
         W1 = np.arange(16).reshape((4, 4))
-        mask1 = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [1, 0, 1, 0], [0, 1, 0, 1]])
+        mask1 = np.array([[1, 0, 1, 0], [0, 1, 0, 1],
+                          [1, 0, 1, 0], [0, 1, 0, 1]])
         W1[mask1 == 1] = 0
         W1 = sparse.lil_matrix(W1)
         G1 = graphs.Graph(W1)
