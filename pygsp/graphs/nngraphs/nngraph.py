@@ -157,7 +157,7 @@ class NNGraph(Graph):
                 start = start + leng
 
         else:
-            raise ValueError('Unknown type : allowed values are knn, radius')
+            raise ValueError('Unknown NNtype {}'.format(self.NNtype))
 
         W = csc_matrix((spv, (spi, spj)), shape=(N, N))
 

@@ -83,6 +83,9 @@ class TwoMoons(NNGraph):
 
             Xin = np.concatenate((coords1, coords2))
 
+        else:
+            raise ValueError('Unknown moontype {}'.format(moontype))
+
         self.labels = np.concatenate((np.zeros(N1), np.ones(N2)))
 
         super(TwoMoons, self).__init__(Xin=Xin, sigma=sigmag, k=5, gtype=gtype)
