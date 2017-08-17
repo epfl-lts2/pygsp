@@ -39,7 +39,7 @@ class Cube(NNGraph):
 
         if self.sampling == "random":
             if self.nb_dim == 2:
-                pts = np.random.rand(self.nb_pts, self.nb_pts)
+                pts = np.random.rand(self.nb_pts, self.nb_dim)
 
             elif self.nb_dim == 3:
                 n = self.nb_pts // 6
