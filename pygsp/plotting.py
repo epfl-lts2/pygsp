@@ -143,6 +143,9 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
 
+    fig = plt.figure(plid.plot_id)
+    plid.plot_id += 1
+
     if not plot_name:
         plot_name = u"Plot of {}".format(G.gtype)
 
@@ -157,12 +160,8 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name
 
     # Matplotlib graph initialization in 2D and 3D
     if G.coords.shape[1] == 2:
-        fig = plt.figure(plid.plot_id)
-        plid.plot_id += 1
         ax = fig.add_subplot(111)
     elif G.coords.shape[1] == 3:
-        fig = plt.figure(plid.plot_id)
-        plid.plot_id += 1
         ax = fig.add_subplot(111, projection='3d')
 
     if show_edges:
@@ -524,10 +523,8 @@ def _plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
 
     # Matplotlib graph initialization in 2D and 3D
     if G.coords.shape[1] == 2:
-        fig = plt.figure()
         ax = fig.add_subplot(111)
     elif G.coords.shape[1] == 3:
-        fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
     # Plot edges
