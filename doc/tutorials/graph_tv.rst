@@ -39,60 +39,66 @@ It is simply a projection on the B2-ball.
 Results and code
 ----------------
 
->>> import numpy as np
->>> from pygsp import graphs
->>>
->>> # Create a random sensor graph
->>> G = graphs.Sensor(N=256, distribute=True)
->>> G.compute_fourier_basis()
->>>
->>> # Create signal
->>> graph_value = np.copysign(np.ones(np.shape(G.U[:, 3])[0]), G.U[:, 3])
->>>
->>> G.plot_signal(graph_value, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/original_signal')
+.. plot::
+    :context: reset
 
-.. figure:: img/original_signal.*
+    >>> import numpy as np
+    >>> from pygsp import graphs
+    >>>
+    >>> # Create a random sensor graph
+    >>> G = graphs.Sensor(N=256, distribute=True)
+    >>> G.compute_fourier_basis()
+    >>>
+    >>> # Create signal
+    >>> graph_value = np.copysign(np.ones(np.shape(G.U[:, 3])[0]), G.U[:, 3])
+    >>>
+    >>> G.plot_signal(graph_value, default_qtg=False)
 
 This figure shows the original signal on graph.
 
->>> # Create the mask
->>> M = np.random.rand(G.U.shape[0], 1)
->>> M = M > 0.6  # Probability of having no label on a vertex.
->>>
->>> # Applying the mask to the data
->>> sigma = 0.0
->>> depleted_graph_value = M * (graph_value.reshape(graph_value.size, 1) + sigma * np.random.standard_normal((G.N, 1)))
->>>
->>> G.plot_signal(depleted_graph_value, show_edges=True, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/depleted_signal')
+.. plot::
+    :context: close-figs
 
-.. figure:: img/depleted_signal.*
+    >>> # Create the mask
+    >>> M = np.random.rand(G.U.shape[0], 1)
+    >>> M = M > 0.6  # Probability of having no label on a vertex.
+    >>>
+    >>> # Applying the mask to the data
+    >>> sigma = 0.0
+    >>> depleted_graph_value = M * (graph_value.reshape(graph_value.size, 1) + sigma * np.random.standard_normal((G.N, 1)))
+    >>>
+    >>> G.plot_signal(depleted_graph_value, show_edges=True, default_qtg=False)
 
 This figure shows the signal on graph after the application of the
 mask and addition of noise. More than half of the vertices are set to 0.
 
-.. >>> # Setting the function f1 (see pyunlocbox for help)
-.. >>> import pyunlocbox
-.. >>> import math
-.. >>>
-.. >>> epsilon = sigma * math.sqrt(np.sum(M[:]))
-.. >>> operatorA = lambda x: A * x
-.. >>> f1 = pyunlocbox.functions.proj_b2(y=depleted_graph_value, A=operatorA, At=operatorA, tight=True, epsilon=epsilon)
-.. >>>
-.. >>> # Setting the function ftv
-.. >>> f2 = pyunlocbox.functions.func()
-.. >>> f2._prox = lambda x, T: operators.prox_tv(x, T, G, verbose=verbose-1)
-.. >>> f2._eval = lambda x: operators.norm_tv(G, x)
-.. >>>
-.. >>> # Solve the problem
-.. >>> solver = pyunlocbox.solvers.douglas_rachford()
-.. >>> param = {'x0': depleted_graph_value, 'solver': solver, 'atol': 1e-7, 'maxit': 50, 'verbosity': 'LOW'}
-.. >>> # With prox_tv
-.. >>> ret = pyunlocbox.solvers.solve([f2, f1], **param)
-.. >>> prox_tv_reconstructed_graph = ret['sol']
-.. >>>
-.. >>> G.plot_signal(prox_tv_reconstructed_graph, show_edges=True, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/tv_recons_signal')
+.. plot::
+    :context: close-figs
 
-.. figure:: img/tv_recons_signal.*
+    >>> # Setting the function f1 (see pyunlocbox for help)
+    >>> # import pyunlocbox
+    >>> # import math
+    >>>
+    >>> # epsilon = sigma * math.sqrt(np.sum(M[:]))
+    >>> # operatorA = lambda x: A * x
+    >>> # f1 = pyunlocbox.functions.proj_b2(y=depleted_graph_value, A=operatorA, At=operatorA, tight=True, epsilon=epsilon)
+    >>>
+    >>> # Setting the function ftv
+    >>> # f2 = pyunlocbox.functions.func()
+    >>> # f2._prox = lambda x, T: operators.prox_tv(x, T, G, verbose=verbose-1)
+    >>> # f2._eval = lambda x: operators.norm_tv(G, x)
+    >>>
+    >>> # Solve the problem with prox_tv
+    >>> # ret = pyunlocbox.solvers.solve(
+    >>> #         [f2, f1],
+    >>> #         x0=depleted_graph_value,
+    >>> #         solver=pyunlocbox.solvers.douglas_rachford(),
+    >>> #         atol=1e-7,
+    >>> #         maxit=50,
+    >>> #         verbosity='LOW')
+    >>> # prox_tv_reconstructed_graph = ret['sol']
+    >>>
+    >>> # G.plot_signal(prox_tv_reconstructed_graph, show_edges=True, default_qtg=False)
 
 This figure shows the reconstructed signal thanks to the algorithm.
 
@@ -106,12 +112,19 @@ In this case, we solve:
 
 The result is presented as following:
 
-.. >>> # Solve the problem with the same solver as before but with a prox_tik function
-.. >>> ret = pyunlocbox.solvers.solve([f3, f1], **param)
-.. >>> prox_tik_reconstructed_graph = ret['sol']
-.. >>>
-.. >>> G.plot_signal(prox_tik_reconstructed_graph, show_edges=True, default_qtg=False, savefig=True, plot_name='doc/tutorials/img/tik_recons_signal')
+.. plot::
+    :context: close-figs
 
-.. figure:: img/tik_recons_signal.*
+    >>> # Solve the problem with the same solver as before but with a prox_tik function
+    >>> # ret = pyunlocbox.solvers.solve(
+    >>> #         [f3, f1],
+    >>> #         x0=depleted_graph_value,
+    >>> #         solver=pyunlocbox.solvers.douglas_rachford(),
+    >>> #         atol=1e-7,
+    >>> #         maxit=50,
+    >>> #         verbosity='LOW')
+    >>> # prox_tik_reconstructed_graph = ret['sol']
+    >>>
+    >>> # G.plot_signal(prox_tik_reconstructed_graph, show_edges=True, default_qtg=False)
 
 This figure shows the reconstructed signal thanks to the algorithm.
