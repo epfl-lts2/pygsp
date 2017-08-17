@@ -11,7 +11,7 @@ import unittest
 import numpy as np
 from skimage import data, img_as_float
 
-from pygsp import graphs
+from pygsp import graphs, plotting
 
 
 class FunctionsTestCase(unittest.TestCase):
@@ -22,11 +22,16 @@ class FunctionsTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_is_plottable(self):
+    def test_plot_graphs(self):
+        r"""
+        Plot all graphs which have coordinates.
+        With and without signal.
+        With both backends.
+        """
 
         classnames = graphs.__all__
 
-        # Graphs who are not embedded.
+        # Graphs who are not embedded, i.e. have no coordinates.
         classnames.remove('Graph')
         classnames.remove('BarabasiAlbert')
         classnames.remove('ErdosRenyi')
@@ -35,6 +40,18 @@ class FunctionsTestCase(unittest.TestCase):
         classnames.remove('RandomRing')
         classnames.remove('Ring')  # TODO: should have!
         classnames.remove('StochasticBlockModel')
+
+        # Coordinates are not in 2D or 3D.
+        classnames.remove('ImgPatches')
+
+        # TODO: 3D graphics don't work with xvfb-run.
+        # Uncomment and launch tests with python setup.py test.
+        classnames.remove('SwissRoll')
+        classnames.remove('Torus')
+        classnames.remove('NNGraph')
+        classnames.remove('Bunny')
+        classnames.remove('Cube')
+        classnames.remove('Sphere')
 
         Gs = []
         for classname in classnames:
@@ -62,10 +79,25 @@ class FunctionsTestCase(unittest.TestCase):
                 Gs.append(Graph(N=128))
 
         for G in Gs:
-            # Check attributes.
             self.assertTrue(hasattr(G, 'coords'))
             self.assertTrue(hasattr(G, 'A'))
             self.assertEqual(G.N, G.coords.shape[0])
+
+            signal = np.arange(G.N) + 0.3
+
+            if G.is_directed():
+                self.assertRaises(NotImplementedError,
+                                  G.plot, default_qtg=True)
+                self.assertRaises(NotImplementedError,
+                                  G.plot, default_qtg=False)
+            else:
+                # Backend: pyqtgraph.
+                G.plot(default_qtg=True)
+                G.plot_signal(signal, default_qtg=True)
+                # Backend: matplotlib.
+                G.plot(default_qtg=False)
+                G.plot_signal(signal, default_qtg=False)
+                plotting.close_all()
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
