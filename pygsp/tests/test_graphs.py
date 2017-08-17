@@ -80,15 +80,24 @@ class FunctionsTestCase(unittest.TestCase):
 
     def test_ring(self):
         graphs.Ring()
+        graphs.Ring(N=32, k=16)
 
     def test_community(self):
         graphs.Community()
+        graphs.Community(comm_density=0.2)
+        graphs.Community(k_neigh=5)
+        graphs.Community(world_density=0.8)
 
     def test_minnesota(self):
         graphs.Minnesota()
 
     def test_sensor(self):
-        graphs.Sensor()
+        graphs.Sensor(regular=True)
+        graphs.Sensor(regular=False)
+        graphs.Sensor(distribute=True)
+        graphs.Sensor(distribute=False)
+        graphs.Sensor(connected=True)
+        graphs.Sensor(connected=False)
 
     def test_airfoil(self):
         graphs.Airfoil()
@@ -97,6 +106,10 @@ class FunctionsTestCase(unittest.TestCase):
         graphs.DavidSensorNet()
         graphs.DavidSensorNet(N=500)
         graphs.DavidSensorNet(N=128)
+
+    def test_erdosreny(self):
+        graphs.ErdosRenyi(connected=False)
+        graphs.ErdosRenyi(connected=True)
 
     def test_fullconnected(self):
         graphs.FullConnected()
@@ -111,7 +124,12 @@ class FunctionsTestCase(unittest.TestCase):
         graphs.RandomRing()
 
     def test_swissroll(self):
-        graphs.SwissRoll()
+        graphs.SwissRoll(srtype='uniform')
+        graphs.SwissRoll(srtype='classic')
+        graphs.SwissRoll(noise=True)
+        graphs.SwissRoll(noise=False)
+        graphs.SwissRoll(dim=2)
+        graphs.SwissRoll(dim=3)
 
     def test_grid2d(self):
         G = graphs.Grid2d(shape=(3, 2))

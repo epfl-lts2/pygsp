@@ -4,7 +4,7 @@ import numpy as np
 from scipy.sparse import lil_matrix, csc_matrix
 
 from . import Graph
-from ..utils import distanz
+from ..utils import build_logger, distanz
 
 
 class Sensor(Graph):
@@ -40,6 +40,8 @@ class Sensor(Graph):
         self.regular = regular
         self.n_try = n_try
         self.distribute = distribute
+
+        self.logger = build_logger(__name__, **kwargs)
 
         if connected:
             for x in range(self.n_try):
@@ -82,7 +84,7 @@ class Sensor(Graph):
 
         return W
 
-    def _create_weight_matrix(self, N, param_distribute, param_regular, param_Nc):
+    def _create_weight_matrix(self, N, param_distribute, regular, param_Nc):
         XCoords = np.zeros((N, 1))
         YCoords = np.zeros((N, 1))
 
@@ -109,7 +111,7 @@ class Sensor(Graph):
         W = np.exp(-d**2/(2.*s**2))
         W -= np.diag(np.diag(W))
 
-        if param_regular:
+        if regular:
             W = self._get_nc_connection(W, param_Nc)
 
         else:

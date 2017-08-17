@@ -31,7 +31,7 @@ class Ring(Graph):
 
         # Create weighted adjacency matrix
         if 2*k == N:
-            num_edges = N * (k - 1) + N / 2.
+            num_edges = N * (k - 1) + k
         else:
             num_edges = N * k
 
@@ -45,7 +45,7 @@ class Ring(Graph):
             i_inds[(2*i + 1)*N + tmpN] = np.remainder(tmpN + i + 1, N)
             j_inds[(2*i + 1)*N + tmpN] = tmpN
 
-        if k == N/2.:
+        if 2*k == N:
             i_inds[2*N*(k - 1) + tmpN] = tmpN
             i_inds[2*N*(k - 1) + tmpN] = np.remainder(tmpN + k + 1, N)
 

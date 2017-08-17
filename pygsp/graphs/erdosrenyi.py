@@ -21,11 +21,12 @@ class ErdosRenyi(Graph):
         Number of nodes (default is 100)
     p : float
         Probability of connection of a node with another
-    param :
-        Structure of optional parameter
-        connected - flag to force the graph to be connected. By default, it is False.
-        directed - define if the graph is directed. By default, it is False.
-        max_iter - is the maximum number of try to connect the graph. By default, it is 10.
+    connected : bool
+        Force the graph to be connected (default is False).
+    directed : bool
+        Define if the graph is directed (default is False).
+    max_iter : int
+        Maximum number of try to connect the graph (default is 10).
 
     Examples
     --------
@@ -34,12 +35,9 @@ class ErdosRenyi(Graph):
 
     """
 
-    def __init__(self, N=100, p=0.1, **kwargs):
+    def __init__(self, N=100, p=0.1, connected=False, directed=False,
+                 max_iter=10, **kwargs):
         self.p = p
-
-        need_connected = bool(kwargs.pop('connected', False))
-        directed = bool(kwargs.pop('directed', False))
-        max_iter = int(kwargs.pop('max_iter', 10))
 
         if p > 1:
             raise ValueError("GSP_ErdosRenyi: The probability p "
@@ -66,7 +64,7 @@ class ErdosRenyi(Graph):
             self.A = self.W > 0
             is_connected = self.is_connected()
 
-            if not need_connected or is_connected:
+            if not connected or is_connected:
                 break
 
         super(ErdosRenyi, self).__init__(W=self.W, gtype=u"Erdös Renyi", **kwargs)

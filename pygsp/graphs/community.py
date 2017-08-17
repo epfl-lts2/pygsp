@@ -133,7 +133,7 @@ class Community(Graph):
             if comm_density:
                 nb_edges = int(comm_density * M)
                 tril_ind = np.tril_indices(com_siz, -1)
-                indices = np.random.permutation(M)[:nb_edges]
+                indices = np.random.permutation(int(M))[:nb_edges]
 
                 w_data[0] += [1] * nb_edges
                 w_data[1][0] += [first_node + tril_ind[1][elem] for elem in indices]
@@ -175,7 +175,7 @@ class Community(Graph):
                     inter_edges.add((min(new_point), max(new_point)))
         else:
             # use random permutation
-            indices = np.random.permutation(M)[:nb_edges]
+            indices = np.random.permutation(int(M))[:nb_edges]
             all_points, first_col = [], 0
             for i in range(Nc - 1):
                 nb_col = info['comm_sizes'][i]
