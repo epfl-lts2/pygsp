@@ -27,11 +27,11 @@ def test_docstrings(root, ext):
 
 suites = []
 suites.append(test_graphs.suite)
-suites.append(test_utils.suite)
 suites.append(test_filters.suite)
-suites.append(test_plotting.suite)
+suites.append(test_utils.suite)
 suites.append(test_docstrings('pygsp', '.py'))
 suites.append(test_docstrings('.', '.rst'))
+suites.append(test_plotting.suite)  # TODO: can SIGSEGV if not at the end
 suite = unittest.TestSuite(suites)
 
 

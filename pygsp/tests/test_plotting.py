@@ -44,15 +44,6 @@ class FunctionsTestCase(unittest.TestCase):
         # Coordinates are not in 2D or 3D.
         classnames.remove('ImgPatches')
 
-        # TODO: 3D graphics don't work with xvfb-run.
-        # Uncomment and launch tests with python setup.py test.
-        classnames.remove('SwissRoll')
-        classnames.remove('Torus')
-        classnames.remove('NNGraph')
-        classnames.remove('Bunny')
-        classnames.remove('Cube')
-        classnames.remove('Sphere')
-
         Gs = []
         for classname in classnames:
             Graph = getattr(graphs, classname)

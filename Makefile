@@ -25,9 +25,12 @@ lint:
 	flake8 --doctests
 
 test:
-	xvfb-run coverage run --branch --source pygsp setup.py test
+	Xvfb :5 -screen 0 800x600x24 &
+	export DISPLAY=:5
+	coverage run --branch --source pygsp setup.py test
 	coverage report
 	coverage html
+	killall Xvfb
 
 doc:
 	sphinx-build -b html -d doc/_build/doctrees doc doc/_build/html

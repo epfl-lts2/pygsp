@@ -53,6 +53,7 @@ def close_all():
     _qtg_windows = []
 
     # Segmentation faults when executing test_plotting.
+    # TODO: find how to quit and close properly.
     # global _qtg_applications
     # for application in _qtg_applications:
     #     application.quit()
