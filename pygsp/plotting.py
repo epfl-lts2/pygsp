@@ -166,12 +166,8 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name
 
     if show_edges:
         ki, kj = np.nonzero(G.A)
-        if G.directed:
-            raise NotImplementedError('TODO')
-            if G.coords.shape[1] == 2:
-                raise NotImplementedError('TODO')
-            else:
-                raise NotImplementedError('TODO')
+        if G.is_directed():
+            raise NotImplementedError
         else:
             if G.coords.shape[1] == 2:
                 ki, kj = np.nonzero(G.A)
@@ -259,12 +255,8 @@ def _pg_plot_graph(G, show_edges=None, plot_name=''):
         show_edges = G.Ne < 10000
 
     ki, kj = np.nonzero(G.A)
-    if G.directed:
-        raise NotImplementedError('TODO')
-        if G.coords.shape[1] == 2:
-            raise NotImplementedError('TODO')
-        else:
-            raise NotImplementedError('TODO')
+    if G.is_directed():
+        raise NotImplementedError
     else:
         if G.coords.shape[1] == 2:
             adj = np.concatenate((np.expand_dims(ki, axis=1),
@@ -531,12 +523,8 @@ def _plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     if show_edges:
         ki, kj = np.nonzero(G.A)
 
-        if G.directed:
-            raise NotImplementedError('TODO')
-            if G.coords.shape[1] == 2:
-                raise NotImplementedError('TODO')
-            else:
-                raise NotImplementedError('TODO')
+        if G.is_directed():
+            raise NotImplementedError
 
         else:
             if G.coords.shape[1] == 2:
@@ -621,12 +609,8 @@ def _pg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     # Plot edges
     if show_edges:
         ki, kj = np.nonzero(G.A)
-        if G.directed:
-            raise NotImplementedError('TODO')
-            if G.coords.shape[1] == 2:
-                raise NotImplementedError('TODO')
-            else:
-                raise NotImplementedError('TODO')
+        if G.is_directed():
+            raise NotImplementedError
         else:
             if G.coords.shape[1] == 2:
                 adj = np.concatenate((np.expand_dims(ki, axis=1),

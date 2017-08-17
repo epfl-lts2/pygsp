@@ -111,7 +111,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
 
     if isinstance(M, Graph):
         sparserW = sparse.diags(sparserL.diagonal(), 0) - sparserL
-        if not M.directed:
+        if not M.is_directed():
             sparserW = (sparserW + sparserW.T) / 2.
 
         Mnew = Graph(W=sparserW)
@@ -311,7 +311,7 @@ def kron_reduction(G, ind):
                 message = 'Unknwon reduction for {} laplacian.'.format(G.lap_type)
                 raise NotImplementedError(message)
 
-        if G.directed:
+        if G.is_directed():
             message = 'This method only work for undirected graphs.'
             raise NotImplementedError(message)
 

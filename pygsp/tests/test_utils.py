@@ -80,7 +80,7 @@ class FunctionsTestCase(unittest.TestCase):
         test_graphs = [t1, t3, t4]
 
         def test_is_directed(G, is_dir):
-            self.assertEqual(G.directed, is_dir)
+            self.assertEqual(G.is_directed(), is_dir)
 
         def test_laplacian(G, lap):
             self.assertTrue((G.L == lap).all())

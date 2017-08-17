@@ -61,9 +61,8 @@ class ErdosRenyi(Graph):
             matrix = csr_matrix((np.ones(nb_elem), indices), shape=(N, N))
             self.W = matrix if directed else matrix + matrix.T
             self.A = self.W > 0
-            is_connected = self.is_connected()
 
-            if not connected or is_connected:
+            if not connected or self.is_connected(recompute=True):
                 break
 
         super(ErdosRenyi, self).__init__(W=self.W, gtype=u"Erdös Renyi", **kwargs)

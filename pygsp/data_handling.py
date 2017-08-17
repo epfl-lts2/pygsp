@@ -17,10 +17,7 @@ def adj2vec(G):
     G : Graph structure
 
     """
-    if not hasattr(G, 'directed'):
-        G.is_directed()
-
-    if G.directed:
+    if G.is_directed():
         raise NotImplementedError("Not implemented yet.")
 
     else:

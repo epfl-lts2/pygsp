@@ -50,7 +50,7 @@ class Sensor(Graph):
                 self.W = W
                 self.A = W > 0
 
-                if self.is_connected():
+                if self.is_connected(recompute=True):
                     break
 
                 elif x == self.n_try - 1:

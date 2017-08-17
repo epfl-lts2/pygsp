@@ -29,6 +29,8 @@ class Graph(object):
         vertices coordinates (default is None)
     plotting : dict
         plotting parameters
+    perform_checks : bool
+        Whether to check if the graph is connected. Warn if not.
 
     Attributes
     ----------
@@ -53,10 +55,6 @@ class Graph(object):
     gtype : string
         the graph type is a short description of the graph object designed to
         help sorting the graphs.
-    directed : bool
-        indicates if the graph is directed or not.
-        In this framework, we consider that a graph is directed if and
-        only if its weight matrix is non symmetric.
     L : sparse matrix or ndarray
         the graph Laplacian, an N-by-N matrix computed from W.
     lap_type : 'none', 'normalized', 'combinatorial'
@@ -78,7 +76,7 @@ class Graph(object):
     """
 
     def __init__(self, W, gtype='unknown', lap_type='combinatorial',
-                 coords=None, plotting={}, perform_all_checks=True, **kwargs):
+                 coords=None, plotting={}, perform_checks=True, **kwargs):
 
         self.logger = build_logger(__name__, **kwargs)
 
@@ -95,18 +93,12 @@ class Graph(object):
         self.gtype = gtype
         self.lap_type = lap_type
 
-        # (Rodrigo): This check is only inside self.is_connected(), but I
-        # think they should be independent of each other.
-        if not hasattr(self, 'directed'):
-            self.is_directed()
+        if coords is not None:
+            self.coords = coords
 
-        # (Rodrigo): I don't think this should be called by default when we
-        # create the graph. It is very expensive for big graphs. For now I kept
-        # the default behavior as is, but added a flag that allows the user to
-        # turn this off.
-        if perform_all_checks:
-            self.is_connected()
-            if not self.connected:
+        # Very expensive for big graphs. Allow user to opt out.
+        if perform_checks:
+            if not self.is_connected():
                 self.logger.warning('Graph is not connected!')
 
         self.create_laplacian(lap_type)
@@ -400,9 +392,9 @@ class Graph(object):
         sub_W = self.W.tocsr()[ind, :].tocsc()[:, ind]
         return Graph(sub_W, gtype="sub-{}".format(self.gtype))
 
-    def is_connected(self, force_recompute=False):
+    def is_connected(self, recompute=False):
         r"""
-        Check the strong connectivity of the input graph.
+        Check the strong connectivity of the input graph. Result is cached.
 
         It uses DFS travelling on graph to ensure that each node is visited.
         For undirected graphs, starting at any vertex and trying to access all
@@ -414,13 +406,13 @@ class Graph(object):
 
         Parameters
         ----------
-        force_recompute: bool
+        recompute: bool
             Force to recompute the connectivity if already known.
 
         Returns
         -------
         connected : bool
-            A bool value telling if the graph is connected.
+            True if the graph is connected.
 
         Examples
         --------
@@ -431,25 +423,21 @@ class Graph(object):
         >>> connected = G.is_connected()
 
         """
-        if hasattr(self, 'force_recompute'):
-            if force_recompute:
-                self.logger.warning("Connectivity for this graph is already "
-                                    "known. Recomputing.")
-            else:
-                self.logger.error("Connectivity for this graph is already "
-                                  "known. Stopping.")
-                return self.connected
-
-        if not hasattr(self, 'directed'):
-            self.is_directed()
+        if hasattr(self, '_connected') and not recompute:
+            return self._connected
 
         if self.A.shape[0] != self.A.shape[1]:
             self.logger.error("Inconsistent shape to test connectedness. "
                               "Set to False.")
-            self.connected = False
-            return False
+            self._connected = False
+            return self._connected
 
-        for adj_matrix in [self.A, self.A.T] if self.directed else [self.A]:
+        if self.is_directed(recompute=recompute):
+            adj_matrices = [self.A, self.A.T]
+        else:
+            adj_matrices = [self.A]
+
+        for adj_matrix in adj_matrices:
             visited = np.zeros(self.A.shape[0], dtype=bool)
             stack = set([0])
 
@@ -465,20 +453,28 @@ class Graph(object):
                                       if not visited[idx]]))
 
             if not visited.all():
-                self.connected = False
-                return False
+                self._connected = False
+                return self._connected
 
-        self.connected = True
-        return True
+        self._connected = True
+        return self._connected
 
-    def is_directed(self, force_recompute=False):
+    def is_directed(self, recompute=False):
         r"""
-        Define if the graph has directed edges.
+        Check if the graph has directed edges. Result is cached.
+
+        In this framework, we consider that a graph is directed if and
+        only if its weight matrix is non symmetric.
 
         Parameters
         ----------
-        force_recompute: bool
+        recompute : bool
             Force to recompute the directedness if already known.
+
+        Returns
+        -------
+        directed : bool
+            True if the graph is directed.
 
         Notes
         -----
@@ -493,24 +489,15 @@ class Graph(object):
         >>> directed = G.is_directed()
 
         """
-        if hasattr(self, 'force_recompute'):
-            if force_recompute:
-                self.logger.warning("Directedness for this graph is already "
-                                    "known. Recomputing.")
-            else:
-                self.logger.error("Directedness for this graph is already "
-                                  "known. Stopping.")
-                return self.directed
+        if hasattr(self, '_directed') and not recompute:
+            return self._directed
 
         if np.diff(np.shape(self.W))[0]:
             raise ValueError("Matrix dimensions mismatch, expecting square "
                              "matrix.")
 
-        is_dir = np.abs(self.W - self.W.T).sum() != 0
-
-        self.directed = is_dir
-
-        return is_dir
+        self._directed = np.abs(self.W - self.W.T).sum() != 0
+        return self._directed
 
     def extract_components(self):
         r"""
@@ -539,15 +526,12 @@ class Graph(object):
         >>> sinks_0 = components[0].info['sink'] if has_sinks else []
 
         """
-        if not hasattr(self, 'directed'):
-            self.is_directed()
-
         if self.A.shape[0] != self.A.shape[1]:
             self.logger.error('Inconsistent shape to extract components. '
                               'Square matrix required.')
             return None
 
-        if self.directed:
+        if self.is_directed():
             raise NotImplementedError('Focusing on undirected graphs first.')
 
         graphs = []
@@ -579,7 +563,7 @@ class Graph(object):
 
         return graphs
 
-    def compute_fourier_basis(self, smallest_first=True, force_recompute=False,
+    def compute_fourier_basis(self, smallest_first=True, recompute=False,
                               **kwargs):
         r"""
         Compute the fourier basis of the graph.
@@ -589,7 +573,7 @@ class Graph(object):
         smallest_first: bool
             Define the order of the eigenvalues.
             Default is smallest first (True).
-        force_recompute: bool
+        recompute: bool
             Force to recompute the Fourier basis if already existing.
 
         Notes
@@ -619,21 +603,15 @@ class Graph(object):
         See :cite:`chung1997spectral`
 
         """
-        if hasattr(self, 'e') or hasattr(self, 'U'):
-            if force_recompute:
-                self.logger.warning("This graph already has a Fourier basis."
-                                    " Recomputing.")
-            else:
-                self.logger.error("This graph already has a Fourier basis. "
-                                  "Stopping.")
-                return
+        if hasattr(self, 'e') and hasattr(self, 'U') and not recompute:
+            return
 
         if self.N > 3000:
             self.logger.warning("Performing full eigendecomposition of a "
                                 "large matrix may take some time.")
 
         if not hasattr(self, 'L'):
-            raise AttributeError("Graph Laplacian is missing")
+            raise AttributeError("Graph Laplacian is missing.")
 
         eigenvectors, eigenvalues, _ = svd(self.L.todense())
 
@@ -666,7 +644,7 @@ class Graph(object):
             raise AttributeError('Unknown laplacian type {}'.format(lap_type))
         self.lap_type = lap_type
 
-        if self.directed:
+        if self.is_directed():
             if lap_type == 'combinatorial':
                 L = 0.5 * (sparse.diags(np.ravel(self.W.sum(0)), 0) +
                            sparse.diags(np.ravel(self.W.sum(1)), 0) -
@@ -688,32 +666,35 @@ class Graph(object):
 
         self.L = L
 
-    def estimate_lmax(self, force_recompute=False):
+    def estimate_lmax(self, recompute=False):
         r"""
         Estimate the maximal eigenvalue.
 
+        Exact value given by the eigendecomposition of the Laplacia, see
+        :func:`compute_fourier_basis`.
+
         Parameters
         ----------
-        force_recompute : boolean
+        recompute : boolean
             Force to recompute the maximal eigenvalue. Default is false.
+
+        Returns
+        -------
+        lmax : float
+            An estimation of the largest eigenvalue.
 
         Examples
         --------
-        Just define a graph and apply the estimation on it.
-
         >>> from pygsp import graphs
         >>> import numpy as np
         >>> W = np.arange(16).reshape(4, 4)
         >>> G = graphs.Graph(W)
-        >>> G.estimate_lmax()
+        >>> print('{:.2f}'.format(G.estimate_lmax()))
+        41.59
 
         """
-        if hasattr(self, 'lmax'):
-            if force_recompute:
-                self.logger.error('Already computed lmax. Recomputing.')
-            else:
-                self.logger.error('Already computed lmax. Stopping.')
-                return
+        if hasattr(self, 'lmax') and not recompute:
+            return self.lmax
 
         try:
             # For robustness purposes, increase the error by 1 percent
@@ -727,6 +708,7 @@ class Graph(object):
 
         lmax = np.real(lmax)
         self.lmax = lmax.sum()
+        return self.lmax
 
     def plot(self, **kwargs):
         r"""

@@ -30,7 +30,7 @@ class FunctionsTestCase(unittest.TestCase):
         self.assertEqual(G.N, 4)
         assert np.allclose(G.d, np.array([[3], [4], [4], [4]]))
         self.assertEqual(G.Ne, 15)
-        self.assertTrue(G.directed)
+        self.assertTrue(G.is_directed())
         ki, kj = np.nonzero(G.A)
         self.assertEqual(ki.shape[0], G.Ne)
         self.assertEqual(kj.shape[0], G.Ne)
