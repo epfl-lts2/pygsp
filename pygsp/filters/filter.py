@@ -235,7 +235,7 @@ class Filter(object):
                     s += igft(np.conjugate(self.G.U), fc)
 
         elif method == 'cheby':
-            if hasattr(self.G, 'lmax'):
+            if not hasattr(self.G, 'lmax'):
                 self.logger.info('The variable lmax is not available. '
                                  'The function will compute it for you.')
                 self.G.estimate_lmax()
