@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -14,7 +13,7 @@ from skimage import data, img_as_float
 from pygsp import graphs
 
 
-class FunctionsTestCase(unittest.TestCase):
+class TestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -24,13 +23,13 @@ class FunctionsTestCase(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    def test_default_graph(self):
+    def test_graph(self):
         W = np.arange(16).reshape(4, 4)
         G = graphs.Graph(W)
-        assert np.allclose(G.W.A, W)
-        assert np.allclose(G.A.A, G.W.A > 0)
+        np.testing.assert_allclose(G.W.A, W)
+        np.testing.assert_allclose(G.A.A, G.W.A > 0)
         self.assertEqual(G.N, 4)
-        assert np.allclose(G.d, np.array([[3], [4], [4], [4]]))
+        np.testing.assert_allclose(G.d, np.array([[3], [4], [4], [4]]))
         self.assertEqual(G.Ne, 15)
         self.assertTrue(G.is_directed())
         ki, kj = np.nonzero(G.A)
@@ -172,4 +171,4 @@ class FunctionsTestCase(unittest.TestCase):
         graphs.Grid2dImgPatches(img=self._img, patch_shape=(3, 3))
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
+suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

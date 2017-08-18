@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
@@ -14,7 +13,7 @@ from skimage import data, img_as_float
 from pygsp import graphs, plotting
 
 
-class FunctionsTestCase(unittest.TestCase):
+class TestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -93,4 +92,4 @@ class FunctionsTestCase(unittest.TestCase):
                 plotting.close_all()
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
+suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

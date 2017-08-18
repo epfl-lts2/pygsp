@@ -14,7 +14,7 @@ from . import test_graphs, test_filters, test_utils, test_plotting
 
 
 def gen_recursive_file(root, ext):
-    for root, dirnames, filenames in os.walk(root):
+    for root, _, filenames in os.walk(root):
         for name in filenames:
             if name.lower().endswith(ext):
                 yield os.path.join(root, name)
@@ -31,7 +31,7 @@ suites.append(test_filters.suite)
 suites.append(test_utils.suite)
 suites.append(test_docstrings('pygsp', '.py'))
 suites.append(test_docstrings('.', '.rst'))
-suites.append(test_plotting.suite)  # TODO: can SIGSEGV if not at the end
+suites.append(test_plotting.suite)  # TODO: can SIGSEGV if not last
 suite = unittest.TestSuite(suites)
 
 
