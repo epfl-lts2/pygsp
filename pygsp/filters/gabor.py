@@ -34,12 +34,7 @@ class Gabor(Filter):
     """
     def __init__(self, G, k, **kwargs):
 
-        if not hasattr(G, 'e'):
-            _logger.info('Filter Gabor will calculate and set'
-                         ' the eigenvalues to normalize the kernel')
-            G.compute_fourier_basis()
-
-        Nf = np.shape(G.e)[0]
+        Nf = G.e.shape[0]
 
         g = []
         for i in range(Nf):

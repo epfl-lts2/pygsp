@@ -110,10 +110,6 @@ class Filter(object):
             # c = approximations.lanczos_op(self, s, order=lanczos_order)
 
         elif method == 'exact':  # Exact computation
-            if not hasattr(self.G, 'e') or not hasattr(self.G, 'U'):
-                _logger.warning('Has to compute the Fourier basis.')
-                self.G.compute_fourier_basis()
-
             Nf = len(self.g)  # nb of filters
             N = self.G.N  # nb of nodes
             try:
@@ -237,10 +233,6 @@ class Filter(object):
                 method = 'cheby'
 
         if method == 'exact':
-            if not hasattr(self.G, 'e') or not hasattr(self.G, 'U'):
-                _logger.warning('Has to compute the Fourier basis.')
-                self.G.compute_fourier_basis()
-
             fie = self.evaluate(self.G.e)
             Nv = np.shape(c)[1]
             s = np.zeros((N, Nv))
@@ -323,12 +315,7 @@ class Filter(object):
         if bounds:
             xmin, xmax = bounds
             rng = np.linspace(xmin, xmax, N)
-
         else:
-            if not hasattr(self.G, 'e'):
-                _logger.warning('Has to compute the Fourier basis.')
-                self.G.compute_fourier_basis()
-
             rng = self.G.e
 
         sum_filters = np.sum(np.abs(np.power(self.evaluate(rng), 2)), axis=0)

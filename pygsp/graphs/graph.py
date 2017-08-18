@@ -555,10 +555,46 @@ class Graph(object):
 
         return graphs
 
+    def _check_fourier_properties(self, name):
+        if not hasattr(self, '_' + name):
+            self.logger.warning('G.{} is not available, we need to compute '
+                                'the graph Fourier basis. Explicitly call '
+                                'G.compute_fourier_basis() once beforehand to '
+                                'suppress the warning.'.format(name))
+            self.compute_fourier_basis()
+        return getattr(self, '_' + name)
+
+    @property
+    def U(self):
+        r"""
+        Fourier basis, i.e. the eigenvectors of the Laplacian.
+        Is computed by :func:`compute_fourier_basis`.
+        """
+        return self._check_fourier_properties('U')
+
+    @property
+    def e(self):
+        r"""
+        Graph frequencies, i.e. the eigenvalues of the Laplacian.
+        Is computed by :func:`compute_fourier_basis`.
+        """
+        return self._check_fourier_properties('e')
+
+    @property
+    def mu(self):
+        r"""
+        Coherence of the Fourier basis.
+        Is computed by :func:`compute_fourier_basis`.
+        """
+        return self._check_fourier_properties('mu')
+
     def compute_fourier_basis(self, smallest_first=True, recompute=False,
                               **kwargs):
         r"""
         Compute the Fourier basis of the graph.
+
+        The result is cached and accessible by the :py:attr:`~U`,
+        :py:attr:`~e`, :py:attr:`~lmax`, and :py:attr:`~mu` properties.
 
         Parameters
         ----------
@@ -590,12 +626,19 @@ class Graph(object):
         Examples
         --------
         >>> from pygsp import graphs
-        >>> N = 50
-        >>> G = graphs.Sensor(N)
+        >>> G = graphs.Torus()
         >>> G.compute_fourier_basis()
+        >>> G.U.shape
+        (256, 256)
+        >>> G.e.shape
+        (256,)
+        >>> G.lmax == G.e[-1]
+        True
+        >>> G.mu < 1
+        True
 
         """
-        if hasattr(self, 'e') and hasattr(self, 'U') and not recompute:
+        if hasattr(self, '_e') and hasattr(self, '_U') and not recompute:
             return
 
         if self.N > 3000:
@@ -611,10 +654,10 @@ class Graph(object):
         if not smallest_first:
             inds = inds[::-1]
 
-        self.e = np.sort(eigenvalues)
-        self._lmax = np.max(self.e)
-        self.U = eigenvectors[:, inds]
-        self.mu = np.max(np.abs(self.U))
+        self._e = np.sort(eigenvalues)
+        self._lmax = np.max(self._e)
+        self._U = eigenvectors[:, inds]
+        self._mu = np.max(np.abs(self._U))
 
     def create_laplacian(self, lap_type='combinatorial'):
         r"""
@@ -664,18 +707,19 @@ class Graph(object):
         Largest eigenvalue of the graph Laplacian. Can be exactly computed by
         :func:`compute_fourier_basis` or approximated by :func:`estimate_lmax`.
         """
-        try:
-            return self._lmax
-        except AttributeError:
-            self.logger.warning('Need to estimate lmax. Explicitly call '
-                                'G.estimate_lmax() or '
+        if not hasattr(self, '_lmax'):
+            self.logger.warning('G.lmax is not available, we need to estimate '
+                                'it. Explicitly call G.estimate_lmax() or '
                                 'G.compute_fourier_basis() '
                                 'once beforehand to suppress the warning.')
-            return self.estimate_lmax()
+            self.estimate_lmax()
+        return self._lmax
 
     def estimate_lmax(self, recompute=False):
         r"""
         Estimate the largest eigenvalue.
+
+        The result is cached and accessible by the :py:attr:`~lmax` property.
 
         Exact value given by the eigendecomposition of the Laplacian, see
         :func:`compute_fourier_basis`.
@@ -685,23 +729,19 @@ class Graph(object):
         recompute : boolean
             Force to recompute the largest eigenvalue. Default is false.
 
-        Returns
-        -------
-        lmax : float
-            An estimation of the largest eigenvalue.
-
         Examples
         --------
         >>> from pygsp import graphs
-        >>> import numpy as np
-        >>> W = np.arange(16).reshape(4, 4)
-        >>> G = graphs.Graph(W)
-        >>> print('{:.2f}'.format(G.estimate_lmax()))
-        41.59
+        >>> G = graphs.Sensor()
+        >>> G.compute_fourier_basis()
+        >>> lmax = G.lmax
+        >>> G.estimate_lmax(recompute=True)
+        >>> G.lmax > lmax  # Upper bound.
+        True
 
         """
         if hasattr(self, '_lmax') and not recompute:
-            return self._lmax
+            return
 
         try:
             # For robustness purposes, increase the error by 1 percent
@@ -714,7 +754,6 @@ class Graph(object):
 
         lmax = np.real(lmax)
         self._lmax = lmax.sum()
-        return self._lmax
 
     def plot(self, **kwargs):
         r"""

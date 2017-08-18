@@ -36,11 +36,6 @@ class Heat(Filter):
         g = []
 
         if normalize:
-            if not hasattr(G, 'e'):
-                _logger.info('Filter Heat will calculate and set '
-                             'the eigenvalues to normalize the kernel')
-                G.compute_fourier_basis()
-
             if isinstance(tau, list):
                 for t in tau:
                     def gu(x, taulam=t):

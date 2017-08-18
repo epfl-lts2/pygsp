@@ -612,8 +612,6 @@ def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
     else:
         # When the graph is small enough, we can do a full eigendecomposition
         # and compute the full analysis operator T_a
-        if not hasattr(G, 'e') or not hasattr(G, 'U'):
-            G.compute_fourier_basis()
         H = G.U * sparse.diags(h_filter(G.e), 0) * G.U.T
         Phi = G.U * sparse.diags(1./(reg_eps + G.e), 0) * G.U.T
         Ta = np.concatenate((S * H, sparse.eye(G.N) - Phi[:, keep_inds] * spsolve(Phi[np.ix_(keep_inds, keep_inds)], S*H)), axis=0)

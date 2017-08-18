@@ -28,11 +28,6 @@ def gft(G, f):
     from pygsp.graphs import Graph
 
     if isinstance(G, Graph):
-        if not hasattr(G, 'U'):
-            logger.info('Analysis filter has to compute the eigenvalues ' +
-                        'and the eigenvectors.')
-            G.compute_fourier_basis()
-
         U = G.U
     else:
         U = G
@@ -60,12 +55,7 @@ def igft(G, f_hat):
     from pygsp.graphs import Graph
 
     if isinstance(G, Graph):
-        if not hasattr(G, 'U'):
-            logger.info('Analysis filter has to compute the eigenvalues ' +
-                        'and the eigenvectors.')
-            G.compute_fourier_basis()
         U = G.U
-
     else:
         U = G
 
@@ -93,10 +83,6 @@ def generalized_wft(G, g, f, lowmemory=True):
 
     """
     Nf = np.shape(f)[1]
-
-    if not hasattr(G, 'U'):
-        logger.info('Analysis filter has to compute the eigenvalues and the eigenvectors.')
-        G.compute_fourier_basis()
 
     if isinstance(g, list):
         g = igft(G, g[0](G.e))
@@ -142,9 +128,6 @@ def gabor_wft(G, f, k):
     """
     from pygsp.filters import Gabor
 
-    if not hasattr(G, 'e'):
-        logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
-        G.compute_fourier_basis()
     g = Gabor(G, k)
 
     C = g.analysis(f)
@@ -198,10 +181,6 @@ def ngwft(G, f, g, lowmemory=True):
             Coefficients
 
     """
-
-    if not hasattr(G, 'U'):
-        logger.info('analysis filter has to compute the eigenvalues and the eigenvectors.')
-        G.compute_fourier_basis()
 
     if lowmemory:
         # Compute the Frame into a big matrix
