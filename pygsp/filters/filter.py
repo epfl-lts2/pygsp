@@ -264,13 +264,13 @@ class Filter(object):
 
         return s
 
-    def approx(m, N, **kwargs):
+    def approx(self, m, N, **kwargs):
         r"""
         Not implemented yet.
         """
         raise NotImplementedError
 
-    def tighten():
+    def tighten(self):
         r"""
         Not implemented yet.
         """
