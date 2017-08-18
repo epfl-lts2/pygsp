@@ -51,8 +51,6 @@ class FunctionsTestCase(unittest.TestCase):
         f.filterbank_bounds()
         # f.filterbank_matrix()  TODO: too much memory
 
-        f.wlog_scales(1, 10, 10)
-
         # TODO: f.can_dual()
 
         self.assertRaises(NotImplementedError, f.approx, 0, 0)

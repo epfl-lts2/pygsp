@@ -4,6 +4,7 @@ import numpy as np
 from scipy import optimize
 
 from . import Filter
+from pygsp import utils
 
 
 class Abspline(Filter):
@@ -19,9 +20,9 @@ class Abspline(Filter):
         Low-pass factor lmin=lmax/lpfactor will be used to determine scales,
         the scaling function will be created to fill the lowpass gap.
         (default = 20)
-    t : ndarray
-        Vector of scale to be used (Initialized by default at
-        the value of the log scale)
+    scales : ndarray
+        Vector of scales to be used.
+        By default, initialized with :func:`pygsp.utils.compute_log_scales`.
 
     Examples
     --------
@@ -31,7 +32,7 @@ class Abspline(Filter):
 
     """
 
-    def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
+    def __init__(self, G, Nf=6, lpfactor=20, scales=None, **kwargs):
 
         def kernel_abspline3(x, alpha, beta, t1, t2):
             M = np.array([[1, t1, t1**2, t1**3],
@@ -68,10 +69,10 @@ class Abspline(Filter):
 
         G.lmin = G.lmax / lpfactor
 
-        if t is None:
-            self.t = self.wlog_scales(G.lmin, G.lmax, Nf - 1)
+        if scales is None:
+            self.scales = utils.compute_log_scales(G.lmin, G.lmax, Nf - 1)
         else:
-            self.t = t
+            self.scales = scales
 
         gb = lambda x: kernel_abspline3(x, 2, 2, 1, 2)
         gl = lambda x: np.exp(-np.power(x, 4))
@@ -80,7 +81,7 @@ class Abspline(Filter):
 
         g = [lambda x: 1.2 * np.exp(-1) * gl(x / lminfac)]
         for i in range(0, Nf - 1):
-            g.append(lambda x, ind=i: gb(self.t[ind] * x))
+            g.append(lambda x, ind=i: gb(self.scales[ind] * x))
 
         f = lambda x: -gb(x)
         xstar = optimize.minimize_scalar(f, bounds=(1, 2),

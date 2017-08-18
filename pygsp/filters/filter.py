@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import division
-
 from math import log
 from copy import deepcopy
 
@@ -371,32 +369,6 @@ class Filter(object):
             F[:, N * i + tmpN] = Ft[N * i + tmpN]
 
         return F
-
-    def wlog_scales(self, lmin, lmax, Nscales, t1=1, t2=2):
-        r"""
-        Compute logarithm scales for wavelets
-
-        Parameters
-        ----------
-        lmin : int
-            Minimum non-zero eigenvalue
-        lmax : int
-            Maximum eigenvalue
-        Nscales : int
-            Number of scales
-
-        Returns
-        -------
-        s : ndarray
-            Scale
-
-        """
-        smin = t1 / lmax
-        smax = t2 / lmin
-
-        s = np.exp(np.linspace(log(smax), log(smin), Nscales))
-
-        return s
 
     def can_dual(self):
         r"""

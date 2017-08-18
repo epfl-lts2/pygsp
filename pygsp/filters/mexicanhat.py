@@ -3,6 +3,7 @@
 import numpy as np
 
 from . import Filter
+from pygsp import utils
 
 
 class MexicanHat(Filter):
@@ -18,9 +19,9 @@ class MexicanHat(Filter):
         Low-pass factor lmin=lmax/lpfactor will be used to determine scales,
         the scaling function will be created to fill the lowpass gap.
         (default = 20)
-    t : ndarray
-        Vector of scale to be used (Initialized by default at the value of the
-        log scale)
+    scales : ndarray
+        Vector of scales to be used.
+        By default, initialized with :func:`pygsp.utils.compute_log_scales`.
     normalize : bool
         Wether to normalize the wavelet by the factor/sqrt(t).
         (default = False)
@@ -33,14 +34,15 @@ class MexicanHat(Filter):
 
     """
 
-    def __init__(self, G, Nf=6, lpfactor=20, t=None, normalize=False,
+    def __init__(self, G, Nf=6, lpfactor=20, scales=None, normalize=False,
                  **kwargs):
 
-        if t is None:
-            G.lmin = G.lmax / lpfactor
-            self.t = self.wlog_scales(G.lmin, G.lmax, Nf - 1)
+        G.lmin = G.lmax / lpfactor
+
+        if scales is None:
+            self.scales = utils.compute_log_scales(G.lmin, G.lmax, Nf - 1)
         else:
-            self.t = t
+            self.scales = scales
 
         gb = lambda x: x * np.exp(-x)
         gl = lambda x: np.exp(-np.power(x, 4))
@@ -51,9 +53,9 @@ class MexicanHat(Filter):
 
         for i in range(Nf - 1):
             if normalize:
-                g.append(lambda x, ind=i: np.sqrt(self.t[ind]) *
-                         gb(self.t[ind] * x))
+                g.append(lambda x, ind=i: np.sqrt(self.scales[ind]) *
+                         gb(self.scales[ind] * x))
             else:
-                g.append(lambda x, ind=i: gb(self.t[ind] * x))
+                g.append(lambda x, ind=i: gb(self.scales[ind] * x))
 
         super(MexicanHat, self).__init__(G, g, **kwargs)
