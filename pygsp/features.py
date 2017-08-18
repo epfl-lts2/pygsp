@@ -88,11 +88,6 @@ def compute_spectrogram(G, atom=None, M=100, method=None, **kwargs):
         Number of samples on the spectral scale. (default = 100)
 
     """
-    from pygsp.filters import Filter
-
-    if not hasattr(G, 'lmax'):
-        G.estimate_lmax()
-
     if not atom or not hasattr(atom, '__call__'):
         def atom(x):
             return np.exp(-M * (x / G.lmax)**2)

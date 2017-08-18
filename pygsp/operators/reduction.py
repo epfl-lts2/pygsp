@@ -231,11 +231,9 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
         sparsify_eps = min(10. / np.sqrt(G.N), 0.3)
 
     if compute_full_eigen:
-        if not hasattr(G, 'e') or not hasattr(G, 'U'):
-            G.compute_fourier_basis()
+        G.compute_fourier_basis()
     else:
-        if not hasattr(G, 'lmax'):
-            G.estimate_lmax()
+        G.estimate_lmax()
 
     Gs = [G]
     Gs[0].mr = {'idx': np.arange(G.N), 'orig_idx': np.arange(G.N)}

@@ -4,7 +4,6 @@ import numpy as np
 from scipy import optimize
 
 from . import Filter
-from pygsp import utils
 
 
 class Abspline(Filter):
@@ -33,8 +32,6 @@ class Abspline(Filter):
     """
 
     def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
-
-        self._logger = utils.build_logger(__name__, **kwargs)
 
         def kernel_abspline3(x, alpha, beta, t1, t2):
             M = np.array([[1, t1, t1**2, t1**3],
@@ -68,10 +65,6 @@ class Abspline(Filter):
                 r[r3] = x[r3]**(-beta) * t2 ** beta
 
             return r
-
-        if not hasattr(G, 'lmax'):
-            self._logger.info('Has to estimate lmax.')
-            G.estimate_lmax()
 
         G.lmin = G.lmax / lpfactor
 

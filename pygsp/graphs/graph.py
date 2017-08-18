@@ -560,7 +560,7 @@ class Graph(object):
     def compute_fourier_basis(self, smallest_first=True, recompute=False,
                               **kwargs):
         r"""
-        Compute the fourier basis of the graph.
+        Compute the Fourier basis of the graph.
 
         Parameters
         ----------
@@ -614,7 +614,7 @@ class Graph(object):
             inds = inds[::-1]
 
         self.e = np.sort(eigenvalues)
-        self.lmax = np.max(self.e)
+        self._lmax = np.max(self.e)
         self.U = eigenvectors[:, inds]
         self.mu = np.max(np.abs(self.U))
 
@@ -660,17 +660,29 @@ class Graph(object):
 
         self.L = L
 
+    @property
+    def lmax(self):
+        r"""
+        Largest eigenvalue of the graph Laplacian. Can be exactly computed by
+        :func:`compute_fourier_basis` or approximated by :func:`estimate_lmax`.
+        """
+        try:
+            return self._lmax
+        except AttributeError:
+            self.logger.warning('Need to estimate lmax.')
+            return self.estimate_lmax()
+
     def estimate_lmax(self, recompute=False):
         r"""
-        Estimate the maximal eigenvalue.
+        Estimate the largest eigenvalue.
 
-        Exact value given by the eigendecomposition of the Laplacia, see
+        Exact value given by the eigendecomposition of the Laplacian, see
         :func:`compute_fourier_basis`.
 
         Parameters
         ----------
         recompute : boolean
-            Force to recompute the maximal eigenvalue. Default is false.
+            Force to recompute the largest eigenvalue. Default is false.
 
         Returns
         -------
@@ -687,8 +699,8 @@ class Graph(object):
         41.59
 
         """
-        if hasattr(self, 'lmax') and not recompute:
-            return self.lmax
+        if hasattr(self, '_lmax') and not recompute:
+            return self._lmax
 
         try:
             # For robustness purposes, increase the error by 1 percent
@@ -701,8 +713,8 @@ class Graph(object):
             lmax = 2. * np.max(self.d)
 
         lmax = np.real(lmax)
-        self.lmax = lmax.sum()
-        return self.lmax
+        self._lmax = lmax.sum()
+        return self._lmax
 
     def plot(self, **kwargs):
         r"""

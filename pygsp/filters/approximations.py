@@ -39,10 +39,6 @@ def compute_cheby_coeff(f, m=30, N=None, *args, **kwargs):
     if not N:
         N = m + 1
 
-    if not hasattr(G, 'lmax'):
-        logger.info('The variable lmax has not been computed yet, it will be done now.')
-        G.estimate_lmax()
-
     a_arange = [0, G.lmax]
 
     a1 = (a_arange[1] - a_arange[0]) / 2
@@ -85,10 +81,6 @@ def cheby_op(G, c, signal, **kwargs):
 
     if M < 2:
         raise TypeError("The coefficients have an invalid shape")
-
-    if not hasattr(G, 'lmax'):
-        logger.info('The variable lmax has not been computed yet, it will be done now.')
-        G.estimate_lmax()
 
     # thanks to that, we can also have 1d signal.
     try:
@@ -145,10 +137,6 @@ def cheby_rect(G, bounds, signal, **kwargs):
         raise ValueError('Bounds of wrong shape.')
 
     bounds = np.array(bounds)
-
-    if not hasattr(G, 'lmax'):
-        logger.info('The variable lmax has not been computed yet, it will be done now.')
-        G.estimate_lmax()
 
     m = int(kwargs.pop('order', 30) + 1)
 

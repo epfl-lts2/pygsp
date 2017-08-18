@@ -103,10 +103,6 @@ class Filter(object):
             self._logger.info('The analysis method is {}'.format(method))
 
         if method == 'cheby':  # Chebyshev approx
-            if not hasattr(self.G, 'lmax'):
-                self._logger.info('Has to estimate lmax.')
-                self.G.estimate_lmax()
-
             cheb_coef = approximations.compute_cheby_coeff(self, m=cheb_order)
             c = approximations.cheby_op(self.G, cheb_coef, s)
 
@@ -261,10 +257,6 @@ class Filter(object):
                     s += igft(np.conjugate(self.G.U), fc)
 
         elif method == 'cheby':
-            if not hasattr(self.G, 'lmax'):
-                self._logger.info('Has to estimate lmax.')
-                self.G.estimate_lmax()
-
             cheb_coeffs = approximations.compute_cheby_coeff(
                 self, m=order, N=order + 1)
             s = np.zeros((N, np.shape(c)[1]))
