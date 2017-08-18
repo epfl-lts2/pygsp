@@ -27,7 +27,6 @@ try:
     import pyqtgraph as qtg
     import pyqtgraph.opengl as gl
     from pyqtgraph.Qt import QtGui
-    _qtg_application = QtGui.QApplication([])
     qtg_import = True
 except Exception as e:
     print('ERROR : Could not import packages for pyqtgraph.')
@@ -318,6 +317,9 @@ def _qtg_plot_graph(G, show_edges=None, plot_name=''):
             _qtg_windows.append(window)
 
         elif G.coords.shape[1] == 3:
+            if not QtGui.QApplication.instance():
+                # We want only one application.
+                QtGui.QApplication([])
             widget = gl.GLViewWidget()
             widget.opts['distance'] = 10
             widget.show()
@@ -629,6 +631,9 @@ def _qtg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         window = qtg.GraphicsWindow(plot_name or G.gtype)
         view = window.addViewBox()
     elif G.coords.shape[1] == 3:
+        if not QtGui.QApplication.instance():
+            # We want only one application.
+            QtGui.QApplication([])
         widget = gl.GLViewWidget()
         widget.opts['distance'] = 10
         widget.show()
