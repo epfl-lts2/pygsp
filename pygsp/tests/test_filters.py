@@ -17,9 +17,8 @@ class TestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._G = graphs.Logo()
-        # Signal is a Kronecker delta at node 83.
-        cls._signal = np.zeros(cls._G.N)
-        cls._signal[83] = 1
+        rs = np.random.RandomState(42)
+        cls._signal = rs.uniform(size=cls._G.N)
 
     @classmethod
     def tearDownClass(cls):
@@ -143,12 +142,13 @@ class TestCase(unittest.TestCase):
         Test that the different methods for filter analysis, i.e. 'exact',
         'cheby', and 'lanczos', produce the same output.
         """
+        # TODO: synthesis
 
         f = filters.Heat(self._G)
         c_exact = f.analysis(self._signal, method='exact')
         c_cheby = f.analysis(self._signal, method='cheby')
 
-        assert np.allclose(c_exact, c_cheby)
+        np.testing.assert_allclose(c_exact, c_cheby)
         self.assertRaises(NotImplementedError, f.analysis,
                           self._signal, method='lanczos')
 
