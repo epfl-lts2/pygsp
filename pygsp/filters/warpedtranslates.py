@@ -29,5 +29,4 @@ class WarpedTranslates(Filter):
     """
 
     def __init__(self, G, Nf=6, **kwargs):
-        super(WarpedTranslates, self).__init__(G, **kwargs)
         raise NotImplementedError

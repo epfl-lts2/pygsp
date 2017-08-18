@@ -41,13 +41,10 @@ class Regular(Filter):
 
     """
     def __init__(self, G, d=3, **kwargs):
-        super(Regular, self).__init__(G, **kwargs)
 
         g = [lambda x: regular(x * (2./G.lmax), d)]
         g.append(lambda x: np.real(np.sqrt(1 - (regular(x * (2./G.lmax), d))
                                            ** 2)))
-
-        self.g = g
 
         def regular(val, d):
             if d == 0:
@@ -59,3 +56,5 @@ class Regular(Filter):
                     output = np.sin(np.pi*output / 2.)
 
                 return np.sin(np.pi / 4.*(1 + output))
+
+        super(Regular, self).__init__(G, g, **kwargs)

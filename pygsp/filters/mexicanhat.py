@@ -35,7 +35,6 @@ class MexicanHat(Filter):
 
     def __init__(self, G, Nf=6, lpfactor=20, t=None, normalize=False,
                  **kwargs):
-        super(MexicanHat, self).__init__(G, **kwargs)
 
         if t is None:
             G.lmin = G.lmax / lpfactor
@@ -57,4 +56,4 @@ class MexicanHat(Filter):
             else:
                 g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
-        self.g = g
+        super(MexicanHat, self).__init__(G, g, **kwargs)

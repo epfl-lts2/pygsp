@@ -53,24 +53,16 @@ class Filter(object):
 
     """
 
-    def __init__(self, G, filters=None, **kwargs):
+    def __init__(self, G, filters, **kwargs):
 
-        self.logger = utils.build_logger(__name__, **kwargs)
-
-        if not hasattr(G, 'lmax'):
-            self.logger.info('{} : has to compute lmax'.format(
-                self.__class__.__name__))
-            G.estimate_lmax()
+        self._logger = utils.build_logger(__name__, **kwargs)
 
         self.G = G
 
-        if filters:
-            if isinstance(filters, list):
-                self.g = filters
-            else:
-                self.g = [filters]
+        if isinstance(filters, list):
+            self.g = filters
         else:
-            self.g = []
+            self.g = [filters]
 
     def analysis(self, s, method=None, cheb_order=30, lanczos_order=30,
                  **kwargs):
@@ -108,11 +100,11 @@ class Filter(object):
         """
         if not method:
             method = 'exact' if hasattr(self.G, 'U') else 'cheby'
-            self.logger.info('The analysis method is {}'.format(method))
+            self._logger.info('The analysis method is {}'.format(method))
 
         if method == 'cheby':  # Chebyshev approx
             if not hasattr(self.G, 'lmax'):
-                self.logger.info('Computing lmax.')
+                self._logger.info('Has to estimate lmax.')
                 self.G.estimate_lmax()
 
             cheb_coef = approximations.compute_cheby_coeff(self, m=cheb_order)
@@ -124,7 +116,7 @@ class Filter(object):
 
         elif method == 'exact':  # Exact computation
             if not hasattr(self.G, 'e') or not hasattr(self.G, 'U'):
-                self.logger.info('Computing the Fourier matrix.')
+                self._logger.info('Has to compute the Fourier matrix.')
                 self.G.compute_fourier_basis()
 
             Nf = len(self.g)  # nb of filters
@@ -251,7 +243,7 @@ class Filter(object):
 
         if method == 'exact':
             if not hasattr(self.G, 'e') or not hasattr(self.G, 'U'):
-                self.logger.info('Computing the Fourier matrix.')
+                self._logger.info('Has to compute the Fourier matrix.')
                 self.G.compute_fourier_basis()
 
             fie = self.evaluate(self.G.e)
@@ -270,7 +262,7 @@ class Filter(object):
 
         elif method == 'cheby':
             if not hasattr(self.G, 'lmax'):
-                self.logger.info('Computing lmax.')
+                self._logger.info('Has to estimate lmax.')
                 self.G.estimate_lmax()
 
             cheb_coeffs = approximations.compute_cheby_coeff(
@@ -343,8 +335,7 @@ class Filter(object):
 
         else:
             if not hasattr(self.G, 'e'):
-                self.logger.info(
-                    'FILTERBANK_BOUNDS: Has to compute Fourier basis.')
+                self._logger.info('Has to compute Fourier basis.')
                 self.G.compute_fourier_basis()
 
             rng = self.G.e
@@ -376,7 +367,7 @@ class Filter(object):
         N = self.G.N
 
         if N > 2000:
-            self.logger.warning(
+            self._logger.warning(
                 'Creating a big matrix, you can use other methods.')
 
         Nf = len(self.g)

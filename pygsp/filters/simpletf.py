@@ -27,7 +27,6 @@ class SimpleTf(Filter):
     """
 
     def __init__(self, G, Nf=6, t=None, **kwargs):
-        super(SimpleTf, self).__init__(G, **kwargs)
 
         def kernel_simple_tf(x, kerneltype):
             r"""
@@ -79,4 +78,4 @@ class SimpleTf(Filter):
         for i in range(Nf - 1):
             g.append(lambda x, ind=i: kernel_simple_tf(t[ind] * x, 'wavelet'))
 
-        self.g = g
+        super(SimpleTf, self).__init__(G, g, **kwargs)

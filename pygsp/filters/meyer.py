@@ -3,6 +3,7 @@
 import numpy as np
 
 from . import Filter
+from pygsp import utils
 
 
 class Meyer(Filter):
@@ -24,22 +25,21 @@ class Meyer(Filter):
     """
 
     def __init__(self, G, Nf=6, **kwargs):
-        super(Meyer, self).__init__(G, **kwargs)
+
+        self._logger = utils.build_logger(__name__, **kwargs)
 
         if not hasattr(G, 't'):
             G.t = (4./(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
 
         if len(G.t) >= Nf - 1:
-            self.logger.warning('You have specified more scales than'
-                                ' the number of scales minus 1')
+            self._logger.warning('You have specified more scales than '
+                                 'the number of scales minus 1')
 
         t = G.t
 
         g = [lambda x: kernel_meyer(t[0] * x, 'sf')]
         for i in range(Nf - 1):
             g.append(lambda x, ind=i: kernel_meyer(t[ind] * x, 'wavelet'))
-
-        self.g = g
 
         def kernel_meyer(x, kerneltype):
             r"""
@@ -81,3 +81,5 @@ class Meyer(Filter):
                 raise TypeError('Unknown kernel type ', kerneltype)
 
             return r
+
+        super(Meyer, self).__init__(G, g, **kwargs)

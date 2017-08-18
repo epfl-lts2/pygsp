@@ -29,7 +29,6 @@ class Gabor(Filter):
 
     """
     def __init__(self, G, k, **kwargs):
-        super(Gabor, self).__init__(G, **kwargs)
 
         if not hasattr(G, 'e'):
             self.logger.info('Filter Gabor will calculate and set'
@@ -38,6 +37,8 @@ class Gabor(Filter):
 
         Nf = np.shape(G.e)[0]
 
-        self.g = []
+        g = []
         for i in range(Nf):
-            self.g.append(lambda x, ii=i: k(x - G.e[ii]))
+            g.append(lambda x, ii=i: k(x - G.e[ii]))
+
+        super(Gabor, self).__init__(G, g, **kwargs)

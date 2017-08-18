@@ -55,25 +55,19 @@ Let's plot the second and third eigenvectors, as the first is constant.
 
 Let's discover basic filters operations, filters are usually defined in the spectral domain.
 
-First let's define a filter object:
+Given the transfer function
 
-.. plot::
-    :context: close-figs
+.. math:: \begin{equation*} g(x) =\frac{1}{1+\tau x} \end{equation*},
 
-    >>> F = filters.Filter(G)
-
-And we can assign this function
-
-.. math:: \begin{equation*} g(x) =\frac{1}{1+\tau x} \end{equation*}
-
-to it:
+let's define a filter object:
 
 .. plot::
     :context: close-figs
 
     >>> tau = 1
-    >>> g = lambda x: 1./(1. + tau * x)
-    >>> F.g = [g]
+    >>> def g(x):
+    ...     return 1. / (1. + tau * x)
+    >>> F = filters.Filter(G, g)
 
 You can also put multiple functions in a list to define a filterbank!
 

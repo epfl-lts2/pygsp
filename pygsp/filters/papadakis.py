@@ -33,13 +33,10 @@ class Papadakis(Filter):
 
     """
     def __init__(self, G, a=0.75, **kwargs):
-        super(Papadakis, self).__init__(G, **kwargs)
 
         g = [lambda x: papadakis(x * (2./G.lmax), a)]
         g.append(lambda x: np.real(np.sqrt(1 - (papadakis(x*(2./G.lmax), a)) **
                                    2)))
-
-        self.g = g
 
         def papadakis(val, a):
             y = np.empty(np.shape(val))
@@ -55,3 +52,5 @@ class Papadakis(Filter):
             y[r3ind] = 0
 
             return y
+
+        super(Papadakis, self).__init__(G, g, **kwargs)

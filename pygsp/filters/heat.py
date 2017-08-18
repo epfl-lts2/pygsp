@@ -28,7 +28,6 @@ class Heat(Filter):
     """
 
     def __init__(self, G, tau=10, normalize=False, **kwargs):
-        super(Heat, self).__init__(G, **kwargs)
 
         g = []
 
@@ -58,4 +57,4 @@ class Heat(Filter):
             else:
                 g.append(lambda x: np.exp(-tau * x/G.lmax))
 
-        self.g = g
+        super(Heat, self).__init__(G, g, **kwargs)

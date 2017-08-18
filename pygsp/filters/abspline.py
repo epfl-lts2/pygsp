@@ -4,6 +4,7 @@ import numpy as np
 from scipy import optimize
 
 from . import Filter
+from pygsp import utils
 
 
 class Abspline(Filter):
@@ -32,7 +33,8 @@ class Abspline(Filter):
     """
 
     def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
-        super(Abspline, self).__init__(G, **kwargs)
+
+        self._logger = utils.build_logger(__name__, **kwargs)
 
         def kernel_abspline3(x, alpha, beta, t1, t2):
             M = np.array([[1, t1, t1**2, t1**3],
@@ -67,6 +69,10 @@ class Abspline(Filter):
 
             return r
 
+        if not hasattr(G, 'lmax'):
+            self._logger.info('Has to estimate lmax.')
+            G.estimate_lmax()
+
         G.lmin = G.lmax / lpfactor
 
         if t is None:
@@ -79,13 +85,15 @@ class Abspline(Filter):
 
         lminfac = .4 * G.lmin
 
-        self.g = [lambda x: 1.2 * np.exp(-1) * gl(x / lminfac)]
+        g = [lambda x: 1.2 * np.exp(-1) * gl(x / lminfac)]
         for i in range(0, Nf - 1):
-            self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
+            g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
         f = lambda x: -gb(x)
         xstar = optimize.minimize_scalar(f, bounds=(1, 2),
                                          method='bounded')
         gamma_l = -f(xstar.x)
         lminfac = .6 * G.lmin
-        self.g[0] = lambda x: gamma_l * gl(x / lminfac)
+        g[0] = lambda x: gamma_l * gl(x / lminfac)
+
+        super(Abspline, self).__init__(G, g, **kwargs)
