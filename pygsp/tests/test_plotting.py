@@ -29,23 +29,23 @@ class FunctionsTestCase(unittest.TestCase):
         With both backends.
         """
 
-        classnames = graphs.__all__
-
         # Graphs who are not embedded, i.e. have no coordinates.
-        classnames.remove('Graph')
-        classnames.remove('BarabasiAlbert')
-        classnames.remove('ErdosRenyi')
-        classnames.remove('FullConnected')
-        classnames.remove('RandomRegular')
-        classnames.remove('RandomRing')
-        classnames.remove('Ring')  # TODO: should have!
-        classnames.remove('StochasticBlockModel')
+        COORDS_NO = {
+            'Graph',
+            'BarabasiAlbert',
+            'ErdosRenyi',
+            'FullConnected',
+            'RandomRegular',
+            'RandomRing',
+            'Ring',  # TODO: should have!
+            'StochasticBlockModel',
+            }
 
         # Coordinates are not in 2D or 3D.
-        classnames.remove('ImgPatches')
+        COORDS_WRONG_DIM = {'ImgPatches'}
 
         Gs = []
-        for classname in classnames:
+        for classname in set(graphs.__all__) - COORDS_NO - COORDS_WRONG_DIM:
             Graph = getattr(graphs, classname)
 
             # Classes who require parameters.
