@@ -4,10 +4,10 @@ sudo: false
 language: python
 cache: pip  # cache wheels for faster tests (PySide build can timeout)
 python:
-  - "2.7"
-  - "3.4"
-  - "3.5"
-  - "3.6"
+  - 2.7
+  - 3.4
+  - 3.5
+  - 3.6
 
 addons:
   apt:
@@ -19,9 +19,14 @@ install:
   - pip install -U -r requirements.txt
   - pip install .
 
+before_script:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - sleep 3
+
 script:
 # - make lint
-  - make test
+  - coverage run --branch --source pygsp setup.py test
   - make doc
 
 after_success:
