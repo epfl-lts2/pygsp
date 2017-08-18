@@ -18,67 +18,126 @@ class FunctionsTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._G = graphs.Logo()
+        # Signal is a Kronecker delta at node 83.
+        cls._signal = np.zeros(cls._G.N)
+        cls._signal[83] = 1
 
     @classmethod
     def tearDownClass(cls):
         pass
 
-    def _fu(x):
+    def _filter(self, x):
         return x / (1. + x)
 
-    def test_default_filters(self):
-        filters.Filter(self._G)
-        filters.Filter(self._G, filters=self._fu)
+    def _test_synthesis(self, f):
+        Nf = len(f.g)
+        if 1 < Nf < 10:
+
+            vertex_delta = 83
+            S = np.zeros((self._G.N * Nf, Nf))
+            S[vertex_delta] = 1
+            for i in range(Nf):
+                S[vertex_delta + i * self._G.N, i] = 1
+
+            f.synthesis(S, method='cheby')
+            f.synthesis(S, method='exact')
+
+    def _test_methods(self, f):
+        self.assertIs(f.G, self._G)
+
+        f.analysis(self._signal, method='exact')
+        f.analysis(self._signal, method='cheby')
+
+        self._test_synthesis(f)
+        f.evaluate(np.ones(10))
+
+        f.filterbank_bounds()
+        # f.filterbank_matrix()  TODO: too much memory
+
+        f.wlog_scales(1, 10, 10)
+
+        self.assertRaises(NotImplementedError, f.approx, 0, 0)
+        self.assertRaises(NotImplementedError, f.inverse, 0)
+        self.assertRaises(NotImplementedError, f.tighten)
+
+    def test_custom_filter(self):
+        f = filters.Filter(self._G, filters=self._filter)
+        self._test_methods(f)
 
     def test_abspline(self):
-        filters.Abspline(self._G, Nf=4)
-
-    def test_expwin(self):
-        filters.Expwin(self._G)
+        f = filters.Abspline(self._G, Nf=4)
+        self._test_methods(f)
 
     def test_gabor(self):
-        filters.Gabor(self._G, self._fu)
+        f = filters.Gabor(self._G, self._filter)
+        self._test_methods(f)
 
     def test_halfcosine(self):
-        filters.HalfCosine(self._G, Nf=4)
-
-    def test_heat(self):
-        filters.Heat(self._G)
-
-    def test_held(self):
-        filters.Held(self._G)
-        filters.Held(self._G, a=0.25)
+        f = filters.HalfCosine(self._G, Nf=4)
+        self._test_methods(f)
 
     def test_itersine(self):
-        filters.Itersine(self._G, Nf=4)
+        f = filters.Itersine(self._G, Nf=4)
+        self._test_methods(f)
 
     def test_mexicanhat(self):
-        filters.MexicanHat(self._G, Nf=5)
-        filters.MexicanHat(self._G, Nf=4)
+        f = filters.MexicanHat(self._G, Nf=5)
+        self._test_methods(f)
+        f = filters.MexicanHat(self._G, Nf=4)
+        self._test_methods(f)
 
     def test_meyer(self):
-        filters.Meyer(self._G, Nf=4)
-
-    def test_papadakis(self):
-        filters.Papadakis(self._G)
-        filters.Papadakis(self._G, a=0.25)
-
-    def test_regular(self):
-        filters.Regular(self._G)
-        filters.Regular(self._G, d=5)
-        filters.Regular(self._G, d=0)
-
-    def test_simoncelli(self):
-        filters.Simoncelli(self._G)
-        filters.Simoncelli(self._G, a=0.25)
+        f = filters.Meyer(self._G, Nf=4)
+        self._test_methods(f)
 
     def test_simpletf(self):
-        filters.SimpleTf(self._G, Nf=4)
+        f = filters.SimpleTf(self._G, Nf=4)
+        self._test_methods(f)
 
-    # Warped translates are not implemented yet
     def test_warpedtranslates(self):
+        self.assertRaises(NotImplementedError,
+                          filters.WarpedTranslates, self._G)
         pass
-        # gw = filters.warpedtranslates(G, g))
+
+    def test_regular(self):
+        f = filters.Regular(self._G)
+        self._test_methods(f)
+        f = filters.Regular(self._G, d=5)
+        self._test_methods(f)
+        f = filters.Regular(self._G, d=0)
+        self._test_methods(f)
+
+    def test_held(self):
+        f = filters.Held(self._G)
+        self._test_methods(f)
+        f = filters.Held(self._G, a=0.25)
+        self._test_methods(f)
+
+    def test_simoncelli(self):
+        f = filters.Simoncelli(self._G)
+        self._test_methods(f)
+        f = filters.Simoncelli(self._G, a=0.25)
+        self._test_methods(f)
+
+    def test_papadakis(self):
+        f = filters.Papadakis(self._G)
+        self._test_methods(f)
+        f = filters.Papadakis(self._G, a=0.25)
+        self._test_methods(f)
+
+    def test_heat(self):
+        f = filters.Heat(self._G, normalize=False, tau=10)
+        self._test_methods(f)
+        f = filters.Heat(self._G, normalize=False, tau=[5, 10])
+        self._test_methods(f)
+        f = filters.Heat(self._G, normalize=True, tau=10)
+        self._test_methods(f)
+        f = filters.Heat(self._G, normalize=True, tau=[5, 10])
+        self._test_methods(f)
+
+    def test_expwin(self):
+        f = filters.Expwin(self._G)
+        self._test_methods(f)
 
     def test_approximations(self):
         r"""
@@ -86,16 +145,13 @@ class FunctionsTestCase(unittest.TestCase):
         'cheby', and 'lanczos', produce the same output.
         """
 
-        # Signal is a Kronecker delta at node 83.
-        s = np.zeros(self._G.N)
-        s[83] = 1
-
-        g = filters.Heat(self._G)
-        c_exact = g.analysis(s, method='exact')
-        c_cheby = g.analysis(s, method='cheby')
+        f = filters.Heat(self._G)
+        c_exact = f.analysis(self._signal, method='exact')
+        c_cheby = f.analysis(self._signal, method='cheby')
 
         assert np.allclose(c_exact, c_cheby)
-        self.assertRaises(NotImplementedError, g.analysis, s, method='lanczos')
+        self.assertRaises(NotImplementedError, f.analysis,
+                          self._signal, method='lanczos')
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
