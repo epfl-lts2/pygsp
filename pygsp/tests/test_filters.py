@@ -53,6 +53,8 @@ class FunctionsTestCase(unittest.TestCase):
 
         f.wlog_scales(1, 10, 10)
 
+        # TODO: f.can_dual()
+
         self.assertRaises(NotImplementedError, f.approx, 0, 0)
         self.assertRaises(NotImplementedError, f.inverse, 0)
         self.assertRaises(NotImplementedError, f.tighten)
@@ -81,9 +83,9 @@ class FunctionsTestCase(unittest.TestCase):
         self._test_methods(f)
 
     def test_mexicanhat(self):
-        f = filters.MexicanHat(self._G, Nf=5)
+        f = filters.MexicanHat(self._G, Nf=5, normalize=False)
         self._test_methods(f)
-        f = filters.MexicanHat(self._G, Nf=4)
+        f = filters.MexicanHat(self._G, Nf=4, normalize=True)
         self._test_methods(f)
 
     def test_meyer(self):

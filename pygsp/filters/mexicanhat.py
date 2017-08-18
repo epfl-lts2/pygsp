@@ -51,7 +51,7 @@ class MexicanHat(Filter):
 
         for i in range(Nf - 1):
             if normalize:
-                g.append(lambda x, ind=i: np.sqrt(t[ind]) *
+                g.append(lambda x, ind=i: np.sqrt(self.t[ind]) *
                          gb(self.t[ind] * x))
             else:
                 g.append(lambda x, ind=i: gb(self.t[ind] * x))
