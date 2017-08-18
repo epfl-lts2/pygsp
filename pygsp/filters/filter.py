@@ -75,7 +75,7 @@ class Filter(object):
 
         if method == 'cheby':  # Chebyshev approx
             if not hasattr(self.G, 'lmax'):
-                self.logger.info('FILTER_ANALYSIS: computing lmax.')
+                self.logger.info('Computing lmax.')
                 self.G.estimate_lmax()
 
             cheb_coef = approximations.compute_cheby_coeff(self, m=cheb_order)
@@ -87,8 +87,7 @@ class Filter(object):
 
         elif method == 'exact':  # Exact computation
             if not hasattr(self.G, 'e') or not hasattr(self.G, 'U'):
-                self.logger.info('The Fourier matrix is not available. '
-                                 'The function will compute it for you.')
+                self.logger.info('Computing the Fourier matrix.')
                 self.G.compute_fourier_basis()
 
             Nf = len(self.g)  # nb of filters
@@ -120,8 +119,7 @@ class Filter(object):
                         c[tmpN + N * i] = igft(self.G, fs)
 
         else:
-            raise ValueError('Unknown method: please select exact, '
-                             'cheby or lanczos')
+            raise ValueError('Unknown method: {}'.format(method))
 
         return c
 
@@ -216,8 +214,7 @@ class Filter(object):
 
         if method == 'exact':
             if not hasattr(self.G, 'e') or not hasattr(self.G, 'U'):
-                self.logger.info("The Fourier matrix is not available. "
-                                 "The function will compute it for you.")
+                self.logger.info('Computing the Fourier matrix.')
                 self.G.compute_fourier_basis()
 
             fie = self.evaluate(self.G.e)
@@ -236,8 +233,7 @@ class Filter(object):
 
         elif method == 'cheby':
             if not hasattr(self.G, 'lmax'):
-                self.logger.info('The variable lmax is not available. '
-                                 'The function will compute it for you.')
+                self.logger.info('Computing lmax.')
                 self.G.estimate_lmax()
 
             cheb_coeffs = approximations.compute_cheby_coeff(
@@ -259,8 +255,7 @@ class Filter(object):
                                                order=order)
 
         else:
-            raise ValueError('Unknown method: please select exact,'
-                             ' cheby or lanczos')
+            raise ValueError('Unknown method: {}'.format(method))
 
         return s
 
