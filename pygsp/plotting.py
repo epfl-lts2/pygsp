@@ -25,8 +25,9 @@ except Exception as e:
 
 try:
     import pyqtgraph as qtg
-    from pyqtgraph.Qt import QtGui
     import pyqtgraph.opengl as gl
+    from pyqtgraph.Qt import QtGui
+    _qtg_application = QtGui.QApplication([])
     qtg_import = True
 except Exception as e:
     print('ERROR : Could not import packages for pyqtgraph.')
@@ -35,7 +36,7 @@ except Exception as e:
 
 
 _qtg_windows = []
-_qtg_applications = []
+_qtg_widgets = []
 _plt_figures = []
 
 
@@ -46,18 +47,16 @@ def close_all():
     """
 
     # Windows can be closed by releasing all references to them so they can be
-    # garbage collected. Not necessary to call close().
+    # garbage collected. May not be necessary to call close().
     global _qtg_windows
     for window in _qtg_windows:
         window.close()
     _qtg_windows = []
 
-    # Segmentation faults when executing test_plotting.
-    # TODO: find how to quit and close properly.
-    # global _qtg_applications
-    # for application in _qtg_applications:
-    #     application.quit()
-    # _qtg_applications = []
+    global _qtg_widgets
+    for widget in _qtg_widgets:
+        widget.close()
+    _qtg_widgets = []
 
     global _plt_figures
     for fig in _plt_figures:
@@ -319,7 +318,6 @@ def _qtg_plot_graph(G, show_edges=None, plot_name=''):
             _qtg_windows.append(window)
 
         elif G.coords.shape[1] == 3:
-            application = QtGui.QApplication([])
             widget = gl.GLViewWidget()
             widget.opts['distance'] = 10
             widget.show()
@@ -376,8 +374,8 @@ def _qtg_plot_graph(G, show_edges=None, plot_name=''):
             gp = gl.GLScatterPlotItem(pos=G.coords, **extra_args)
             widget.addItem(gp)
 
-            global _qtg_applications
-            _qtg_applications.append(application)
+            global _qtg_widgets
+            _qtg_widgets.append(widget)
 
 
 def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
@@ -631,7 +629,6 @@ def _qtg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         window = qtg.GraphicsWindow(plot_name or G.gtype)
         view = window.addViewBox()
     elif G.coords.shape[1] == 3:
-        application = QtGui.QApplication([])
         widget = gl.GLViewWidget()
         widget.opts['distance'] = 10
         widget.show()
@@ -707,8 +704,8 @@ def _qtg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         global _qtg_windows
         _qtg_windows.append(window)
     elif G.coords.shape[1] == 3:
-        global _qtg_applications
-        _qtg_applications.append(application)
+        global _qtg_widgets
+        _qtg_widgets.append(widget)
 
 
 def plot_spectrogram(G, node_idx=None):
