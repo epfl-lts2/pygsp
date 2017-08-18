@@ -19,14 +19,9 @@ install:
   - pip install -U -r requirements.txt
   - pip install .
 
-before_script:
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
-  - sleep 3
-
 script:
 # - make lint
-  - coverage run --branch --source pygsp setup.py test
+  - make test
   - make doc
 
 after_success:

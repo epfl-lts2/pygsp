@@ -24,9 +24,9 @@ clean:
 lint:
 	flake8 --doctests
 
+export DISPLAY = :99
 test:
-	Xvfb :99 -screen 0 800x600x24 &
-	export DISPLAY=:99
+	Xvfb $$DISPLAY -screen 0 800x600x24 &
 	coverage run --branch --source pygsp setup.py test
 	coverage report
 	coverage html
