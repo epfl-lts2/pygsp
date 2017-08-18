@@ -185,12 +185,24 @@ class Filter(object):
         -------
         signal : synthesis signal
 
-        Examples
-        --------
-
         References
         ----------
         See :cite:`hammond2011wavelets` for more details.
+
+        Examples
+        --------
+        >>> from pygsp import graphs, filters
+        >>> G = graphs.Logo()
+        >>> Nf = 6
+        >>>
+        >>> vertex_delta = 83
+        >>> S = np.zeros((G.N * Nf, Nf))
+        >>> S[vertex_delta] = 1
+        >>> for i in range(Nf):
+        ...     S[vertex_delta + i * G.N, i] = 1
+        >>>
+        >>> Wk = filters.MexicanHat(G, Nf)
+        >>> Sf = Wk.synthesis(S)
 
         """
         Nf = len(self.g)
