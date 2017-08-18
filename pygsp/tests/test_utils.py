@@ -16,10 +16,12 @@ from pygsp import utils, graphs
 
 class FunctionsTestCase(unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         pass
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         pass
 
     def test_utils(self):

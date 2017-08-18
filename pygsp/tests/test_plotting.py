@@ -16,10 +16,12 @@ from pygsp import graphs, plotting
 
 class FunctionsTestCase(unittest.TestCase):
 
-    def setUp(self):
-        self._img = img_as_float(data.camera()[::16, ::16])
+    @classmethod
+    def setUpClass(cls):
+        cls._img = img_as_float(data.camera()[::16, ::16])
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         pass
 
     def test_plot_graphs(self):

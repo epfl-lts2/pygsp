@@ -15,11 +15,12 @@ from pygsp import graphs, filters
 
 class FunctionsTestCase(unittest.TestCase):
 
-    def setUp(self):
-        self._G = graphs.Logo()
-        self._G.estimate_lmax()
+    @classmethod
+    def setUpClass(cls):
+        cls._G = graphs.Logo()
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         pass
 
     def _fu(x):
