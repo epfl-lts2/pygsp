@@ -3,6 +3,10 @@
 import numpy as np
 
 from . import Filter
+from pygsp import utils
+
+
+_logger = utils.build_logger(__name__)
 
 
 class Gabor(Filter):
@@ -31,8 +35,8 @@ class Gabor(Filter):
     def __init__(self, G, k, **kwargs):
 
         if not hasattr(G, 'e'):
-            self.logger.info('Filter Gabor will calculate and set'
-                             ' the eigenvalues to normalize the kernel')
+            _logger.info('Filter Gabor will calculate and set'
+                         ' the eigenvalues to normalize the kernel')
             G.compute_fourier_basis()
 
         Nf = np.shape(G.e)[0]

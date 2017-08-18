@@ -7,9 +7,12 @@ from copy import deepcopy
 
 import numpy as np
 
-from .. import utils
+from pygsp import utils
 from ..operators.transforms import gft, igft
 from . import approximations
+
+
+_logger = utils.build_logger(__name__)
 
 
 class Filter(object):
@@ -55,8 +58,6 @@ class Filter(object):
 
     def __init__(self, G, filters, **kwargs):
 
-        self._logger = utils.build_logger(__name__, **kwargs)
-
         self.G = G
 
         if isinstance(filters, list):
@@ -100,7 +101,7 @@ class Filter(object):
         """
         if not method:
             method = 'exact' if hasattr(self.G, 'U') else 'cheby'
-            self._logger.info('The analysis method is {}'.format(method))
+            _logger.info('The analysis method is {}'.format(method))
 
         if method == 'cheby':  # Chebyshev approx
             cheb_coef = approximations.compute_cheby_coeff(self, m=cheb_order)
@@ -112,7 +113,7 @@ class Filter(object):
 
         elif method == 'exact':  # Exact computation
             if not hasattr(self.G, 'e') or not hasattr(self.G, 'U'):
-                self._logger.info('Has to compute the Fourier matrix.')
+                _logger.warning('Has to compute the Fourier basis.')
                 self.G.compute_fourier_basis()
 
             Nf = len(self.g)  # nb of filters
@@ -239,7 +240,7 @@ class Filter(object):
 
         if method == 'exact':
             if not hasattr(self.G, 'e') or not hasattr(self.G, 'U'):
-                self._logger.info('Has to compute the Fourier matrix.')
+                _logger.warning('Has to compute the Fourier basis.')
                 self.G.compute_fourier_basis()
 
             fie = self.evaluate(self.G.e)
@@ -327,7 +328,7 @@ class Filter(object):
 
         else:
             if not hasattr(self.G, 'e'):
-                self._logger.info('Has to compute Fourier basis.')
+                _logger.warning('Has to compute the Fourier basis.')
                 self.G.compute_fourier_basis()
 
             rng = self.G.e
@@ -359,8 +360,7 @@ class Filter(object):
         N = self.G.N
 
         if N > 2000:
-            self._logger.warning(
-                'Creating a big matrix, you can use other methods.')
+            _logger.warning('Creating a big matrix, you can use other means.')
 
         Nf = len(self.g)
         Ft = self.analysis(np.identity(N))

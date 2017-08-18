@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from ..utils import filterbank_handler, build_logger
-
 import numpy as np
 import scipy as sp
 
-logger = build_logger(__name__)
+from pygsp import utils
+
+_logger = utils.build_logger(__name__)
 
 
-@filterbank_handler
+@utils.filterbank_handler
 def compute_cheby_coeff(f, m=30, N=None, *args, **kwargs):
     r"""
     Compute Chebyshev coefficients for a Filterbank.
@@ -186,10 +186,10 @@ def compute_jackson_cheby_coeff(filter_bounds, delta_lambda, m):
     """
     # Parameters check
     if delta_lambda[0] > filter_bounds[0] or delta_lambda[1] < filter_bounds[1]:
-        logger.error("Bounds of the filter are out of the lambda values")
+        _logger.error("Bounds of the filter are out of the lambda values")
         raise()
     elif delta_lambda[0] > delta_lambda[1]:
-        logger.error("lambda_min is greater than lambda_max")
+        _logger.error("lambda_min is greater than lambda_max")
         raise()
 
     # Scaling and translating to standard cheby interval

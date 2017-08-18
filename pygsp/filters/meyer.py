@@ -6,6 +6,9 @@ from . import Filter
 from pygsp import utils
 
 
+_logger = utils.build_logger(__name__)
+
+
 class Meyer(Filter):
     r"""
     Meyer filterbank
@@ -26,14 +29,12 @@ class Meyer(Filter):
 
     def __init__(self, G, Nf=6, **kwargs):
 
-        self._logger = utils.build_logger(__name__, **kwargs)
-
         if not hasattr(G, 't'):
             G.t = (4./(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
 
         if len(G.t) >= Nf - 1:
-            self._logger.warning('You have specified more scales than '
-                                 'the number of scales minus 1')
+            _logger.warning('You have specified more scales than '
+                            'the number of scales minus 1')
 
         t = G.t
 

@@ -4,6 +4,10 @@ import numpy as np
 from numpy import linalg
 
 from . import Filter
+from pygsp import utils
+
+
+_logger = utils.build_logger(__name__)
 
 
 class Heat(Filter):
@@ -33,8 +37,8 @@ class Heat(Filter):
 
         if normalize:
             if not hasattr(G, 'e'):
-                self.logger.info('Filter Heat will calculate and set'
-                                 ' the eigenvalues to normalize the kernel')
+                _logger.info('Filter Heat will calculate and set '
+                             'the eigenvalues to normalize the kernel')
                 G.compute_fourier_basis()
 
             if isinstance(tau, list):

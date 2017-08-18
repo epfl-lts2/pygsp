@@ -3,6 +3,10 @@
 import numpy as np
 
 from . import Filter
+from pygsp import utils
+
+
+_logger = utils.build_logger(__name__)
 
 
 class SimpleTf(Filter):
@@ -70,8 +74,8 @@ class SimpleTf(Filter):
             t = (1./(2.*G.lmax) * np.power(2, np.arange(Nf-2, -1, -1)))
 
         if len(t) != Nf - 1:
-            self.logger.warning('You have specified more scales than '
-                                'number of filters minus 1.')
+            _logger.warning('You have specified more scales than '
+                            'number of filters minus 1.')
 
         g = [lambda x: kernel_simple_tf(t[0] * x, 'sf')]
 
