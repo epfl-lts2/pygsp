@@ -26,9 +26,6 @@ class FunctionsTestCase(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
-    def _filter(self, x):
-        return x / (1. + x)
-
     def _test_synthesis(self, f):
         Nf = len(f.g)
         if 1 < Nf < 10:
@@ -61,7 +58,10 @@ class FunctionsTestCase(unittest.TestCase):
         self.assertRaises(NotImplementedError, f.tighten)
 
     def test_custom_filter(self):
-        f = filters.Filter(self._G, filters=self._filter)
+        def _filter(x):
+            return x / (1. + x)
+        f = filters.Filter(self._G, filters=_filter)
+        self.assertIs(f.g[0], _filter)
         self._test_methods(f)
 
     def test_abspline(self):
@@ -69,7 +69,7 @@ class FunctionsTestCase(unittest.TestCase):
         self._test_methods(f)
 
     def test_gabor(self):
-        f = filters.Gabor(self._G, self._filter)
+        f = filters.Gabor(self._G, lambda x: x / (1. + x))
         self._test_methods(f)
 
     def test_halfcosine(self):
