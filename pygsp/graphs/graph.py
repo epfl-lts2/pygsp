@@ -142,23 +142,21 @@ class Graph(object):
         has_nan_value = False
 
         if np.isinf(self.W.sum()):
-            self.logger.warning("GSP_TEST_WEIGHTS: There is an infinite "
-                                "value in the weight matrix")
+            self.logger.warning('There is an infinite '
+                                'value in the weight matrix!')
             has_inf_val = True
 
         if abs(self.W.diagonal()).sum() != 0:
-            self.logger.warning("GSP_TEST_WEIGHTS: The main diagonal of "
-                                "the weight matrix is not 0!")
+            self.logger.warning('The main diagonal of '
+                                'the weight matrix is not 0!')
             diag_is_not_zero = True
 
         if self.W.get_shape()[0] != self.W.get_shape()[1]:
-            self.logger.warning("GSP_TEST_WEIGHTS: The weight matrix is "
-                                "not square!")
+            self.logger.warning('The weight matrix is not square!')
             is_not_square = True
 
         if np.isnan(self.W.sum()):
-            self.logger.warning("GSP_TEST_WEIGHTS: There is an NaN "
-                                "value in the weight matrix")
+            self.logger.warning('There is a NaN value in the weight matrix!')
             has_nan_value = True
 
         return {'has_inf_val': has_inf_val,
@@ -183,7 +181,7 @@ class Graph(object):
 
         Notes
         -----
-        This method is usefull if you want to give a new weight matrix
+        This method is useful if you want to give a new weight matrix
         (W) and compute the adjacency matrix (A) and more again.
         The valid attributes are ['W', 'A', 'N', 'd', 'Ne', 'gtype',
         'directed', 'coords', 'lap_type', 'L', 'plotting']
@@ -669,7 +667,10 @@ class Graph(object):
         try:
             return self._lmax
         except AttributeError:
-            self.logger.warning('Need to estimate lmax.')
+            self.logger.warning('Need to estimate lmax. Explicitly call '
+                                'G.estimate_lmax() or '
+                                'G.compute_fourier_basis() '
+                                'once beforehand to suppress the warning.')
             return self.estimate_lmax()
 
     def estimate_lmax(self, recompute=False):
@@ -708,8 +709,7 @@ class Graph(object):
                 sparse.linalg.eigs(self.L, k=1, tol=5e-3, ncv=10)[0][0]
 
         except sparse.linalg.ArpackNoConvergence:
-            self.logger.warning('GSP_ESTIMATE_LMAX: '
-                                'Cannot use default method.')
+            self.logger.warning('Cannot use default method.')
             lmax = 2. * np.max(self.d)
 
         lmax = np.real(lmax)
@@ -752,7 +752,7 @@ class Graph(object):
             center = np.zeros((1, dim))
 
         if np.shape(center)[1] != dim:
-            self.logger.error('Spring coordinates : center has wrong size.')
+            self.logger.error('Spring coordinates: center has wrong size.')
             center = np.zeros((1, dim))
 
         dom_size = 1.
