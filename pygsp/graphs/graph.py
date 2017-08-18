@@ -13,7 +13,7 @@ class Graph(object):
     r"""
     The base graph class.
 
-    * Provide a common interface to graph objects.
+    * Provide a common interface (and implementation) to graph objects.
     * Can be instantiated to construct custom graphs from a weight matrix.
     * Initialize attributes for derived classes.
 
@@ -34,7 +34,6 @@ class Graph(object):
 
     Attributes
     ----------
-
     N : int
         the number of nodes / vertices in the graph.
     Ne : int
@@ -586,16 +585,16 @@ class Graph(object):
         order that the eigenvalues. Finally, the coherence of the
         Fourier basis is in *G.mu*.
 
+        References
+        ----------
+        See :cite:`chung1997spectral`
+
         Examples
         --------
         >>> from pygsp import graphs
         >>> N = 50
         >>> G = graphs.Sensor(N)
         >>> G.compute_fourier_basis()
-
-        References
-        ----------
-        See :cite:`chung1997spectral`
 
         """
         if hasattr(self, 'e') and hasattr(self, 'U') and not recompute:

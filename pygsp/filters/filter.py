@@ -14,8 +14,43 @@ from . import approximations
 
 class Filter(object):
     r"""
-    Base class for all filters or filterbanks.
-    Define the interface and implement shared methods.
+    The base Filter class.
+
+    * Provide a common interface (and implementation) to filter objects.
+    * Can be instantiated to construct custom filters from functions.
+    * Initialize attributes for derived classes.
+
+    Parameters
+    ----------
+    G : graph
+        The graph to which the filterbank is tailored.
+    filters : function or list of functions
+        A (list of) function defining the filterbank. One function per filter.
+
+    Attributes
+    ----------
+    G : Graph
+        The graph to which the filterbank was tailored. It is a reference to
+        the graph passed when instantiating the class.
+    g : function or list of functions
+        A (list of) function defining the filterbank. One function per filter.
+        Either passed by the user when instantiating the base class, either
+        constructed by the derived classes.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pygsp import graphs, filters
+    >>>
+    >>> G = graphs.Logo()
+    >>> my_filter = filters.Filter(G, lambda x: x / (1. + x))
+    >>>
+    >>> # Signal: Kronecker delta.
+    >>> signal = np.zeros(G.N)
+    >>> signal[42] = 1
+    >>>
+    >>> filtered_signal = my_filter.analysis(signal)
+
     """
 
     def __init__(self, G, filters=None, **kwargs):
@@ -244,8 +279,8 @@ class Filter(object):
             tmpN = np.arange(N, dtype=int)
 
             for i in range(Nf):
-                s = s + approximations.cheby_op(self.G,
-                                          cheb_coeffs[i], c[i * N + tmpN])
+                s += approximations.cheby_op(self.G,
+                                             cheb_coeffs[i], c[i * N + tmpN])
 
         elif method == 'lanczos':
             s = np.zeros((N, np.shape(c)[1]))
