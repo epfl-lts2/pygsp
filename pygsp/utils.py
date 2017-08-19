@@ -343,7 +343,7 @@ def adj2vec(G):
         G.v_in = v_i
         G.v_out = v_j
         G.weights = weights
-        G.Ne = np.shape(v_i)[0]
+        assert G.Ne == 2 * G.v_in.size == 2 * G.v_out.size
 
     # TODO Return vec
 

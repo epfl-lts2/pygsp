@@ -88,7 +88,8 @@ class Graph(object):
 
         self.A = self.W > 0
         self.Ne = self.W.nnz
-        self.d = self.A.sum(axis=1)
+        self.d = np.asarray(self.A.sum(axis=1)).squeeze()
+        assert self.d.ndim == 1
         self.gtype = gtype
 
         self.compute_laplacian(lap_type)

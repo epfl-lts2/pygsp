@@ -29,7 +29,7 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(G.W.A, W)
         np.testing.assert_allclose(G.A.A, G.W.A > 0)
         self.assertEqual(G.N, 4)
-        np.testing.assert_allclose(G.d, np.array([[3], [4], [4], [4]]))
+        np.testing.assert_allclose(G.d, np.array([3, 4, 4, 4]))
         self.assertEqual(G.Ne, 15)
         self.assertTrue(G.is_directed())
         ki, kj = np.nonzero(G.A)

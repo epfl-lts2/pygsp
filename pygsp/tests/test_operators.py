@@ -8,9 +8,8 @@ Test suite for the operators module of the pygsp package.
 import unittest
 
 import numpy as np
-from scipy import sparse
 
-from pygsp import graphs, filters, operators
+from pygsp import graphs, operators
 
 
 class TestCase(unittest.TestCase):
@@ -20,17 +19,26 @@ class TestCase(unittest.TestCase):
         cls.G = graphs.Logo()
         cls.G.compute_fourier_basis()
 
-        cls.rs = np.random.RandomState(42)
+        rs = np.random.RandomState(42)
+        cls.signal = rs.uniform(size=cls.G.N)
 
     @classmethod
     def tearDownClass(cls):
         pass
 
+    def test_difference(self):
+        for lap_type in ['combinatorial', 'normalized']:
+            G = graphs.Logo(lap_type=lap_type)
+            grad = operators.grad(G, self.signal)
+            div = operators.div(G, grad)
+
+            Ls = operators.div(G, operators.grad(G, self.signal))
+            np.testing.assert_allclose(Ls, G.L * self.signal)
+
     def test_fourier_transform(self):
-        f = self.rs.uniform(size=self.G.N)
-        f_hat = operators.gft(self.G, f)
+        f_hat = operators.gft(self.G, self.signal)
         f_star = operators.igft(self.G, f_hat)
-        np.testing.assert_allclose(f, f_star)
+        np.testing.assert_allclose(self.signal, f_star)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
