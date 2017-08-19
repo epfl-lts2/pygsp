@@ -41,15 +41,13 @@ class TestCase(unittest.TestCase):
 
         G = graphs.StochasticBlockModel(undirected=True)
         self.assertFalse(G.is_directed())
-        G.create_laplacian(lap_type='combinatorial')
-        G.create_laplacian(lap_type='normalized')
-        G.create_laplacian(lap_type='none')
+        G.compute_laplacian(lap_type='combinatorial')
+        G.compute_laplacian(lap_type='normalized')
 
         G = graphs.StochasticBlockModel(undirected=False)
         self.assertTrue(G.is_directed())
-        G.create_laplacian(lap_type='combinatorial')
-        G.create_laplacian(lap_type='none')
-        self.assertRaises(NotImplementedError, G.create_laplacian,
+        G.compute_laplacian(lap_type='combinatorial')
+        self.assertRaises(NotImplementedError, G.compute_laplacian,
                           lap_type='normalized')
 
     def test_nngraph(self):

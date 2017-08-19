@@ -58,7 +58,7 @@ class Graph(object):
         the graph Laplacian, an N-by-N matrix computed from W.
     lap_type : 'none', 'normalized', 'combinatorial'
         determines which kind of Laplacian will be computed by
-        :func:`create_laplacian`.
+        :func:`compute_laplacian`.
     coords : ndarray
         vertices coordinates in 2D or 3D space. Used for plotting only. Default
         is None.
@@ -80,7 +80,7 @@ class Graph(object):
         self.logger = build_logger(__name__, **kwargs)
 
         if len(W.shape) != 2 or W.shape[0] != W.shape[1]:
-            self.logger.error('W has incorrect shape {}'.format(W.shape))
+            raise ValueError('W has incorrect shape {}'.format(W.shape))
 
         self.N = W.shape[0]
         self.W = sparse.lil_matrix(W)
@@ -90,7 +90,8 @@ class Graph(object):
         self.Ne = self.W.nnz
         self.d = self.A.sum(axis=1)
         self.gtype = gtype
-        self.lap_type = lap_type
+
+        self.compute_laplacian(lap_type)
 
         if coords is not None:
             self.coords = coords
@@ -99,8 +100,6 @@ class Graph(object):
         if perform_checks:
             if not self.is_connected():
                 self.logger.warning('Graph is not connected!')
-
-        self.create_laplacian(lap_type)
 
         self.plotting = {'vertex_size': 10, 'edge_width': 1,
                          'edge_style': '-', 'vertex_color': 'b'}
@@ -263,8 +262,8 @@ class Graph(object):
                 del Gn.plotting['limits']
 
         if hasattr(self, 'lap_type'):
-            Gn.lap_type = self.lap_type
-            Gn.create_laplacian()
+            Gn.compute_laplacian(self.lap_type)
+            # TODO: an existing Fourier basis should be updated
 
     def set_coords(self, kind='spring', **kwargs):
         r"""
@@ -484,7 +483,7 @@ class Graph(object):
         if hasattr(self, '_directed') and not recompute:
             return self._directed
 
-        if np.diff(np.shape(self.W))[0]:
+        if np.diff(self.W.shape)[0]:
             raise ValueError("Matrix dimensions mismatch, expecting square "
                              "matrix.")
 
@@ -659,47 +658,75 @@ class Graph(object):
         self._U = eigenvectors[:, inds]
         self._mu = np.max(np.abs(self._U))
 
-    def create_laplacian(self, lap_type='combinatorial'):
+    def compute_laplacian(self, lap_type='combinatorial'):
         r"""
-        Create a new graph laplacian.
+        Compute a graph Laplacian.
+
+        The result is accessible by the L attribute.
 
         Parameters
         ----------
-        lap_type : string
-            The laplacian type to use. Default is 'combinatorial'. Other
-            possible values are 'none' and 'normalized', which are not yet
-            implemented for directed graphs.
+        lap_type : 'combinatorial', 'normalized'
+            The type of Laplacian to compute. Default is combinatorial.
+
+        Notes
+        -----
+        For undirected graphs, the combinatorial Laplacian is defined as
+
+        .. math:: L = D - W,
+
+        where :math:`W` is the weight matrix and :math:`D` the degree matrix,
+        and the normalized Laplacian is defined as
+
+        .. math:: L = I - D^{-1/2} W D^{-1/2},
+
+        where :math:`I` is the identity matrix.
+
+        Examples
+        --------
+        >>> from pygsp import graphs
+        >>> G = graphs.Sensor(50)
+        >>> G.L.shape
+        (50, 50)
+        >>>
+        >>> G.compute_laplacian('combinatorial')
+        >>> G.compute_fourier_basis()
+        >>> 0 < G.e[0] < 1e-10  # Smallest eigenvalue close to 0.
+        True
+        >>>
+        >>> G.compute_laplacian('normalized')
+        >>> G.compute_fourier_basis(recompute=True)
+        >>> 0 < G.e[0] < G.e[-1] < 2  # Spectrum bounded by [0, 2].
+        True
+        >>> G.e[0] < 1e-10  # Smallest eigenvalue close to 0.
+        True
 
         """
-        if self.W.shape == (1, 1):
-            self.L = sparse.lil_matrix(0)
-            return
 
-        if lap_type not in ['combinatorial', 'normalized', 'none']:
-            raise AttributeError('Unknown laplacian type {}'.format(lap_type))
+        if lap_type not in ['combinatorial', 'normalized']:
+            raise ValueError('Unknown Laplacian type {}'.format(lap_type))
         self.lap_type = lap_type
 
         if self.is_directed():
+
             if lap_type == 'combinatorial':
-                L = 0.5 * (sparse.diags(np.ravel(self.W.sum(0)), 0) +
-                           sparse.diags(np.ravel(self.W.sum(1)), 0) -
-                           self.W - self.W.T).tocsc()
+                D1 = sparse.diags(np.ravel(self.W.sum(0)), 0)
+                D2 = sparse.diags(np.ravel(self.W.sum(1)), 0)
+                self.L = 0.5 * (D1 + D2 - self.W - self.W.T).tocsc()
+
             elif lap_type == 'normalized':
                 raise NotImplementedError('Yet. Ask Nathanael.')
-            elif lap_type == 'none':
-                L = sparse.lil_matrix(0)
 
         else:
-            if lap_type == 'combinatorial':
-                L = (sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W).tocsc()
-            elif lap_type == 'normalized':
-                D = sparse.diags(
-                    np.ravel(np.power(self.W.sum(1), -0.5)), 0).tocsc()
-                L = sparse.identity(self.N) - D * self.W * D
-            elif lap_type == 'none':
-                L = sparse.lil_matrix(0)
 
-        self.L = L
+            if lap_type == 'combinatorial':
+                D = sparse.diags(np.ravel(self.W.sum(1)), 0)
+                self.L = (D - self.W).tocsc()
+
+            elif lap_type == 'normalized':
+                d = np.power(self.W.sum(1), -0.5)
+                D = sparse.diags(np.ravel(d), 0).tocsc()
+                self.L = sparse.identity(self.N) - D * self.W * D
 
     @property
     def lmax(self):

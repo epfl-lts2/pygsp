@@ -206,7 +206,7 @@ def resistance_distance(M):
         if not M.lap_type == 'combinatorial':
             logger.info('Computing the combinatorial laplacian for the '
                         'resistance distance.')
-            M.create_laplacian(lap_type='combinatorial')
+            M.compute_laplacian(lap_type='combinatorial')
         L = M.L.tocsc()
 
     try:
