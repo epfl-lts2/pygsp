@@ -508,10 +508,10 @@ class Graph(object):
         Examples
         --------
         >>> from scipy import sparse
-        >>> import pygsp
+        >>> from pygsp import utils, graphs
         >>> W = sparse.rand(10, 10, 0.2)
-        >>> W = pygsp.utils.symmetrize(W)
-        >>> G = pygsp.graphs.Graph(W=W)
+        >>> W = utils.symmetrize(W)
+        >>> G = graphs.Graph(W=W)
         >>> components = G.extract_components()
         >>> has_sinks = 'sink' in components[0].info
         >>> sinks_0 = components[0].info['sink'] if has_sinks else []

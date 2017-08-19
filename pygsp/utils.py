@@ -277,9 +277,9 @@ def rescale_center(x):
 
     Examples
     --------
-    >>> import pygsp
+    >>> from pygsp import utils
     >>> x = np.array([[1, 6], [2, 5], [3, 4]])
-    >>> pygsp.utils.rescale_center(x)
+    >>> utils.rescale_center(x)
     array([[-1. ,  1. ],
            [-0.6,  0.6],
            [-0.2,  0.2]])
