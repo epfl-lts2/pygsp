@@ -29,11 +29,9 @@ class TestCase(unittest.TestCase):
     def test_difference(self):
         for lap_type in ['combinatorial', 'normalized']:
             G = graphs.Logo(lap_type=lap_type)
-            grad = operators.grad(G, self.signal)
-            div = operators.div(G, grad)
-
-            Ls = operators.div(G, operators.grad(G, self.signal))
-            np.testing.assert_allclose(Ls, G.L * self.signal)
+            s_grad = operators.grad(G, self.signal)
+            Ls = operators.div(G, s_grad)
+            np.testing.assert_allclose(Ls, G.L.dot(self.signal))
 
     def test_fourier_transform(self):
         f_hat = operators.gft(self.G, self.signal)

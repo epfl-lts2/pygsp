@@ -50,6 +50,22 @@ class TestCase(unittest.TestCase):
         self.assertRaises(NotImplementedError, G.compute_laplacian,
                           lap_type='normalized')
 
+    def test_edge_list(self):
+        G = graphs.StochasticBlockModel(undirected=True)
+        v_in, v_out, weights = G.get_edge_list()
+        self.assertEqual(G.W[v_in[42], v_out[42]], weights[42])
+
+        G = graphs.StochasticBlockModel(undirected=False)
+        self.assertRaises(NotImplementedError, G.get_edge_list)
+
+    def test_differential_operator(self):
+        G = graphs.StochasticBlockModel(undirected=True)
+        L = G.D.T.dot(G.D)
+        np.testing.assert_allclose(L.toarray(), G.L.toarray())
+
+        G = graphs.StochasticBlockModel(undirected=False)
+        self.assertRaises(NotImplementedError, G.compute_differential_operator)
+
     def test_nngraph(self):
         Xin = np.arange(90).reshape(30, 3)
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']

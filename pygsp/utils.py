@@ -323,31 +323,6 @@ def compute_log_scales(lmin, lmax, Nscales, t1=1, t2=2):
     return np.exp(np.linspace(np.log(scale_max), np.log(scale_min), Nscales))
 
 
-def adj2vec(G):
-    r"""
-    Prepare the graph for the gradient computation.
-
-    Parameters
-    ----------
-    G : Graph structure
-
-    """
-    if G.is_directed():
-        raise NotImplementedError("Not implemented yet.")
-
-    else:
-        v_i, v_j = (sparse.tril(G.W)).nonzero()
-        weights = G.W[v_i, v_j]
-
-        # TODO G.ind_edges = sub2ind(size(G.W), G.v_in, G.v_out)
-        G.v_in = v_i
-        G.v_out = v_j
-        G.weights = weights
-        assert G.Ne == 2 * G.v_in.size == 2 * G.v_out.size
-
-    # TODO Return vec
-
-
 def mat2vec(d):
     r"""Not implemented yet."""
     raise NotImplementedError

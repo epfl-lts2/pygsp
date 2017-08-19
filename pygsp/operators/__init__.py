@@ -5,9 +5,8 @@ The :mod:`pygsp.operators` module implements some operators on graphs.
 
 **Differential operators**
 
-* :func:`pygsp.operators.grad_mat`: compute the gradient sparse matrix
-* :func:`pygsp.operators.grad`: compute the gradient of a signal
-* :func:`pygsp.operators.div`: compute the divergence of a signal
+* :func:`pygsp.operators.grad`: compute the gradient of a graph signal
+* :func:`pygsp.operators.div`: compute the divergence of a graph signal
 
 **Transforms** (frequency and vertex-frequency)
 
@@ -39,7 +38,6 @@ The :mod:`pygsp.operators` module implements some operators on graphs.
 from pygsp import utils as _utils
 
 _DIFFERENCE = [
-    'grad_mat',
     'grad',
     'div',
 ]

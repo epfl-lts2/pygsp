@@ -65,9 +65,6 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
         def At(x):
             return x
 
-    if not hasattr(G, 'v_in'):
-        utils.adj2vec(G)
-
     tight = 0
     l1_nu = 2 * G.lmax * nu
 
