@@ -304,20 +304,19 @@ def kron_reduction(G, ind):
 
     """
     if isinstance(G, Graph):
-        if hasattr(G, 'lap_type'):
-            if not G.lap_type == 'combinatorial':
-                message = 'Unknwon reduction for {} laplacian.'.format(G.lap_type)
-                raise NotImplementedError(message)
+
+        if G.lap_type != 'combinatorial':
+                msg = 'Unknown reduction for {} Laplacian.'.format(G.lap_type)
+                raise NotImplementedError(msg)
 
         if G.is_directed():
-            message = 'This method only work for undirected graphs.'
-            raise NotImplementedError(message)
+            msg = 'This method only work for undirected graphs.'
+            raise NotImplementedError(msg)
 
-        if not hasattr(G, 'L'):
-            G.compute_laplacian()
         L = G.L
 
     else:
+
         L = G
 
     N = np.shape(L)[0]

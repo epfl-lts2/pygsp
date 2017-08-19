@@ -170,13 +170,13 @@ def distanz(x, y=None):
     return np.sqrt(d)
 
 
-def resistance_distance(M):
+def resistance_distance(G):
     r"""
     Compute the resistance distances of a graph.
 
     Parameters
     ----------
-    M : Graph or sparse matrix
+    G : Graph or sparse matrix
         Graph structure or Laplacian matrix (L)
 
     Returns
@@ -189,15 +189,13 @@ def resistance_distance(M):
     :cite:`klein1993resistance`
     """
 
-    if sparse.issparse(M):
-        L = M.tocsc()
+    if sparse.issparse(G):
+        L = G.tocsc()
 
     else:
-        if not M.lap_type == 'combinatorial':
-            logger.info('Computing the combinatorial laplacian for the '
-                        'resistance distance.')
-            M.compute_laplacian(lap_type='combinatorial')
-        L = M.L.tocsc()
+        if G.lap_type != 'combinatorial':
+            raise ValueError('Need a combinatorial Laplacian.')
+        L = G.L.tocsc()
 
     try:
         pseudo = sparse.linalg.inv(L)
