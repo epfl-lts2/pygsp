@@ -84,16 +84,6 @@ def sparsifier(func):
     return inner
 
 
-def pyunlocbox_required(func):
-
-    def inner(*args, **kwargs):
-        try:
-            import pyunlocbox
-        except ImportError:
-            logger.error('Cannot import pyunlocbox')
-        return func(*args, **kwargs)
-
-
 def loadmat(path):
     r"""
     Load a matlab data file.
