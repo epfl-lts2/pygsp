@@ -2,11 +2,10 @@
 
 import numpy as np
 
-from ..utils import build_logger
-from ..data_handling import vec2mat, repmatline
+from pygsp import utils
 
 
-logger = build_logger(__name__)
+logger = utils.build_logger(__name__)
 
 
 def gft(G, f):
@@ -131,7 +130,7 @@ def gabor_wft(G, f, k):
     g = Gabor(G, k)
 
     C = g.analysis(f)
-    C = vec2mat(C, G.N).T
+    C = utils.vec2mat(C, G.N).T
 
     return C
 
@@ -156,7 +155,7 @@ def _gwft_frame_matrix(G, g):
 
     ghat = np.dot(G.U.T, g)
     Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*G.U.T))
-    F = repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
+    F = utils.repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
 
     return F
 
@@ -225,7 +224,7 @@ def _ngwft_frame_matrix(G, g):
     ghat = np.dot(G.U.T, g)
     Ftrans = np.sqrt(g.N)*np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.T))
 
-    F = repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
+    F = utils.repmatline(Ftrans, 1, G.N)*np.kron(np.ones((G.N)), np.kron(np.ones((G.N)), 1./G.U[:, 0]))
 
     # Normalization
     F /= np.kron((np.ones((G.N)), np.sqrt(np.sum(np.power(np.abs(F), 2),

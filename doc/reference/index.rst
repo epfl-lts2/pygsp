@@ -12,6 +12,5 @@ Reference guide
     operators
     plotting
     features
-    data_handling
     optimization
     utils

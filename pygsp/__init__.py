@@ -12,7 +12,6 @@ Moreover, the following modules provide additional functionality:
 
 * :mod:`pygsp.plotting` to plot,
 * :mod:`pygsp.features` to compute features on graphs,
-* :mod:`pygsp.data_handling` to manipulate data,
 * :mod:`pygsp.optimization` to help solving convex optimization problems,
 * :mod:`pygsp.utils` for various utilities.
 
@@ -26,7 +25,6 @@ __all__ = [
     'operators',
     'plotting',
     'features',
-    'data_handling',
     'optimization',
     'utils',
 ]

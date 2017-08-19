@@ -3,11 +3,10 @@
 import numpy as np
 from scipy import sparse
 
-from ..utils import build_logger
-from ..data_handling import adj2vec
+from pygsp import utils
 
 
-logger = build_logger(__name__)
+logger = utils.build_logger(__name__)
 
 
 def div(G, s):
@@ -95,7 +94,7 @@ def grad_mat(G):
 
     """
     if not hasattr(G, 'v_in'):
-        adj2vec(G)
+        utils.adj2vec(G)
 
     if hasattr(G, 'Diff'):
         if not sparse.issparse(G.Diff):
