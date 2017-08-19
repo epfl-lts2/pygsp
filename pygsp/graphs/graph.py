@@ -274,54 +274,47 @@ class Graph(object):
             Gn.compute_laplacian(self.lap_type)
             # TODO: an existing Fourier basis should be updated
 
-    def set_coords(self, kind='spring', **kwargs):
+    def set_coordinates(self, kind='spring', **kwargs):
         r"""
-        Set coordinates for the vertices.
+        Set the coordinates of the nodes. Used to position them when plotting.
 
         Parameters
         ----------
-        kind : string
-            The kind of display. Default is 'spring'.
-            Accepting ['community2D', 'manual', 'random2D', 'random3D',
-            'ring2D', 'spring'].
-        coords : np.ndarray
-            An array of coordinates in 2D or 3D. Used only if kind is manual.
-            Set the coordinates to this array as is.
+        kind : string or array-like
+            Kind of coordinates to generate. It controls the position of the
+            nodes when plotting the graph. Can either pass an array of size Nx2
+            or Nx3 to set the coordinates manually or the name of a layout
+            algorithm. Available algorithms: community2D, random2D, random3D,
+            ring2D, spring. Default is 'spring'.
+        kwargs : dict
+            Additional parameters to be passed to the Fruchterman-Reingold
+            force-directed algorithm when kind is spring.
 
         Examples
         --------
         >>> from pygsp import graphs
         >>> G = graphs.ErdosRenyi()
-        >>> G.set_coords()
+        >>> G.set_coordinates()
         >>> G.plot()
 
         """
-        if kind not in ['community2D', 'manual', 'random2D', 'random3D',
-                        'ring2D', 'spring']:
-            raise ValueError('Unexpected kind argument. Got {}.'.format(kind))
 
-        if kind == 'manual':
-            coords = kwargs.pop('coords', None)
-            if isinstance(coords, list):
-                coords = np.array(coords)
-            if isinstance(coords, np.ndarray) and len(coords.shape) == 2 and \
-                    coords.shape[0] == self.N and 2 <= coords.shape[1] <= 3:
-                self.coords = coords
-            else:
-                raise ValueError('Expecting coords to be a list or ndarray '
-                                 'of size Nx2 or Nx3.')
+        if not isinstance(kind, str):
+            coords = np.asarray(kind)
+            check_dim = (2 <= coords.shape[1] <= 3)
+            if coords.ndim != 2 or coords.shape[0] != self.N or not check_dim:
+                raise ValueError('Expecting coords to be of size Nx2 or Nx3.')
+            self.coords = coords
 
         elif kind == 'ring2D':
-            tmp = np.arange(self.N).reshape(self.N, 1)
-            self.coords = np.concatenate((np.cos(tmp * 2 * np.pi / self.N),
-                                          np.sin(tmp * 2 * np.pi / self.N)),
-                                         axis=1)
+            angle = np.arange(self.N) * 2 * np.pi / self.N
+            self.coords = np.stack([np.cos(angle), np.sin(angle)])
 
         elif kind == 'random2D':
-            self.coords = np.random.rand(self.N, 2)
+            self.coords = np.random.uniform(size=(self.N, 2))
 
         elif kind == 'random3D':
-            self.coords = np.random.rand(self.N, 3)
+            self.coords = np.random.uniform(size=(self.N, 3))
 
         elif kind == 'spring':
             self.coords = self._fruchterman_reingold_layout(**kwargs)
@@ -359,6 +352,9 @@ class Graph(object):
                 comm_rad = np.sqrt(self.info['comm_sizes'][comm_idx])
                 self.coords[i] = self.info['com_coords'][comm_idx] + \
                     comm_rad * self.coords[i]
+
+        else:
+            raise ValueError('Unexpected argument king={}.'.format(kind))
 
     def subgraph(self, ind):
         r"""
@@ -911,7 +907,7 @@ class Graph(object):
         from pygsp import plotting
         plotting.plot_signal(self, signal, **kwargs)
 
-    def show_spectrogram(self, **kwargs):
+    def plot_spectrogram(self, **kwargs):
         r"""
         Plot the spectrogram for the graph object.
 
@@ -923,6 +919,7 @@ class Graph(object):
     def _fruchterman_reingold_layout(self, dim=2, k=None, pos=None, fixed=[],
                                      iterations=50, scale=1.0, center=None):
         # TODO doc
+        # fixed: list of nodes with fixed coordinates
         # Position nodes using Fruchterman-Reingold force-directed algorithm.
 
         if center is None:
@@ -933,6 +930,7 @@ class Graph(object):
             center = np.zeros((1, dim))
 
         dom_size = 1.
+
         if pos is not None:
             # Determine size of existing domain to adjust initial positions
             dom_size = np.max(pos)
@@ -946,11 +944,13 @@ class Graph(object):
         if k is None and len(fixed) > 0:
             # We must adjust k by domain size for layouts that are not near 1x1
             k = dom_size / np.sqrt(self.N)
-        pos = _sparse_fruchterman_reingold(
-            self.A, dim, k, pos_arr, fixed, iterations)
+
+        pos = _sparse_fruchterman_reingold(self.A, dim, k, pos_arr,
+                                           fixed, iterations)
 
         if len(fixed) == 0:
             pos = _rescale_layout(pos, scale=scale) + center
+
         return pos
 
 
@@ -966,7 +966,7 @@ def _sparse_fruchterman_reingold(A, dim, k, pos, fixed, iterations):
 
     if pos is None:
         # random initial positions
-        pos = np.random.random((nnodes, dim))
+        pos = np.random.uniform(size=(nnodes, dim))
 
     # optimal distance between nodes
     if k is None:

@@ -150,7 +150,7 @@ def plot_graph(G, default_qtg=True, **kwargs):
     """
     if not hasattr(G, 'coords'):
         raise AttributeError('Graph has no coordinate set. '
-                             'Please run G.set_coords() first.')
+                             'Please run G.set_coordinates() first.')
     if G.coords.shape[1] not in [2, 3]:
         raise AttributeError('Coordinates should be in 2 or 3D space.')
 
@@ -517,7 +517,7 @@ def plot_signal(G, signal, default_qtg=True, **kwargs):
     """
     if not hasattr(G, 'coords'):
         raise AttributeError('Graph has no coordinate set. '
-                             'Please run G.set_coords() first.')
+                             'Please run G.set_coordinates() first.')
 
     if qtg_import and (default_qtg or not plt_import):
         _qtg_plot_signal(G, signal, **kwargs)
