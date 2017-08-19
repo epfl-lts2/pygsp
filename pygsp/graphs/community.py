@@ -66,15 +66,15 @@ class Community(Graph):
         try:
             if len(comm_sizes) > 0:
                 if np.sum(comm_sizes) != N:
-                    raise ValueError('GSP_COMMUNITY: The sum of the community sizes has to be equal to N.')
+                    raise ValueError('The sum of the community sizes has to be equal to N.')
                 if len(comm_sizes) != Nc:
-                    raise ValueError('GSP_COMMUNITY: The length of the community sizes has to be equal to Nc.')
+                    raise ValueError('The length of the community sizes has to be equal to Nc.')
 
         except TypeError:
-            raise TypeError("GSP_COMMUNITY: comm_sizes expected to be a list or array, got {}".format(type(comm_sizes)))
+            raise TypeError('comm_sizes expected to be a list or array, got {}'.format(type(comm_sizes)))
 
         if min_comm * Nc > N:
-            raise ValueError('GSP_COMMUNITY: The constraint on minimum size for communities is unsolvable.')
+            raise ValueError('The constraint on minimum size for communities is unsolvable.')
 
         info = {'node_com': None, 'comm_sizes': None, 'world_rad': None,
                 'world_density': world_density, 'min_comm': min_comm}
@@ -98,17 +98,17 @@ class Community(Graph):
             comm_density = float(comm_density)
             comm_density = comm_density if 0. <= comm_density <= 1. else 0.1
             info['comm_density'] = comm_density
-            self.logger.info("GSP_COMMUNITY: Constructed using community density = {}".format(comm_density))
+            self.logger.info('Constructed using community density = {}'.format(comm_density))
         elif k_neigh:
             # k-NN among the nodes in the same community (same k for all communities)
             k_neigh = int(k_neigh)
             k_neigh = k_neigh if k_neigh > 0 else 10
             info['k_neigh'] = k_neigh
-            self.logger.info("GSP_COMMUNITY: Constructed using K-NN with k = {}".format(k_neigh))
+            self.logger.info('Constructed using K-NN with k = {}'.format(k_neigh))
         else:
             # epsilon-NN among the nodes in the same community (same eps for all communities)
             info['epsilon'] = epsilon
-            self.logger.info("GSP_COMMUNITY: Constructed using eps-NN with eps = {}".format(epsilon))
+            self.logger.info('Constructed using eps-NN with eps = {}'.format(epsilon))
 
         # Coordinates #
         info['com_coords'] = info['world_rad'] * np.array(list(zip(

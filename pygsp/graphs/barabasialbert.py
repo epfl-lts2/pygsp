@@ -39,8 +39,7 @@ class BarabasiAlbert(Graph):
     """
     def __init__(self, N=1000, m0=1, m=1, **kwargs):
         if m > m0:
-            raise ValueError("GSP_BarabasiAlbert: The parameter m "
-                             "cannot be above m0.")
+            raise ValueError('Parameter m cannot be above parameter m0.')
 
         W = lil_matrix((N, N))
 

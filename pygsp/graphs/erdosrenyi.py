@@ -38,12 +38,8 @@ class ErdosRenyi(Graph):
                  max_iter=10, **kwargs):
         self.p = p
 
-        if p > 1:
-            raise ValueError("GSP_ErdosRenyi: The probability p "
-                             "cannot be above 1.")
-        elif p < 0:
-            raise ValueError("GSP_ErdosRenyi: The probability p "
-                             "cannot be negative.")
+        if not 0 < p < 1:
+            raise ValueError('Probability p should be in [0, 1].')
 
         M = int(N * (N-1) if directed else N * (N-1) / 2)
         nb_elem = int(p * M)
