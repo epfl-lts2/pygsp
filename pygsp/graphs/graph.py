@@ -943,19 +943,18 @@ class Graph(object):
         else:
             pos_arr = None
 
-        if k is None and fixed is not None:
+        if k is None and len(fixed) > 0:
             # We must adjust k by domain size for layouts that are not near 1x1
             k = dom_size / np.sqrt(self.N)
         pos = _sparse_fruchterman_reingold(
             self.A, dim, k, pos_arr, fixed, iterations)
 
-        if fixed is None:
+        if len(fixed) == 0:
             pos = _rescale_layout(pos, scale=scale) + center
         return pos
 
 
-def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
-                                 iterations=50):
+def _sparse_fruchterman_reingold(A, dim, k, pos, fixed, iterations):
     # Position nodes in adjacency matrix A using Fruchterman-Reingold
     nnodes = A.shape[0]
 
@@ -968,10 +967,6 @@ def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
     if pos is None:
         # random initial positions
         pos = np.random.random((nnodes, dim))
-
-    # no fixed nodes
-    if fixed is None:
-        fixed = []
 
     # optimal distance between nodes
     if k is None:
