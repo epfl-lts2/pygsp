@@ -17,18 +17,27 @@ class Graph(object):
     * Can be instantiated to construct custom graphs from a weight matrix.
     * Initialize attributes for derived classes.
 
+    The following operators are available as matrices:
+
+    * :py:attr:`W`: weight matrix
+    * :py:attr:`L`: Laplacian
+    * :py:attr:`U`: Fourier basis
+    * :py:attr:`D`: differential operator
+
     Parameters
     ----------
     W : sparse matrix or ndarray
-        weight matrix which encodes the graph
+        The weight matrix which encodes the graph.
     gtype : string
-        graph type (default is 'unknown')
-    lap_type : 'none', 'normalized', 'combinatorial'
-        Laplacian type (default is 'combinatorial')
+        Graph type, a free-form string to help us recognize the kind of graph
+        we are dealing with (default is 'unknown').
+    lap_type : 'combinatorial', 'normalized'
+        The type of Laplacian to be computed by :func:`compute_laplacian`
+        (default is 'combinatorial').
     coords : ndarray
-        vertices coordinates (default is None)
+        Vertices coordinates (default is None).
     plotting : dict
-        plotting parameters
+        Plotting parameters.
     perform_checks : bool
         Whether to check if the graph is connected. Warn if not.
 
@@ -56,9 +65,8 @@ class Graph(object):
         help sorting the graphs.
     L : sparse matrix or ndarray
         the graph Laplacian, an N-by-N matrix computed from W.
-    lap_type : 'none', 'normalized', 'combinatorial'
-        determines which kind of Laplacian will be computed by
-        :func:`compute_laplacian`.
+    lap_type : 'normalized', 'combinatorial'
+        the kind of Laplacian that was computed by :func:`compute_laplacian`.
     coords : ndarray
         vertices coordinates in 2D or 3D space. Used for plotting only. Default
         is None.
@@ -555,12 +563,12 @@ class Graph(object):
 
         return graphs
 
-    def _check_fourier_properties(self, name):
+    def _check_fourier_properties(self, name, desc):
         if not hasattr(self, '_' + name):
-            self.logger.warning('G.{} is not available, we need to compute '
-                                'the graph Fourier basis. Explicitly call '
-                                'G.compute_fourier_basis() once beforehand to '
-                                'suppress the warning.'.format(name))
+            self.logger.warning('The {} G.{} is not available, we need to '
+                                'compute the Fourier basis. Explicitly call '
+                                'G.compute_fourier_basis() once beforehand '
+                                'to suppress the warning.'.format(desc, name))
             self.compute_fourier_basis()
         return getattr(self, '_' + name)
 
@@ -570,7 +578,7 @@ class Graph(object):
         Fourier basis, i.e. the eigenvectors of the Laplacian.
         Is computed by :func:`compute_fourier_basis`.
         """
-        return self._check_fourier_properties('U')
+        return self._check_fourier_properties('U', 'Fourier basis')
 
     @property
     def e(self):
@@ -578,7 +586,7 @@ class Graph(object):
         Graph frequencies, i.e. the eigenvalues of the Laplacian.
         Is computed by :func:`compute_fourier_basis`.
         """
-        return self._check_fourier_properties('e')
+        return self._check_fourier_properties('e', 'eigenvalues vector')
 
     @property
     def mu(self):
@@ -586,15 +594,15 @@ class Graph(object):
         Coherence of the Fourier basis.
         Is computed by :func:`compute_fourier_basis`.
         """
-        return self._check_fourier_properties('mu')
+        return self._check_fourier_properties('mu', 'Fourier basis coherence')
 
     def compute_fourier_basis(self, smallest_first=True, recompute=False,
                               **kwargs):
         r"""
         Compute the Fourier basis of the graph.
 
-        The result is cached and accessible by the :py:attr:`~U`,
-        :py:attr:`~e`, :py:attr:`~lmax`, and :py:attr:`~mu` properties.
+        The result is cached and accessible by the :py:attr:`U`,
+        :py:attr:`e`, :py:attr:`lmax`, and :py:attr:`mu` properties.
 
         Parameters
         ----------
@@ -607,17 +615,18 @@ class Graph(object):
         Notes
         -----
         'G.compute_fourier_basis()' computes a full eigendecomposition of
-        the graph Laplacian G.L:
+        the graph Laplacian :math:`L` such that:
 
-        .. math:: {\cal L} = U \Lambda U^*
+        .. math:: L = U \Lambda U^*,
 
-        where :math:`\Lambda` is a diagonal matrix of eigenvalues.
+        where :math:`\Lambda` is a diagonal matrix of eigenvalues and the
+        columns of :math:`U` are the eigenvectors.
 
-        *G.e* is a column vector of length *G.N* containing the Laplacian
+        *G.e* is a vector of length *G.N* containing the Laplacian
         eigenvalues. The largest eigenvalue is stored in *G.lmax*.
         The eigenvectors are stored as column vectors of *G.U* in the same
         order that the eigenvalues. Finally, the coherence of the
-        Fourier basis is in *G.mu*.
+        Fourier basis is found in *G.mu*.
 
         References
         ----------
@@ -736,8 +745,9 @@ class Graph(object):
         :func:`compute_fourier_basis` or approximated by :func:`estimate_lmax`.
         """
         if not hasattr(self, '_lmax'):
-            self.logger.warning('G.lmax is not available, we need to estimate '
-                                'it. Explicitly call G.estimate_lmax() or '
+            self.logger.warning('The largest eigenvalue G.lmax is not '
+                                'available, we need to estimate it. Explicitly '
+                                'call G.estimate_lmax() or '
                                 'G.compute_fourier_basis() '
                                 'once beforehand to suppress the warning.')
             self.estimate_lmax()
@@ -747,7 +757,7 @@ class Graph(object):
         r"""
         Estimate the largest eigenvalue.
 
-        The result is cached and accessible by the :py:attr:`~lmax` property.
+        The result is cached and accessible by the :py:attr:`lmax` property.
 
         Exact value given by the eigendecomposition of the Laplacian, see
         :func:`compute_fourier_basis`.
@@ -790,7 +800,7 @@ class Graph(object):
         Is computed by :func:`compute_differential_operator`.
         """
         if not hasattr(self, '_D'):
-            self.logger.warning('The difference operator G.D is not '
+            self.logger.warning('The differential operator G.D is not '
                                 'available, we need to compute it. Explicitly '
                                 'call G.compute_differential_operator() '
                                 'once beforehand to suppress the warning.')
@@ -810,7 +820,7 @@ class Graph(object):
         graph signal, see :func:`pygsp.operators.grad` and
         :func:`pygsp.operators.div`.
 
-        The result is cached and accessible by the :py:attr:`~D` property.
+        The result is cached and accessible by the :py:attr:`D` property.
 
         Examples
         --------

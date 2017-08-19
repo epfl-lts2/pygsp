@@ -8,20 +8,40 @@ from pygsp import utils
 logger = utils.build_logger(__name__)
 
 
-def gft(G, f):
+def gft(G, s):
     r"""
-    Compute Graph Fourier transform.
+    Compute graph Fourier transform.
+
+    The graph Fourier transform of a signal :math:`s` is defined as
+
+    .. math:: \hat{s} = U^* s,
+
+    where :math:`U` is the Fourier basis :py:attr:`pygsp.graphs.Graph.U` and
+    :math:`U^*` denotes the conjugate transpose or Hermitian transpose of
+    :math:`U`.
 
     Parameters
     ----------
     G : Graph or Fourier basis
-    f : ndarray
-        must be in 2d, even if the second dim is 1 signal
+    s : ndarray
+        Graph signal in the vertex domain.
 
     Returns
     -------
-    f_hat : ndarray
-        Graph Fourier transform of *f*
+    s_hat : ndarray
+        Representation of s in the Fourier domain.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pygsp import graphs, operators
+    >>> G = graphs.Logo()
+    >>> s = np.random.normal(size=G.N)
+    >>> s_hat = operators.gft(G, s)
+    >>> s_star = operators.igft(G, s_hat)
+    >>> np.linalg.norm(s - s_star) < 1e-10
+    True
+
     """
 
     from pygsp.graphs import Graph
@@ -31,23 +51,41 @@ def gft(G, f):
     else:
         U = G
 
-    return np.dot(np.conjugate(U.T), f)  # True Hermitian here.
+    return np.dot(np.conjugate(U.T), s)  # True Hermitian here.
 
 
-def igft(G, f_hat):
+def igft(G, s_hat):
     r"""
     Compute inverse graph Fourier transform.
 
+    The inverse graph Fourier transform of a Fourier domain signal
+    :math:`\hat{s}` is defined as
+
+    .. math:: s = U \hat{s},
+
+    where :math:`U` is the Fourier basis :py:attr:`pygsp.graphs.Graph.U`.
+
     Parameters
     ----------
     G : Graph or Fourier basis
-    f_hat : ndarray
-        Signal
+    s_hat : ndarray
+        Graph signal in the Fourier domain.
 
     Returns
     -------
-    f : ndarray
-        Inverse graph Fourier transform of *f_hat*
+    s : ndarray
+        Representation of s_hat in the vertex domain.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pygsp import graphs, operators
+    >>> G = graphs.Logo()
+    >>> s_hat = np.random.normal(size=G.N)
+    >>> s = operators.igft(G, s_hat)
+    >>> s_hat_star = operators.gft(G, s)
+    >>> np.linalg.norm(s_hat - s_hat_star) < 1e-10
+    True
 
     """
 
@@ -58,7 +96,7 @@ def igft(G, f_hat):
     else:
         U = G
 
-    return np.dot(U, f_hat)
+    return np.dot(U, s_hat)
 
 
 def generalized_wft(G, g, f, lowmemory=True):

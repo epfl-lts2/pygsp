@@ -10,6 +10,13 @@ def div(G, s):
     r"""
     Compute the graph divergence of a signal.
 
+    The divergence of a signal :math:`s` is defined as
+
+    .. math:: y = D^T s,
+
+    where :math:`D` is the differential operator
+    :py:attr:`pygsp.graphs.Graph.D`.
+
     Parameters
     ----------
     G : Graph
@@ -18,7 +25,7 @@ def div(G, s):
 
     Returns
     -------
-    divergence : ndarray
+    s_div : ndarray
         Divergence signal of length G.N living on the nodes.
 
     Examples
@@ -29,8 +36,8 @@ def div(G, s):
     >>> G.N, G.Ne
     (1130, 6262)
     >>> s = np.random.normal(size=G.Ne//2)  # Symmetric weight matrix.
-    >>> div = operators.div(G, s)
-    >>> grad = operators.grad(G, div)
+    >>> s_div = operators.div(G, s)
+    >>> s_grad = operators.grad(G, s_div)
 
     """
     if G.Ne != 2 * s.shape[0]:
@@ -42,6 +49,13 @@ def grad(G, s):
     r"""
     Compute the graph gradient of a signal.
 
+    The gradient of a signal :math:`s` is defined as
+
+    .. math:: y = D s,
+
+    where :math:`D` is the differential operator
+    :py:attr:`pygsp.graphs.Graph.D`.
+
     Parameters
     ----------
     G : Graph
@@ -50,7 +64,7 @@ def grad(G, s):
 
     Returns
     -------
-    gradient : ndarray
+    s_grad : ndarray
         Gradient signal of length G.Ne/2 living on the edges (non-directed
         graph).
 
@@ -62,8 +76,10 @@ def grad(G, s):
     >>> G.N, G.Ne
     (1130, 6262)
     >>> s = np.random.normal(size=G.N)
-    >>> grad = operators.grad(G, s)
-    >>> div = operators.div(G, grad)
+    >>> s_grad = operators.grad(G, s)
+    >>> s_div = operators.div(G, s_grad)
+    >>> np.linalg.norm(s_div - G.L.dot(s)) < 1e-10
+    True
 
     """
     if G.N != s.shape[0]:

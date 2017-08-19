@@ -302,7 +302,7 @@ def compute_log_scales(lmin, lmax, Nscales, t1=1, t2=2):
     lmin : float
         Smallest non-zero eigenvalue.
     lmax : float
-        Largest eigenvalue, i.e. :py:attr:`~pygsp.graphs.Graph.lmax`.
+        Largest eigenvalue, i.e. :py:attr:`pygsp.graphs.Graph.lmax`.
     Nscales : int
         Number of scales.
 
