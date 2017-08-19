@@ -24,24 +24,30 @@ class TestCase(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
+    def _generate_coefficients(self, N, Nf, vertex_delta=83):
+        S = np.zeros((N*Nf, Nf))
+        S[vertex_delta] = 1
+        for i in range(Nf):
+            S[vertex_delta + i * self._G.N, i] = 1
+        return S
+
     def _test_synthesis(self, f):
         Nf = len(f.g)
         if 1 < Nf < 10:
-
-            vertex_delta = 83
-            S = np.zeros((self._G.N * Nf, Nf))
-            S[vertex_delta] = 1
-            for i in range(Nf):
-                S[vertex_delta + i * self._G.N, i] = 1
-
+            S = self._generate_coefficients(f.G.N, Nf)
             f.synthesis(S, method='cheby')
             f.synthesis(S, method='exact')
+            self.assertRaises(NotImplementedError, f.synthesis, S,
+                              method='lanczos')
 
     def _test_methods(self, f):
         self.assertIs(f.G, self._G)
 
         f.analysis(self._signal, method='exact')
         f.analysis(self._signal, method='cheby')
+        # TODO np.testing.assert_allclose(c_exact, c_cheby)
+        self.assertRaises(NotImplementedError, f.analysis,
+                          self._signal, method='lanczos')
 
         self._test_synthesis(f)
         f.evaluate(np.ones(10))

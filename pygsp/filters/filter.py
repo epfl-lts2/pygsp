@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from math import log
 from copy import deepcopy
 
 import numpy as np
@@ -258,6 +257,7 @@ class Filter(object):
                                              cheb_coeffs[i], c[i * N + tmpN])
 
         elif method == 'lanczos':
+            raise NotImplementedError
             s = np.zeros((N, np.shape(c)[1]))
             tmpN = np.arange(N, dtype=int)
 
