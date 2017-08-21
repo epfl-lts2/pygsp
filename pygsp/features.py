@@ -7,7 +7,7 @@ techniques based on :mod:`pygsp.graphs` and :mod:`pygsp.filters`.
 
 import numpy as np
 
-from pygsp import graphs, filters, utils
+from pygsp import filters, utils
 
 
 def compute_avg_adj_deg(G):
@@ -22,9 +22,6 @@ def compute_avg_adj_deg(G):
     G: Graph
         Graph on which the statistic is extracted
     """
-    if not isinstance(G, Graph):
-        raise ValueError("Graph object expected as first argument.")
-
     return np.sum(np.dot(G.A, G.A), axis=1) / (np.sum(G.A, axis=1) + 1.)
 
 
@@ -45,9 +42,6 @@ def compute_tig(filt, method=None, **kwargs):
     i: int (optional)
         Index of the filter to analyse (default: 0)
     """
-    if not isinstance(filt, Filter):
-        raise ValueError("Filter object expected as first argument.")
-
     signals = np.eye(filt.G.N)
     return filt.analysis(signals, method=method, **kwargs)
 
