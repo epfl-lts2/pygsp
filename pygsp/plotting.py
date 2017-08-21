@@ -410,7 +410,7 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
 
     Examples
     --------
-    >>> from pygsp import filters, plotting, graphs
+    >>> from pygsp import graphs, filters, plotting
     >>> G = graphs.Logo()
     >>> mh = filters.MexicanHat(G)
     >>> plotting.plot_filter(mh)
@@ -728,13 +728,13 @@ def plot_spectrogram(G, node_idx=None):
     >>> plotting.plot_spectrogram(G)
 
     """
-    from pygsp.features import compute_spectrogram
+    from pygsp import features
 
     if not qtg_import:
         raise NotImplementedError("You need pyqtgraph to plot the spectrogram at the moment. Please install dependency and retry.")
 
     if not hasattr(G, 'spectr'):
-        compute_spectrogram(G)
+        features.compute_spectrogram(G)
 
     M = G.spectr.shape[1]
     spectr = np.ravel(G.spectr[node_idx, :] if node_idx is not None else G.spectr)

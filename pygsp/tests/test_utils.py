@@ -10,7 +10,7 @@ import unittest
 import numpy as np
 from scipy import sparse
 
-from pygsp import utils, graphs
+from pygsp import graphs, utils
 
 
 class TestCase(unittest.TestCase):
