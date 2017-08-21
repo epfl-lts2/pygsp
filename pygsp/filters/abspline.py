@@ -3,8 +3,8 @@
 import numpy as np
 from scipy import optimize
 
-from . import Filter
 from pygsp import utils
+from . import Filter  # prevent circular import in Python < 3.5
 
 
 class Abspline(Filter):

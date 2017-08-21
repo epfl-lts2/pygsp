@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import scipy as sp
+from scipy import sparse
 
 from pygsp import utils
+
 
 _logger = utils.build_logger(__name__)
 
@@ -101,7 +102,7 @@ def cheby_op(G, c, signal, **kwargs):
     for i in range(Nscales):
         r[tmpN + G.N*i] = 0.5 * c[i, 0] * twf_old + c[i, 1] * twf_cur
 
-    factor = 2/a1 * (G.L - a2 * sp.sparse.eye(G.N))
+    factor = 2/a1 * (G.L - a2 * sparse.eye(G.N))
     for k in range(2, M):
         twf_new = factor.dot(twf_cur) - twf_old
         for i in range(Nscales):
@@ -147,7 +148,7 @@ def cheby_rect(G, bounds, signal, **kwargs):
         r = np.zeros((G.N))
 
     b1, b2 = np.arccos(2. * bounds / G.lmax - 1.)
-    factor = 4./G.lmax * G.L - 2.*sp.sparse.eye(G.N)
+    factor = 4./G.lmax * G.L - 2.*sparse.eye(G.N)
 
     T_old = signal
     T_cur = factor.dot(signal) / 2.

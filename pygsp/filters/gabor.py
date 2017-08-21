@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
-
-from . import Filter
 from pygsp import utils
+from . import Filter  # prevent circular import in Python < 3.5
 
 
 _logger = utils.build_logger(__name__)

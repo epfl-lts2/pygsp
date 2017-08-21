@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
+from . import Filter  # prevent circular import in Python < 3.5
 
 
 class WarpedTranslates(Filter):

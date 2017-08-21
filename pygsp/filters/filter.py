@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from copy import deepcopy
+import copy
 
 import numpy as np
 
 from pygsp import utils
-from ..operators.transforms import gft, igft
+# prevent circular import in Python < 3.5
 from . import approximations
+from ..operators.transforms import gft, igft
 
 
 _logger = utils.build_logger(__name__)
@@ -126,12 +127,14 @@ class Filter(object):
                     fs = np.tile(fie, (Ns, 1)).T * gft(self.G, s)
                     return igft(self.G, fs)
                 else:
-                    return igft(self.G, fie * gft(self.G, s))
+                    fs = fie * gft(self.G, s)
+                    return igft(self.G, fs)
             else:
                 tmpN = np.arange(N, dtype=int)
                 for i in range(Nf):
                     if is2d:
-                        fs = np.tile(fie[i], (Ns, 1)).T * gft(self.G, s)
+                        fs = gft(self.G, s)
+                        fs *= np.tile(fie[i], (Ns, 1)).T
                         c[tmpN + N * i] = igft(self.G, fs)
                     else:
                         fs = fie[i] * gft(self.G, s)
@@ -247,8 +250,8 @@ class Filter(object):
                     s += igft(np.conjugate(self.G.U), fc)
 
         elif method == 'cheby':
-            cheb_coeffs = approximations.compute_cheby_coeff(
-                self, m=order, N=order + 1)
+            cheb_coeffs = approximations.compute_cheby_coeff(self, m=order,
+                                                             N=order+1)
             s = np.zeros((N, np.shape(c)[1]))
             tmpN = np.arange(N, dtype=int)
 
@@ -263,8 +266,7 @@ class Filter(object):
 
             for i in range(Nf):
                 s += approximations.lanczos_op(self.G, self.g[i],
-                                               c[i * N + tmpN],
-                                               order=order)
+                                               c[i * N + tmpN], order=order)
 
         else:
             raise ValueError('Unknown method: {}'.format(method))
@@ -375,11 +377,12 @@ class Filter(object):
             ret = s[:, n]
             return ret
 
-        gdual = deepcopy(self)
+        gdual = copy.deepcopy(self)
 
         Nf = len(self.g)
         for i in range(Nf):
-            gdual.g[i] = lambda x, ind=i: can_dual_func(self, ind, deepcopy(x))
+            gdual.g[i] = lambda x, ind=i: can_dual_func(self, ind,
+                                                        copy.deepcopy(x))
 
         return gdual
 
