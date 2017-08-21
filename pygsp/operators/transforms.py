@@ -44,11 +44,9 @@ def gft(G, s):
 
     """
 
-    from pygsp.graphs import Graph
-
-    if isinstance(G, Graph):
+    try:
         U = G.U
-    else:
+    except AttributeError:
         U = G
 
     return np.dot(np.conjugate(U.T), s)  # True Hermitian here.
@@ -89,11 +87,9 @@ def igft(G, s_hat):
 
     """
 
-    from pygsp.graphs import Graph
-
-    if isinstance(G, Graph):
+    try:
         U = G.U
-    else:
+    except AttributeError:
         U = G
 
     return np.dot(U, s_hat)

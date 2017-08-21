@@ -104,15 +104,11 @@ def plot(O, **kwargs):
     >>> plotting.plot(G, default_qtg=False)
 
     """
-    from .graphs import Graph
-    from .filters import Filter
 
-    if issubclass(type(O), Graph):
-        plot_graph(O, **kwargs)
-    elif issubclass(type(O), Filter):
-        plot_filter(O, **kwargs)
-    else:
-        raise TypeError('Unrecognized object type, i.e. not Graph or Filter.')
+    try:
+        O.plot(**kwargs)
+    except AttributeError:
+        raise TypeError('Unrecognized object, i.e. not a Graph or Filter.')
 
 
 def plot_graph(G, default_qtg=True, **kwargs):
