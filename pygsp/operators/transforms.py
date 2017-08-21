@@ -95,26 +95,29 @@ def igft(G, s_hat):
     return np.dot(U, s_hat)
 
 
-def generalized_wft(G, g, f, lowmemory=True):
+def gft_windowed(G, g, f, lowmemory=True):
     r"""
-    Graph windowed Fourier transform
+    Windowed graph Fourier transform.
 
     Parameters
     ----------
-        G : Graph
-        g : ndarray or Filter
-            Window (graph signal or kernel)
-        f : ndarray
-            Graph signal
-        lowmemory : bool
-            use less memory (default=True)
+    G : Graph
+    g : ndarray or Filter
+        Window (graph signal or kernel).
+    f : ndarray
+        Graph signal in the vertex domain.
+    lowmemory : bool
+        Use less memory (default=True).
 
     Returns
     -------
-        C : ndarray
-            Coefficients
+    C : ndarray
+        Coefficients.
 
     """
+
+    raise NotImplementedError('Current implementation is not working.')
+
     Nf = np.shape(f)[1]
 
     if isinstance(g, list):
@@ -131,9 +134,10 @@ def generalized_wft(G, g, f, lowmemory=True):
 
     else:
         # Compute the translate of g
+        # TODO: use operators.translate()
         ghat = np.dot(G.U.T, g)
         Ftrans = np.sqrt(G.N) * np.dot(G.U, (np.kron(np.ones((G.N)), ghat)*G.U.T))
-        C = np.zeros((G.N, G.N))
+        C = np.empty((G.N, G.N))
 
         for j in range(Nf):
             for i in range(G.N):
@@ -142,26 +146,38 @@ def generalized_wft(G, g, f, lowmemory=True):
     return C
 
 
-def gabor_wft(G, f, k):
+def gft_windowed_gabor(G, f, k):
     r"""
-    Graph windowed Fourier transform
+    Gabor windowed graph Fourier transform.
 
     Parameters
     ----------
-        G : Graph
-        f : ndarray
-            Graph signal
-        k : anonymous function
-            Gabor kernel
+    G : Graph
+    f : ndarray
+        Graph signal in the vertex domain.
+    k : function
+        Gabor kernel. See :class:`pygsp.filters.Gabor`.
 
     Returns
     -------
-        C : Coefficient.
+    C : ndarray
+        Coefficients.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from pygsp import graphs, operators
+    >>> G = graphs.Logo()
+    >>> s = np.random.normal(size=G.N)
+    >>> C = operators.gft_windowed_gabor(G, s, lambda x: x/(1.-x))
+    >>> C.shape == (G.N, G.N)
+    True
 
     """
-    from pygsp.filters import Gabor
 
-    g = Gabor(G, k)
+    from pygsp import filters
+
+    g = filters.Gabor(G, k)
 
     C = g.analysis(f)
     C = utils.vec2mat(C, G.N).T
@@ -171,17 +187,17 @@ def gabor_wft(G, f, k):
 
 def _gwft_frame_matrix(G, g):
     r"""
-    Create the matrix of the GWFT frame
+    Create the GWFT frame.
 
     Parameters
     ----------
-        G : Graph
-        g : window
+    G : Graph
+    g : window
 
     Returns
     -------
-        F : ndarray
-            Frame
+    F : ndarray
+        Frame
     """
 
     if G.N > 256:
@@ -194,26 +210,28 @@ def _gwft_frame_matrix(G, g):
     return F
 
 
-def ngwft(G, f, g, lowmemory=True):
+def gft_windowed_normalized(G, g, f, lowmemory=True):
     r"""
-    Normalized graph windowed Fourier transform
+    Normalized windowed graph Fourier transform.
 
     Parameters
     ----------
-        G : Graph
-        f : ndarray
-            Graph signal
-        g : ndarray
-            Window
-        lowmemory : bool
-            Use less memory. (default = True)
+    G : Graph
+    g : ndarray
+        Window.
+    f : ndarray
+        Graph signal in the vertex domain.
+    lowmemory : bool
+        Use less memory. (default = True)
 
     Returns
     -------
-        C : ndarray
-            Coefficients
+    C : ndarray
+        Coefficients.
 
     """
+
+    raise NotImplementedError('Current implementation is not working.')
 
     if lowmemory:
         # Compute the Frame into a big matrix
@@ -223,9 +241,10 @@ def ngwft(G, f, g, lowmemory=True):
 
     else:
         # Compute the translate of g
+        # TODO: use operators.translate()
         ghat = np.dot(G.U.T, g)
         Ftrans = np.sqrt(G.N)*np.dot(G.U, (np.kron(np.ones((1, G.N)), ghat)*G.U.T))
-        C = np.zeros((G.N, G.N))
+        C = np.empty((G.N, G.N))
 
         for i in range(G.N):
             atoms = np.kron(np.ones((G.N)), 1./G.U[:, 0])*G.U*np.kron(np.ones((G.N)), Ftrans[:, i]).T
@@ -240,18 +259,21 @@ def ngwft(G, f, g, lowmemory=True):
 
 def _ngwft_frame_matrix(G, g):
     r"""
-    Create the matrix of the GWFT frame
+    Create the NGWFT frame.
 
     Parameters
     ----------
-        G : Graph
-        g : ndarray
-            Window
+    G : Graph
+    g : ndarray
+        Window
 
-    Output parameters:
-        F : ndarray
-            Frame
+    Returns
+    -------
+    F : ndarray
+        Frame
+
     """
+
     if G.N > 256:
         logger.warning('It will create a big matrix, you can use other methods.')
 

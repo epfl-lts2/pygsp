@@ -10,11 +10,11 @@ The :mod:`pygsp.operators` module implements some operators on graphs.
 
 **Transforms** (frequency and vertex-frequency)
 
-* :func:`pygsp.operators.gft`: graph Fourier transform
+* :func:`pygsp.operators.gft`: graph Fourier transform (GFT)
 * :func:`pygsp.operators.igft`: inverse graph Fourier transform
-* :func:`pygsp.operators.generalized_wft`: graph windowed Fourier transform
-* :func:`pygsp.operators.gabor_wft`: graph windowed Fourier transform
-* :func:`pygsp.operators.ngwft`: normalized graph windowed Fourier transform
+* :func:`pygsp.operators.gft_windowed`: windowed GFT
+* :func:`pygsp.operators.gft_windowed_gabor`: Gabor windowed GFT
+* :func:`pygsp.operators.gft_windowed_normalized`: normalized windowed GFT
 
 **Localization**
 
@@ -44,9 +44,9 @@ _DIFFERENCE = [
 _TRANSFORMS = [
     'gft',
     'igft',
-    'generalized_wft',
-    'gabor_wft',
-    'ngwft',
+    'gft_windowed',
+    'gft_windowed_gabor',
+    'gft_windowed_normalized',
 ]
 _LOCALIZATION = [
     'localize',

@@ -78,6 +78,8 @@ def translate(G, f, i):
 
     """
 
+    raise NotImplementedError('Current implementation is not working.')
+
     fhat = transforms.gft(G, f)
     nt = np.shape(f)[1]
 
