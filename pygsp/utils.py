@@ -18,6 +18,7 @@ import numpy as np
 from scipy import kron, ones
 from scipy import sparse
 from scipy.io import loadmat as scipy_loadmat
+import skimage
 
 
 def build_logger(name, **kwargs):
@@ -389,6 +390,72 @@ def vec2mat(d, Nf):
     if len(np.shape(d)) == 2:
         M, N = np.shape(d)
         return np.reshape(d, (M / Nf, Nf, N), order='F')
+
+
+def extract_patches(img, patch_shape=(3, 3)):
+    r"""
+    Extract a patch feature vector for every pixel of an image.
+
+    Parameters
+    ----------
+    img : array
+        Input image.
+    patch_shape : tuple, optional
+        Dimensions of the patch window. Syntax: (height, width), or (height,),
+        in which case width = height.
+
+    Returns
+    -------
+    array
+        Feature matrix.
+
+    Notes
+    -----
+    The feature vector of a pixel `i` will consist of the stacking of the
+    intensity values of all pixels in the patch centered at `i`, for all color
+    channels. So, if the input image has `d` color channels, the dimension of
+    the feature vector of each pixel is (patch_shape[0] * patch_shape[1] * d).
+
+    Examples
+    --------
+    >>> from pygsp import utils
+    >>> import skimage
+    >>> img = skimage.img_as_float(skimage.data.camera()[::2, ::2])
+    >>> X = utils.extract_patches(img)
+
+    """
+
+    try:
+        h, w, d = img.shape
+    except ValueError:
+        try:
+            h, w = img.shape
+            d = 0
+        except ValueError:
+            print("Image should be at least a 2-d array.")
+
+    try:
+        r, c = patch_shape
+    except ValueError:
+        r = patch_shape[0]
+        c = r
+    if d == 0:
+        pad_width = ((int((r - 0.5) / 2.), int((r + 0.5) / 2.)),
+                     (int((c - 0.5) / 2.), int((c + 0.5) / 2.)))
+        window_shape = (r, c)
+        d = 1  # For the reshape in the return call
+    else:
+        pad_width = ((int((r - 0.5) / 2.), int((r + 0.5) / 2.)),
+                     (int((c - 0.5) / 2.), int((c + 0.5) / 2.)),
+                     (0, 0))
+        window_shape = (r, c, d)
+    # Pad the image
+    img_pad = skimage.util.pad(img, pad_width=pad_width, mode='symmetric')
+
+    # Extract patches
+    patches = skimage.util.view_as_windows(img_pad, window_shape=window_shape)
+
+    return patches.reshape((h * w, r * c * d))
 
 
 def import_modules(names, src, dst):

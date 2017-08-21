@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from pygsp.graphs import NNGraph
-from pygsp.features import patch_features
+from pygsp import utils
 
 
 class ImgPatches(NNGraph):
@@ -33,7 +33,7 @@ class ImgPatches(NNGraph):
     def __init__(self, img, patch_shape=(3, 3), n_nbrs=8, use_flann=True,
                  dist_type='euclidean', symmetrize_type='full', **kwargs):
 
-        X = patch_features(img, patch_shape=patch_shape)
+        X = utils.extract_patches(img, patch_shape=patch_shape)
 
         super(ImgPatches, self).__init__(X,
                                          use_flann=use_flann,
