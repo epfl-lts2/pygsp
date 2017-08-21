@@ -885,7 +885,7 @@ class Graph(object):
             # TODO G.ind_edges = sub2ind(size(G.W), G.v_in, G.v_out)
 
             assert v_in.size == v_out.size == weights.size
-            assert self.Ne == 2 * v_in.size
+            assert self.Ne >= v_in.size  # graph might have self-loops
 
             return v_in, v_out, weights
 
