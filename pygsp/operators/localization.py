@@ -2,11 +2,11 @@
 
 import numpy as np
 
-from ..utils import build_logger
-from .transforms import gft, igft
+from pygsp import utils
+from . import transforms  # prevent circular import in Python < 3.5
 
 
-logger = build_logger(__name__)
+logger = utils.build_logger(__name__)
 
 
 def localize(g, i):
@@ -78,9 +78,9 @@ def translate(G, f, i):
 
     """
 
-    fhat = gft(G, f)
+    fhat = transforms.gft(G, f)
     nt = np.shape(f)[1]
 
-    ft = np.sqrt(G.N) * igft(G, fhat, np.kron(np.ones((1, nt)), G.U[i]))
+    ft = np.sqrt(G.N) * transforms.igft(G, fhat, np.kron(np.ones((1, nt)), G.U[i]))
 
     return ft
