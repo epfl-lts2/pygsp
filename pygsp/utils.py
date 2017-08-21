@@ -10,14 +10,13 @@ from __future__ import division
 import sys
 import importlib
 import logging
-from functools import wraps
-from pkgutil import get_data
-from io import BytesIO
+import functools
+import pkgutil
+import io
 
 import numpy as np
-from scipy import kron, ones
 from scipy import sparse
-from scipy.io import loadmat as scipy_loadmat
+import scipy.io
 import skimage
 
 
@@ -61,7 +60,7 @@ def graph_array_handler(func):
 
 
 def filterbank_handler(func):
-    @wraps(func)
+    @functools.wraps(func)
 
     def inner(f, *args, **kwargs):
         if 'i' in kwargs:
@@ -102,15 +101,15 @@ def loadmat(path):
 
     Examples
     --------
-    >>> from pygsp.utils import loadmat
-    >>> data = loadmat('pointclouds/bunny')
+    >>> from pygsp import utils
+    >>> data = utils.loadmat('pointclouds/bunny')
     >>> data['bunny'].shape
     (2503, 3)
 
     """
-    data = get_data('pygsp', 'data/' + path + '.mat')
-    data = BytesIO(data)
-    return scipy_loadmat(data)
+    data = pkgutil.get_data('pygsp', 'data/' + path + '.mat')
+    data = io.BytesIO(data)
+    return scipy.io.loadmat(data)
 
 
 def distanz(x, y=None):
@@ -132,9 +131,9 @@ def distanz(x, y=None):
     Examples
     --------
     >>> import numpy as np
-    >>> from pygsp.utils import distanz
+    >>> from pygsp import utils
     >>> x = np.arange(3)
-    >>> distanz(x, x)
+    >>> utils.distanz(x, x)
     array([[ 0.,  1.,  2.],
            [ 1.,  0.,  1.],
            [ 2.,  1.,  0.]])
@@ -165,8 +164,8 @@ def distanz(x, y=None):
     yy = (y * y).sum(axis=0)
     xy = np.dot(x.T, y)
 
-    d = abs(kron(ones((cy, 1)), xx).T +
-            kron(ones((cx, 1)), yy) - 2 * xy)
+    d = abs(np.kron(np.ones((cy, 1)), xx).T +
+            np.kron(np.ones((cx, 1)), yy) - 2 * xy)
 
     return np.sqrt(d)
 
@@ -227,15 +226,15 @@ def symmetrize(W, symmetrize_type='average'):
     Examples
     --------
     >>> import numpy as np
-    >>> from pygsp.utils import symmetrize
+    >>> from pygsp import utils
     >>> x = np.array([[1,0],[3,4.]])
     >>> x
     array([[ 1.,  0.],
            [ 3.,  4.]])
-    >>> symmetrize(x)
+    >>> utils.symmetrize(x)
     array([[ 1. ,  1.5],
            [ 1.5,  4. ]])
-    >>> symmetrize(x, symmetrize_type='full')
+    >>> utils.symmetrize(x, symmetrize_type='full')
     array([[ 1.,  3.],
            [ 3.,  4.]])
 
