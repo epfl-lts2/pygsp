@@ -7,9 +7,7 @@ techniques based on :mod:`pygsp.graphs` and :mod:`pygsp.filters`.
 
 import numpy as np
 
-from .graphs import Graph
-from .filters import Filter
-from .utils import filterbank_handler
+from pygsp import graphs, filters, utils
 
 
 def compute_avg_adj_deg(G):
@@ -30,7 +28,7 @@ def compute_avg_adj_deg(G):
     return np.sum(np.dot(G.A, G.A), axis=1) / (np.sum(G.A, axis=1) + 1.)
 
 
-@filterbank_handler
+@utils.filterbank_handler
 def compute_tig(filt, method=None, **kwargs):
     r"""
     Compute the Tig for a given filter or filterbank.
@@ -54,7 +52,7 @@ def compute_tig(filt, method=None, **kwargs):
     return filt.analysis(signals, method=method, **kwargs)
 
 
-@filterbank_handler
+@utils.filterbank_handler
 def compute_norm_tig(filt, method=None, *args, **kwargs):
     r"""
     Compute the :math:`\ell_2` norm of the Tig.
@@ -95,9 +93,8 @@ def compute_spectrogram(G, atom=None, M=100, method=None, **kwargs):
     spectr = np.zeros((G.N, M))
 
     for shift_idx in range(M):
-        shft_filter = Filter(G,
-                             filters=[lambda x: atom(x - scale[shift_idx])],
-                             **kwargs)
+        shft_filter = filters.Filter(G, [lambda x: atom(x - scale[shift_idx])],
+                                     **kwargs)
         spectr[:, shift_idx] = compute_norm_tig(shft_filter, method=method)**2
 
     G.spectr = spectr
