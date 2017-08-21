@@ -308,7 +308,7 @@ class Graph(object):
 
         elif kind == 'ring2D':
             angle = np.arange(self.N) * 2 * np.pi / self.N
-            self.coords = np.stack([np.cos(angle), np.sin(angle)])
+            self.coords = np.stack([np.cos(angle), np.sin(angle)], axis=1)
 
         elif kind == 'random2D':
             self.coords = np.random.uniform(size=(self.N, 2))
