@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from pygsp.graphs import NNGraph
-from pygsp.utils import loadmat
+from pygsp import utils
+from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
 
 class TwoMoons(NNGraph):
@@ -69,7 +69,7 @@ class TwoMoons(NNGraph):
         if moontype == 'standard':
             gtype = 'Two Moons standard'
             N1, N2 = 1000, 1000
-            data = loadmat('pointclouds/two_moons')
+            data = utils.loadmat('pointclouds/two_moons')
             Xin = data['features'][:dim].T
 
         elif moontype == 'synthesized':

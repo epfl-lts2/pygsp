@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.sparse import csc_matrix
-from scipy.spatial import KDTree
+from scipy import sparse, spatial
 
-from pygsp.graphs import Graph
-from pygsp.utils import symmetrize
+from pygsp import utils
+from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
+
 
 try:
-    import pyflann as fl
+    import pyflann as pfl
     pfl_import = True
-except Exception as e:
-    print('ERROR : Could not import pyflann. Try to install it for faster kNN computations.')
+except Exception:
+    print('ERROR: Could not import pyflann. '
+          'Try to install it for faster kNN computations.')
     pfl_import = False
 
 
@@ -114,8 +115,8 @@ class NNGraph(Graph):
             spv = np.zeros((N * k))
 
             if self.use_flann and pfl_import:
-                fl.set_distance_type(dist_type, order=order)
-                flann = fl.FLANN()
+                pfl.set_distance_type(dist_type, order=order)
+                flann = pfl.FLANN()
 
                 # Default FLANN parameters (I tried changing the algorithm and
                 # testing performance on huge matrices, but the default one
@@ -124,7 +125,7 @@ class NNGraph(Graph):
                                  algorithm='kdtree')
 
             else:
-                kdt = KDTree(Xout)
+                kdt = spatial.KDTree(Xout)
                 D, NN = kdt.query(Xout, k=(k + 1),
                                   p=dist_translation[dist_type])
 
@@ -136,7 +137,7 @@ class NNGraph(Graph):
 
         elif self.NNtype == 'radius':
 
-            kdt = KDTree(Xout)
+            kdt = spatial.KDTree(Xout)
             D, NN = kdt.query(Xout, k=None, distance_upper_bound=epsilon,
                               p=dist_translation[dist_type])
             count = 0
@@ -159,7 +160,7 @@ class NNGraph(Graph):
         else:
             raise ValueError('Unknown NNtype {}'.format(self.NNtype))
 
-        W = csc_matrix((spv, (spi, spj)), shape=(N, N))
+        W = sparse.csc_matrix((spv, (spi, spj)), shape=(N, N))
 
         # Sanity check
         if np.shape(W)[0] != np.shape(W)[1]:
@@ -167,7 +168,7 @@ class NNGraph(Graph):
 
         # Enforce symmetry. Note that checking symmetry with
         # np.abs(W - W.T).sum() is as costly as the symmetrization itself.
-        W = symmetrize(W, symmetrize_type=symmetrize_type)
+        W = utils.symmetrize(W, symmetrize_type=symmetrize_type)
 
         super(NNGraph, self).__init__(W=W, gtype=gtype, plotting=plotting,
                                       coords=Xout, **kwargs)

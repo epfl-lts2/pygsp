@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from pygsp.graphs import NNGraph
-from pygsp.utils import loadmat
+from pygsp import utils
+from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
 
 class Bunny(NNGraph):
@@ -21,7 +21,7 @@ class Bunny(NNGraph):
 
     def __init__(self, **kwargs):
 
-        data = loadmat('pointclouds/bunny')
+        data = utils.loadmat('pointclouds/bunny')
 
         plotting = {'vertex_size': 10,
                     'vertex_color': (1, 1, 1, 1),

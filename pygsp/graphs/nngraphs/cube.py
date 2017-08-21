@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from pygsp.graphs import NNGraph
+from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
 
 class Cube(NNGraph):
