@@ -101,7 +101,7 @@ def plot(O, **kwargs):
     --------
     >>> from pygsp import graphs, plotting
     >>> G = graphs.Logo()
-    >>> plotting.plot(G, default_qtg=False)
+    >>> plotting.plot(G)
 
     """
 
@@ -141,7 +141,7 @@ def plot_graph(G, default_qtg=True, **kwargs):
     --------
     >>> from pygsp import graphs, plotting
     >>> G = graphs.Logo()
-    >>> plotting.plot_graph(G, default_qtg=False)
+    >>> plotting.plot_graph(G)
 
     """
     if not hasattr(G, 'coords'):
@@ -508,7 +508,7 @@ def plot_signal(G, signal, default_qtg=True, **kwargs):
     >>> from pygsp import graphs, filters, plotting
     >>> G = graphs.Grid2d(4)
     >>> signal = np.sin((np.arange(16) * 2*np.pi/16))
-    >>> plotting.plot_signal(G, signal, default_qtg=False)
+    >>> plotting.plot_signal(G, signal)
 
     """
     if not hasattr(G, 'coords'):
