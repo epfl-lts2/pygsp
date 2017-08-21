@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.sparse import coo_matrix
+from scipy import sparse
 
-from . import Graph
-from ..utils import loadmat
+from pygsp import utils
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Airfoil(Graph):
@@ -20,12 +20,12 @@ class Airfoil(Graph):
 
     def __init__(self, **kwargs):
 
-        data = loadmat('pointclouds/airfoil')
+        data = utils.loadmat('pointclouds/airfoil')
         coords = np.concatenate((data['x'], data['y']), axis=1)
 
         i_inds = np.reshape(data['i_inds'] - 1, 12289)
         j_inds = np.reshape(data['j_inds'] - 1, 12289)
-        A = coo_matrix((np.ones(12289), (i_inds, j_inds)), shape=(4253, 4253))
+        A = sparse.coo_matrix((np.ones(12289), (i_inds, j_inds)), shape=(4253, 4253))
         W = (A + A.T) / 2.
 
         plotting = {"vertex_size": 30,

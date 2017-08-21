@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.sparse import csc_matrix
+from scipy import sparse
 
-from . import Graph
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class RandomRing(Graph):
@@ -32,7 +32,7 @@ class RandomRing(Graph):
         inds_j = np.arange(1, N)
         inds_i = np.arange(N - 1)
 
-        W = csc_matrix((weight, (inds_i, inds_j)), shape=(N, N))
+        W = sparse.csc_matrix((weight, (inds_i, inds_j)), shape=(N, N))
         W = W.tolil()
         W[N - 1, 0] = weightend
         W = W + W.T

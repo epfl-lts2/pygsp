@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from . import Graph
-from ..utils import distanz, rescale_center
+from pygsp import utils
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class SwissRoll(Graph):
@@ -63,8 +63,8 @@ class SwissRoll(Graph):
         self.x = x
         self.dim = dim
 
-        coords = rescale_center(x)
-        dist = distanz(coords)
+        coords = utils.rescale_center(x)
+        dist = utils.distanz(coords)
         W = np.exp(-np.power(dist, 2) / (2. * s**2))
         W -= np.diag(np.diag(W))
         W[W < thresh] = 0

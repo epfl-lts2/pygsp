@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.sparse import csc_matrix
+from scipy import sparse
 
-from . import Graph
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Ring(Graph):
@@ -49,8 +49,8 @@ class Ring(Graph):
             i_inds[2*N*(k - 1) + tmpN] = tmpN
             i_inds[2*N*(k - 1) + tmpN] = np.remainder(tmpN + k + 1, N)
 
-        W = csc_matrix((np.ones((2*num_edges)), (i_inds, j_inds)),
-                       shape=(N, N))
+        W = sparse.csc_matrix((np.ones((2*num_edges)), (i_inds, j_inds)),
+                              shape=(N, N))
 
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 

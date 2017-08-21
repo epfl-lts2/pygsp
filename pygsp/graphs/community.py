@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from collections import Counter
-from copy import deepcopy
+import collections
+import copy
 
 import numpy as np
-from scipy.sparse import coo_matrix
-from scipy.spatial import KDTree
+from scipy import sparse, spatial
 
-from . import Graph
-from ..utils import build_logger
+from pygsp import utils
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Community(Graph):
@@ -60,7 +59,7 @@ class Community(Graph):
         k_neigh = kwargs.pop('k_neigh', None)
         epsilon = float(kwargs.pop('epsilon', np.sqrt(2 * np.sqrt(N)) / 2))
 
-        self.logger = build_logger(__name__, **kwargs)
+        self.logger = utils.build_logger(__name__, **kwargs)
         w_data = [[], [[], []]]
 
         try:
@@ -88,7 +87,7 @@ class Community(Graph):
             # create labels based on the constraint given for the community sizes. No random assignation here.
             info['node_com'] = np.concatenate([[val] * cnt for (val, cnt) in enumerate(comm_sizes)])
 
-        counts = Counter(info['node_com'])
+        counts = collections.Counter(info['node_com'])
         info['comm_sizes'] = np.array([cnt[1] for cnt in sorted(counts.items())])
         info['world_rad'] = size_ratio * np.sqrt(N)
 
@@ -141,7 +140,7 @@ class Community(Graph):
 
             elif k_neigh:
                 comm_coords = coords[first_node:first_node + com_siz]
-                kdtree = KDTree(comm_coords)
+                kdtree = spatial.KDTree(comm_coords)
                 __, indices = kdtree.query(comm_coords, k=k_neigh + 1)
 
                 pairs_set = set()
@@ -153,7 +152,7 @@ class Community(Graph):
 
             else:
                 comm_coords = coords[first_node:first_node + com_siz]
-                kdtree = KDTree(comm_coords)
+                kdtree = spatial.KDTree(comm_coords)
                 pairs_set = kdtree.query_pairs(epsilon)
 
                 w_data[0] += [1] * len(pairs_set)
@@ -195,12 +194,12 @@ class Community(Graph):
         w_data[1][1] += [elem[1] for elem in inter_edges]
 
         w_data[0] += w_data[0]
-        tmp_w_data = deepcopy(w_data[1][0])
+        tmp_w_data = copy.deepcopy(w_data[1][0])
         w_data[1][0] += w_data[1][1]
         w_data[1][1] += tmp_w_data
         w_data[1] = tuple(w_data[1])
 
-        W = coo_matrix(tuple(w_data), shape=(N, N))
+        W = sparse.coo_matrix(tuple(w_data), shape=(N, N))
 
         for key, value in {'Nc': Nc, 'info': info}.items():
             setattr(self, key, value)

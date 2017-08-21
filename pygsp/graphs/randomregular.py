@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.sparse import lil_matrix
+from scipy import sparse
 
-from . import Graph
-from ..utils import build_logger
+from pygsp import utils
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class RandomRegular(Graph):
@@ -45,7 +45,7 @@ class RandomRegular(Graph):
     def __init__(self, N=64, k=6, maxIter=10, **kwargs):
         self.k = k
 
-        self.logger = build_logger(__name__, **kwargs)
+        self.logger = utils.build_logger(__name__, **kwargs)
 
         # continue until a proper graph is formed
         if (N * k) % 2 == 1:
@@ -55,7 +55,7 @@ class RandomRegular(Graph):
         U = np.kron(np.ones(k), np.arange(N))
 
         # the graphs adjacency matrix
-        A = lil_matrix(np.zeros((N, N)))
+        A = sparse.lil_matrix(np.zeros((N, N)))
 
         edgesTested = 0
         repetition = 1
@@ -82,7 +82,7 @@ class RandomRegular(Graph):
                     repetition = repetition + 1
                     edgesTested = 0
                     U = np.kron(np.ones(k), np.arange(N))
-                    A = lil_matrix(np.zeros((N, N)))
+                    A = sparse.lil_matrix(np.zeros((N, N)))
             else:
                 # add edge to graph
                 A[v1, v2] = 1

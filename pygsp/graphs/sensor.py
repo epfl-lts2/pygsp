@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.sparse import lil_matrix, csc_matrix
+from scipy import sparse
 
-from . import Graph
-from ..utils import build_logger, distanz
+from pygsp import utils
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Sensor(Graph):
@@ -41,7 +41,7 @@ class Sensor(Graph):
         self.n_try = n_try
         self.distribute = distribute
 
-        self.logger = build_logger(__name__, **kwargs)
+        self.logger = utils.build_logger(__name__, **kwargs)
 
         if connected:
             for x in range(self.n_try):
@@ -58,7 +58,7 @@ class Sensor(Graph):
         else:
             W, coords = self._create_weight_matrix(N, distribute, regular, Nc)
 
-        W = lil_matrix(W)
+        W = sparse.lil_matrix(W)
         W = (W + W.T) / 2.
 
         gtype = 'regular sensor' if self.regular else 'sensor'
@@ -107,7 +107,7 @@ class Sensor(Graph):
         target_dist_cutoff = 2*N**(-0.5)
         T = 0.6
         s = np.sqrt(-target_dist_cutoff**2/(2*np.log(T)))
-        d = distanz(x=coords.T)
+        d = utils.distanz(x=coords.T)
         W = np.exp(-d**2/(2.*s**2))
         W -= np.diag(np.diag(W))
 
@@ -119,5 +119,5 @@ class Sensor(Graph):
             W = np.where(W < T, 0, W)
             W = np.where(W2 > 0, W2, W)
 
-        W = csc_matrix(W)
+        W = sparse.csc_matrix(W)
         return W, coords

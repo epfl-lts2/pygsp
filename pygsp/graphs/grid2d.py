@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.sparse import diags
+from scipy import sparse
 
-from . import Graph
-from ..utils import symmetrize
+from pygsp import utils
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Grid2d(Graph):
@@ -48,12 +48,12 @@ class Grid2d(Graph):
         diag_1[(w - 1)::w] = 0
         stride = w
         diag_2 = np.ones((h * w - stride,))
-        W = diags(diagonals=[diag_1, diag_2],
-                  offsets=[-1, -stride],
-                  shape=(h * w, h * w),
-                  format='csr',
-                  dtype='float')
-        W = symmetrize(W, symmetrize_type='full')
+        W = sparse.diags(diagonals=[diag_1, diag_2],
+                         offsets=[-1, -stride],
+                         shape=(h * w, h * w),
+                         format='csr',
+                         dtype='float')
+        W = utils.symmetrize(W, symmetrize_type='full')
 
         x = np.kron(np.ones((h, 1)), (np.arange(w) / float(w)).reshape(w, 1))
         y = np.kron(np.ones((w, 1)), np.arange(h) / float(h)).reshape(h * w, 1)

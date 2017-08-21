@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.sparse import lil_matrix
+from scipy import sparse
 
-from . import Graph
-from ..utils import build_logger
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class BarabasiAlbert(Graph):
@@ -41,7 +40,7 @@ class BarabasiAlbert(Graph):
         if m > m0:
             raise ValueError('Parameter m cannot be above parameter m0.')
 
-        W = lil_matrix((N, N))
+        W = sparse.lil_matrix((N, N))
 
         for i in range(m0, N):
             distr = W.sum(axis=1)

@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from . import Graph
-from ..utils import loadmat, distanz
+from pygsp import utils
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class DavidSensorNet(Graph):
@@ -28,13 +28,13 @@ class DavidSensorNet(Graph):
 
     def __init__(self, N=64):
         if N == 64:
-            data = loadmat('pointclouds/david64')
+            data = utils.loadmat('pointclouds/david64')
             assert data['N'][0, 0] == N
             W = data['W']
             coords = data['coords']
 
         elif N == 500:
-            data = loadmat('pointclouds/david500')
+            data = utils.loadmat('pointclouds/david500')
             assert data['N'][0, 0] == N
             W = data['W']
             coords = data['coords']
@@ -45,7 +45,7 @@ class DavidSensorNet(Graph):
             target_dist_cutoff = -0.125 * N / 436.075 + 0.2183
             T = 0.6
             s = np.sqrt(-target_dist_cutoff**2/(2*np.log(T)))
-            d = distanz(coords.T)
+            d = utils.distanz(coords.T)
             W = np.exp(-np.power(d, 2)/(2.*s**2))
             W[W < T] = 0
             W[np.diag_indices(N)] = 0

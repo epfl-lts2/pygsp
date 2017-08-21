@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.sparse import csr_matrix
+from scipy import sparse
 
-from . import Graph
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class ErdosRenyi(Graph):
@@ -54,7 +54,7 @@ class ErdosRenyi(Graph):
             else:
                 indices = tuple(map(lambda coord: coord[indices], np.tril_indices(N, -1)))
 
-            matrix = csr_matrix((np.ones(nb_elem), indices), shape=(N, N))
+            matrix = sparse.csr_matrix((np.ones(nb_elem), indices), shape=(N, N))
             self.W = matrix if directed else matrix + matrix.T
             self.A = self.W > 0
 

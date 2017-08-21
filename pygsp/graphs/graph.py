@@ -6,7 +6,7 @@ import numpy as np
 from scipy import sparse
 from scipy.linalg import svd
 
-from pygsp.utils import build_logger
+from pygsp import utils
 
 
 class Graph(object):
@@ -85,7 +85,7 @@ class Graph(object):
     def __init__(self, W, gtype='unknown', lap_type='combinatorial',
                  coords=None, plotting={}, perform_checks=True, **kwargs):
 
-        self.logger = build_logger(__name__, **kwargs)
+        self.logger = utils.build_logger(__name__, **kwargs)
 
         if len(W.shape) != 2 or W.shape[0] != W.shape[1]:
             raise ValueError('W has incorrect shape {}'.format(W.shape))
@@ -513,7 +513,7 @@ class Graph(object):
         Examples
         --------
         >>> from scipy import sparse
-        >>> from pygsp import utils, graphs
+        >>> from pygsp import graphs, utils
         >>> W = sparse.rand(10, 10, 0.2)
         >>> W = utils.symmetrize(W)
         >>> G = graphs.Graph(W=W)

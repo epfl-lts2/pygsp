@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from . import Graph
-from ..utils import loadmat
+from pygsp import utils
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Logo(Graph):
@@ -19,7 +19,7 @@ class Logo(Graph):
 
     def __init__(self, **kwargs):
 
-        data = loadmat('pointclouds/logogsp')
+        data = utils.loadmat('pointclouds/logogsp')
 
         self.info = {"idx_g": data["idx_g"],
                      "idx_s": data["idx_s"],

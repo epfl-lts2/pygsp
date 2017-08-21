@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.sparse import csr_matrix
+from scipy import sparse
 
-from . import Graph
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class StochasticBlockModel(Graph):
@@ -92,7 +92,7 @@ class StochasticBlockModel(Graph):
                 nb_row = 0
                 nb_col += 1
 
-        W = csr_matrix((csr_data, (csr_i, csr_j)), shape=(N, N))
+        W = sparse.csr_matrix((csr_data, (csr_i, csr_j)), shape=(N, N))
 
         if undirected:
             W = W + W.T

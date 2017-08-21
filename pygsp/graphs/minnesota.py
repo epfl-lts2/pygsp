@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from . import Graph
-from ..utils import loadmat
+from pygsp import utils
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Minnesota(Graph):
@@ -28,7 +28,7 @@ class Minnesota(Graph):
 
     def __init__(self, connect=True):
 
-        data = loadmat('pointclouds/minnesota')
+        data = utils.loadmat('pointclouds/minnesota')
         self.labels = data['labels']
         A = data['A']
 
