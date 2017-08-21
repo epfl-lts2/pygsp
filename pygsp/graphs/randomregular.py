@@ -67,7 +67,7 @@ class RandomRegular(Graph):
             # print(progess)
             if edgesTested % 5000 == 0:
                 self.logger.debug("createRandRegGraph() progress: edges= "
-                                  "{}/{}.".format(edgesTested, n*k/2))
+                                  "{}/{}.".format(edgesTested, N*k/2))
 
             # chose at random 2 half edges
             i1 = np.random.randint(0, np.shape(U)[0])
