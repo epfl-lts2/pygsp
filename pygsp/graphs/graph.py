@@ -303,7 +303,8 @@ class Graph(object):
             coords = np.asarray(kind)
             check_dim = (2 <= coords.shape[1] <= 3)
             if coords.ndim != 2 or coords.shape[0] != self.N or not check_dim:
-                raise ValueError('Expecting coords to be of size Nx2 or Nx3.')
+                raise ValueError('Expecting coordinates to be of size Nx2 or '
+                                 'Nx3.')
             self.coords = coords
 
         elif kind == 'ring2D':
@@ -528,7 +529,7 @@ class Graph(object):
             return None
 
         if self.is_directed():
-            raise NotImplementedError('Focusing on undirected graphs first.')
+            raise NotImplementedError('Directed graphs not supported yet.')
 
         graphs = []
 
@@ -721,7 +722,8 @@ class Graph(object):
                 self.L = 0.5 * (D1 + D2 - self.W - self.W.T).tocsc()
 
             elif lap_type == 'normalized':
-                raise NotImplementedError('Yet. Ask Nathanael.')
+                raise NotImplementedError('Directed graphs with normalized '
+                                          'Laplacian not supported yet.')
 
         else:
 
@@ -742,8 +744,8 @@ class Graph(object):
         """
         if not hasattr(self, '_lmax'):
             self.logger.warning('The largest eigenvalue G.lmax is not '
-                                'available, we need to estimate it. Explicitly '
-                                'call G.estimate_lmax() or '
+                                'available, we need to estimate it. '
+                                'Explicitly call G.estimate_lmax() or '
                                 'G.compute_fourier_basis() '
                                 'once beforehand to suppress the warning.')
             self.estimate_lmax()
@@ -875,7 +877,7 @@ class Graph(object):
         """
 
         if self.is_directed():
-            raise NotImplementedError
+            raise NotImplementedError('Directed graphs not supported yet.')
 
         else:
             v_in, v_out = sparse.tril(self.W).nonzero()
