@@ -384,11 +384,11 @@ def vec2mat(d, Nf):
     """
     if len(np.shape(d)) == 1:
         M = np.shape(d)[0]
-        return np.reshape(d, (M / Nf, Nf), order='F')
+        return np.reshape(d, (M // Nf, Nf), order='F')
 
     if len(np.shape(d)) == 2:
         M, N = np.shape(d)
-        return np.reshape(d, (M / Nf, Nf, N), order='F')
+        return np.reshape(d, (M // Nf, Nf, N), order='F')
 
 
 def extract_patches(img, patch_shape=(3, 3)):
