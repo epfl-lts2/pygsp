@@ -136,6 +136,9 @@ def plot_graph(G, default_qtg=True, **kwargs):
     show_plot : boolean
         whether to show the plot, i.e. call plt.show(). Only available with the
         matplotlib backend.
+    ax : matplotlib.axes
+        Axes to where to draw the graph. Optional, created if not passed. Only
+        available with the matplotlib backend.
 
     Examples
     --------
@@ -159,14 +162,11 @@ def plot_graph(G, default_qtg=True, **kwargs):
                           'install matplotlib or pyqtgraph.')
 
 
-def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name=''):
+def _plt_plot_graph(G, savefig=False, show_edges=None,
+                    show_plot=True, plot_name='', ax=None):
 
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
-
-    fig = plt.figure()
-    global _plt_figures
-    _plt_figures.append(fig)
 
     if not plot_name:
         plot_name = u"Plot of {}".format(G.gtype)
@@ -184,11 +184,15 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name
     except KeyError:
         edge_color = np.array([255, 88, 41]) / 255.
 
-    # Matplotlib graph initialization in 2D and 3D
-    if G.coords.shape[1] == 2:
-        ax = fig.add_subplot(111)
-    elif G.coords.shape[1] == 3:
-        ax = fig.add_subplot(111, projection='3d')
+    if not ax:
+        fig = plt.figure()
+        global _plt_figures
+        _plt_figures.append(fig)
+
+        if G.coords.shape[1] == 2:
+            ax = fig.add_subplot(111)
+        elif G.coords.shape[1] == 3:
+            ax = fig.add_subplot(111, projection='3d')
 
     if show_edges:
         ki, kj = np.nonzero(G.A)
@@ -509,6 +513,9 @@ def plot_signal(G, signal, default_qtg=True, **kwargs):
         whether the plot is saved as plot_name.png and plot_name.pdf (True) or
         shown in a window (False) (default False). Only available with the
         matplotlib backend.
+    ax : matplotlib.axes
+        Axes to where to draw the graph. Optional, created if not passed. Only
+        available with the matplotlib backend.
 
     Examples
     --------
@@ -535,11 +542,7 @@ def plot_signal(G, signal, default_qtg=True, **kwargs):
 def _plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
                      vertex_size=None, vertex_highlight=False, climits=None,
                      colorbar=True, bar=False, bar_width=1, savefig=False,
-                     show_plot=False, plot_name=None):
-
-    fig = plt.figure()
-    global _plt_figures
-    _plt_figures.append(fig)
+                     show_plot=False, plot_name=None, ax=None):
 
     if np.sum(np.abs(signal.imag)) > 1e-10:
         raise ValueError("Can't display complex signal.")
@@ -554,11 +557,15 @@ def _plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     if plot_name is None:
         plot_name = "Signal plot of " + G.gtype
 
-    # Matplotlib graph initialization in 2D and 3D
-    if G.coords.shape[1] == 2:
-        ax = fig.add_subplot(111)
-    elif G.coords.shape[1] == 3:
-        ax = fig.add_subplot(111, projection='3d')
+    if not ax:
+        fig = plt.figure()
+        global _plt_figures
+        _plt_figures.append(fig)
+
+        if G.coords.shape[1] == 2:
+            ax = fig.add_subplot(111)
+        elif G.coords.shape[1] == 3:
+            ax = fig.add_subplot(111, projection='3d')
 
     if show_edges:
         ki, kj = np.nonzero(G.A)
