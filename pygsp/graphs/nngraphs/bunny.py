@@ -25,7 +25,10 @@ class Bunny(NNGraph):
 
         plotting = {'vertex_size': 10,
                     'vertex_color': (1, 1, 1, 1),
-                    'edge_color': (.5, .5, .5, 1)}
+                    'edge_color': (.5, .5, .5, 1),
+                    'elevation': -89,
+                    'azimuth': 94,
+                    'distance': 7}
 
         super(Bunny, self).__init__(Xin=data['bunny'], epsilon=0.2,
                                     NNtype='radius', plotting=plotting,

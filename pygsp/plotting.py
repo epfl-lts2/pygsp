@@ -256,6 +256,14 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, show_plot=True, plot_name
                        marker='o', s=vertex_size,
                        c=G.plotting['vertex_color'])
 
+    if G.coords.shape[1] == 3:
+        try:
+            ax.view_init(elev=G.plotting['elevation'],
+                         azim=G.plotting['azimuth'])
+            ax.dist = G.plotting['distance']
+        except KeyError:
+            pass
+
     # Save plot as PNG or show it in a window
     if savefig:
         plt.savefig(plot_name + '.png')
@@ -598,6 +606,12 @@ def _plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
     if G.coords.shape[1] == 3:
         ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
                    s=vertex_size, c=signal, zorder=2)
+        try:
+            ax.view_init(elev=G.plotting['elevation'],
+                         azim=G.plotting['azimuth'])
+            ax.dist = G.plotting['distance']
+        except KeyError:
+            pass
 
     # Save plot as PNG or show it in a window
     if savefig:
