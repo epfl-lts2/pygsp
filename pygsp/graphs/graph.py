@@ -758,7 +758,8 @@ class Graph(object):
         The result is cached and accessible by the :py:attr:`lmax` property.
 
         Exact value given by the eigendecomposition of the Laplacian, see
-        :func:`compute_fourier_basis`.
+        :func:`compute_fourier_basis`. That estimation is much faster than the
+        eigendecomposition.
 
         Parameters
         ----------
@@ -768,12 +769,14 @@ class Graph(object):
         Examples
         --------
         >>> from pygsp import graphs
-        >>> G = graphs.Sensor()
+        >>> G = graphs.Logo()
         >>> G.compute_fourier_basis()
-        >>> lmax = G.lmax
+        >>> print('{:.2f}'.format(G.lmax))
+        13.78
+        >>> G = graphs.Logo()
         >>> G.estimate_lmax(recompute=True)
-        >>> G.lmax > lmax  # Upper bound.
-        True
+        >>> print('{:.2f}'.format(G.lmax))
+        13.92
 
         """
         if hasattr(self, '_lmax') and not recompute:
