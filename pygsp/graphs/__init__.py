@@ -5,40 +5,40 @@ The :mod:`pygsp.graphs` module implements the graph class hierarchy. A graph
 object is either constructed from an adjacency matrix, or by instantiating one
 of the built-in graph models.
 
-The :class:`pygsp.graphs.Graph` base class allows to construct a graph object
-from any adjacency matrix and provides a common interface to that object.
+The :class:`Graph` base class allows to construct a graph object from any
+adjacency matrix and provides a common interface to that object.
 
 Derived classes implement various graph models.
 
-* :class:`pygsp.graphs.Airfoil`
-* :class:`pygsp.graphs.BarabasiAlbert`
-* :class:`pygsp.graphs.Comet`
-* :class:`pygsp.graphs.Community`
-* :class:`pygsp.graphs.DavidSensorNet`
-* :class:`pygsp.graphs.ErdosRenyi`
-* :class:`pygsp.graphs.FullConnected`
-* :class:`pygsp.graphs.Grid2d`
-* :class:`pygsp.graphs.Logo`
-* :class:`pygsp.graphs.LowStretchTree`
-* :class:`pygsp.graphs.Minnesota`
-* :class:`pygsp.graphs.Path`
-* :class:`pygsp.graphs.RandomRegular`
-* :class:`pygsp.graphs.RandomRing`
-* :class:`pygsp.graphs.Ring`
-* :class:`pygsp.graphs.Sensor`
-* :class:`pygsp.graphs.StochasticBlockModel`
-* :class:`pygsp.graphs.SwissRoll`
-* :class:`pygsp.graphs.Torus`
+* :class:`Airfoil`
+* :class:`BarabasiAlbert`
+* :class:`Comet`
+* :class:`Community`
+* :class:`DavidSensorNet`
+* :class:`ErdosRenyi`
+* :class:`FullConnected`
+* :class:`Grid2d`
+* :class:`Logo`
+* :class:`LowStretchTree`
+* :class:`Minnesota`
+* :class:`Path`
+* :class:`RandomRegular`
+* :class:`RandomRing`
+* :class:`Ring`
+* :class:`Sensor`
+* :class:`StochasticBlockModel`
+* :class:`SwissRoll`
+* :class:`Torus`
 
-Derived classes from :class:`pygsp.graphs.NNGraph` implement nearest-neighbors
-graphs constructed from point clouds.
+Derived classes from :class:`NNGraph` implement nearest-neighbors graphs
+constructed from point clouds.
 
-* :class:`pygsp.graphs.Bunny`
-* :class:`pygsp.graphs.Cube`
-* :class:`pygsp.graphs.ImgPatches`
-* :class:`pygsp.graphs.Grid2dImgPatches`
-* :class:`pygsp.graphs.Sphere`
-* :class:`pygsp.graphs.TwoMoons`
+* :class:`Bunny`
+* :class:`Cube`
+* :class:`ImgPatches`
+* :class:`Grid2dImgPatches`
+* :class:`Sphere`
+* :class:`TwoMoons`
 
 """
 

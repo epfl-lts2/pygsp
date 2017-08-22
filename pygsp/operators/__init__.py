@@ -5,33 +5,33 @@ The :mod:`pygsp.operators` module implements some operators on graphs.
 
 **Differential operators**
 
-* :func:`pygsp.operators.grad`: compute the gradient of a graph signal
-* :func:`pygsp.operators.div`: compute the divergence of a graph signal
+* :func:`grad`: compute the gradient of a graph signal
+* :func:`div`: compute the divergence of a graph signal
 
 **Transforms** (frequency and vertex-frequency)
 
-* :func:`pygsp.operators.gft`: graph Fourier transform (GFT)
-* :func:`pygsp.operators.igft`: inverse graph Fourier transform
-* :func:`pygsp.operators.gft_windowed`: windowed GFT
-* :func:`pygsp.operators.gft_windowed_gabor`: Gabor windowed GFT
-* :func:`pygsp.operators.gft_windowed_normalized`: normalized windowed GFT
+* :func:`gft`: graph Fourier transform (GFT)
+* :func:`igft`: inverse graph Fourier transform
+* :func:`gft_windowed`: windowed GFT
+* :func:`gft_windowed_gabor`: Gabor windowed GFT
+* :func:`gft_windowed_normalized`: normalized windowed GFT
 
 **Localization**
 
-* :func:`pygsp.operators.localize`: localize a kernel
-* :func:`pygsp.operators.modulate`: generalized modulation operator
-* :func:`pygsp.operators.translate`: generalized translation operator
+* :func:`localize`: localize a kernel
+* :func:`modulate`: generalized modulation operator
+* :func:`translate`: generalized translation operator
 
 **Reduction** Functionalities for the reduction of graphs' vertex set while keeping the graph structure.
 
-* :func:`pygsp.operators.tree_multiresolution`: compute a multiresolution of trees
-* :func:`pygsp.operators.graph_multiresolution`: compute a pyramid of graphs
-* :func:`pygsp.operators.kron_reduction`: compute the Kron reduction
-* :func:`pygsp.operators.pyramid_analysis`: analysis operator for graph pyramid
-* :func:`pygsp.operators.pyramid_synthesis`: synthesis operator for graph pyramid
-* :func:`pygsp.operators.pyramid_cell2coeff`: keep only the necessary coefficients
-* :func:`pygsp.operators.interpolate`: interpolate a signal
-* :func:`pygsp.operators.graph_sparsify`: sparsify a graph
+* :func:`tree_multiresolution`: compute a multiresolution of trees
+* :func:`graph_multiresolution`: compute a pyramid of graphs
+* :func:`kron_reduction`: compute the Kron reduction
+* :func:`pyramid_analysis`: analysis operator for graph pyramid
+* :func:`pyramid_synthesis`: synthesis operator for graph pyramid
+* :func:`pyramid_cell2coeff`: keep only the necessary coefficients
+* :func:`interpolate`: interpolate a signal
+* :func:`graph_sparsify`: sparsify a graph
 
 """
 
