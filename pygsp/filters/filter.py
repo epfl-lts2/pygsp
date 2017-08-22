@@ -54,7 +54,7 @@ class Filter(object):
 
     """
 
-    def __init__(self, G, filters, **kwargs):
+    def __init__(self, G, filters):
 
         self.G = G
 
@@ -63,7 +63,7 @@ class Filter(object):
         else:
             self.g = [filters]
 
-    def analysis(self, s, method='chebyshev', order=30, **kwargs):
+    def analysis(self, s, method='chebyshev', order=30):
         r"""
         Operator to analyse a filterbank
 
@@ -142,7 +142,7 @@ class Filter(object):
         return c
 
     @utils.filterbank_handler
-    def evaluate(self, x, *args, **kwargs):
+    def evaluate(self, x, i=0):
         r"""
         Evaluation of the Filterbank
 
@@ -168,18 +168,15 @@ class Filter(object):
         >>> eva = MH.evaluate(x)
 
         """
-        i = kwargs.pop('i', 0)
+        return self.g[i](x)
 
-        fd = self.g[i](x)
-        return fd
-
-    def inverse(self, c, **kwargs):
+    def inverse(self, c):
         r"""
         Not implemented yet.
         """
         raise NotImplementedError
 
-    def synthesis(self, c, method='chebyshev', order=30, **kwargs):
+    def synthesis(self, c, method='chebyshev', order=30):
         r"""
         Synthesis operator of a filterbank
 
@@ -260,7 +257,7 @@ class Filter(object):
 
         return s
 
-    def approx(self, m, N, **kwargs):
+    def approx(self, m, N):
         r"""
         Not implemented yet.
         """
