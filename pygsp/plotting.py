@@ -421,7 +421,7 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     if not isinstance(filters.g, list):
         filters.g = [filters.g]
     if plot_eigenvalues is None:
-        plot_eigenvalues = hasattr(G, 'e')
+        plot_eigenvalues = hasattr(G, '_e')
     if show_sum is None:
         show_sum = len(filters.g) > 1
     if plot_name is None:

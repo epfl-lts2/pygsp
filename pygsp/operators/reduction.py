@@ -238,7 +238,7 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
 
     for i in range(levels):
         if downsampling_method == 'largest_eigenvector':
-            if hasattr(Gs[i], 'U'):
+            if hasattr(Gs[i], '_U'):
                 V = Gs[i].U[:, -1]
             else:
                 V = linalg.eigs(Gs[i].L, 1)[1][:, 0]
@@ -502,7 +502,7 @@ def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
 
     """
     least_squares = bool(kwargs.pop('least_squares', False))
-    def_ul = Gs[0].N > 3000 or not hasattr(Gs[0], 'e') or not hasattr(Gs[0], 'U')
+    def_ul = Gs[0].N > 3000 or not hasattr(Gs[0], '_e') or not hasattr(Gs[0], '_U')
     use_landweber = bool(kwargs.pop('use_landweber', def_ul))
     reg_eps = float(kwargs.get('reg_eps', 0.005))
 
