@@ -25,6 +25,8 @@ class Sensor(Graph):
         To distribute the points more evenly (default = False)
     connected : bool
         To force the graph to be connected (default = True)
+    seed : int
+        Seed for the random number generator (for reproducible graphs).
 
     Examples
     --------
@@ -34,12 +36,13 @@ class Sensor(Graph):
     """
 
     def __init__(self, N=64, Nc=2, regular=False, n_try=50,
-                 distribute=False, connected=True, **kwargs):
+                 distribute=False, connected=True, seed=None, **kwargs):
 
         self.Nc = Nc
         self.regular = regular
         self.n_try = n_try
         self.distribute = distribute
+        self.seed = seed
 
         self.logger = utils.build_logger(__name__, **kwargs)
 
@@ -88,18 +91,20 @@ class Sensor(Graph):
         XCoords = np.zeros((N, 1))
         YCoords = np.zeros((N, 1))
 
+        rs = np.random.RandomState(self.seed)
+
         if param_distribute:
             mdim = int(np.ceil(np.sqrt(N)))
             for i in range(mdim):
                 for j in range(mdim):
                     if i*mdim + j < N:
-                        XCoords[i*mdim + j] = np.array((i + np.random.rand()) / mdim)
-                        YCoords[i*mdim + j] = np.array((j + np.random.rand()) / mdim)
+                        XCoords[i*mdim + j] = np.array((i + rs.rand()) / mdim)
+                        YCoords[i*mdim + j] = np.array((j + rs.rand()) / mdim)
 
         # take random coordinates in a 1 by 1 square
         else:
-            XCoords = np.random.rand(N, 1)
-            YCoords = np.random.rand(N, 1)
+            XCoords = rs.rand(N, 1)
+            YCoords = rs.rand(N, 1)
 
         coords = np.concatenate((XCoords, YCoords), axis=1)
 
