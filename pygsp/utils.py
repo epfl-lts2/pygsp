@@ -62,7 +62,7 @@ def graph_array_handler(func):
 def filterbank_handler(func):
 
     # Preserve documentation of func.
-    functools.wraps(func)
+    @functools.wraps(func)
 
     def inner(f, *args, **kwargs):
 

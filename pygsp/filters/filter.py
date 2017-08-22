@@ -69,12 +69,28 @@ class Filter(object):
 
     def analysis(self, s, method='chebyshev', order=30):
         r"""
-        Operator to analyse a filterbank
+        Analyze, or filter, a signal with the filter bank.
+
+        The method computes the transform coefficients of a signal :math:`s`,
+        where the atoms of the transform dictionary are generalized
+        translations of each graph spectral filter to each vertex on the graph:
+
+        .. math:: c = D^* s,
+
+        where the columns of :math:`D` are :math:`g_{i,m} = T_i g_m` and
+        :math:`T_i` is a generalized translation operator applied to each
+        filter :math:`\hat{g}_m(\cdot)`. Each column of :math:`c` is the
+        response of the signal to one filter.
+
+        In other words, this function is applying the analysis operator
+        :math:`D^*` associated with the frame defined by the filter bank to the
+        signals.
 
         Parameters
         ----------
         s : ndarray
-            Graph signals to analyse.
+            Graph signals to analyze, a matrix of size N x Ns where N is the
+            number of nodes and Ns the number of signals.
         method : 'exact', 'chebyshev', 'lanczos'
             Whether to use the exact method (via the graph Fourier transform)
             or the Chebyshev polynomial approximation. The Lanczos
@@ -85,22 +101,33 @@ class Filter(object):
         Returns
         -------
         c : ndarray
-            Transform coefficients
+            Transform coefficients, a matrix of size Nf*N x Ns where Nf is the
+            number of filters, N the number of nodes, and Ns the number of
+            signals.
 
-        Examples
+        See Also
         --------
-        >>> import numpy as np
-        >>> from pygsp import graphs, filters
-        >>> G = graphs.Logo()
-        >>> MH = filters.MexicanHat(G)
-        >>> x = np.arange(G.N**2).reshape(G.N, G.N)
-        >>> co = MH.analysis(x)
+        synthesis : adjoint of the analysis operator
 
         References
         ----------
-        See :cite:`hammond2011wavelets`
+        See :cite:`hammond2011wavelets` for more details.
+
+        Examples
+        --------
+        Create a smooth graph signal by low-pass filtering white noise.
+
+        >>> import numpy as np
+        >>> from pygsp import graphs, filters
+        >>> G = graphs.Logo()
+        >>> G.estimate_lmax()
+        >>> s1 = np.random.uniform(size=(G.N, 4))
+        >>> s2 = filters.Expwin(G).analysis(s1)
+        >>> G.plot_signal(s1[:, 0])
+        >>> G.plot_signal(s2[:, 0])
 
         """
+
         if method == 'chebyshev':
             cheb_coef = approximations.compute_cheby_coeff(self, m=order)
             c = approximations.cheby_op(self.G, cheb_coef, s)
@@ -147,30 +174,35 @@ class Filter(object):
     @utils.filterbank_handler
     def evaluate(self, x, i=0):
         r"""
-        Evaluation of the Filterbank
+        Evaluate the response of the filter bank at frequencies x.
 
         Parameters
         ----------
-        x = ndarray
-            Data
-        i = int
-            Indice of the filter to evaluate
+        x : ndarray
+            Graph frequencies at which to evaluate the filter.
+        i : int
+            Index of the filter to evaluate. Default: evaluate all of them.
 
         Returns
         -------
-        fd = ndarray
-            Response of the filter
+        y : ndarray
+            Responses of the filters.
 
         Examples
         --------
-        >>> import numpy as np
+        Frequency response of a low-pass filter.
+
+        >>> import matplotlib.pyplot as plt
         >>> from pygsp import graphs, filters
         >>> G = graphs.Logo()
-        >>> MH = filters.MexicanHat(G)
-        >>> x = np.arange(2)
-        >>> eva = MH.evaluate(x)
+        >>> f = filters.Expwin(G)
+        >>> G.compute_fourier_basis()
+        >>> y = f.evaluate(G.e)
+        >>> plt.plot(G.e, y)  # doctest: +ELLIPSIS
+        [<matplotlib.lines.Line2D object at ...>]
 
         """
+
         return self.g[i](x)
 
     def inverse(self, c):
@@ -181,12 +213,28 @@ class Filter(object):
 
     def synthesis(self, c, method='chebyshev', order=30):
         r"""
-        Synthesis operator of a filterbank
+        Synthesize a signal from its filter bank coefficients.
+
+        The method synthesizes a signal :math:`s` from its coefficients
+        :math:`c`, where the atoms of the transform dictionary are generalized
+        translations of each graph spectral filter to each vertex on the graph:
+
+        .. math:: s = D c,
+
+        where the columns of :math:`D` are :math:`g_{i,m} = T_i g_m` and
+        :math:`T_i` is a generalized translation operator applied to each
+        filter :math:`\hat{g}_m(\cdot)`.
+
+        In other words, this function is applying the synthesis operator
+        :math:`D` associated with the frame defined from the filter bank to the
+        coefficients.
 
         Parameters
         ----------
         c : ndarray
-            Transform coefficients.
+            Transform coefficients, a matrix of size Nf*N x Ns where Nf is the
+            number of filters, N the number of nodes, and Ns the number of
+            signals.
         method : 'exact', 'chebyshev', 'lanczos'
             Whether to use the exact method (via the graph Fourier transform)
             or the Chebyshev polynomial approximation. The Lanczos
@@ -196,7 +244,13 @@ class Filter(object):
 
         Returns
         -------
-        signal : synthesis signal
+        s : ndarray
+            Synthesized graph signals, a matrix of size N x Ns where N is the
+            number of nodes and Ns the number of signals.
+
+        See Also
+        --------
+        analysis : adjoint of the synthesis operator
 
         References
         ----------
@@ -204,18 +258,39 @@ class Filter(object):
 
         Examples
         --------
+        >>> import numpy as np
         >>> from pygsp import graphs, filters
-        >>> G = graphs.Logo()
-        >>> Nf = 6
-        >>>
-        >>> vertex_delta = 83
-        >>> S = np.zeros((G.N * Nf, Nf))
-        >>> S[vertex_delta] = 1
-        >>> for i in range(Nf):
-        ...     S[vertex_delta + i * G.N, i] = 1
-        >>>
-        >>> Wk = filters.MexicanHat(G, Nf)
-        >>> Sf = Wk.synthesis(S)
+        >>> G = graphs.Sensor(30, seed=42)
+        >>> G.estimate_lmax()
+
+        Localized smooth signal:
+
+        >>> s1 = np.zeros((G.N, 1))
+        >>> s1[13] = 1
+        >>> s1 = filters.Heat(G, tau=3).analysis(s1)
+
+        Filter and reconstruct our signal:
+
+        >>> g = filters.MexicanHat(G, Nf=4)
+        >>> c = g.analysis(s1)
+        >>> s2 = g.synthesis(c)
+
+        Look how well we were able to reconstruct:
+
+        >>> g.plot()
+        >>> G.plot_signal(s1[:, 0])
+        >>> G.plot_signal(s2[:, 0])
+        >>> print('{:.2f}'.format(np.linalg.norm(s1 - s2)))
+        0.30
+
+        Perfect reconstruction with Itersine, a tight frame:
+
+        >>> g = filters.Itersine(G)
+        >>> c = g.analysis(s1)
+        >>> s2 = g.synthesis(c)
+        >>> err = np.linalg.norm(s1 - s2)
+        >>> print('{:.2f}'.format(np.linalg.norm(s1 - s2)))
+        0.00
 
         """
 
@@ -331,7 +406,6 @@ class Filter(object):
         The Itersine filter bank defines a tight frame:
 
         >>> f = filters.Itersine(G)
-        >>> G.compute_fourier_basis()
         >>> A, B = f.estimate_frame_bounds(use_eigenvalues=True)
         >>> print('A={:.3f}, B={:.3f}'.format(A, B))
         A=1.000, B=1.000
