@@ -51,7 +51,7 @@ class TestCase(unittest.TestCase):
         self._test_synthesis(f)
         f.evaluate(np.ones(10))
 
-        f.filterbank_bounds()
+        f.estimate_frame_bounds()
         # f.filterbank_matrix()  TODO: too much memory
 
         # TODO: f.can_dual()

@@ -272,44 +272,83 @@ class Filter(object):
         """
         raise NotImplementedError
 
-    def filterbank_bounds(self, N=999, bounds=None):
+    def estimate_frame_bounds(self, min=0, max=None, N=1000,
+                              use_eigenvalues=False):
         r"""
-        Compute approximate frame bounds for a filterbank.
+        Compute approximate frame bounds for the filterbank.
+
+        The frame bounds are estimated using the vector :code:`np.linspace(min,
+        max, N)` with min=0 and max=G.lmax by default. The eigenvalues G.e can
+        be used instead if you set use_eigenvalues to True.
 
         Parameters
         ----------
-        bounds : interval to compute the bound.
-            Given in an ndarray: np.array([xmin, xnmax]).
-            By default, bounds is None and filtering is bounded
-            by the eigenvalues of G.
-        N : Number of point for the line search
-            Default is 999
+        min : float
+            The lowest value the filter bank is evaluated at. By default
+            filtering is bounded by the eigenvalues of G, i.e. min = 0.
+        max : float
+            The largest value the filter bank is evaluated at. By default
+            filtering is bounded by the eigenvalues of G, i.e. max = G.lmax.
+        N : int
+            Number of points where the filter bank is evaluated.
+            Default is 1000.
+        use_eigenvalues : bool
+            Set to True to use the Laplacian eigenvalues instead.
 
         Returns
         -------
-        lower : Filterbank lower bound
-        upper : Filterbank upper bound
+        A : float
+            Lower frame bound of the filter bank.
+        B : float
+            Upper frame bound of the filter bank.
 
         Examples
         --------
-        >>> import numpy as np
         >>> from pygsp import graphs, filters
         >>> G = graphs.Logo()
-        >>> MH = filters.MexicanHat(G)
-        >>> bounds = MH.filterbank_bounds()
-        >>> print('lower={:.3f}, upper={:.3f}'.format(bounds[0], bounds[1]))
-        lower=0.178, upper=0.270
+        >>> G.estimate_lmax()
+        >>> f = filters.MexicanHat(G)
+
+        Bad estimation:
+
+        >>> A, B = f.estimate_frame_bounds(min=1, max=20, N=100)
+        >>> print('A={:.3f}, B={:.3f}'.format(A, B))
+        A=0.126, B=0.270
+
+        Better estimation:
+
+        >>> A, B = f.estimate_frame_bounds()
+        >>> print('A={:.3f}, B={:.3f}'.format(A, B))
+        A=0.177, B=0.270
+
+        Best estimation:
+
+        >>> G.compute_fourier_basis()
+        >>> A, B = f.estimate_frame_bounds(use_eigenvalues=True)
+        >>> print('A={:.3f}, B={:.3f}'.format(A, B))
+        A=0.178, B=0.270
+
+        The Itersine filter bank defines a tight frame:
+
+        >>> f = filters.Itersine(G)
+        >>> G.compute_fourier_basis()
+        >>> A, B = f.estimate_frame_bounds(use_eigenvalues=True)
+        >>> print('A={:.3f}, B={:.3f}'.format(A, B))
+        A=1.000, B=1.000
 
         """
-        if bounds:
-            xmin, xmax = bounds
-            rng = np.linspace(xmin, xmax, N)
+
+        if max is None:
+            max = self.G.lmax
+
+        if use_eigenvalues:
+            x = self.G.e
         else:
-            rng = self.G.e
+            x = np.linspace(min, max, N)
 
-        sum_filters = np.sum(np.abs(np.power(self.evaluate(rng), 2)), axis=0)
+        sum_filters = np.sum(np.abs(np.power(self.evaluate(x), 2)), axis=0)
 
-        return np.min(sum_filters), np.max(sum_filters)
+        return sum_filters.min(), sum_filters.max()
 
     def filterbank_matrix(self):
         r"""
