@@ -63,20 +63,20 @@ class Filter(object):
         else:
             self.g = [filters]
 
-    def analysis(self, s, method=None, cheb_order=30, lanczos_order=30,
-                 **kwargs):
+    def analysis(self, s, method='chebyshev', order=30, **kwargs):
         r"""
         Operator to analyse a filterbank
 
         Parameters
         ----------
         s : ndarray
-            graph signals to analyse
-        method : string
-            whether using an exact method or cheby approx (lanczos not working
-            now)
-        cheb_order : int
-            Order for chebyshev
+            Graph signals to analyse.
+        method : 'exact', 'chebyshev', 'lanczos'
+            Whether to use the exact method (via the graph Fourier transform)
+            or the Chebyshev polynomial approximation. The Lanczos
+            approximation is not working yet.
+        order : int
+            Degree of the Chebyshev polynomials.
 
         Returns
         -------
@@ -97,19 +97,15 @@ class Filter(object):
         See :cite:`hammond2011wavelets`
 
         """
-        if not method:
-            method = 'exact' if hasattr(self.G, 'U') else 'cheby'
-            _logger.info('The analysis method is {}'.format(method))
-
-        if method == 'cheby':  # Chebyshev approx
-            cheb_coef = approximations.compute_cheby_coeff(self, m=cheb_order)
+        if method == 'chebyshev':
+            cheb_coef = approximations.compute_cheby_coeff(self, m=order)
             c = approximations.cheby_op(self.G, cheb_coef, s)
 
-        elif method == 'lanczos':  # Lanczos approx
+        elif method == 'lanczos':
             raise NotImplementedError
-            # c = approximations.lanczos_op(self, s, order=lanczos_order)
+            # c = approximations.lanczos_op(self, s, order=order)
 
-        elif method == 'exact':  # Exact computation
+        elif method == 'exact':
             Nf = len(self.g)  # nb of filters
             N = self.G.N  # nb of nodes
             try:
@@ -183,23 +179,20 @@ class Filter(object):
         """
         raise NotImplementedError
 
-    def synthesis(self, c, order=30, method=None, **kwargs):
+    def synthesis(self, c, method='chebyshev', order=30, **kwargs):
         r"""
         Synthesis operator of a filterbank
 
         Parameters
         ----------
-        G : Graph structure.
-        c : Transform coefficients
-        method : Select the method to be used for the computation.
-            - 'exact' : Exact method using the graph Fourier matrix
-            - 'cheby' : Chebyshev polynomial approximation
-            - 'lanczos' : Lanczos approximation
-
-            Default : if the Fourier matrix is present: 'exact' otherwise
-            'cheby'
-        order : Degree of the Chebyshev approximation
-            Default is 30
+        c : ndarray
+            Transform coefficients.
+        method : 'exact', 'chebyshev', 'lanczos'
+            Whether to use the exact method (via the graph Fourier transform)
+            or the Chebyshev polynomial approximation. The Lanczos
+            approximation is not working yet.
+        order : int
+            Degree of the Chebyshev approximation.
 
         Returns
         -------
@@ -228,12 +221,6 @@ class Filter(object):
         Nf = len(self.g)
         N = self.G.N
 
-        if not method:
-            if hasattr(self.G, 'U'):
-                method = 'exact'
-            else:
-                method = 'cheby'
-
         if method == 'exact':
             fie = self.evaluate(self.G.e)
             Nv = np.shape(c)[1]
@@ -249,7 +236,7 @@ class Filter(object):
                     fc *= np.tile(fie[:][i], (Nv, 1)).T
                     s += igft(np.conjugate(self.G.U), fc)
 
-        elif method == 'cheby':
+        elif method == 'chebyshev':
             cheb_coeffs = approximations.compute_cheby_coeff(self, m=order,
                                                              N=order+1)
             s = np.zeros((N, np.shape(c)[1]))

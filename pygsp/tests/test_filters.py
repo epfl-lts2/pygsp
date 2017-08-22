@@ -35,7 +35,7 @@ class TestCase(unittest.TestCase):
         Nf = len(f.g)
         if 1 < Nf < 10:
             S = self._generate_coefficients(f.G.N, Nf)
-            f.synthesis(S, method='cheby')
+            f.synthesis(S, method='chebyshev')
             f.synthesis(S, method='exact')
             self.assertRaises(NotImplementedError, f.synthesis, S,
                               method='lanczos')
@@ -44,7 +44,7 @@ class TestCase(unittest.TestCase):
         self.assertIs(f.G, self._G)
 
         f.analysis(self._signal, method='exact')
-        f.analysis(self._signal, method='cheby')
+        f.analysis(self._signal, method='chebyshev')
         # TODO np.testing.assert_allclose(c_exact, c_cheby)
         self.assertRaises(NotImplementedError, f.analysis,
                           self._signal, method='lanczos')
@@ -152,7 +152,7 @@ class TestCase(unittest.TestCase):
 
         f = filters.Heat(self._G)
         c_exact = f.analysis(self._signal, method='exact')
-        c_cheby = f.analysis(self._signal, method='cheby')
+        c_cheby = f.analysis(self._signal, method='chebyshev')
 
         np.testing.assert_allclose(c_exact, c_cheby)
         self.assertRaises(NotImplementedError, f.analysis,

@@ -26,7 +26,7 @@ def compute_avg_adj_deg(G):
 
 
 @utils.filterbank_handler
-def compute_tig(filt, method=None, **kwargs):
+def compute_tig(filt, **kwargs):
     r"""
     Compute the Tig for a given filter or filterbank.
 
@@ -35,19 +35,17 @@ def compute_tig(filt, method=None, **kwargs):
     Parameters
     ----------
     filt: Filter object
-        The filter (or filterbank) to localize
-    method: string (optional)
-        Which method to use. Accept 'cheby', 'exact'.
-        Default : 'exact' if filt.G has U and e defined, otherwise 'cheby'
-    i: int (optional)
-        Index of the filter to analyse (default: 0)
+        The filter or filterbank.
+    kwargs: dict
+        Additional parameters to be passed to the
+        :func:`pygsp.filters.Filter.analysis` method.
     """
     signals = np.eye(filt.G.N)
-    return filt.analysis(signals, method=method, **kwargs)
+    return filt.analysis(signals, **kwargs)
 
 
 @utils.filterbank_handler
-def compute_norm_tig(filt, method=None, *args, **kwargs):
+def compute_norm_tig(filt, **kwargs):
     r"""
     Compute the :math:`\ell_2` norm of the Tig.
     See :func:`compute_tig`.
@@ -55,16 +53,16 @@ def compute_norm_tig(filt, method=None, *args, **kwargs):
     Parameters
     ----------
     filt: Filter
-        The filter (or filterbank)
-    method: string (optional)
-        Which method to use. Accept 'cheby', 'exact'
-        (default : 'exact' if filt.G has U and e defined, otherwise 'cheby')
+        The filter or filterbank.
+    kwargs: dict
+        Additional parameters to be passed to the
+        :func:`pygsp.filters.Filter.analysis` method.
     """
-    tig = compute_tig(filt, method=method, *args, **kwargs)
+    tig = compute_tig(filt, **kwargs)
     return np.linalg.norm(tig, axis=1, ord=2)
 
 
-def compute_spectrogram(G, atom=None, M=100, method=None, **kwargs):
+def compute_spectrogram(G, atom=None, M=100, **kwargs):
     r"""
     Compute the norm of the Tig for all nodes with a kernel shifted along the
     spectral axis.
@@ -77,19 +75,21 @@ def compute_spectrogram(G, atom=None, M=100, method=None, **kwargs):
         Kernel to use in the spectrogram (default = exp(-M*(x/lmax)²)).
     M : int (optional)
         Number of samples on the spectral scale. (default = 100)
-
+    kwargs: dict
+        Additional parameters to be passed to the
+        :func:`pygsp.filters.Filter.analysis` method.
     """
-    if not atom or not hasattr(atom, '__call__'):
+
+    if not atom:
         def atom(x):
             return np.exp(-M * (x / G.lmax)**2)
 
     scale = np.linspace(0, G.lmax, M)
-    spectr = np.zeros((G.N, M))
+    spectr = np.empty((G.N, M))
 
     for shift_idx in range(M):
-        shft_filter = filters.Filter(G, [lambda x: atom(x - scale[shift_idx])],
-                                     **kwargs)
-        spectr[:, shift_idx] = compute_norm_tig(shft_filter, method=method)**2
+        shift_filter = filters.Filter(G, lambda x: atom(x - scale[shift_idx]))
+        spectr[:, shift_idx] = compute_norm_tig(shift_filter, **kwargs)**2
 
     G.spectr = spectr
     return spectr

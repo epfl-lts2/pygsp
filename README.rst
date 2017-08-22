@@ -36,10 +36,10 @@ documentation is available on `Read the Docs
 
 This example demonstrates how to create a graph, a filter and analyse a signal on the graph.
 
->>> import pygsp
->>> G = pygsp.graphs.Logo()
->>> f = pygsp.filters.Heat(G)
->>> Sl = f.analysis(G.L.todense(), method='cheby')
+>>> from pygsp import graphs, filters
+>>> G = graphs.Logo()
+>>> f = filters.Heat(G)
+>>> Sl = f.analysis(G.L.todense(), method='chebyshev')
 
 Features
 --------

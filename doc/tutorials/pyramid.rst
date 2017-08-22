@@ -38,13 +38,13 @@ Let's now create two signals and a filter, resp f, f2 and g:
 We will run the analysis of the two signals on the pyramid and obtain a coarse approximation for each layer, with decreasing number of nodes.
 Additionally, we will also get prediction errors at each node at every layer.
 
->>> ca, pe = operators.pyramid_analysis(Gs, f, h_filters=g)
->>> ca2, pe2 = operators.pyramid_analysis(Gs, f2, h_filters=g)
+>>> ca, pe = operators.pyramid_analysis(Gs, f, h_filters=g, method='exact')
+>>> ca2, pe2 = operators.pyramid_analysis(Gs, f2, h_filters=g, method='exact')
 
 Given the pyramid, the coarsest approximation and the prediction errors, we will now reconstruct the original signal on the full graph.
 
->>> f_pred, _ = operators.pyramid_synthesis(Gs, ca[levels], pe)
->>> f_pred2, _ = operators.pyramid_synthesis(Gs, ca2[levels], pe2)
+>>> f_pred, _ = operators.pyramid_synthesis(Gs, ca[levels], pe, method='exact')
+>>> f_pred2, _ = operators.pyramid_synthesis(Gs, ca2[levels], pe2, method='exact')
 
 Here are the final errors for each signal after reconstruction.
 
