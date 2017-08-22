@@ -8,32 +8,39 @@ defined with one or several functions. We define by filterbank a list of
 filters, usually centered around different frequencies, applied to a single
 graph.
 
-See the :class:`Filter` base class for the documentation of the
-interface to the filter object. Derived classes implement various common graph
-filters.
+The :class:`Filter` base class implements a common interface to all filters:
 
-**Filterbank of N filters**
+* :meth:`Filter.evaluate`: evaluate frequency response of the filterbank
+* :meth:`Filter.analysis`: compute signal response to the filterbank
+* :meth:`Filter.synthesis`: synthesize signal from response
+* :meth:`Filter.compute_frame`: return a matrix operator
+* :meth:`Filter.estimate_frame_bounds`: estimate lower and upper frame bounds
+* :meth:`Filter.plot`: plot the filter frequency response
 
-* :class:`Abspline`
-* :class:`Gabor`
-* :class:`HalfCosine`
-* :class:`Itersine`
-* :class:`MexicanHat`
-* :class:`Meyer`
-* :class:`SimpleTf`
-* :class:`WarpedTranslates`
+Then, derived classes implement various common graph filters.
 
-**Filterbank of 2 filters: low pass and high pass**
+**Filter banks of N filters**
 
-* :class:`Regular`
-* :class:`Held`
-* :class:`Simoncelli`
-* :class:`Papadakis`
+* :class:`Abspline`: design a absspline filter bank
+* :class:`Gabor`: design a Gabor filter bank
+* :class:`HalfCosine`: design a half cosine filter bank (tight frame)
+* :class:`Itersine`: design an itersine filter bank (tight frame)
+* :class:`MexicanHat`: design a mexican hat filter bank
+* :class:`Meyer`: design a Meyer filter bank
+* :class:`SimpleTf`: design a simple tight frame filter bank
+* :class:`WarpedTranslates`: design a filter bank with a warping function
 
-**Low pass filter**
+**Filter banks of 2 filters: a low pass and a high pass**
 
-* :class:`Heat`
-* :class:`Expwin`
+* :class:`Regular`: design 2 filters with the regular construction
+* :class:`Held`: design 2 filters with the Held construction
+* :class:`Simoncelli`: design 2 filters with the Simoncelli construction
+* :class:`Papadakis`: design 2 filters with the Papadakis construction
+
+**Low pass filters**
+
+* :class:`Heat`: design an heat kernel filter
+* :class:`Expwin`: design an exponential window filter
 
 Moreover, two approximation methods are provided for fast filtering. The
 computational complexity of filtering with those approximations is linear with
