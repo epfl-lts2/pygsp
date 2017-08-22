@@ -17,6 +17,7 @@ class TestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls._G = graphs.Logo()
+        cls._G.compute_fourier_basis()
         rs = np.random.RandomState(42)
         cls._signal = rs.uniform(size=cls._G.N)
 
@@ -42,17 +43,27 @@ class TestCase(unittest.TestCase):
     def _test_methods(self, f):
         self.assertIs(f.G, self._G)
 
-        f.analysis(self._signal, method='exact')
-        f.analysis(self._signal, method='chebyshev')
-        # TODO np.testing.assert_allclose(c_exact, c_cheby)
+        c_exact = f.analysis(self._signal, method='exact')
+        c_cheby = f.analysis(self._signal, method='chebyshev')
+        self.assertEqual(c_exact.shape, c_cheby.shape)
+        # TODO: a bit far for some filterbanks.
+        # np.testing.assert_allclose(c_exact, c_cheby)
         self.assertRaises(NotImplementedError, f.analysis,
                           self._signal, method='lanczos')
 
-        self._test_synthesis(f)
-        f.evaluate(np.ones(10))
+        if f.Nf < 10:
+            F = f.compute_frame(method='chebyshev')
+            c_frame = F.T.dot(self._signal)
+            np.testing.assert_allclose(c_frame, c_cheby)
+            F = f.compute_frame(method='exact')
+            c_frame = F.T.dot(self._signal)
+            np.testing.assert_allclose(c_frame, c_exact)
 
-        f.estimate_frame_bounds()
-        # f.filterbank_matrix()  TODO: too much memory
+        self._test_synthesis(f)
+        f.evaluate(self._G.e)
+
+        # Minimum is not 0 to avoid division by 0 in expwin.
+        f.estimate_frame_bounds(min=0.01)
 
         # TODO: f.can_dual()
 
@@ -64,6 +75,7 @@ class TestCase(unittest.TestCase):
         def _filter(x):
             return x / (1. + x)
         f = filters.Filter(self._G, filters=_filter)
+        self.assertEqual(f.Nf, 1)
         self.assertIs(f.g[0], _filter)
         self._test_methods(f)
 

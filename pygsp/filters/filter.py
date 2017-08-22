@@ -350,33 +350,58 @@ class Filter(object):
 
         return sum_filters.min(), sum_filters.max()
 
-    def filterbank_matrix(self):
+    def compute_frame(self, **kwargs):
         r"""
-        Create the matrix of the filterbank frame.
+        Compute the frame associated with the filter bank.
 
-        This function creates the matrix associated to the filterbank g.
-        The size of the matrix is MN x N, where M is the number of filters.
+        The size of the returned matrix operator :math:`D` is N x MN, where M
+        is the number of filters and N the number of nodes. Multiplying this
+        matrix with a set of signals is equivalent to analyzing them with the
+        associated filterbank.
+
+        Parameters
+        ----------
+        kwargs: dict
+            Parameters to be passed to the :meth:`analysis` method.
 
         Returns
         -------
-        F : Frame
+        frame : ndarray
+            Matrix of size N x MN.
+
+        See also
+        --------
+        analysis: more efficient way to filter signals
 
         Examples
         --------
         >>> import numpy as np
         >>> from pygsp import graphs, filters
+        >>>
         >>> G = graphs.Logo()
-        >>> MH = filters.MexicanHat(G)
-        >>> matrix = MH.filterbank_matrix()
+        >>> G.estimate_lmax()
+        >>>
+        >>> f = filters.MexicanHat(G)
+        >>> frame = f.compute_frame()
+        >>> print('{} nodes, matrix is {} x {}'.format(G.N, *frame.shape))
+        1130 nodes, matrix is 1130 x 6780
+        >>>
+        >>> s = np.random.uniform(size=G.N)
+        >>> c1 = frame.T.dot(s)
+        >>> c2 = f.analysis(s)
+        >>>
+        >>> np.linalg.norm(c1 - c2) < 1e-10
+        True
 
         """
+
         N = self.G.N
 
         if N > 2000:
             _logger.warning('Creating a big matrix, you can use other means.')
 
-        Ft = self.analysis(np.identity(N))
-        F = np.zeros(np.shape(Ft.T))
+        Ft = self.analysis(np.identity(N), **kwargs)
+        F = np.empty(Ft.T.shape)
         tmpN = np.arange(N, dtype=int)
 
         for i in range(self.Nf):
