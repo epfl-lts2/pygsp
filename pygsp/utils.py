@@ -60,19 +60,24 @@ def graph_array_handler(func):
 
 
 def filterbank_handler(func):
-    @functools.wraps(func)
+
+    # Preserve documentation of func.
+    functools.wraps(func)
 
     def inner(f, *args, **kwargs):
+
         if 'i' in kwargs:
             return func(f, *args, **kwargs)
 
-        if len(f.g) <= 1:
+        elif f.Nf <= 1:
             return func(f, *args, **kwargs)
-        elif len(f.g) > 1:
+
+        else:
             output = []
-            for i in range(len(f.g)):
+            for i in range(f.Nf):
                 output.append(func(f, *args, i=i, **kwargs))
             return output
+
     return inner
 
 

@@ -32,9 +32,8 @@ class TestCase(unittest.TestCase):
         return S
 
     def _test_synthesis(self, f):
-        Nf = len(f.g)
-        if 1 < Nf < 10:
-            S = self._generate_coefficients(f.G.N, Nf)
+        if 1 < f.Nf < 10:
+            S = self._generate_coefficients(f.G.N, f.Nf)
             f.synthesis(S, method='chebyshev')
             f.synthesis(S, method='exact')
             self.assertRaises(NotImplementedError, f.synthesis, S,

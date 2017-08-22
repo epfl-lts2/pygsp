@@ -37,6 +37,8 @@ class Filter(object):
         A (list of) function defining the filterbank. One function per filter.
         Either passed by the user when instantiating the base class, either
         constructed by the derived classes.
+    Nf : int
+        Number of filters in the filterbank.
 
     Examples
     --------
@@ -62,6 +64,8 @@ class Filter(object):
             self.g = filters
         else:
             self.g = [filters]
+
+        self.Nf = len(self.g)
 
     def analysis(self, s, method='chebyshev', order=30):
         r"""
@@ -106,19 +110,18 @@ class Filter(object):
             # c = approximations.lanczos_op(self, s, order=order)
 
         elif method == 'exact':
-            Nf = len(self.g)  # nb of filters
             N = self.G.N  # nb of nodes
             try:
                 Ns = np.shape(s)[1]  # nb signals
-                c = np.zeros((N * Nf, Ns))
+                c = np.zeros((N * self.Nf, Ns))
                 is2d = True
             except IndexError:
-                c = np.zeros((N * Nf))
+                c = np.zeros((N * self.Nf))
                 is2d = False
 
             fie = self.evaluate(self.G.e)
 
-            if Nf == 1:
+            if self.Nf == 1:
                 if is2d:
                     fs = np.tile(fie, (Ns, 1)).T * gft(self.G, s)
                     return igft(self.G, fs)
@@ -127,7 +130,7 @@ class Filter(object):
                     return igft(self.G, fs)
             else:
                 tmpN = np.arange(N, dtype=int)
-                for i in range(Nf):
+                for i in range(self.Nf):
                     if is2d:
                         fs = gft(self.G, s)
                         fs *= np.tile(fie[i], (Ns, 1)).T
@@ -215,7 +218,7 @@ class Filter(object):
         >>> Sf = Wk.synthesis(S)
 
         """
-        Nf = len(self.g)
+
         N = self.G.N
 
         if method == 'exact':
@@ -224,11 +227,11 @@ class Filter(object):
             s = np.zeros((N, Nv))
             tmpN = np.arange(N, dtype=int)
 
-            if Nf == 1:
+            if self.Nf == 1:
                 fc = np.tile(fie, (Nv, 1)).T * gft(self.G, c[tmpN])
                 s += igft(np.conjugate(self.G.U), fc)
             else:
-                for i in range(Nf):
+                for i in range(self.Nf):
                     fc = gft(self.G, c[N * i + tmpN])
                     fc *= np.tile(fie[:][i], (Nv, 1)).T
                     s += igft(np.conjugate(self.G.U), fc)
@@ -239,7 +242,7 @@ class Filter(object):
             s = np.zeros((N, np.shape(c)[1]))
             tmpN = np.arange(N, dtype=int)
 
-            for i in range(Nf):
+            for i in range(self.Nf):
                 s += approximations.cheby_op(self.G,
                                              cheb_coeffs[i], c[i * N + tmpN])
 
@@ -248,7 +251,7 @@ class Filter(object):
             s = np.zeros((N, np.shape(c)[1]))
             tmpN = np.arange(N, dtype=int)
 
-            for i in range(Nf):
+            for i in range(self.Nf):
                 s += approximations.lanczos_op(self.G, self.g[i],
                                                c[i * N + tmpN], order=order)
 
@@ -333,12 +336,11 @@ class Filter(object):
         if N > 2000:
             _logger.warning('Creating a big matrix, you can use other means.')
 
-        Nf = len(self.g)
         Ft = self.analysis(np.identity(N))
         F = np.zeros(np.shape(Ft.T))
         tmpN = np.arange(N, dtype=int)
 
-        for i in range(Nf):
+        for i in range(self.Nf):
             F[:, N * i + tmpN] = Ft[N * i + tmpN]
 
         return F
@@ -351,7 +353,7 @@ class Filter(object):
             # Nshape = np.shape(x)
             x = np.ravel(x)
             N = np.shape(x)[0]
-            M = len(g.g)
+            M = g.Nf
             gcoeff = g.evaluate(x).T
 
             s = np.zeros((N, M))
@@ -363,8 +365,7 @@ class Filter(object):
 
         gdual = copy.deepcopy(self)
 
-        Nf = len(self.g)
-        for i in range(Nf):
+        for i in range(self.Nf):
             gdual.g[i] = lambda x, ind=i: can_dual_func(self, ind,
                                                         copy.deepcopy(x))
 
