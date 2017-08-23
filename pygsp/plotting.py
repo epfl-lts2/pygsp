@@ -13,7 +13,9 @@ with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
 .. data:: BACKEND
 
     Indicates which drawing backend to use if none are provided to the plotting
-    functions. Should be either 'matplotlib' or 'pyqtgraph'.
+    functions. Should be either 'matplotlib' or 'pyqtgraph'. In general
+    pyqtgraph is better for interactive exploration while matplotlib is better
+    at generating figures to be included in papers or elsewhere.
 
 """
 
