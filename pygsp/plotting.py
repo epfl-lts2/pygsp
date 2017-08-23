@@ -3,11 +3,17 @@
 r"""
 The :mod:`pygsp.plotting` module implements functionality to plot PyGSP objects
 with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
-<https://matplotlib.org>`_ drawing backend:
+<https://matplotlib.org>`_ drawing backend (which can be controlled by the
+:data:`BACKEND` constant or individually for each plotting call):
 
 * graphs from :mod:`pygsp.graphs` with :func:`plot_graph`,
   :func:`plot_spectrogram`, and :func:`plot_signal`,
 * filters from :mod:`pygsp.filters` with :func:`plot_filter`.
+
+.. data:: BACKEND
+
+    Indicates which drawing backend to use if none are provided to the plotting
+    functions. Should be either 'matplotlib' or 'pyqtgraph'.
 
 """
 
@@ -34,6 +40,7 @@ except Exception as e:
     qtg_import = False
 
 
+BACKEND = 'pyqtgraph'
 _qtg_windows = []
 _qtg_widgets = []
 _plt_figures = []
@@ -111,12 +118,9 @@ def plot(O, **kwargs):
         raise TypeError('Unrecognized object, i.e. not a Graph or Filter.')
 
 
-def plot_graph(G, default_qtg=True, **kwargs):
+def plot_graph(G, backend=None, **kwargs):
     r"""
     Plot a graph or a list of graphs.
-
-    This function should be able to determine the appropriate plot for
-    the graph.
 
     Parameters
     ----------
@@ -124,9 +128,8 @@ def plot_graph(G, default_qtg=True, **kwargs):
         Graph to plot.
     show_edges : boolean
         Set to False to only draw the vertices (default G.Ne < 10000).
-    default_qtg: boolean
-        define the drawing backend to use if both are available.
-        Default True, i.e. pyqtgraph.
+    backend: {'matplotlib', 'pyqtgraph'}
+        Defines the drawing backend to use. Defaults to :data:`BACKEND`.
     plot_name : string
         name of the plot
     savefig : boolean
@@ -151,15 +154,17 @@ def plot_graph(G, default_qtg=True, **kwargs):
         raise AttributeError('Graph has no coordinate set. '
                              'Please run G.set_coordinates() first.')
     if G.coords.shape[1] not in [2, 3]:
-        raise AttributeError('Coordinates should be in 2 or 3D space.')
+        raise AttributeError('Coordinates should be in 2D or 3D space.')
 
-    if qtg_import and (default_qtg or not plt_import):
+    if backend is None:
+        backend = BACKEND
+
+    if backend == 'pyqtgraph' and qtg_import:
         _qtg_plot_graph(G, **kwargs)
-    elif plt_import and not (default_qtg and qtg_import):
+    elif backend == 'matplotlib' and plt_import:
         _plt_plot_graph(G, **kwargs)
     else:
-        raise ImportError('No drawing library installed. Please '
-                          'install matplotlib or pyqtgraph.')
+        raise ValueError('The {} backend is not available.'.format(backend))
 
 
 def _plt_plot_graph(G, savefig=False, show_edges=None,
@@ -392,7 +397,7 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
                 x_size=10, plot_eigenvalues=None, show_sum=None,
                 savefig=False, show_plot=False, plot_name=None):
     r"""
-    Plot a system of graph spectral filters.
+    Plot a filter bank, i.e. a set of graph filters.
 
     Parameters
     ----------
@@ -428,6 +433,7 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     >>> plotting.plot_filter(mh)
 
     """
+
     G = filters.G
 
     if not isinstance(filters.g, list):
@@ -476,7 +482,7 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
         plt.show(False)  # non blocking show
 
 
-def plot_signal(G, signal, default_qtg=True, **kwargs):
+def plot_signal(G, signal, backend=None, **kwargs):
     r"""
     Plot a signal on top of a graph.
 
@@ -504,9 +510,8 @@ def plot_signal(G, signal, default_qtg=True, **kwargs):
         (default False).
     bar_width : int
         Width of the bar (default 1).
-    default_qtg: boolean
-        define the drawing backend to use if both are available.
-        Default True, i.e. pyqtgraph.
+    backend: {'matplotlib', 'pyqtgraph'}
+        Defines the drawing backend to use. Defaults to :data:`BACKEND`.
     plot_name : string
         name of the plot
     savefig : boolean
@@ -530,13 +535,15 @@ def plot_signal(G, signal, default_qtg=True, **kwargs):
         raise AttributeError('Graph has no coordinate set. '
                              'Please run G.set_coordinates() first.')
 
-    if qtg_import and (default_qtg or not plt_import):
+    if backend is None:
+        backend = BACKEND
+
+    if backend == 'pyqtgraph' and qtg_import:
         _qtg_plot_signal(G, signal, **kwargs)
-    elif plt_import and not (default_qtg and qtg_import):
+    elif backend == 'matplotlib' and plt_import:
         _plt_plot_signal(G, signal, **kwargs)
     else:
-        raise ImportError('No drawing library installed. Please '
-                          'install matplotlib or pyqtgraph.')
+        raise ValueError('The {} backend is not available.'.format(backend))
 
 
 def _plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],

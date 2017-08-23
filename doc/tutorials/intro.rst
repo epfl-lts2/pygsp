@@ -9,7 +9,8 @@ To start open a python shell (IPython is recommended here) and import the pygsp.
     :context: reset
 
     >>> import numpy as np
-    >>> from pygsp import graphs, filters
+    >>> from pygsp import graphs, filters, plotting
+    >>> plotting.BACKEND = 'matplotlib'
 
 The first step is to create a graph, there's a general class that can be used to generate graph from it's weight matrix.
 
@@ -35,7 +36,7 @@ You can now plot the graph:
 .. plot::
     :context: close-figs
 
-    >>> G.plot(default_qtg=False)
+    >>> G.plot()
 
 Looks good isn't it? Now we can start to analyse the graph. The next step to compute Graph Fourier Transform or exact graph filtering is to precompute the Fourier basis of the graph. This operation can be very long as it needs to to fully diagonalize the Laplacian. Happily it is not needed to filter signal on graphs.
 
@@ -50,8 +51,8 @@ Let's plot the second and third eigenvectors, as the first is constant.
 .. plot::
     :context: close-figs
 
-    >>> G.plot_signal(G.U[:, 1], vertex_size=50, default_qtg=False)
-    >>> G.plot_signal(G.U[:, 2], vertex_size=50, default_qtg=False)
+    >>> G.plot_signal(G.U[:, 1], vertex_size=50)
+    >>> G.plot_signal(G.U[:, 2], vertex_size=50)
 
 Let's discover basic filters operations, filters are usually defined in the spectral domain.
 
@@ -102,8 +103,8 @@ Finally here's the noisy signal and the denoised version right under.
 .. plot::
     :context: close-figs
 
-    >>> G.plot_signal(f, vertex_size=50, default_qtg=False)
-    >>> G.plot_signal(f2, vertex_size=50, default_qtg=False)
+    >>> G.plot_signal(f, vertex_size=50)
+    >>> G.plot_signal(f2, vertex_size=50)
 
 So here are the basics for the PyGSP toolbox, please check the other tutorials or the reference guide for more.
 

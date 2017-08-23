@@ -43,7 +43,8 @@ Results and code
     :context: reset
 
     >>> import numpy as np
-    >>> from pygsp import graphs
+    >>> from pygsp import graphs, plotting
+    >>> plotting.BACKEND = 'matplotlib'
     >>>
     >>> # Create a random sensor graph
     >>> G = graphs.Sensor(N=256, distribute=True)
@@ -52,7 +53,7 @@ Results and code
     >>> # Create signal
     >>> graph_value = np.copysign(np.ones(np.shape(G.U[:, 3])[0]), G.U[:, 3])
     >>>
-    >>> G.plot_signal(graph_value, default_qtg=False)
+    >>> G.plot_signal(graph_value)
 
 This figure shows the original signal on graph.
 
@@ -67,7 +68,7 @@ This figure shows the original signal on graph.
     >>> sigma = 0.0
     >>> depleted_graph_value = M * (graph_value.reshape(graph_value.size, 1) + sigma * np.random.standard_normal((G.N, 1)))
     >>>
-    >>> G.plot_signal(depleted_graph_value, show_edges=True, default_qtg=False)
+    >>> G.plot_signal(depleted_graph_value, show_edges=True)
 
 This figure shows the signal on graph after the application of the
 mask and addition of noise. More than half of the vertices are set to 0.
@@ -98,7 +99,7 @@ mask and addition of noise. More than half of the vertices are set to 0.
     >>> #         verbosity='LOW')
     >>> # prox_tv_reconstructed_graph = ret['sol']
     >>>
-    >>> # G.plot_signal(prox_tv_reconstructed_graph, show_edges=True, default_qtg=False)
+    >>> # G.plot_signal(prox_tv_reconstructed_graph, show_edges=True)
 
 This figure shows the reconstructed signal thanks to the algorithm.
 
@@ -125,6 +126,6 @@ The result is presented as following:
     >>> #         verbosity='LOW')
     >>> # prox_tik_reconstructed_graph = ret['sol']
     >>>
-    >>> # G.plot_signal(prox_tik_reconstructed_graph, show_edges=True, default_qtg=False)
+    >>> # G.plot_signal(prox_tik_reconstructed_graph, show_edges=True)
 
 This figure shows the reconstructed signal thanks to the algorithm.

@@ -79,16 +79,14 @@ class TestCase(unittest.TestCase):
 
             if G.is_directed():
                 self.assertRaises(NotImplementedError,
-                                  G.plot, default_qtg=True)
+                                  G.plot, backend='pyqtgraph')
                 self.assertRaises(NotImplementedError,
-                                  G.plot, default_qtg=False)
+                                  G.plot, backend='matplotlib')
             else:
-                # Backend: pyqtgraph.
-                G.plot(default_qtg=True)
-                G.plot_signal(signal, default_qtg=True)
-                # Backend: matplotlib.
-                G.plot(default_qtg=False)
-                G.plot_signal(signal, default_qtg=False)
+                G.plot(backend='pyqtgraph')
+                G.plot(backend='matplotlib')
+                G.plot_signal(signal, backend='pyqtgraph')
+                G.plot_signal(signal, backend='matplotlib')
                 plotting.close_all()
 
 

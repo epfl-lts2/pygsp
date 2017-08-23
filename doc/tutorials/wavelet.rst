@@ -14,7 +14,8 @@ First let's import the toolbox, numpy and load a graph.
     :context: reset
 
     >>> import numpy as np
-    >>> from pygsp import graphs, filters
+    >>> from pygsp import graphs, filters, plotting
+    >>> plotting.BACKEND = 'matplotlib'
     >>> G = graphs.Bunny()
 
 This graph is a nearest-neighbor graph of a pointcloud of the Stanford bunny. It will allow us to get interesting visual results using wavelets.
@@ -55,10 +56,10 @@ Let's plot the signal:
 .. plot::
     :context: close-figs
 
-    >>> G.plot_signal(Sf[:,0], vertex_size=20, default_qtg=False)
-    >>> G.plot_signal(Sf[:,1], vertex_size=20, default_qtg=False)
-    >>> G.plot_signal(Sf[:,2], vertex_size=20, default_qtg=False)
-    >>> G.plot_signal(Sf[:,3], vertex_size=20, default_qtg=False)
+    >>> G.plot_signal(Sf[:,0], vertex_size=20)
+    >>> G.plot_signal(Sf[:,1], vertex_size=20)
+    >>> G.plot_signal(Sf[:,2], vertex_size=20)
+    >>> G.plot_signal(Sf[:,3], vertex_size=20)
 
 Visualizing wavelets atoms
 --------------------------
@@ -86,7 +87,7 @@ If we want to get a better coverage of the graph spectrum, we could have used th
 
     >>> S_vec = Wk.analysis(S)
     >>> S = S_vec.reshape((S_vec.size//Nf, Nf), order='F')
-    >>> G.plot_signal(S[:, 0], default_qtg=False)
+    >>> G.plot_signal(S[:, 0])
 
 We can visualize the filtering by one atom the same way the did for the Heat kernel, by placing a Kronecker delta at one specific vertex.
 
@@ -99,10 +100,10 @@ We can visualize the filtering by one atom the same way the did for the Heat ker
     ...     S[vertex_delta + i * G.N, i] = 1
     >>> Sf = Wk.synthesis(S)
     >>>
-    >>> G.plot_signal(Sf[:,0], vertex_size=20, default_qtg=False)
-    >>> G.plot_signal(Sf[:,1], vertex_size=20, default_qtg=False)
-    >>> G.plot_signal(Sf[:,2], vertex_size=20, default_qtg=False)
-    >>> G.plot_signal(Sf[:,3], vertex_size=20, default_qtg=False)
+    >>> G.plot_signal(Sf[:,0], vertex_size=20)
+    >>> G.plot_signal(Sf[:,1], vertex_size=20)
+    >>> G.plot_signal(Sf[:,2], vertex_size=20)
+    >>> G.plot_signal(Sf[:,3], vertex_size=20)
 
 .. plot::
     :context: close-figs
@@ -117,7 +118,7 @@ We can visualize the filtering by one atom the same way the did for the Heat ker
     >>> d = s_map_out[:, :, 0]**2 + s_map_out[:, :, 1]**2 + s_map_out[:, :, 2]**2
     >>> d = np.sqrt(d)
     >>>
-    >>> G.plot_signal(d[:, 1], vertex_size=20, default_qtg=False)
-    >>> G.plot_signal(d[:, 2], vertex_size=20, default_qtg=False)
-    >>> G.plot_signal(d[:, 3], vertex_size=20, default_qtg=False)
-    >>> G.plot_signal(d[:, 4], vertex_size=20, default_qtg=False)
+    >>> G.plot_signal(d[:, 1], vertex_size=20)
+    >>> G.plot_signal(d[:, 2], vertex_size=20)
+    >>> G.plot_signal(d[:, 3], vertex_size=20)
+    >>> G.plot_signal(d[:, 4], vertex_size=20)
