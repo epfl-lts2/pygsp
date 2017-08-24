@@ -6,7 +6,7 @@ In this demonstration file, we show how to reduce a graph using the PyGSP. Then 
 To start open a python shell (IPython is recommended here) and import the required packages. You would probably also import numpy as you will need it to create matrices and arrays.
 
 >>> import numpy as np
->>> from pygsp import graphs, operators
+>>> from pygsp import graphs, reduction
 
 For this demo we will be using a sensor graph with 512 nodes.
 
@@ -16,7 +16,7 @@ For this demo we will be using a sensor graph with 512 nodes.
 The function graph_multiresolution computes the graph pyramid for you:
 
 >>> levels = 5
->>> Gs = operators.graph_multiresolution(G, levels, sparsify=False)
+>>> Gs = reduction.graph_multiresolution(G, levels, sparsify=False)
 
 Next, we will compute the fourier basis of our different graph layers:
 
@@ -38,13 +38,13 @@ Let's now create two signals and a filter, resp f, f2 and g:
 We will run the analysis of the two signals on the pyramid and obtain a coarse approximation for each layer, with decreasing number of nodes.
 Additionally, we will also get prediction errors at each node at every layer.
 
->>> ca, pe = operators.pyramid_analysis(Gs, f, h_filters=g, method='exact')
->>> ca2, pe2 = operators.pyramid_analysis(Gs, f2, h_filters=g, method='exact')
+>>> ca, pe = reduction.pyramid_analysis(Gs, f, h_filters=g, method='exact')
+>>> ca2, pe2 = reduction.pyramid_analysis(Gs, f2, h_filters=g, method='exact')
 
 Given the pyramid, the coarsest approximation and the prediction errors, we will now reconstruct the original signal on the full graph.
 
->>> f_pred, _ = operators.pyramid_synthesis(Gs, ca[levels], pe, method='exact')
->>> f_pred2, _ = operators.pyramid_synthesis(Gs, ca2[levels], pe2, method='exact')
+>>> f_pred, _ = reduction.pyramid_synthesis(Gs, ca[levels], pe, method='exact')
+>>> f_pred2, _ = reduction.pyramid_synthesis(Gs, ca2[levels], pe2, method='exact')
 
 Here are the final errors for each signal after reconstruction.
 

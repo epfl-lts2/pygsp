@@ -9,8 +9,8 @@ Reference guide
 
     graphs
     filters
-    operators
     plotting
+    reduction
     features
     optimization
     utils

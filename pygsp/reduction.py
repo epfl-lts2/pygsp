@@ -1,5 +1,19 @@
 # -*- coding: utf-8 -*-
 
+r"""
+The :mod:`pygsp.reduction` module implements functionalities for the reduction
+of graphs' vertex set while keeping the graph structure.
+
+* :func:`tree_multiresolution`: compute a multiresolution of trees
+* :func:`graph_multiresolution`: compute a pyramid of graphs
+* :func:`kron_reduction`: compute the Kron reduction
+* :func:`pyramid_analysis`: analysis operator for graph pyramid
+* :func:`pyramid_synthesis`: synthesis operator for graph pyramid
+* :func:`pyramid_cell2coeff`: keep only the necessary coefficients
+* :func:`interpolate`: interpolate a signal
+* :func:`graph_sparsify`: sparsify a graph
+"""
+
 import numpy as np
 from scipy import sparse, stats
 from scipy.sparse import linalg
@@ -32,10 +46,10 @@ def graph_sparsify(M, epsilon, maxiter=10):
 
     Examples
     --------
-    >>> from pygsp import graphs, operators
+    >>> from pygsp import graphs, reduction
     >>> G = graphs.Sensor(256, Nc=20, distribute=True)
     >>> epsilon = 0.4
-    >>> G2 = operators.graph_sparsify(G, epsilon)
+    >>> G2 = reduction.graph_sparsify(G, epsilon)
 
     References
     ----------
@@ -215,11 +229,11 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
 
     Examples
     --------
-    >>> from pygsp import graphs, operators
+    >>> from pygsp import graphs, reduction
     >>> levels = 5
     >>> G = graphs.Sensor(N=512)
     >>> G.compute_fourier_basis()
-    >>> Gs = operators.graph_multiresolution(G, levels, sparsify=False)
+    >>> Gs = reduction.graph_multiresolution(G, levels, sparsify=False)
     >>> for idx in range(levels):
     ...     Gs[idx].plotting['plot_name'] = 'Reduction level: {}'.format(idx)
     ...     Gs[idx].plot()

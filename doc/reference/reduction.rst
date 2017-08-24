@@ -1,8 +1,8 @@
 =========
-Operators
+Reduction
 =========
 
-.. automodule:: pygsp.operators
+.. automodule:: pygsp.reduction
     :members:
     :undoc-members:
     :inherited-members:

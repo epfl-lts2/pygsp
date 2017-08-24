@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 
 r"""
-The :mod:`pygsp` package is mainly organized around the following three
-modules:
+The :mod:`pygsp` package is mainly organized around the following two modules:
 
 * :mod:`.graphs` to create and manipulate various kinds of graphs,
 * :mod:`.filters` to create and manipulate various graph filters,
-* :mod:`.operators` to apply various operators to graph signals.
 
 Moreover, the following modules provide additional functionality:
 
 * :mod:`.plotting` to plot,
+* :mod:`.reduction` to reduce a graph while keeping its structure,
 * :mod:`.features` to compute features on graphs,
 * :mod:`.optimization` to help solving convex optimization problems,
 * :mod:`.utils` for various utilities.
@@ -22,8 +21,8 @@ from pygsp import utils as _utils
 __all__ = [
     'graphs',
     'filters',
-    'operators',
     'plotting',
+    'reduction',
     'features',
     'optimization',
     'utils',
