@@ -8,6 +8,11 @@ of the built-in graph models.
 The :class:`Graph` base class allows to construct a graph object from any
 adjacency matrix and provides a common interface to that object.
 
+**Differential operators**
+
+* :meth:`Graph.grad`: compute the gradient of a graph signal
+* :meth:`Graph.div`: compute the divergence of a graph signal
+
 **Localization**
 
 * :meth:`Graph.modulate`: generalized modulation operator

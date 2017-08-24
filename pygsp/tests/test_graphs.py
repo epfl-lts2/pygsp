@@ -97,6 +97,13 @@ class TestCase(unittest.TestCase):
         G = graphs.StochasticBlockModel(undirected=False)
         self.assertRaises(NotImplementedError, G.compute_differential_operator)
 
+    def test_difference(self):
+        for lap_type in ['combinatorial', 'normalized']:
+            G = graphs.Logo(lap_type=lap_type)
+            s_grad = G.grad(self._signal)
+            Ls = G.div(s_grad)
+            np.testing.assert_allclose(Ls, G.L.dot(self._signal))
+
     def test_set_coordinates(self):
         G = graphs.FullConnected()
         coords = np.random.uniform(size=(G.N, 2))

@@ -6,10 +6,10 @@ import numpy as np
 from scipy import sparse
 
 from pygsp import utils
-from . import fourier  # prevent circular import in Python < 3.5
+from . import fourier, difference  # prevent circular import in Python < 3.5
 
 
-class Graph(fourier.GraphFourier):
+class Graph(fourier.GraphFourier, difference.GraphDifference):
     r"""
     The base graph class.
 
@@ -713,8 +713,7 @@ class Graph(fourier.GraphFourier):
 
         where :math:`D` is the differential operator and :math:`L` is the graph
         Laplacian. It is used to compute the gradient and the divergence of a
-        graph signal, see :func:`pygsp.operators.grad` and
-        :func:`pygsp.operators.div`.
+        graph signal, see :meth:`grad` and :meth:`div`.
 
         The result is cached and accessible by the :py:attr:`D` property.
 

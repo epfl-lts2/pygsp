@@ -5,7 +5,7 @@ The :mod:`pygsp.optimization` module provides tools for convex optimization on
 graphs.
 """
 
-from pygsp import operators, utils
+from pygsp import utils
 
 
 logger = utils.build_logger(__name__)
@@ -17,7 +17,7 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
 
     This function computes the TV proximal operator for graphs. The TV norm
     is the one norm of the gradient. The gradient is defined in the
-    function :func:`pygsp.operators.grad`.
+    function :meth:`pygsp.graphs.Graph.grad`.
     This function requires the PyUNLocBoX to be executed.
 
     This function solves:
@@ -77,9 +77,9 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
             return G.Diff * At(D.T * x)
     else:
         def l1_a(x):
-            return operators.grad(G, A(x))
+            return G.grad(A(x))
 
         def l1_at(x):
-            return operators.div(G, x)
+            return G.div(x)
 
     pyunlocbox.prox_l1(x, gamma, A=l1_a, At=l1_at, tight=tight, maxit=maxit, verbose=verbose, tol=tol)

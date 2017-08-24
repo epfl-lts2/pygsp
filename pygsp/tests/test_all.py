@@ -10,7 +10,7 @@ import os
 import unittest
 import doctest
 
-from pygsp.tests import test_graphs, test_filters, test_operators
+from pygsp.tests import test_graphs, test_filters
 from pygsp.tests import test_utils, test_plotting
 
 
@@ -29,7 +29,6 @@ def test_docstrings(root, ext):
 suites = []
 suites.append(test_graphs.suite)
 suites.append(test_filters.suite)
-suites.append(test_operators.suite)
 suites.append(test_utils.suite)
 suites.append(test_docstrings('pygsp', '.py'))
 suites.append(test_docstrings('.', '.rst'))
