@@ -377,23 +377,23 @@ def vec2mat(d, Nf):
     Parameters
     ----------
     d : ndarray
-        Data
+        Coefficients from :func:`pygsp.filters.Filter.analysis`.
     Nf : int
-        Number of filters
+        Number of filters.
 
     Returns
     -------
     d : list of ndarray
-        Data
+        Reshaped coefficients.
 
     """
-    if len(np.shape(d)) == 1:
-        M = np.shape(d)[0]
-        return np.reshape(d, (M // Nf, Nf), order='F')
+    if d.ndim == 1:
+        M = d.shape[0]
+        return d.reshape((M // Nf, Nf), order='F')
 
-    if len(np.shape(d)) == 2:
-        M, N = np.shape(d)
-        return np.reshape(d, (M // Nf, Nf, N), order='F')
+    elif d.ndim == 2:
+        M, N = d.shape
+        return d.reshape((M // Nf, Nf, N), order='F')
 
 
 def extract_patches(img, patch_shape=(3, 3)):
