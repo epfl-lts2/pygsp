@@ -8,11 +8,6 @@ The :mod:`pygsp.operators` module implements some operators on graphs.
 * :func:`grad`: compute the gradient of a graph signal
 * :func:`div`: compute the divergence of a graph signal
 
-**Localization**
-
-* :func:`modulate`: generalized modulation operator
-* :func:`translate`: generalized translation operator
-
 **Reduction** Functionalities for the reduction of graphs' vertex set while keeping the graph structure.
 
 * :func:`tree_multiresolution`: compute a multiresolution of trees
@@ -32,10 +27,6 @@ _DIFFERENCE = [
     'grad',
     'div',
 ]
-_LOCALIZATION = [
-    'modulate',
-    'translate',
-]
 _REDUCTION = [
     'tree_multiresolution',
     'graph_multiresolution',
@@ -47,8 +38,7 @@ _REDUCTION = [
     'graph_sparsify',
 ]
 
-__all__ = _DIFFERENCE + _LOCALIZATION + _REDUCTION
+__all__ = _DIFFERENCE + _REDUCTION
 
 _utils.import_functions(_DIFFERENCE, 'operators.difference', 'operators')
-_utils.import_functions(_LOCALIZATION, 'operators.localization', 'operators')
 _utils.import_functions(_REDUCTION, 'operators.reduction', 'operators')

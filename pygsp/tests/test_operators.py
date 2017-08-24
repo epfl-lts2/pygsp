@@ -33,9 +33,5 @@ class TestCase(unittest.TestCase):
             Ls = operators.div(G, s_grad)
             np.testing.assert_allclose(Ls, G.L.dot(self.signal))
 
-    def test_translate(self):
-        self.assertRaises(NotImplementedError, operators.translate,
-                          self.G, self.signal, 42)
-
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

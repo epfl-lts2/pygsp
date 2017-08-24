@@ -8,6 +8,11 @@ of the built-in graph models.
 The :class:`Graph` base class allows to construct a graph object from any
 adjacency matrix and provides a common interface to that object.
 
+**Localization**
+
+* :meth:`Graph.modulate`: generalized modulation operator
+* :meth:`Graph.translate`: generalized translation operator
+
 **Fourier basis and transforms** (frequency and vertex-frequency)
 
 * :meth:`Graph.gft`: graph Fourier transform (GFT)

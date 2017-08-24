@@ -188,6 +188,33 @@ class GraphFourier(object):
         """
         return np.dot(self.U, s_hat)
 
+    def translate(self, f, i):
+        r"""
+        Translate the signal f to the node i.
+
+        Parameters
+        ----------
+        f : ndarray
+            Signal
+        i : int
+            Indices of vertex
+
+        Returns
+        -------
+        ft : translate signal
+
+        """
+
+        raise NotImplementedError('Current implementation is not working.')
+
+        fhat = self.gft(f)
+        nt = np.shape(f)[1]
+
+        ft = self.igft(fhat, np.kron(np.ones((1, nt)), self.U[i]))
+        ft *= np.sqrt(self.N)
+
+        return ft
+
     def gft_windowed_gabor(self, f, k):
         r"""
         Gabor windowed graph Fourier transform.
