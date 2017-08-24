@@ -16,6 +16,7 @@ The :class:`Filter` base class implements a common interface to all filters:
 * :meth:`Filter.compute_frame`: return a matrix operator
 * :meth:`Filter.estimate_frame_bounds`: estimate lower and upper frame bounds
 * :meth:`Filter.plot`: plot the filter frequency response
+* :meth:`Filter.localize`: localize a kernel at a node (to visualize it)
 
 Then, derived classes implement various common graph filters.
 

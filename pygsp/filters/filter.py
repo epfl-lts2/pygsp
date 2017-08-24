@@ -335,6 +335,48 @@ class Filter(object):
 
         return s
 
+    def localize(self, i, **kwargs):
+        r"""
+        Localize the filter kernel at node i.
+
+        That is particularly useful to visualize a filter in the vertex domain.
+
+        A kernel is localized by filtering a Kronecker delta, i.e.
+
+        .. math:: g(L) s = g(L)_i, \text{ where } s_j = \delta_{ij} =
+                  \begin{cases} 0 \text{ if } i \neq j \\
+                                1 \text{ if } i = j    \end{cases}
+
+        Parameters
+        ----------
+        i : int
+            Index of the node where to localize the kernel.
+        kwargs: dict
+            Parameters to be passed to the :meth:`analysis` method.
+
+        Returns
+        -------
+        s : ndarray
+            Kernel localized at vertex i.
+
+        Examples
+        --------
+        Visualize heat diffusion on a grid.
+
+        >>> from pygsp import graphs, filters
+        >>> N = 20
+        >>> G = graphs.Grid2d(N)
+        >>> G.estimate_lmax()
+        >>> g = filters.Heat(G, 100)
+        >>> s = g.localize(N//2 * (N+1))
+        >>> G.plot_signal(s)
+
+        """
+
+        s = np.zeros(self.G.N)
+        s[i] = 1
+        return np.sqrt(self.G.N) * self.analysis(s, **kwargs)
+
     def approx(self, m, N):
         r"""
         Not implemented yet.
@@ -431,7 +473,17 @@ class Filter(object):
         The size of the returned matrix operator :math:`D` is N x MN, where M
         is the number of filters and N the number of nodes. Multiplying this
         matrix with a set of signals is equivalent to analyzing them with the
-        associated filterbank.
+        associated filterbank. Though computing this matrix is a rather
+        inefficient way of doing it.
+
+        The frame is defined as follows:
+
+        .. math:: g_i(L) = U g_i(\Lambda) U^*,
+
+        where :math:`g` is the filter kernel, :math:`L` is the graph Laplacian,
+        :math:`\Lambda` is a diagonal matrix of the Laplacian's eigenvalues,
+        and :math:`U` is the Fourier basis, i.e. its columns are the
+        eigenvectors of the Laplacian.
 
         Parameters
         ----------

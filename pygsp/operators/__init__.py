@@ -18,7 +18,6 @@ The :mod:`pygsp.operators` module implements some operators on graphs.
 
 **Localization**
 
-* :func:`localize`: localize a kernel
 * :func:`modulate`: generalized modulation operator
 * :func:`translate`: generalized translation operator
 
@@ -49,7 +48,6 @@ _TRANSFORMS = [
     'gft_windowed_normalized',
 ]
 _LOCALIZATION = [
-    'localize',
     'modulate',
     'translate',
 ]

@@ -9,32 +9,6 @@ from . import transforms  # prevent circular import in Python < 3.5
 logger = utils.build_logger(__name__)
 
 
-def localize(g, i):
-    r"""
-    Localize a kernel g to the node i.
-
-    Parameters
-    ----------
-    g : Filter
-        kernel (or filterbank)
-    i : int
-        Index of vertex
-
-    Returns
-    -------
-    gt : ndarray
-        Translated signal
-
-    """
-    N = g.G.N
-    f = np.zeros((N))
-    f[i - 1] = 1
-
-    gt = np.sqrt(N) * g.analysis(f)
-
-    return gt
-
-
 def modulate(G, f, k):
     r"""
     Modulation the signal f to the frequency k.

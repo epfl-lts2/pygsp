@@ -71,6 +71,24 @@ class TestCase(unittest.TestCase):
         self.assertRaises(NotImplementedError, f.inverse, 0)
         self.assertRaises(NotImplementedError, f.tighten)
 
+    def test_localize(self):
+        G = graphs.Grid2d(20)
+        G.compute_fourier_basis()
+        g = filters.Heat(G, 100)
+
+        # Localize signal at node by filterting Kronecker delta.
+        NODE = 10
+        s1 = g.localize(NODE, method='exact')
+
+        # Should be equal to a row / column of the filtering operator.
+        gL = G.U.dot(np.diag(g.evaluate(G.e)).dot(G.U.T))
+        s2 = np.sqrt(G.N) * gL[NODE, :]
+        np.testing.assert_allclose(s1, s2)
+
+        # That is actually a row / column of the analysis operator.
+        F = g.compute_frame(method='exact')
+        np.testing.assert_allclose(F, gL)
+
     def test_custom_filter(self):
         def _filter(x):
             return x / (1. + x)
