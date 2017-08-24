@@ -689,66 +689,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         lmax = np.real(lmax)
         self._lmax = lmax.sum()
 
-    @property
-    def D(self):
-        r"""
-        Difference operator of the graph.
-        Is computed by :func:`compute_differential_operator`.
-        """
-        if not hasattr(self, '_D'):
-            self.logger.warning('The differential operator G.D is not '
-                                'available, we need to compute it. Explicitly '
-                                'call G.compute_differential_operator() '
-                                'once beforehand to suppress the warning.')
-            self.compute_differential_operator()
-        return self._D
-
-    def compute_differential_operator(self):
-        r"""
-        Compute the graph differential operator.
-
-        The differential operator is a matrix such that
-
-        .. math:: L = D^T D,
-
-        where :math:`D` is the differential operator and :math:`L` is the graph
-        Laplacian. It is used to compute the gradient and the divergence of a
-        graph signal, see :meth:`grad` and :meth:`div`.
-
-        The result is cached and accessible by the :py:attr:`D` property.
-
-        Examples
-        --------
-        >>> from pygsp import graphs
-        >>> G = graphs.Logo()
-        >>> G.N, G.Ne
-        (1130, 6262)
-        >>> G.compute_differential_operator()
-        >>> G.D.shape == (G.Ne//2, G.N)
-        True
-
-        """
-
-        v_in, v_out, weights = self.get_edge_list()
-
-        n = len(v_in)
-        Dr = np.concatenate((np.arange(n), np.arange(n)))
-        Dc = np.empty(2*n)
-        Dc[:n] = v_in
-        Dc[n:] = v_out
-        Dv = np.empty(2*n)
-
-        if self.lap_type == 'combinatorial':
-            Dv[:n] = np.sqrt(weights)
-            Dv[n:] = -Dv[:n]
-        elif self.lap_type == 'normalized':
-            Dv[:n] = np.sqrt(weights / self.d[v_in])
-            Dv[n:] = -np.sqrt(weights / self.d[v_out])
-        else:
-            raise ValueError('Unknown lap_type {}'.format(self.lap_type))
-
-        self._D = sparse.csc_matrix((Dv, (Dr, Dc)), shape=(n, self.N))
-
     def get_edge_list(self):
         r"""
         Return an edge list, an alternative representation of the graph.
