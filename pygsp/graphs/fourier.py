@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import scipy.linalg
 
 from pygsp import utils
 
@@ -9,6 +10,113 @@ logger = utils.build_logger(__name__)
 
 
 class GraphFourier(object):
+
+    def _check_fourier_properties(self, name, desc):
+        if not hasattr(self, '_' + name):
+            self.logger.warning('The {} G.{} is not available, we need to '
+                                'compute the Fourier basis. Explicitly call '
+                                'G.compute_fourier_basis() once beforehand '
+                                'to suppress the warning.'.format(desc, name))
+            self.compute_fourier_basis()
+        return getattr(self, '_' + name)
+
+    @property
+    def U(self):
+        r"""
+        Fourier basis, i.e. the eigenvectors of the Laplacian.
+        Is computed by :func:`compute_fourier_basis`.
+        """
+        return self._check_fourier_properties('U', 'Fourier basis')
+
+    @property
+    def e(self):
+        r"""
+        Graph frequencies, i.e. the eigenvalues of the Laplacian.
+        Is computed by :func:`compute_fourier_basis`.
+        """
+        return self._check_fourier_properties('e', 'eigenvalues vector')
+
+    @property
+    def mu(self):
+        r"""
+        Coherence of the Fourier basis.
+        Is computed by :func:`compute_fourier_basis`.
+        """
+        return self._check_fourier_properties('mu', 'Fourier basis coherence')
+
+    def compute_fourier_basis(self, smallest_first=True, recompute=False,
+                              **kwargs):
+        r"""
+        Compute the Fourier basis of the graph.
+
+        The result is cached and accessible by the :py:attr:`U`,
+        :py:attr:`e`, :py:attr:`lmax`, and :py:attr:`mu` properties.
+
+        Parameters
+        ----------
+        smallest_first: bool
+            Define the order of the eigenvalues.
+            Default is smallest first (True).
+        recompute: bool
+            Force to recompute the Fourier basis if already existing.
+
+        Notes
+        -----
+        'G.compute_fourier_basis()' computes a full eigendecomposition of
+        the graph Laplacian :math:`L` such that:
+
+        .. math:: L = U \Lambda U^*,
+
+        where :math:`\Lambda` is a diagonal matrix of eigenvalues and the
+        columns of :math:`U` are the eigenvectors.
+
+        *G.e* is a vector of length *G.N* containing the Laplacian
+        eigenvalues. The largest eigenvalue is stored in *G.lmax*.
+        The eigenvectors are stored as column vectors of *G.U* in the same
+        order that the eigenvalues. Finally, the coherence of the
+        Fourier basis is found in *G.mu*.
+
+        References
+        ----------
+        See :cite:`chung1997spectral`
+
+        Examples
+        --------
+        >>> from pygsp import graphs
+        >>> G = graphs.Torus()
+        >>> G.compute_fourier_basis()
+        >>> G.U.shape
+        (256, 256)
+        >>> G.e.shape
+        (256,)
+        >>> G.lmax == G.e[-1]
+        True
+        >>> G.mu < 1
+        True
+
+        """
+
+        if hasattr(self, '_e') and hasattr(self, '_U') and not recompute:
+            return
+
+        if self.N > 3000:
+            self.logger.warning("Performing full eigendecomposition of a "
+                                "large matrix may take some time.")
+
+        if not hasattr(self, 'L'):
+            raise AttributeError("Graph Laplacian is missing.")
+
+        # TODO: np.linalg.{svd,eigh}, sparse.linalg.{svds,eigsh}
+        eigenvectors, eigenvalues, _ = scipy.linalg.svd(self.L.todense())
+
+        inds = np.argsort(eigenvalues)
+        if not smallest_first:
+            inds = inds[::-1]
+
+        self._e = np.sort(eigenvalues)
+        self._lmax = np.max(self._e)
+        self._U = eigenvectors[:, inds]
+        self._mu = np.max(np.abs(self._U))
 
     def gft(self, s):
         r"""
