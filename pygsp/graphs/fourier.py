@@ -142,7 +142,7 @@ class GraphFourier(object):
         Examples
         --------
         >>> import numpy as np
-        >>> from pygsp import graphs, operators
+        >>> from pygsp import graphs
         >>> G = graphs.Logo()
         >>> s = np.random.normal(size=G.N)
         >>> s_hat = G.gft(s)
@@ -177,7 +177,7 @@ class GraphFourier(object):
         Examples
         --------
         >>> import numpy as np
-        >>> from pygsp import graphs, operators
+        >>> from pygsp import graphs
         >>> G = graphs.Logo()
         >>> s_hat = np.random.normal(size=G.N)
         >>> s = G.igft(s_hat)
@@ -234,7 +234,7 @@ class GraphFourier(object):
         Examples
         --------
         >>> import numpy as np
-        >>> from pygsp import graphs, operators
+        >>> from pygsp import graphs
         >>> G = graphs.Logo()
         >>> s = np.random.normal(size=G.N)
         >>> C = G.gft_windowed_gabor(s, lambda x: x/(1.-x))
@@ -292,7 +292,7 @@ class GraphFourier(object):
 
         else:
             # Compute the translate of g
-            # TODO: use operators.translate()
+            # TODO: use self.translate()
             ghat = np.dot(U.T, g)
             Ftrans = np.sqrt(N) * np.dot(U, (np.kron(np.ones((N)), ghat)*U.T))
             C = np.empty((N, N))
@@ -336,7 +336,7 @@ class GraphFourier(object):
 
         else:
             # Compute the translate of g
-            # TODO: use operators.translate()
+            # TODO: use self.translate()
             ghat = np.dot(U.T, g)
             Ftrans = np.sqrt(N)*np.dot(U, (np.kron(np.ones((1, N)), ghat)*U.T))
             C = np.empty((N, N))

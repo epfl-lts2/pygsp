@@ -17,13 +17,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     * Can be instantiated to construct custom graphs from a weight matrix.
     * Initialize attributes for derived classes.
 
-    The following operators are available as matrices:
-
-    * :py:attr:`W`: weight matrix
-    * :py:attr:`L`: Laplacian
-    * :py:attr:`U`: Fourier basis
-    * :py:attr:`D`: differential operator
-
     Parameters
     ----------
     W : sparse matrix or ndarray

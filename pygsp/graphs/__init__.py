@@ -6,7 +6,28 @@ object is either constructed from an adjacency matrix, or by instantiating one
 of the built-in graph models.
 
 The :class:`Graph` base class allows to construct a graph object from any
-adjacency matrix and provides a common interface to that object.
+adjacency matrix and provides a common interface to that object. Derived
+classes then allows to instantiate various standard graph models.
+
+**Matrix operators**
+
+* :attr:`Graph.W`: weight matrix
+* :attr:`Graph.L`: Laplacian
+* :attr:`Graph.U`: Fourier basis
+* :attr:`Graph.D`: differential operator
+
+**Checks**
+
+* :meth:`Graph.check_weights`: check the characteristics of the weights matrix
+* :meth:`Graph.is_connected`: check the strong connectivity of the input graph
+* :meth:`Graph.is_directed`: check if the graph has directed edges
+
+**Attributes computation**
+
+* :meth:`Graph.compute_laplacian`: compute a graph Laplacian
+* :meth:`Graph.estimate_lmax`: estimate largest eigenvalue
+* :meth:`Graph.compute_fourier_basis`: compute Fourier basis
+* :meth:`Graph.compute_differential_operator`: compute differential operator
 
 **Differential operators**
 
@@ -18,7 +39,7 @@ adjacency matrix and provides a common interface to that object.
 * :meth:`Graph.modulate`: generalized modulation operator
 * :meth:`Graph.translate`: generalized translation operator
 
-**Fourier basis and transforms** (frequency and vertex-frequency)
+**Transforms** (frequency and vertex-frequency)
 
 * :meth:`Graph.gft`: graph Fourier transform (GFT)
 * :meth:`Graph.igft`: inverse graph Fourier transform
@@ -26,7 +47,20 @@ adjacency matrix and provides a common interface to that object.
 * :meth:`Graph.gft_windowed_gabor`: Gabor windowed GFT
 * :meth:`Graph.gft_windowed_normalized`: normalized windowed GFT
 
-Derived classes implement various graph models.
+**Plotting**
+
+* :meth:`Graph.plot`: plot the graph
+* :meth:`Graph.plot_signal`: plot a signal on that graph
+* :meth:`Graph.plot_spectrogram`: plot the spectrogram for the graph object
+
+**Others**
+
+* :meth:`Graph.get_edge_list`: return an edge list (alternative representation)
+* :meth:`Graph.set_coordinates`: set nodes' coordinates (for plotting)
+* :meth:`Graph.subgraph`: create a subgraph
+* :meth:`Graph.extract_components`: split the graph into connected components
+
+**Graph models**
 
 * :class:`Airfoil`
 * :class:`BarabasiAlbert`
@@ -48,8 +82,7 @@ Derived classes implement various graph models.
 * :class:`SwissRoll`
 * :class:`Torus`
 
-Derived classes from :class:`NNGraph` implement nearest-neighbors graphs
-constructed from point clouds.
+**Nearest-neighbors graphs constructed from point clouds**
 
 * :class:`Bunny`
 * :class:`Cube`
