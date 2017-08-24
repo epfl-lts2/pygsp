@@ -8,6 +8,14 @@ of the built-in graph models.
 The :class:`Graph` base class allows to construct a graph object from any
 adjacency matrix and provides a common interface to that object.
 
+**Fourier basis and transforms** (frequency and vertex-frequency)
+
+* :meth:`Graph.gft`: graph Fourier transform (GFT)
+* :meth:`Graph.igft`: inverse graph Fourier transform
+* :meth:`Graph.gft_windowed`: windowed GFT
+* :meth:`Graph.gft_windowed_gabor`: Gabor windowed GFT
+* :meth:`Graph.gft_windowed_normalized`: normalized windowed GFT
+
 Derived classes implement various graph models.
 
 * :class:`Airfoil`

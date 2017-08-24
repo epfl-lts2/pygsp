@@ -8,14 +8,6 @@ The :mod:`pygsp.operators` module implements some operators on graphs.
 * :func:`grad`: compute the gradient of a graph signal
 * :func:`div`: compute the divergence of a graph signal
 
-**Transforms** (frequency and vertex-frequency)
-
-* :func:`gft`: graph Fourier transform (GFT)
-* :func:`igft`: inverse graph Fourier transform
-* :func:`gft_windowed`: windowed GFT
-* :func:`gft_windowed_gabor`: Gabor windowed GFT
-* :func:`gft_windowed_normalized`: normalized windowed GFT
-
 **Localization**
 
 * :func:`modulate`: generalized modulation operator
@@ -40,13 +32,6 @@ _DIFFERENCE = [
     'grad',
     'div',
 ]
-_TRANSFORMS = [
-    'gft',
-    'igft',
-    'gft_windowed',
-    'gft_windowed_gabor',
-    'gft_windowed_normalized',
-]
 _LOCALIZATION = [
     'modulate',
     'translate',
@@ -62,9 +47,8 @@ _REDUCTION = [
     'graph_sparsify',
 ]
 
-__all__ = _DIFFERENCE + _TRANSFORMS + _LOCALIZATION + _REDUCTION
+__all__ = _DIFFERENCE + _LOCALIZATION + _REDUCTION
 
 _utils.import_functions(_DIFFERENCE, 'operators.difference', 'operators')
-_utils.import_functions(_TRANSFORMS, 'operators.transforms', 'operators')
 _utils.import_functions(_LOCALIZATION, 'operators.localization', 'operators')
 _utils.import_functions(_REDUCTION, 'operators.reduction', 'operators')

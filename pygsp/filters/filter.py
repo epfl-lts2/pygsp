@@ -7,7 +7,6 @@ import numpy as np
 from pygsp import utils
 # prevent circular import in Python < 3.5
 from . import approximations
-from ..operators.transforms import gft, igft
 
 
 _logger = utils.build_logger(__name__)
@@ -150,21 +149,21 @@ class Filter(object):
 
             if self.Nf == 1:
                 if is2d:
-                    fs = np.tile(fie, (Ns, 1)).T * gft(self.G, s)
-                    return igft(self.G, fs)
+                    fs = np.tile(fie, (Ns, 1)).T * self.G.gft(s)
+                    return self.G.igft(fs)
                 else:
-                    fs = fie * gft(self.G, s)
-                    return igft(self.G, fs)
+                    fs = fie * self.G.gft(s)
+                    return self.G.igft(fs)
             else:
                 tmpN = np.arange(N, dtype=int)
                 for i in range(self.Nf):
                     if is2d:
-                        fs = gft(self.G, s)
+                        fs = self.G.gft(s)
                         fs *= np.tile(fie[i], (Ns, 1)).T
-                        c[tmpN + N * i] = igft(self.G, fs)
+                        c[tmpN + N * i] = self.G.igft(fs)
                     else:
-                        fs = fie[i] * gft(self.G, s)
-                        c[tmpN + N * i] = igft(self.G, fs)
+                        fs = fie[i] * self.G.gft(s)
+                        c[tmpN + N * i] = self.G.igft(fs)
 
         else:
             raise ValueError('Unknown method: {}'.format(method))
@@ -303,13 +302,13 @@ class Filter(object):
             tmpN = np.arange(N, dtype=int)
 
             if self.Nf == 1:
-                fc = np.tile(fie, (Nv, 1)).T * gft(self.G, c[tmpN])
-                s += igft(np.conjugate(self.G.U), fc)
+                fc = np.tile(fie, (Nv, 1)).T * self.G.gft(c[tmpN])
+                s += np.dot(np.conjugate(self.G.U), fc)
             else:
                 for i in range(self.Nf):
-                    fc = gft(self.G, c[N * i + tmpN])
+                    fc = self.G.gft(c[N * i + tmpN])
                     fc *= np.tile(fie[:][i], (Nv, 1)).T
-                    s += igft(np.conjugate(self.G.U), fc)
+                    s += np.dot(np.conjugate(self.G.U), fc)
 
         elif method == 'chebyshev':
             cheb_coeffs = approximations.compute_cheby_coeff(self, m=order,

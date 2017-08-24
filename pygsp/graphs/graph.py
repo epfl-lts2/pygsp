@@ -7,9 +7,10 @@ from scipy import sparse
 from scipy.linalg import svd
 
 from pygsp import utils
+from . import fourier  # prevent circular import in Python < 3.5
 
 
-class Graph(object):
+class Graph(fourier.GraphFourier):
     r"""
     The base graph class.
 

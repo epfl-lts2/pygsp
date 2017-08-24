@@ -33,26 +33,9 @@ class TestCase(unittest.TestCase):
             Ls = operators.div(G, s_grad)
             np.testing.assert_allclose(Ls, G.L.dot(self.signal))
 
-    def test_fourier_transform(self):
-        f_hat = operators.gft(self.G, self.signal)
-        f_star = operators.igft(self.G, f_hat)
-        np.testing.assert_allclose(self.signal, f_star)
-
     def test_translate(self):
         self.assertRaises(NotImplementedError, operators.translate,
                           self.G, self.signal, 42)
-
-    def test_gft_windowed(self):
-        self.assertRaises(NotImplementedError, operators.gft_windowed,
-                          self.G, None, self.signal)
-
-    def test_gft_windowed_gabor(self):
-        operators.gft_windowed_gabor(self.G, self.signal, lambda x: x/(1.-x))
-
-    def test_gft_windowed_normalized(self):
-        self.assertRaises(NotImplementedError,
-                          operators.gft_windowed_normalized,
-                          self.G, None, self.signal)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

@@ -17,6 +17,12 @@ class TestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        cls._G = graphs.Logo()
+        cls._G.compute_fourier_basis()
+
+        rs = np.random.RandomState(42)
+        cls._signal = rs.uniform(size=cls._G.N)
+
         cls._img = img_as_float(data.camera()[::16, ::16])
 
     @classmethod
@@ -49,6 +55,22 @@ class TestCase(unittest.TestCase):
         G.compute_laplacian(lap_type='combinatorial')
         self.assertRaises(NotImplementedError, G.compute_laplacian,
                           lap_type='normalized')
+
+    def test_fourier_transform(self):
+        f_hat = self._G.gft(self._signal)
+        f_star = self._G.igft(f_hat)
+        np.testing.assert_allclose(self._signal, f_star)
+
+    def test_gft_windowed_gabor(self):
+        self._G.gft_windowed_gabor(self._signal, lambda x: x/(1.-x))
+
+    def test_gft_windowed(self):
+        self.assertRaises(NotImplementedError, self._G.gft_windowed,
+                          None, self._signal)
+
+    def test_gft_windowed_normalized(self):
+        self.assertRaises(NotImplementedError, self._G.gft_windowed_normalized,
+                          None, self._signal)
 
     def test_edge_list(self):
         G = graphs.StochasticBlockModel(undirected=True)
