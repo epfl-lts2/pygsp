@@ -2,6 +2,13 @@
 Reconstruction of missing samples with graph TV
 ===============================================
 
+.. note::
+    The toolbox is **not ready** (yet?) for the completion of that tutorial.
+    For one, the proximal TV operator on graph is missing.
+    Please see the `matlab version of that tutorial
+    <https://lts2.epfl.ch/gsp/doc/demos/gsp_demo_graph_tv.php>`_.
+    If you like it, implement it!
+
 Description
 -----------
 
