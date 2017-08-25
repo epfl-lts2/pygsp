@@ -503,27 +503,29 @@ def plot_signal(G, signal, backend=None, **kwargs):
     show_edges : boolean
         Set to False to only draw the vertices (default G.Ne < 10000).
     cp : list of int
-        Camera position for a 3D graph.
+        NOT IMPLEMENTED. Camera position when plotting a 3D graph.
     vertex_size : int
         Size of circle representing each signal component.
     vertex_highlight : list of boolean
-        Vector of indices for vertices to be highlighted.
-    climits : list of int
-        Limits of the colorbar.
-    colorbar : boolean
-        To plot an extra line showing the sum of the squared magnitudes
-        of the filters (default True if there is multiple filters).
+        NOT IMPLEMENTED. Vector of indices for vertices to be highlighted.
+    colorbar : bool
+        Whether to plot a colorbar indicating the signal's amplitude.
+        Only available with the matplotlib backend.
+    limits : [vmin, vmax]
+        Maps colors from vmin to vmax.
+        Defaults to signal minimum and maximum value.
+        Only available with the matplotlib backend.
     bar : boolean
         NOT IMPLEMENTED: False display color, True display bar for the graph
         (default False).
     bar_width : int
-        Width of the bar (default 1).
+        NOT IMPLEMENTED. Width of the bar (default 1).
     backend: {'matplotlib', 'pyqtgraph'}
         Defines the drawing backend to use. Defaults to :data:`BACKEND`.
     plot_name : string
-        name of the plot
+        Name of the plot.
     savefig : boolean
-        whether the plot is saved as plot_name.png and plot_name.pdf (True) or
+        Whether the plot is saved as plot_name.png and plot_name.pdf (True) or
         shown in a window (False) (default False). Only available with the
         matplotlib backend.
     ax : matplotlib.axes
@@ -554,23 +556,17 @@ def plot_signal(G, signal, backend=None, **kwargs):
         raise ValueError('The {} backend is not available.'.format(backend))
 
 
-def _plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
-                     vertex_size=None, vertex_highlight=False, climits=None,
-                     colorbar=True, bar=False, bar_width=1, savefig=False,
-                     plot_name=None, ax=None):
+def _plt_plot_signal(G, signal, show_edges=None, vertex_size=100, limits=None,
+                     colorbar=True, savefig=False, plot_name=None, ax=None):
 
     if np.sum(np.abs(signal.imag)) > 1e-10:
         raise ValueError("Can't display complex signal.")
     if show_edges is None:
         show_edges = G.Ne < 10000
-    if vertex_size is None:
-        vertex_size = 100
-    if climits is None:
-        cmin = 1.01 * np.min(signal)
-        cmax = 1.01 * np.max(signal)
-        climits = [cmin, cmax]
     if plot_name is None:
         plot_name = "Signal plot of " + G.gtype
+    if limits is None:
+        limits = [signal.min(), signal.max()]
 
     if not ax:
         fig = plt.figure()
@@ -622,17 +618,22 @@ def _plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
 
     # Plot signal
     if G.coords.shape[1] == 2:
-        ax.scatter(G.coords[:, 0], G.coords[:, 1], s=vertex_size, c=signal,
-                   zorder=2)
+        sc = ax.scatter(G.coords[:, 0], G.coords[:, 1],
+                        s=vertex_size, c=signal, zorder=2,
+                        vmin=limits[0], vmax=limits[1])
     if G.coords.shape[1] == 3:
-        ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
-                   s=vertex_size, c=signal, zorder=2)
+        sc = ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
+                        s=vertex_size, c=signal, zorder=2,
+                        vmin=limits[0], vmax=limits[1])
         try:
             ax.view_init(elev=G.plotting['elevation'],
                          azim=G.plotting['azimuth'])
             ax.dist = G.plotting['distance']
         except KeyError:
             pass
+
+    if colorbar:
+        plt.colorbar(sc, ax=ax)
 
     try:
         if savefig:
@@ -645,21 +646,14 @@ def _plt_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
         pass
 
 
-def _qtg_plot_signal(G, signal, show_edges=None, cp=[-6, -3, 160],
-                    vertex_size=None, vertex_highlight=False, climits=None,
-                    colorbar=True, bar=False, bar_width=1, plot_name=None):
+def _qtg_plot_signal(G, signal, show_edges=None,
+                     vertex_size=15, plot_name=None):
 
     if np.sum(np.abs(signal.imag)) > 1e-10:
         raise ValueError("Can't display complex signal.")
 
     if show_edges is None:
         show_edges = G.Ne < 10000
-    if vertex_size is None:
-        vertex_size = 15
-    if climits is None:
-        cmin = 1.01 * np.min(signal)
-        cmax = 1.01 * np.max(signal)
-        climits = [cmin, cmax]
 
     if G.coords.shape[1] == 2:
         window = qtg.GraphicsWindow(plot_name or G.gtype)
