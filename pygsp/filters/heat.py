@@ -18,10 +18,9 @@ class Heat(Filter):
     ----------
     G : graph
     tau : int or list of ints
-        Scaling parameter. (default = 10)
+        Scaling parameter.
     normalize : bool
-        Normalize the kernel (works only if the eigenvalues are
-        present in the graph). (default = 0)
+        Normalizes the kernel. Needs the eigenvalues.
 
     Examples
     --------
