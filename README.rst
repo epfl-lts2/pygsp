@@ -98,6 +98,9 @@ The PyGSP is available on PyPI::
 
     $ pip install pygsp
 
+Note that you will need a recent version of ``pip``.
+Please run ``pip install --upgrade pip`` if you get an installation error.
+
 Contributing
 ------------
 
