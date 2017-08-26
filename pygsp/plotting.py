@@ -219,7 +219,7 @@ def _plt_plot_graph(G, show_edges=None, plot_name='', ax=None):
     try:
         edge_color = G.plotting['edge_color']
     except KeyError:
-        edge_color = np.array([255, 88, 41]) / 255.
+        edge_color = [0.5, 0.5, 0.5]
 
     if show_edges:
         ki, kj = np.nonzero(G.A)
@@ -305,6 +305,11 @@ def _qtg_plot_graph(G, show_edges=None, plot_name=''):
     if show_edges is None:
         show_edges = G.Ne < 10000
 
+    try:
+        edge_color = G.plotting['edge_color']
+    except KeyError:
+        edge_color = [0.5, 0.5, 0.5]
+
     ki, kj = np.nonzero(G.A)
     if G.is_directed():
         raise NotImplementedError
@@ -326,14 +331,10 @@ def _qtg_plot_graph(G, show_edges=None, plot_name=''):
                 extra_args['symbolPen'] = G.plotting['vertex_color']
                 extra_args['brush'] = G.plotting['vertex_color']
 
-            # Define syntaxic sugar mapping keywords for the display options
-            for plot_args, qtg_args in [('vertex_size', 'size'), ('vertex_mask', 'mask'), ('edge_color', 'pen')]:
+            # Define syntactic sugar mapping keywords for the display options
+            for plot_args, qtg_args in [('vertex_size', 'size'), ('vertex_mask', 'mask'), ('edge_color', 'pen'), ('symbolPen', 'symbolPen')]:
                 if plot_args in G.plotting:
-                    G.plotting[qtg_args] = G.plotting.pop(plot_args)
-
-            for qtg_args in ['size', 'mask', 'pen', 'symbolPen']:
-                if qtg_args in G.plotting:
-                    extra_args[qtg_args] = G.plotting[qtg_args]
+                    extra_args[qtg_args] = G.plotting[plot_args]
 
             if not show_edges:
                 extra_args['pen'] = None
@@ -394,10 +395,6 @@ def _qtg_plot_graph(G, show_edges=None, plot_name=''):
                     extra_args[qtg_args] = G.plotting[qtg_args]
 
             if show_edges:
-                try:
-                    edge_color = G.plotting['edge_color']
-                except KeyError:
-                    edge_color = np.array([255, 88, 41]) / 255.
                 g = gl.GLLinePlotItem(pos=pts, mode='lines', color=edge_color)
                 widget.addItem(g)
 
