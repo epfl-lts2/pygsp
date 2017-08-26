@@ -1,11 +1,15 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import pygsp
 
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.viewcode',
-              'sphinx.ext.autosummary', 'sphinx.ext.mathjax',
-              'sphinx.ext.inheritance_diagram', 'sphinxcontrib.bibtex']
+extensions = ['sphinx.ext.viewcode',
+              'sphinx.ext.autosummary',
+              'sphinx.ext.mathjax',
+              'sphinx.ext.inheritance_diagram',
+              'sphinxcontrib.bibtex']
+
+extensions.append('sphinx.ext.autodoc')
+autodoc_member_order = 'groupwise'  # alphabetical, groupwise, bysource
 
 extensions.append('matplotlib.sphinxext.plot_directive')
 plot_include_source = True
