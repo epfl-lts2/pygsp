@@ -5,4 +5,7 @@ Graphs
 .. automodule:: pygsp.graphs
     :members:
     :undoc-members:
-    :inherited-members:
+    :exclude-members: Graph
+
+    .. autoclass:: Graph
+        :inherited-members:
