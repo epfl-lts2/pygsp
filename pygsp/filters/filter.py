@@ -303,12 +303,12 @@ class Filter(object):
 
             if self.Nf == 1:
                 fc = np.tile(fie, (Nv, 1)).T * self.G.gft(c[tmpN])
-                s += np.dot(np.conjugate(self.G.U), fc)
+                s += self.G.igft(fc)
             else:
                 for i in range(self.Nf):
                     fc = self.G.gft(c[N * i + tmpN])
                     fc *= np.tile(fie[:][i], (Nv, 1)).T
-                    s += np.dot(np.conjugate(self.G.U), fc)
+                    s += self.G.igft(fc)
 
         elif method == 'chebyshev':
             cheb_coeffs = approximations.compute_cheby_coeff(self, m=order,
