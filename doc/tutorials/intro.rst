@@ -2,65 +2,169 @@
 Introduction to the PyGSP
 =========================
 
-This tutorial shows basic operations of the toolbox.
-To start open a python shell (IPython is recommended here) and import the pygsp. You would probably also import numpy as you will need it to create matrices and arrays.
+This tutorial will show you the basic operations of the toolbox. After
+installing the package with pip, start by opening a python shell, e.g.
+a Jupyter notebook, and import the PyGSP. We will also need NumPy to create
+matrices and arrays.
 
 .. plot::
     :context: reset
 
     >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
     >>> from pygsp import graphs, filters, plotting
+
+We then set default plotting parameters. We're using the ``matplotlib`` backend
+to embed plots in this tutorial. The ``pyqtgraph`` backend is best suited for
+interactive visualization.
+
+.. plot::
+    :context: close-figs
+
     >>> plotting.BACKEND = 'matplotlib'
+    >>> plt.rcParams['figure.figsize'] = (10, 5)
 
-The first step is to create a graph, there's a general class that can be used to generate graph from it's weight matrix.
+Graphs
+------
+
+Most likely, the first thing you would like to do is to create a graph_. In
+this toolbox, a graph is encoded as an adjacency, or weight, matrix. That is
+because it's the most efficient representation to deal with when using spectral
+methods. As such, you can construct a graph from any adjacency matrix as
+follows.
+
+.. _graph: https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)
 
 .. plot::
     :context: close-figs
 
-    >>> np.random.seed(42) # We will use a seed to make reproducible results
-    >>> W = np.random.rand(400, 400)
+    >>> rs = np.random.RandomState(42)  # Reproducible results.
+    >>> W = rs.uniform(size=(30, 30))  # Full graph.
+    >>> W[W < 0.93] = 0  # Sparse graph.
+    >>> W = W + W.T  # Symmetric graph.
     >>> G = graphs.Graph(W)
+    >>> print('{} nodes, {} edges'.format(G.N, G.Ne))
+    30 nodes, 122 edges
 
-You have now a graph structure ready to be used everywhere in the box! Check the :mod:`pygsp.graphs` module to know more about the Graph class and it's subclasses.
-You can also check the included methods for all graphs with the usual help function.
+The :class:`pygsp.graphs.Graph` class we just instantiated is the base class
+for all graph objects, which offers many methods and attributes.
 
-For the next steps of the demo, we will be using the logo graph bundled with the toolbox :
-
-.. plot::
-    :context: close-figs
-
-    >>> G = graphs.Logo()
-
-You can now plot the graph:
+Given, a graph object, we can test some properties.
 
 .. plot::
     :context: close-figs
 
-    >>> G.plot()
+    >>> G.is_connected()
+    True
+    >>> G.is_directed()
+    False
 
-Looks good isn't it? Now we can start to analyse the graph. The next step to compute Graph Fourier Transform or exact graph filtering is to precompute the Fourier basis of the graph. This operation can be very long as it needs to to fully diagonalize the Laplacian. Happily it is not needed to filter signal on graphs.
+We can retrieve our weight matrix, which is stored in a sparse format.
+
+.. plot::
+    :context: close-figs
+
+    >>> (G.W == W).all()
+    True
+    >>> type(G.W)
+    <class 'scipy.sparse.lil.lil_matrix'>
+
+We can access the `graph Laplacian`_
+
+.. _graph Laplacian: https://en.wikipedia.org/wiki/Laplacian_matrix
+
+.. plot::
+    :context: close-figs
+
+    >>> # The graph Laplacian (combinatorial by default).
+    >>> G.L.shape
+    (30, 30)
+
+We can also compute and get the graph Fourier basis (see below).
 
 .. plot::
     :context: close-figs
 
     >>> G.compute_fourier_basis()
+    >>> G.U.shape
+    (30, 30)
 
-You can now access the eigenvalues of the fourier basis with G.e and the eigenvectors G.U, they look like sinuses on the graph.
-Let's plot the second and third eigenvectors, as the first is constant.
+Or the graph differential operator, useful to e.g. compute the gradient or
+smoothness of a signal.
 
 .. plot::
     :context: close-figs
 
-    >>> G.plot_signal(G.U[:, 1], vertex_size=50)
-    >>> G.plot_signal(G.U[:, 2], vertex_size=50)
+    >>> G.compute_differential_operator()
+    >>> G.D.shape  # Not G.Ne / 2 because of self-loops.
+    (62, 30)
 
-Let's discover basic filters operations, filters are usually defined in the spectral domain.
+.. note::
+    Note that we called :meth:`pygsp.graphs.Graph.compute_fourier_basis` and
+    :meth:`pygsp.graphs.Graph.compute_differential_operator` before accessing
+    the Fourier basis :attr:`pygsp.graphs.Graph.U` and the differential
+    operator :attr:`pygsp.graphs.Graph.D`. Doing so is however not mandatory as
+    those matrices would have been computed when requested (lazy evaluation).
+    Omitting to call the *compute* functions does print a warning to tell you
+    that a potentially heavy computation is taking place under the hood (that's
+    also the reason those matrices are not computed when the graph object is
+    instantiated). It is thus encouraged to call them so that you are aware of
+    the involved computations.
 
-Given the transfer function
+To be able to plot a graph, we need to embed its nodes in a 2D or 3D space.
+While most included graph models define these coordinates, the graph we just
+created do not. We only passed a weight matrix after all. Let's set some
+coordinates with :meth:`pygsp.graphs.Graph.set_coordinates` and plot our graph.
 
-.. math:: \begin{equation*} g(x) =\frac{1}{1+\tau x} \end{equation*},
+.. plot::
+    :context: close-figs
 
-let's define a filter object:
+    >>> G.set_coordinates('ring2D')
+    >>> G.plot()
+
+While we created our first graph ourselves, many standard models of graphs are
+implemented as subclasses of the Graph class and can be easily instantiated.
+Check the :mod:`pygsp.graphs` module to get a list of them and learn more about
+the Graph object.
+
+Fourier basis
+-------------
+
+As in classical signal processing, the Fourier transform plays a central role
+in graph signal processing. Getting the Fourier basis is however
+computationally intensive as it needs to fully diagonalize the Laplacian. While
+it can be used to filter signals on graphs, a better alternative is to use one
+of the fast approximations (see :meth:`pygsp.filters.Filter.analysis`). Let's
+compute it nonetheless to visualize the eigenvectors of the Laplacian.
+Analogous to classical Fourier analysis, they look like sinuses on the graph.
+Let's plot the second and third eigenvectors (the first is constant). Those are
+graph signals, i.e. functions :math:`s: \mathcal{V} \rightarrow \mathbb{R}^d`
+which assign a set of values (a vector in :math:`\mathbb{R}^d`) at every node
+:math:`v \in \mathcal{V}` of the graph.
+
+.. plot::
+    :context: close-figs
+
+    >>> G = graphs.Logo()
+    >>> G.compute_fourier_basis()
+    >>>
+    >>> fig, axes = plt.subplots(1, 2, figsize=(10, 3))
+    >>> for i, ax in enumerate(axes):
+    ...     G.plot_signal(G.U[:, i+1], vertex_size=30, ax=ax)
+    ...     ax.set_title('Eigenvector {}'.format(i+2))  #doctest:+SKIP
+    ...     ax.set_axis_off()
+    >>> fig.tight_layout()
+
+Filters
+-------
+
+To filter signals on graphs, we need to define filters. They are represented in
+the toolbox by the :class:`pygsp.filters.Filter` class. Filters are usually
+defined in the spectral domain. Given the transfer function
+
+.. math:: g(x) = \frac{1}{1 + \tau x},
+
+let's define and plot that low-pass filter:
 
 .. plot::
     :context: close-figs
@@ -68,44 +172,62 @@ let's define a filter object:
     >>> tau = 1
     >>> def g(x):
     ...     return 1. / (1. + tau * x)
-    >>> F = filters.Filter(G, g)
+    >>> g = filters.Filter(G, g)
+    >>>
+    >>> fig, ax = plt.subplots()
+    >>> g.plot(plot_eigenvalues=True, ax=ax)
+    >>> ax.set_title('Filter frequency response')  #doctest:+SKIP
 
-You can also put multiple functions in a list to define a filterbank!
+The filter is plotted along all the spectrum of the graph. The black crosses
+are the eigenvalues of the Laplacian. They are the points where the continuous
+filter will be evaluated to create a discrete filter.
 
-.. plot::
-    :context: close-figs
+.. note::
+    You can put multiple functions in a list to define a `filter bank`_!
 
-    >>> F.plot(plot_eigenvalues=True)
+.. _filter bank: https://en.wikipedia.org/wiki/Filter_bank
 
-Here's our low pass filter.
+.. note::
+    The :mod:`pygsp.filters` module implements various standard filters.
 
-To go with our new filter, let's create a nice signal on the logo by setting each letter to a certain value and then adding some random noise.
-
-.. plot::
-    :context: close-figs
-
-    >>> f = np.zeros((G.N,))
-    >>> f[G.info['idx_g']-1] = - 1
-    >>> f[G.info['idx_s']-1] = 1
-    >>> f[G.info['idx_p']-1] = -0.5
-    >>> f += np.random.rand(G.N,)
-
-The filter is plotted all along the spectrum of the graph, the cross at the bottom are the laplacian's eigenvalues. Those are the point where the continuous filter will be evaluated to create a discrete filter.
-To apply it to a given signal, you only need to run:
+Let's create a graph signal and add some random noise.
 
 .. plot::
     :context: close-figs
 
-    >>> f2 = F.analysis(f)
+    >>> # Graph signal: each letter gets a different value + additive noise.
+    >>> s = np.zeros(G.N)
+    >>> s[G.info['idx_g']-1] = -1
+    >>> s[G.info['idx_s']-1] = 0
+    >>> s[G.info['idx_p']-1] = 1
+    >>> s += rs.uniform(-0.5, 0.5, size=G.N)
 
-Finally here's the noisy signal and the denoised version right under.
+We can now try to denoise that signal by filtering it with the above defined
+low-pass filter.
 
 .. plot::
     :context: close-figs
 
-    >>> G.plot_signal(f, vertex_size=50)
-    >>> G.plot_signal(f2, vertex_size=50)
+    >>> s2 = g.analysis(s)
+    >>>
+    >>> fig, axes = plt.subplots(1, 2, figsize=(10, 3))
+    >>> G.plot_signal(s, vertex_size=30, ax=axes[0])
+    >>> axes[0].set_title('Noisy signal')  #doctest:+SKIP
+    >>> axes[0].set_axis_off()
+    >>> G.plot_signal(s2, vertex_size=30, ax=axes[1])
+    >>> axes[1].set_title('Cleaned signal')  #doctest:+SKIP
+    >>> axes[1].set_axis_off()
+    >>> fig.tight_layout()
 
-So here are the basics for the PyGSP toolbox, please check the other tutorials or the reference guide for more.
+While the noise is largely removed thanks to the filter, some energy is
+diffused between the letters. This is the typical behavior of a low-pass
+filter.
 
-Enjoy the toolbox!
+So here are the basics for the PyGSP. Please check the other tutorials and the
+reference guide for more. Enjoy!
+
+.. note::
+    Please see the review article `The Emerging Field of Signal Processing on
+    Graphs: Extending High-Dimensional Data Analysis to Networks and Other
+    Irregular Domains <https://arxiv.org/abs/1211.0053>`_ for an overview of
+    the methods this package leverages.
