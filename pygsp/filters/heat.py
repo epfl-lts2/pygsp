@@ -1,58 +1,67 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import numpy as np
-from numpy import linalg
 
-from pygsp import utils
 from . import Filter  # prevent circular import in Python < 3.5
-
-
-_logger = utils.build_logger(__name__)
 
 
 class Heat(Filter):
     r"""
-    Heat filterbank
+    Design an heat low-pass filter (simulates heat diffusion when applied).
+
+    The filter is defined in the spectral domain as
+
+    .. math::
+        \hat{g}(x) = \exp \left( \frac{-\tau x}{\lambda_{\text{max}}} \right).
 
     Parameters
     ----------
     G : graph
     tau : int or list of ints
-        Scaling parameter.
+        Scaling parameter. If a list, creates a filter bank with one filter per
+        value of tau.
     normalize : bool
         Normalizes the kernel. Needs the eigenvalues.
 
     Examples
     --------
+    >>> import numpy as np
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
-    >>> F = filters.Heat(G)
+
+    Regular heat kernel.
+
+    >>> g = filters.Heat(G, tau=[5, 10])
+    >>> print('{} filters'.format(g.Nf))
+    2 filters
+    >>> y = g.evaluate(G.e)
+    >>> print('{:.2f}'.format(np.linalg.norm(y[0])))
+    9.76
+
+    Normalized heat kernel.
+
+    >>> g = filters.Heat(G, tau=[5, 10], normalize=True)
+    >>> y = g.evaluate(G.e)
+    >>> print('{:.2f}'.format(np.linalg.norm(y[0])))
+    1.00
 
     """
 
     def __init__(self, G, tau=10, normalize=False, **kwargs):
 
+        try:
+            iter(tau)
+        except TypeError:
+            tau = [tau]
+
+        def kernel(x, t, norm=1):
+            return np.exp(-t * x / G.lmax) / norm
+
         g = []
-
-        if normalize:
-            if isinstance(tau, list):
-                for t in tau:
-                    def gu(x, taulam=t):
-                        return np.exp(-taulam * x/G.lmax)
-                    ng = linalg.norm(gu(G.e))
-                    g.append(lambda x, taulam=t: np.exp(-taulam *
-                                                        x/G.lmax / ng))
-            else:
-                def gu(x):
-                    return np.exp(-tau * x/G.lmax)
-                ng = linalg.norm(gu(G.e))
-                g.append(lambda x: np.exp(-tau * x/G.lmax / ng))
-
-        else:
-            if isinstance(tau, list):
-                for t in tau:
-                    g.append(lambda x, taulam=t: np.exp(-taulam * x/G.lmax))
-            else:
-                g.append(lambda x: np.exp(-tau * x/G.lmax))
+        for t in tau:
+            norm = np.linalg.norm(kernel(G.e, t)) if normalize else 1
+            g.append(lambda x, t=t, norm=norm: kernel(x, t, norm))
 
         super(Heat, self).__init__(G, g, **kwargs)
