@@ -6,6 +6,7 @@ Test suite for the plotting module of the pygsp package.
 """
 
 import unittest
+import os
 
 import numpy as np
 from skimage import data, img_as_float
@@ -88,6 +89,14 @@ class TestCase(unittest.TestCase):
                 G.plot_signal(signal, backend='pyqtgraph')
                 G.plot_signal(signal, backend='matplotlib')
                 plotting.close_all()
+
+
+    def test_save(self):
+        G = graphs.Logo()
+        name = 'test_plot'
+        G.plot(backend='matplotlib', save_as=name)
+        os.remove(name + '.png')
+        os.remove(name + '.pdf')
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

@@ -48,6 +48,40 @@ _qtg_widgets = []
 _plt_figures = []
 
 
+def _plt_handle_figure(plot):
+
+    def inner(obj, *args, **kwargs):
+
+        # Create a figure and an axis if none were passed.
+        if not 'ax' in kwargs.keys():
+            fig = plt.figure()
+            global _plt_figures
+            _plt_figures.append(fig)
+
+            if hasattr(obj, 'coords') and obj.coords.shape[1] == 3:
+                ax = fig.add_subplot(111, projection='3d')
+            else:
+                ax = fig.add_subplot(111)
+
+            kwargs.update(ax=ax)
+
+        save_as = kwargs.pop('save_as', None)
+
+        plot(obj, *args, **kwargs)
+
+        try:
+            if save_as is not None:
+                fig.savefig(save_as + '.png')
+                fig.savefig(save_as + '.pdf')
+            else:
+                fig.show(warn=False)
+        except NameError:
+            # No figure created, an axis was passed.
+            pass
+
+    return inner
+
+
 def close_all():
     r"""
     Close all opened windows.
@@ -132,12 +166,11 @@ def plot_graph(G, backend=None, **kwargs):
         Set to False to only draw the vertices (default G.Ne < 10000).
     backend: {'matplotlib', 'pyqtgraph'}
         Defines the drawing backend to use. Defaults to :data:`BACKEND`.
-    plot_name : string
+    plot_name : str
         name of the plot
-    savefig : boolean
-        whether the plot is saved as plot_name.png and plot_name.pdf (True) or
-        shown in a window (False) (default False). Only available with the
-        matplotlib backend.
+    save_as : str
+        Whether to save the plot as save_as.png and save_as.pdf. Shown in a
+        window if None (default). Only available with the matplotlib backend.
     ax : matplotlib.axes
         Axes where to draw the graph. Optional, created if not passed. Only
         available with the matplotlib backend.
@@ -166,7 +199,8 @@ def plot_graph(G, backend=None, **kwargs):
         raise ValueError('The {} backend is not available.'.format(backend))
 
 
-def _plt_plot_graph(G, savefig=False, show_edges=None, plot_name='', ax=None):
+@_plt_handle_figure
+def _plt_plot_graph(G, show_edges=None, plot_name='', ax=None):
 
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
@@ -186,16 +220,6 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, plot_name='', ax=None):
         edge_color = G.plotting['edge_color']
     except KeyError:
         edge_color = np.array([255, 88, 41]) / 255.
-
-    if not ax:
-        fig = plt.figure()
-        global _plt_figures
-        _plt_figures.append(fig)
-
-        if G.coords.shape[1] == 2:
-            ax = fig.add_subplot(111)
-        elif G.coords.shape[1] == 3:
-            ax = fig.add_subplot(111, projection='3d')
 
     if show_edges:
         ki, kj = np.nonzero(G.A)
@@ -270,16 +294,6 @@ def _plt_plot_graph(G, savefig=False, show_edges=None, plot_name='', ax=None):
             ax.dist = G.plotting['distance']
         except KeyError:
             pass
-
-    try:
-        if savefig:
-            fig.savefig(plot_name + '.png')
-            fig.savefig(plot_name + '.pdf')
-        else:
-            fig.show(warn=False)
-    except NameError:
-        # No figure created, an axis was passed.
-        pass
 
     # threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
@@ -394,16 +408,17 @@ def _qtg_plot_graph(G, show_edges=None, plot_name=''):
             _qtg_widgets.append(widget)
 
 
+@_plt_handle_figure
 def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
                 x_size=10, plot_eigenvalues=None, show_sum=None,
-                savefig=False, plot_name=None, ax=None):
+                plot_name=None, ax=None):
     r"""
-    Plot a filter bank, i.e. a set of graph filters.
+    Plot the spectral response of a filter bank, a set of graph filters.
 
     Parameters
     ----------
     filters : Filter
-        Filter to plot.
+        Filter bank to plot.
     npoints : int
         Number of point where the filters are evaluated.
     line_width : int
@@ -421,10 +436,9 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
         of the filters (default True if there is multiple filters).
     plot_name : string
         name of the plot
-    savefig : boolean
-        whether the plot is saved as plot_name.png and plot_name.pdf (True) or
-        shown in a window (False) (default False). Only available with the
-        matplotlib backend.
+    save_as : str
+        Whether to save the plot as save_as.png and save_as.pdf. Shown in a
+        window if None (default). Only available with the matplotlib backend.
     ax : matplotlib.axes
         Axes where to draw the graph. Optional, created if not passed. Only
         available with the matplotlib backend.
@@ -440,12 +454,10 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
 
     G = filters.G
 
-    if not isinstance(filters.g, list):
-        filters.g = [filters.g]
     if plot_eigenvalues is None:
         plot_eigenvalues = hasattr(G, '_e')
     if show_sum is None:
-        show_sum = len(filters.g) > 1
+        show_sum = filters.Nf > 1
     if plot_name is None:
         plot_name = u"Filter plot of {}".format(G.gtype)
 
@@ -455,15 +467,9 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     fd = filters.evaluate(lambdas)
 
     # Plot the filter
-    if not ax:
-        fig = plt.figure()
-        global _plt_figures
-        _plt_figures.append(fig)
-        ax = fig.add_subplot(111)
-
     if filters.Nf == 1:
         ax.plot(lambdas, fd, linewidth=line_width)
-    elif filters.Nf > 1:
+    else:
         for fd_i in fd:
             ax.plot(lambdas, fd_i, linewidth=line_width)
 
@@ -472,22 +478,12 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
         ax.plot(G.e, np.zeros(G.N), 'xk', markeredgewidth=x_width,
                 markersize=x_size)
 
-    # Plot highlighted eigenvalues TODO
+    # TODO: plot highlighted eigenvalues
 
     # Plot the sum
     if show_sum:
         test_sum = np.sum(np.power(fd, 2), 0)
         ax.plot(lambdas, test_sum, 'k', linewidth=line_width)
-
-    try:
-        if savefig:
-            fig.savefig(plot_name + '.png')
-            fig.savefig(plot_name + '.pdf')
-        else:
-            fig.show(warn=False)
-    except NameError:
-        # No figure created, an axis was passed.
-        pass
 
 
 def plot_signal(G, signal, backend=None, **kwargs):
@@ -524,10 +520,9 @@ def plot_signal(G, signal, backend=None, **kwargs):
         Defines the drawing backend to use. Defaults to :data:`BACKEND`.
     plot_name : string
         Name of the plot.
-    savefig : boolean
-        Whether the plot is saved as plot_name.png and plot_name.pdf (True) or
-        shown in a window (False) (default False). Only available with the
-        matplotlib backend.
+    save_as : str
+        Whether to save the plot as save_as.png and save_as.pdf. Shown in a
+        window if None (default). Only available with the matplotlib backend.
     ax : matplotlib.axes
         Axes where to draw the graph. Optional, created if not passed. Only
         available with the matplotlib backend.
@@ -556,8 +551,9 @@ def plot_signal(G, signal, backend=None, **kwargs):
         raise ValueError('The {} backend is not available.'.format(backend))
 
 
+@_plt_handle_figure
 def _plt_plot_signal(G, signal, show_edges=None, vertex_size=100, limits=None,
-                     colorbar=True, savefig=False, plot_name=None, ax=None):
+                     colorbar=True, plot_name=None, ax=None):
 
     if np.sum(np.abs(signal.imag)) > 1e-10:
         raise ValueError("Can't display complex signal.")
@@ -567,16 +563,6 @@ def _plt_plot_signal(G, signal, show_edges=None, vertex_size=100, limits=None,
         plot_name = "Signal plot of " + G.gtype
     if limits is None:
         limits = [signal.min(), signal.max()]
-
-    if not ax:
-        fig = plt.figure()
-        global _plt_figures
-        _plt_figures.append(fig)
-
-        if G.coords.shape[1] == 2:
-            ax = fig.add_subplot(111)
-        elif G.coords.shape[1] == 3:
-            ax = fig.add_subplot(111, projection='3d')
 
     if show_edges:
         ki, kj = np.nonzero(G.A)
@@ -634,16 +620,6 @@ def _plt_plot_signal(G, signal, show_edges=None, vertex_size=100, limits=None,
 
     if colorbar:
         plt.colorbar(sc, ax=ax)
-
-    try:
-        if savefig:
-            fig.savefig(plot_name + '.png')
-            fig.savefig(plot_name + '.pdf')
-        else:
-            fig.show(warn=False)
-    except NameError:
-        # No figure created, an axis was passed.
-        pass
 
 
 def _qtg_plot_signal(G, signal, show_edges=None,
