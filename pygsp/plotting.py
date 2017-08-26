@@ -482,6 +482,9 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
         test_sum = np.sum(np.power(fd, 2), 0)
         ax.plot(lambdas, test_sum, 'k', linewidth=line_width)
 
+    ax.set_xlabel("laplacian's eigenvalues / graph frequencies")
+    ax.set_ylabel('filter response')
+
 
 def plot_signal(G, signal, backend=None, **kwargs):
     r"""
