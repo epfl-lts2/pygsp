@@ -11,16 +11,20 @@ _logger = utils.build_logger(__name__)
 
 class SimpleTf(Filter):
     r"""
-    SimpleTf filterbank
+    Design a simple tight frame filter bank.
+
+    These filters have been designed to be a simple tight frame wavelet filter
+    bank. The kernel is similar to Meyer, but simpler. The function is
+    essentially :math:`\sin^2(x)` in ascending part and :math:`\cos^2` in
+    descending part.
 
     Parameters
     ----------
     G : graph
     Nf : int
-        Number of filters from 0 to lmax (default = 6)
-    t : ndarray
-        Vector of scale to be used (Initialized by default at the value
-        of the log scale)
+        Number of filters to cover the interval [0, lmax].
+    scales : array-like
+        Scales to be used. Defaults to log scale.
 
     Examples
     --------
@@ -30,20 +34,24 @@ class SimpleTf(Filter):
 
     """
 
-    def __init__(self, G, Nf=6, t=None, **kwargs):
+    def __init__(self, G, Nf=6, scales=None, **kwargs):
 
-        def kernel_simple_tf(x, kerneltype):
+        def kernel(x, kerneltype):
             r"""
-            Evaluates 'simple' tight-frame kernel
+            Evaluates 'simple' tight-frame kernel.
+
+            * simple tf wavelet kernel: supported on [1/4, 1]
+            * simple tf scaling function kernel: supported on [0, 1/2]
 
             Parameters
             ----------
             x : ndarray
-                Array if independant variable values
+                Array of independent variable values
             kerneltype : str
                 Can be either 'sf' or 'wavelet'
 
-            Returns:
+            Returns
+            -------
             r : ndarray
 
             """
@@ -70,16 +78,15 @@ class SimpleTf(Filter):
 
             return r
 
-        if not t:
-            t = (1./(2.*G.lmax) * np.power(2, np.arange(Nf-2, -1, -1)))
+        if not scales:
+            scales = (1./(2.*G.lmax) * np.power(2, np.arange(Nf-2, -1, -1)))
 
-        if len(t) != Nf - 1:
-            _logger.warning('You have specified more scales than '
-                            'number of filters minus 1.')
+        if len(scales) != Nf - 1:
+            raise ValueError('len(scales) should be Nf-1.')
 
-        g = [lambda x: kernel_simple_tf(t[0] * x, 'sf')]
+        g = [lambda x: kernel(scales[0] * x, 'sf')]
 
         for i in range(Nf - 1):
-            g.append(lambda x, ind=i: kernel_simple_tf(t[ind] * x, 'wavelet'))
+            g.append(lambda x, i=i: kernel(scales[i] * x, 'wavelet'))
 
         super(SimpleTf, self).__init__(G, g, **kwargs)
