@@ -13,9 +13,9 @@ class Ring(Graph):
     Parameters
     ----------
     N : int
-        Number of vertices (default is 64)
+        Number of vertices.
     k : int
-        Number of neighbors in each directions (default is 1)
+        Number of neighbors in each direction.
 
     Examples
     --------
@@ -29,7 +29,6 @@ class Ring(Graph):
         if 2*k > N:
             raise ValueError('Too many neighbors requested.')
 
-        # Create weighted adjacency matrix
         if 2*k == N:
             num_edges = N * (k - 1) + k
         else:
@@ -57,4 +56,7 @@ class Ring(Graph):
         gtype = 'ring' if k == 1 else 'k-ring'
         self.k = k
 
-        super(Ring, self).__init__(W=W, gtype=gtype, plotting=plotting, **kwargs)
+        super(Ring, self).__init__(W=W, gtype=gtype, plotting=plotting,
+                                   **kwargs)
+
+        self.set_coordinates('ring2D')

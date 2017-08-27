@@ -37,6 +37,10 @@ class RandomRing(Graph):
         W[N - 1, 0] = weightend
         W = W + W.T
 
+        angle = position * 2 * np.pi
+        coords = np.stack([np.cos(angle), np.sin(angle)], axis=1)
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
-        super(RandomRing, self).__init__(W=W, gtype='random-ring', plotting=plotting)
+        super(RandomRing, self).__init__(W=W, gtype='random-ring',
+                                         coords=coords, plotting=plotting,
+                                         **kwargs)
