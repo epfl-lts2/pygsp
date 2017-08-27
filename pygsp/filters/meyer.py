@@ -40,14 +40,14 @@ class Meyer(Filter):
             scales = (4./(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
 
         if len(scales) != Nf - 1:
-            raise ValueError('The number of scales should be equal to '
-                             'the number of filters minus 1.')
+            raise ValueError('len(scales) should be Nf-1.')
 
-        g = [lambda x: kernel_meyer(scales[0] * x, 'scaling_function')]
+        g = [lambda x: kernel(scales[0] * x, 'scaling_function')]
+
         for i in range(Nf - 1):
-            g.append(lambda x: kernel_meyer(scales[i] * x, 'wavelet'))
+            g.append(lambda x, i=i: kernel(scales[i] * x, 'wavelet'))
 
-        def kernel_meyer(x, kernel_type):
+        def kernel(x, kernel_type):
             r"""
             Evaluates Meyer function and scaling function
 

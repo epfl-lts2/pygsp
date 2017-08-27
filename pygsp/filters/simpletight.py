@@ -60,9 +60,10 @@ class SimpleTight(Filter):
             l2 = 0.5
             l3 = 1.
 
-            h = lambda x: np.sin(np.pi*x/2.)**2
+            def h(x):
+                return np.sin(np.pi*x/2.)**2
 
-            r1ind = x < l1
+            r1ind = (x < l1)
             r2ind = (x >= l1) * (x < l2)
             r3ind = (x >= l2) * (x < l3)
 
