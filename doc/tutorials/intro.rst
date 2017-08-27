@@ -155,6 +155,23 @@ which assign a set of values (a vector in :math:`\mathbb{R}^d`) at every node
     ...     ax.set_axis_off()
     >>> fig.tight_layout()
 
+The parallel with classical signal processing is best seen on a ring graph,
+where the graph Fourier basis is equivalent to the classical Fourier basis.
+The following plot shows some eigenvectors drawn on a 1D and 2D embedding of
+the ring graph. While the signals are easier to interpret on a 1D plot, the 2D
+plot best represents the graph.
+
+.. plot::
+    :context: close-figs
+
+    >>> G2 = graphs.Ring(N=50)
+    >>> G2.compute_fourier_basis()
+    >>> fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+    >>> G2.plot_signal(G2.U[:, 4], ax=axes[0])
+    >>> G2.set_coordinates('line1D')
+    >>> G2.plot_signal(G2.U[:, 1:4], ax=axes[1])
+    >>> fig.tight_layout()
+
 Filters
 -------
 
