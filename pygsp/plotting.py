@@ -19,6 +19,8 @@ with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
 
 """
 
+from __future__ import division
+
 import numpy as np
 
 try:
@@ -163,10 +165,14 @@ def plot_graph(G, backend=None, **kwargs):
     ----------
     G : Graph
         Graph to plot.
-    show_edges : boolean
-        Set to False to only draw the vertices (default G.Ne < 10000).
+    show_edges : bool
+        True to draw edges, false to only draw vertices.
+        Default True if less than 10,000 edges to draw.
+        Note that drawing a large number of edges might be particularly slow.
     backend: {'matplotlib', 'pyqtgraph'}
         Defines the drawing backend to use. Defaults to :data:`BACKEND`.
+    vertex_size : float
+        Size of circle representing each node.
     plot_name : str
         name of the plot
     save_as : str
@@ -186,8 +192,15 @@ def plot_graph(G, backend=None, **kwargs):
     if not hasattr(G, 'coords'):
         raise AttributeError('Graph has no coordinate set. '
                              'Please run G.set_coordinates() first.')
-    if G.coords.shape[1] not in [2, 3]:
+    if (G.coords.ndim != 2) or (G.coords.shape[1] not in [2, 3]):
         raise AttributeError('Coordinates should be in 2D or 3D space.')
+
+    kwargs['show_edges'] = kwargs.pop('show_edges', G.Ne < 10e3)
+
+    default = G.plotting['vertex_size']
+    kwargs['vertex_size'] = kwargs.pop('vertex_size', default)
+
+    kwargs['plot_name'] = kwargs.pop('plot_name', G.gtype)
 
     if backend is None:
         backend = BACKEND
@@ -201,54 +214,40 @@ def plot_graph(G, backend=None, **kwargs):
 
 
 @_plt_handle_figure
-def _plt_plot_graph(G, show_edges=None, plot_name='', ax=None):
+def _plt_plot_graph(G, show_edges, vertex_size, plot_name, ax):
 
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
 
-    if not plot_name:
-        plot_name = u"Plot of {}".format(G.gtype)
-
-    if show_edges is None:
-        show_edges = G.Ne < 10000
-
-    try:
-        vertex_size = G.plotting['vertex_size']
-    except KeyError:
-        vertex_size = 100
-
-    try:
-        edge_color = G.plotting['edge_color']
-    except KeyError:
-        edge_color = [0.5, 0.5, 0.5]
-
     if show_edges:
         ki, kj = np.nonzero(G.A)
+
         if G.is_directed():
             raise NotImplementedError
+
         else:
             if G.coords.shape[1] == 2:
-                ki, kj = np.nonzero(G.A)
+                # TODO: use np.stack
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
                                     np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
                                     np.expand_dims(G.coords[kj, 1], axis=0)))
 
-                if isinstance(G.plotting['vertex_color'], list):
-                    ax.plot(x, y, linewidth=G.plotting['edge_width'],
-                            color=edge_color,
-                            linestyle=G.plotting['edge_style'],
-                            marker='', zorder=1)
-
-                    ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
-                               s=vertex_size,
-                               c=G.plotting['vertex_color'], zorder=2)
-                else:
-                    ax.plot(x, y, linewidth=G.plotting['edge_width'],
-                            color=edge_color,
-                            linestyle=G.plotting['edge_style'],
-                            marker='o', markersize=vertex_size,
-                            markerfacecolor=G.plotting['vertex_color'])
+#               if isinstance(G.plotting['vertex_color'], list):
+#                   ax.plot(x, y, linewidth=G.plotting['edge_width'],
+#                           color=G.plotting['edge_color'],
+#                           linestyle=G.plotting['edge_style'],
+#                           marker='', zorder=1)
+#
+#                   ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
+#                              s=vertex_size,
+#                              c=G.plotting['vertex_color'], zorder=2)
+#               else:
+                ax.plot(x, y, linewidth=G.plotting['edge_width'],
+                        color=G.plotting['edge_color'],
+                        linestyle=G.plotting['edge_style'],
+                        marker='o', markersize=vertex_size/10,
+                        markerfacecolor=G.plotting['vertex_color'])
 
             if G.coords.shape[1] == 3:
                 # Very dirty way to display a 3d graph
@@ -273,9 +272,9 @@ def _plt_plot_graph(G, show_edges=None, plot_name='', ax=None):
                     y3 = y2[i:i + 2]
                     z3 = z2[i:i + 2]
                     ax.plot(x3, y3, z3, linewidth=G.plotting['edge_width'],
-                            color=edge_color,
+                            color=G.plotting['edge_color'],
                             linestyle=G.plotting['edge_style'],
-                            marker='o', markersize=vertex_size,
+                            marker='o', markersize=vertex_size/10,
                             markerfacecolor=G.plotting['vertex_color'])
     else:
         # TODO: is ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo') faster?
@@ -299,17 +298,9 @@ def _plt_plot_graph(G, show_edges=None, plot_name='', ax=None):
     # threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
 
 
-def _qtg_plot_graph(G, show_edges=None, plot_name=''):
+def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
 
     # TODO handling when G is a list of graphs
-
-    if show_edges is None:
-        show_edges = G.Ne < 10000
-
-    try:
-        edge_color = G.plotting['edge_color']
-    except KeyError:
-        edge_color = [0.5, 0.5, 0.5]
 
     ki, kj = np.nonzero(G.A)
     if G.is_directed():
@@ -320,27 +311,30 @@ def _qtg_plot_graph(G, show_edges=None, plot_name=''):
                                   np.expand_dims(kj, axis=1)), axis=1)
 
             window = qtg.GraphicsWindow()
-            window.setWindowTitle(G.plotting['plot_name'] if 'plot_name' in G.plotting else plot_name or G.gtype)
+            window.setWindowTitle(plot_name)
             view = window.addViewBox()
             view.setAspectLocked()
 
-            extra_args = {}
-            if isinstance(G.plotting['vertex_color'], list):
-                extra_args['symbolPen'] = [qtg.mkPen(v_col) for v_col in G.plotting['vertex_color']]
-                extra_args['brush'] = [qtg.mkBrush(v_col) for v_col in G.plotting['vertex_color']]
-            elif isinstance(G.plotting['vertex_color'], int):
-                extra_args['symbolPen'] = G.plotting['vertex_color']
-                extra_args['brush'] = G.plotting['vertex_color']
+#           extra_args = {}
+#           if isinstance(G.plotting['vertex_color'], list):
+#               extra_args['symbolPen'] = [qtg.mkPen(v_col) for v_col in G.plotting['vertex_color']]
+#               extra_args['brush'] = [qtg.mkBrush(v_col) for v_col in G.plotting['vertex_color']]
+#           elif isinstance(G.plotting['vertex_color'], int):
+#               extra_args['symbolPen'] = G.plotting['vertex_color']
+#               extra_args['brush'] = G.plotting['vertex_color']
 
             # Define syntactic sugar mapping keywords for the display options
-            for plot_args, qtg_args in [('vertex_size', 'size'), ('vertex_mask', 'mask'), ('edge_color', 'pen'), ('symbolPen', 'symbolPen')]:
-                if plot_args in G.plotting:
-                    extra_args[qtg_args] = G.plotting[plot_args]
+#           for plot_args, qtg_args in [('vertex_mask', 'mask'), ('edge_color', 'pen'), ('symbolPen', 'symbolPen')]:
+#               if plot_args in G.plotting:
+#                   extra_args[qtg_args] = G.plotting[plot_args]
 
-            if not show_edges:
-                extra_args['pen'] = None
+            if show_edges:
+                pen = tuple(np.array(G.plotting['edge_color']) * 255)
+            else:
+                pen = None
 
-            g = qtg.GraphItem(pos=G.coords, adj=adj, **extra_args)
+            g = qtg.GraphItem(pos=G.coords, adj=adj, pen=pen,
+                              size=vertex_size/10)
             view.addItem(g)
 
             global _qtg_windows
@@ -353,7 +347,7 @@ def _qtg_plot_graph(G, show_edges=None, plot_name=''):
             widget = gl.GLViewWidget()
             widget.opts['distance'] = 10
             widget.show()
-            widget.setWindowTitle(G.plotting['plot_name'] if 'plot_name' in G.plotting else plot_name or G.gtype)
+            widget.setWindowTitle(plot_name)
 
             # Very dirty way to display a 3d graph
             x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
@@ -377,29 +371,13 @@ def _qtg_plot_graph(G, show_edges=None, plot_name=''):
                                   np.expand_dims(y2, axis=1),
                                   np.expand_dims(z2, axis=1)), axis=1)
 
-            extra_args = {'color': (0, 0, 1, 1)}
-            if 'vertex_color' in G.plotting:
-                if isinstance(G.plotting['vertex_color'], list):
-                    extra_args['color'] = np.array([qtg.glColor(qtg.mkPen(v_col).color()) for v_col in G.plotting['vertex_color']])
-                elif isinstance(G.plotting['vertex_color'], int):
-                    extra_args['color'] = qtg.glColor(qtg.mkPen(G.plotting['vertex_color']).color())
-                else:
-                    extra_args['color'] = G.plotting['vertex_color']
-
-            # Define syntaxic sugar mapping keywords for the display options
-            for plot_args, qtg_args in [('vertex_size', 'size')]:
-                if plot_args in G.plotting:
-                    G.plotting[qtg_args] = G.plotting.pop(plot_args)
-
-            for qtg_args in ['size']:
-                if qtg_args in G.plotting:
-                    extra_args[qtg_args] = G.plotting[qtg_args]
-
             if show_edges:
-                g = gl.GLLinePlotItem(pos=pts, mode='lines', color=edge_color)
+                g = gl.GLLinePlotItem(pos=pts, mode='lines',
+                                      color=G.plotting['edge_color'])
                 widget.addItem(g)
 
-            gp = gl.GLScatterPlotItem(pos=G.coords, **extra_args)
+            gp = gl.GLScatterPlotItem(pos=G.coords, size=vertex_size/3,
+                                      color=G.plotting['vertex_color'])
             widget.addItem(gp)
 
             global _qtg_widgets
@@ -456,8 +434,6 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
         plot_eigenvalues = hasattr(G, '_e')
     if show_sum is None:
         show_sum = filters.Nf > 1
-    if plot_name is None:
-        plot_name = u"Filter plot of {}".format(G.gtype)
 
     lambdas = np.linspace(0, G.lmax, npoints)
 
@@ -497,12 +473,14 @@ def plot_signal(G, signal, backend=None, **kwargs):
         Graph to plot a signal on top.
     signal : array of int
         Signal to plot. Signal length should be equal to the number of nodes.
-    show_edges : boolean
-        Set to False to only draw the vertices (default G.Ne < 10000).
+    show_edges : bool
+        True to draw edges, false to only draw vertices.
+        Default True if less than 10,000 edges to draw.
+        Note that drawing a large number of edges might be particularly slow.
     cp : list of int
         NOT IMPLEMENTED. Camera position when plotting a 3D graph.
-    vertex_size : int
-        Size of circle representing each signal component.
+    vertex_size : float
+        Size of circle representing each node.
     vertex_highlight : list of boolean
         NOT IMPLEMENTED. Vector of indices for vertices to be highlighted.
     colorbar : bool
@@ -540,6 +518,30 @@ def plot_signal(G, signal, backend=None, **kwargs):
     if not hasattr(G, 'coords'):
         raise AttributeError('Graph has no coordinate set. '
                              'Please run G.set_coordinates() first.')
+    check_2d_3d = (G.coords.ndim != 2) or (G.coords.shape[1] not in [2, 3])
+    if G.coords.ndim != 1 and check_2d_3d:
+        raise AttributeError('Coordinates should be in 1D, 2D or 3D space.')
+
+    signal = signal.squeeze()
+    if G.coords.ndim == 2 and signal.ndim != 1:
+        raise ValueError('Can plot only one signal (not {}) with {}D '
+                         'coordinates.'.format(signal.shape[1],
+                                               G.coords.shape[1]))
+    if signal.shape[0] != G.N:
+        raise ValueError('Signal length is {}, should be '
+                         'G.N = {}.'.format(signal.shape[0], G.N))
+    if np.sum(np.abs(signal.imag)) > 1e-10:
+        raise ValueError("Can't display complex signal.")
+
+    kwargs['show_edges'] = kwargs.pop('show_edges', G.Ne < 10e3)
+
+    default = G.plotting['vertex_size']
+    kwargs['vertex_size'] = kwargs.pop('vertex_size', default)
+
+    kwargs['plot_name'] = kwargs.pop('plot_name', G.gtype)
+
+    limits = [1.05*signal.min(), 1.05*signal.max()]
+    kwargs['limits'] = kwargs.pop('limits', limits)
 
     if backend is None:
         backend = BACKEND
@@ -553,17 +555,8 @@ def plot_signal(G, signal, backend=None, **kwargs):
 
 
 @_plt_handle_figure
-def _plt_plot_signal(G, signal, show_edges=None, vertex_size=100, limits=None,
-                     colorbar=True, plot_name=None, ax=None):
-
-    if np.sum(np.abs(signal.imag)) > 1e-10:
-        raise ValueError("Can't display complex signal.")
-    if show_edges is None:
-        show_edges = G.Ne < 10000
-    if plot_name is None:
-        plot_name = "Signal plot of " + G.gtype
-    if limits is None:
-        limits = [signal.min(), signal.max()]
+def _plt_plot_signal(G, signal, show_edges, limits, plot_name, ax,
+                     vertex_size, colorbar=True):
 
     if show_edges:
         ki, kj = np.nonzero(G.A)
@@ -579,8 +572,11 @@ def _plt_plot_signal(G, signal, show_edges=None, vertex_size=100, limits=None,
                                     np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
                                     np.expand_dims(G.coords[kj, 1], axis=0)))
-                ax.plot(x, y, color='grey', zorder=1)
-            if G.coords.shape[1] == 3:
+                ax.plot(x, y, linewidth=G.plotting['edge_width'],
+                        color=G.plotting['edge_color'],
+                        linestyle=G.plotting['edge_style'],
+                        zorder=1)
+            elif G.coords.shape[1] == 3:
                 # Very dirty way to display 3D graph edges
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
                                     np.expand_dims(G.coords[kj, 0], axis=0)))
@@ -630,17 +626,10 @@ def _plt_plot_signal(G, signal, show_edges=None, vertex_size=100, limits=None,
         plt.colorbar(sc, ax=ax)
 
 
-def _qtg_plot_signal(G, signal, show_edges=None,
-                     vertex_size=15, plot_name=None):
-
-    if np.sum(np.abs(signal.imag)) > 1e-10:
-        raise ValueError("Can't display complex signal.")
-
-    if show_edges is None:
-        show_edges = G.Ne < 10000
+def _qtg_plot_signal(G, signal, show_edges, plot_name, vertex_size, limits):
 
     if G.coords.shape[1] == 2:
-        window = qtg.GraphicsWindow(plot_name or G.gtype)
+        window = qtg.GraphicsWindow(plot_name)
         view = window.addViewBox()
     elif G.coords.shape[1] == 3:
         if not QtGui.QApplication.instance():
@@ -649,7 +638,7 @@ def _qtg_plot_signal(G, signal, show_edges=None,
         widget = gl.GLViewWidget()
         widget.opts['distance'] = 10
         widget.show()
-        widget.setWindowTitle(plot_name or G.gtype)
+        widget.setWindowTitle(plot_name)
 
     # Plot edges
     if show_edges:
@@ -661,8 +650,9 @@ def _qtg_plot_signal(G, signal, show_edges=None,
                 adj = np.concatenate((np.expand_dims(ki, axis=1),
                                       np.expand_dims(kj, axis=1)), axis=1)
 
+                pen = tuple(np.array(G.plotting['edge_color']) * 255)
                 g = qtg.GraphItem(pos=G.coords, adj=adj, symbolBrush=None,
-                                 symbolPen=None)
+                                  symbolPen=None, pen=pen)
                 view.addItem(g)
 
             if G.coords.shape[1] == 3:
@@ -688,12 +678,9 @@ def _qtg_plot_signal(G, signal, show_edges=None,
                                       np.expand_dims(y2, axis=1),
                                       np.expand_dims(z2, axis=1)), axis=1)
 
-                g = gl.GLLinePlotItem(pos=pts, mode='lines')
-
-                gp = gl.GLScatterPlotItem(pos=G.coords, color=(1., 0., 0., 1))
-
+                g = gl.GLLinePlotItem(pos=pts, mode='lines',
+                                      color=G.plotting['edge_color'])
                 widget.addItem(g)
-                widget.addItem(gp)
 
     # Plot signal on top
     pos = [1, 8, 24, 40, 56, 64]
@@ -708,12 +695,14 @@ def _qtg_plot_signal(G, signal, show_edges=None,
 
     if G.coords.shape[1] == 2:
         gp = qtg.ScatterPlotItem(G.coords[:, 0],
-                                G.coords[:, 1],
-                                size=vertex_size,
-                                brush=cmap.map(normalized_signal, 'qcolor'))
+                                 G.coords[:, 1],
+                                 size=vertex_size/10,
+                                 brush=cmap.map(normalized_signal, 'qcolor'))
         view.addItem(gp)
     if G.coords.shape[1] == 3:
-        gp = gl.GLScatterPlotItem(pos=G.coords, size=vertex_size, color=signal)
+        gp = gl.GLScatterPlotItem(pos=G.coords,
+                                  size=vertex_size/3,
+                                  color=signal)
         widget.addItem(gp)
 
     # Multiple windows handling

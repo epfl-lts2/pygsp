@@ -103,8 +103,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             if not self.is_connected():
                 self.logger.warning('Graph is not connected!')
 
-        self.plotting = {'vertex_size': 10, 'edge_width': 1,
-                         'edge_style': '-', 'vertex_color': 'b'}
+        self.plotting = {'vertex_size': 100,
+                         'vertex_color': (0.12, 0.47, 0.71, 1),
+                         'edge_color': (0.5, 0.5, 0.5, 1),
+                         'edge_width': 1,
+                         'edge_style': '-'}
         self.plotting.update(plotting)
 
     def check_weights(self):

@@ -24,8 +24,6 @@ class Bunny(NNGraph):
         data = utils.loadmat('pointclouds/bunny')
 
         plotting = {'vertex_size': 10,
-                    'vertex_color': (1, 1, 1, 1),
-                    'edge_color': (.5, .5, .5, 1),
                     'elevation': -89,
                     'azimuth': 94,
                     'distance': 7}
