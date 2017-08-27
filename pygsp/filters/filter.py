@@ -279,8 +279,8 @@ class Filter(object):
         >>> g.plot()
         >>> G.plot_signal(s1[:, 0])
         >>> G.plot_signal(s2[:, 0])
-        >>> print('{:.2f}'.format(np.linalg.norm(s1 - s2)))
-        0.30
+        >>> print('{:.1f}'.format(np.linalg.norm(s1 - s2)))
+        0.3
 
         Perfect reconstruction with Itersine, a tight frame:
 
