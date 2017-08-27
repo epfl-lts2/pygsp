@@ -31,7 +31,8 @@ class GraphFourier(object):
     @property
     def e(self):
         r"""
-        Graph frequencies, i.e. the eigenvalues of the Laplacian.
+        The eigenvalues of the Laplacian.
+        Their square root are the graph frequencies.
         Is computed by :func:`compute_fourier_basis`.
         """
         return self._check_fourier_properties('e', 'eigenvalues vector')
@@ -44,8 +45,7 @@ class GraphFourier(object):
         """
         return self._check_fourier_properties('mu', 'Fourier basis coherence')
 
-    def compute_fourier_basis(self, smallest_first=True, recompute=False,
-                              **kwargs):
+    def compute_fourier_basis(self, recompute=False):
         r"""
         Compute the Fourier basis of the graph.
 
@@ -54,9 +54,6 @@ class GraphFourier(object):
 
         Parameters
         ----------
-        smallest_first: bool
-            Define the order of the eigenvalues.
-            Default is smallest first (True).
         recompute: bool
             Force to recompute the Fourier basis if already existing.
 
@@ -78,7 +75,7 @@ class GraphFourier(object):
 
         References
         ----------
-        See :cite:`chung1997spectral`
+        See :cite:`chung1997spectral`.
 
         Examples
         --------
@@ -103,15 +100,10 @@ class GraphFourier(object):
             self.logger.warning("Performing full eigendecomposition of a "
                                 "large matrix may take some time.")
 
-        if not hasattr(self, 'L'):
-            raise AttributeError("Graph Laplacian is missing.")
-
         # TODO: np.linalg.{svd,eigh}, sparse.linalg.{svds,eigsh}
         eigenvectors, eigenvalues, _ = scipy.linalg.svd(self.L.todense())
 
         inds = np.argsort(eigenvalues)
-        if not smallest_first:
-            inds = inds[::-1]
 
         self._e = np.sort(eigenvalues)
         self._lmax = np.max(self._e)
