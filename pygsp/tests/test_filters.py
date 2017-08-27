@@ -124,7 +124,7 @@ class TestCase(unittest.TestCase):
         self._test_methods(f)
 
     def test_simpletf(self):
-        f = filters.SimpleTf(self._G, Nf=4)
+        f = filters.SimpleTight(self._G, Nf=4)
         self._test_methods(f)
 
     def test_warpedtranslates(self):

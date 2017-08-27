@@ -28,7 +28,7 @@ Then, derived classes implement various common graph filters.
 * :class:`Itersine`: design an itersine filter bank (tight frame)
 * :class:`MexicanHat`: design a mexican hat filter bank
 * :class:`Meyer`: design a Meyer filter bank
-* :class:`SimpleTf`: design a simple tight frame filter bank
+* :class:`SimpleTight`: design a simple tight frame filter bank (tight frame)
 * :class:`WarpedTranslates`: design a filter bank with a warping function
 
 **Filter banks of 2 filters: a low pass and a high pass**
@@ -79,7 +79,7 @@ _FILTERS = [
     'Papadakis',
     'Regular',
     'Simoncelli',
-    'SimpleTf',
+    'SimpleTight',
     'WarpedTranslates'
 ]
 _APPROXIMATIONS = [

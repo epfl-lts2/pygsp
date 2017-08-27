@@ -9,7 +9,7 @@ from . import Filter  # prevent circular import in Python < 3.5
 _logger = utils.build_logger(__name__)
 
 
-class SimpleTf(Filter):
+class SimpleTight(Filter):
     r"""
     Design a simple tight frame filter bank.
 
@@ -30,7 +30,7 @@ class SimpleTf(Filter):
     --------
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
-    >>> F = filters.SimpleTf(G)
+    >>> g = filters.SimpleTight(G)
 
     """
 
@@ -89,4 +89,4 @@ class SimpleTf(Filter):
         for i in range(Nf - 1):
             g.append(lambda x, i=i: kernel(scales[i] * x, 'wavelet'))
 
-        super(SimpleTf, self).__init__(G, g, **kwargs)
+        super(SimpleTight, self).__init__(G, g, **kwargs)
