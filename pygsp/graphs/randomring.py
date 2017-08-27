@@ -13,7 +13,9 @@ class RandomRing(Graph):
     Parameters
     ----------
     N : int
-        Number of vertices (default = 64)
+        Number of vertices.
+    seed : int
+        Seed for the random number generator (for reproducible graphs).
 
     Examples
     --------
@@ -22,19 +24,20 @@ class RandomRing(Graph):
 
     """
 
-    def __init__(self, N=64):
+    def __init__(self, N=64, seed=None, **kwargs):
 
-        position = np.sort(np.random.rand(N), axis=0)
+        rs = np.random.RandomState(seed)
+        position = np.sort(rs.uniform(size=N), axis=0)
 
-        weight = N*np.diff(position)
-        weightend = N*(1 + position[0] - position[-1])
+        weight = N * np.diff(position)
+        weight_end = N * (1 + position[0] - position[-1])
 
+        inds_i = np.arange(0, N-1)
         inds_j = np.arange(1, N)
-        inds_i = np.arange(N - 1)
 
         W = sparse.csc_matrix((weight, (inds_i, inds_j)), shape=(N, N))
         W = W.tolil()
-        W[N - 1, 0] = weightend
+        W[N-1, 0] = weight_end
         W = W + W.T
 
         angle = position * 2 * np.pi
