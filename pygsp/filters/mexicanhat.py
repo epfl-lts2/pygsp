@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import numpy as np
 
 from pygsp import utils
@@ -8,54 +10,68 @@ from . import Filter  # prevent circular import in Python < 3.5
 
 class MexicanHat(Filter):
     r"""
-    Mexican hat filterbank
+    Design the Mexican hat wavelet filter bank.
+
+    The Mexican hat wavelet is the second oder derivative of a Gaussian. Since
+    we express the filter in the Fourier domain, we find:
+
+    .. math:: \hat{g}_b(x) = x * \exp(-x)
+
+    for the band-pass filter. Note that in our convention the eigenvalues of
+    the Laplacian are equivalent to the square of graph frequencies,
+    i.e. :math:`x = \lambda^2`.
+
+    The low-pass filter is given by
+
+    .. math: \hat{g}_l(x) = \exp(-x^4).
 
     Parameters
     ----------
     G : graph
     Nf : int
-        Number of filters from 0 to lmax (default = 6)
+        Number of filters to cover the interval [0, lmax].
     lpfactor : int
-        Low-pass factor lmin=lmax/lpfactor will be used to determine scales,
-        the scaling function will be created to fill the lowpass gap.
-        (default = 20)
-    scales : ndarray
-        Vector of scales to be used.
+        Low-pass factor. lmin=lmax/lpfactor will be used to determine scales.
+        The scaling function will be created to fill the low-pass gap.
+    scales : array-like
+        Scales to be used.
         By default, initialized with :func:`pygsp.utils.compute_log_scales`.
     normalize : bool
-        Wether to normalize the wavelet by the factor/sqrt(t).
-        (default = False)
+        Whether to normalize the wavelet by the factor ``sqrt(scales)``.
 
     Examples
     --------
     >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
-    >>> F = filters.MexicanHat(G)
+    >>> g = filters.MexicanHat(G)
 
     """
 
     def __init__(self, G, Nf=6, lpfactor=20, scales=None, normalize=False,
                  **kwargs):
 
-        G.lmin = G.lmax / lpfactor
+        lmin = G.lmax / lpfactor
 
         if scales is None:
-            self.scales = utils.compute_log_scales(G.lmin, G.lmax, Nf - 1)
-        else:
-            self.scales = scales
+            scales = utils.compute_log_scales(lmin, G.lmax, Nf-1)
 
-        gb = lambda x: x * np.exp(-x)
-        gl = lambda x: np.exp(-np.power(x, 4))
+        if len(scales) != Nf - 1:
+            raise ValueError('len(scales) should be Nf-1.')
 
-        lminfac = .4 * G.lmin
+        def band_pass(x):
+            return x * np.exp(-x)
 
-        g = [lambda x: 1.2 * np.exp(-1) * gl(x / lminfac)]
+        def low_pass(x):
+            return np.exp(-x**4)
+
+        kernels = [lambda x: 1.2 * np.exp(-1) * low_pass(x / 0.4 / lmin)]
 
         for i in range(Nf - 1):
-            if normalize:
-                g.append(lambda x, ind=i: np.sqrt(self.scales[ind]) *
-                         gb(self.scales[ind] * x))
-            else:
-                g.append(lambda x, ind=i: gb(self.scales[ind] * x))
 
-        super(MexicanHat, self).__init__(G, g, **kwargs)
+            def kernel(x, i=i):
+                norm = np.sqrt(scales[i]) if normalize else 1
+                return norm * band_pass(scales[i] * x)
+
+            kernels.append(kernel)
+
+        super(MexicanHat, self).__init__(G, kernels, **kwargs)
