@@ -278,7 +278,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             nodes when plotting the graph. Can either pass an array of size Nx2
             or Nx3 to set the coordinates manually or the name of a layout
             algorithm. Available algorithms: community2D, random2D, random3D,
-            ring2D, spring. Default is 'spring'.
+            ring2D, line1D, spring. Default is 'spring'.
         kwargs : dict
             Additional parameters to be passed to the Fruchterman-Reingold
             force-directed algorithm when kind is spring.
@@ -293,12 +293,20 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         """
 
         if not isinstance(kind, str):
-            coords = np.asarray(kind)
-            check_dim = (2 <= coords.shape[1] <= 3)
-            if coords.ndim != 2 or coords.shape[0] != self.N or not check_dim:
-                raise ValueError('Expecting coordinates to be of size Nx2 or '
-                                 'Nx3.')
+            coords = np.asarray(kind).squeeze()
+            check_1d = (coords.ndim == 1)
+            check_2d_3d = (coords.ndim == 2) and (2 <= coords.shape[1] <= 3)
+            if coords.shape[0] != self.N or not (check_1d or check_2d_3d):
+                raise ValueError('Expecting coordinates to be of size N, Nx2, '
+                                 'or Nx3.')
             self.coords = coords
+
+        elif kind == 'line1D':
+            self.coords = np.arange(self.N)
+
+        elif kind == 'line2D':
+            x, y = np.arange(self.N), np.zeros(self.N)
+            self.coords = np.stack([x, y], axis=1)
 
         elif kind == 'ring2D':
             angle = np.arange(self.N) * 2 * np.pi / self.N
