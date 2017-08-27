@@ -652,9 +652,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
     def estimate_lmax(self, recompute=False):
         r"""
-        Estimate the largest eigenvalue.
+        Estimate the largest eigenvalue of the graph Laplacian.
 
-        The result is cached and accessible by the :py:attr:`lmax` property.
+        The result is cached and accessible by the :attr:`lmax` property.
 
         Exact value given by the eigendecomposition of the Laplacian, see
         :func:`compute_fourier_basis`. That estimation is much faster than the
@@ -664,6 +664,17 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         ----------
         recompute : boolean
             Force to recompute the largest eigenvalue. Default is false.
+
+        Notes
+        -----
+        Runs the implicitly restarted Lanczos method with a large tolerance,
+        then increases the calculated largest eigenvalue by 1 percent. For much
+        of the PyGSP machinery, we need to approximate wavelet kernels on an
+        interval that contains the spectrum of L. The only cost of using a
+        larger interval is that the polynomial approximation over the larger
+        interval may be a slightly worse approximation on the actual spectrum.
+        As this is a very mild effect, it is not necessary to obtain very tight
+        bounds on the spectrum of L.
 
         Examples
         --------
@@ -682,16 +693,24 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             return
 
         try:
-            # For robustness purposes, increase the error by 1 percent
-            lmax = 1.01 * \
-                sparse.linalg.eigs(self.L, k=1, tol=5e-3, ncv=10)[0][0]
+            lmax = sparse.linalg.eigsh(self.L, k=1, tol=5e-3,
+                                       ncv=min(self.N, 10),
+                                       return_eigenvectors=False)
+            lmax = lmax[0]
+            lmax *= 1.01  # Increase by 1 percent to be robust to errors.
 
         except sparse.linalg.ArpackNoConvergence:
-            self.logger.warning('Cannot use default method.')
-            lmax = 2. * np.max(self.d)
+            self.logger.warning('Lanczos method did not converge. '
+                                'Using an alternative method.')
+            if self.lap_type == 'normalized':
+                lmax = 2  # Spectrum is bounded by [0, 2].
+            elif self.lap_type == 'combinatorial':
+                lmax = 2 * np.max(self.d)
+            else:
+                raise ValueError('Unknown Laplacian type '
+                                 '{}'.format(self.lap_type))
 
-        lmax = np.real(lmax)
-        self._lmax = lmax.sum()
+        self._lmax = lmax
 
     def get_edge_list(self):
         r"""
