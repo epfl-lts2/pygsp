@@ -56,12 +56,12 @@ class Heat(Filter):
         except TypeError:
             tau = [tau]
 
-        def kernel(x, t, norm=1):
-            return np.exp(-t * x / G.lmax) / norm
+        def kernel(x, t):
+            return np.exp(-t * x / G.lmax)
 
         g = []
         for t in tau:
             norm = np.linalg.norm(kernel(G.e, t)) if normalize else 1
-            g.append(lambda x, t=t, norm=norm: kernel(x, t, norm))
+            g.append(lambda x, t=t, norm=norm: kernel(x, t) / norm)
 
         super(Heat, self).__init__(G, g, **kwargs)
