@@ -53,12 +53,13 @@ def _plt_handle_figure(plot):
     def inner(obj, *args, **kwargs):
 
         # Create a figure and an axis if none were passed.
-        if not 'ax' in kwargs.keys():
+        if 'ax' not in kwargs.keys():
             fig = plt.figure()
             global _plt_figures
             _plt_figures.append(fig)
 
-            if hasattr(obj, 'coords') and obj.coords.shape[1] == 3:
+            if (hasattr(obj, 'coords') and obj.coords.ndim == 2 and
+                    obj.coords.shape[1] == 3):
                 ax = fig.add_subplot(111, projection='3d')
             else:
                 ax = fig.add_subplot(111)
@@ -571,7 +572,9 @@ def _plt_plot_signal(G, signal, show_edges=None, vertex_size=100, limits=None,
             raise NotImplementedError
 
         else:
-            if G.coords.shape[1] == 2:
+            if G.coords.ndim == 1:
+                pass
+            elif G.coords.shape[1] == 2:
                 x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
                                     np.expand_dims(G.coords[kj, 0], axis=0)))
                 y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
@@ -599,15 +602,20 @@ def _plt_plot_signal(G, signal, show_edges=None, vertex_size=100, limits=None,
                     x3 = x2[i:i + 2]
                     y3 = y2[i:i + 2]
                     z3 = z2[i:i + 2]
-                    ax.plot(x3, y3, z3, color='grey', marker='o',
-                            markerfacecolor='blue', zorder=1)
+                    ax.plot(x3, y3, z3, linewidth=G.plotting['edge_width'],
+                            color=G.plotting['edge_color'],
+                            linestyle=G.plotting['edge_style'],
+                            zorder=1)
 
     # Plot signal
-    if G.coords.shape[1] == 2:
+    if G.coords.ndim == 1:
+        ax.plot(G.coords, signal)
+        ax.set_ylim(limits)
+    elif G.coords.shape[1] == 2:
         sc = ax.scatter(G.coords[:, 0], G.coords[:, 1],
                         s=vertex_size, c=signal, zorder=2,
                         vmin=limits[0], vmax=limits[1])
-    if G.coords.shape[1] == 3:
+    elif G.coords.shape[1] == 3:
         sc = ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
                         s=vertex_size, c=signal, zorder=2,
                         vmin=limits[0], vmax=limits[1])
@@ -618,7 +626,7 @@ def _plt_plot_signal(G, signal, show_edges=None, vertex_size=100, limits=None,
         except KeyError:
             pass
 
-    if colorbar:
+    if G.coords.ndim != 1 and colorbar:
         plt.colorbar(sc, ax=ax)
 
 
