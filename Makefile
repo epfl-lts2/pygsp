@@ -22,7 +22,7 @@ clean:
 	rm -rf *.egg-info
 
 lint:
-	flake8 --doctests
+	flake8 --doctests --exclude=doc
 
 test: export DISPLAY = :99
 test:
