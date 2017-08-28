@@ -3,7 +3,7 @@ numpy
 scipy
 
 # Required for plotting.
-matplotlib >= 2.0  # Prettier plots (especially for online doc at RTD).
+matplotlib
 pyqtgraph
 PySide ; python_version < '3.5'
 PyQt5 ; python_version >= '3.5'

@@ -1,0 +1,8 @@
+formats:
+  - htmlzip
+
+python:
+  pip_install: true
+
+conda:
+  file: .environment.yml

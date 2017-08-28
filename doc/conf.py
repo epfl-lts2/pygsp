@@ -9,7 +9,6 @@ extensions = ['sphinx.ext.viewcode',
               'sphinxcontrib.bibtex']
 
 extensions.append('sphinx.ext.autodoc')
-autodoc_mock_imports = ['_tkinter']  # Avoid sporadic build failures on RTD.
 autodoc_member_order = 'groupwise'  # alphabetical, groupwise, bysource
 
 extensions.append('matplotlib.sphinxext.plot_directive')
