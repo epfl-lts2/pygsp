@@ -227,16 +227,6 @@ def _plt_plot_graph(G, show_edges, vertex_size, plot_name, ax):
         else:
 
             if G.coords.shape[1] == 2:
-#               if isinstance(G.plotting['vertex_color'], list):
-#                   ax.plot(x, y, linewidth=G.plotting['edge_width'],
-#                           color=G.plotting['edge_color'],
-#                           linestyle=G.plotting['edge_style'],
-#                           marker='', zorder=1)
-#
-#                   ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
-#                              s=vertex_size,
-#                              c=G.plotting['vertex_color'], zorder=2)
-#               else:
                 x, y = _get_coords(G)
                 ax.plot(x, y, linewidth=G.plotting['edge_width'],
                         color=G.plotting['edge_color'],
@@ -276,8 +266,6 @@ def _plt_plot_graph(G, show_edges, vertex_size, plot_name, ax):
         except KeyError:
             pass
 
-    # threading.Thread(None, _thread, None, (G, show_edges, savefig)).start()
-
 
 def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
 
@@ -295,19 +283,6 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
             view = window.addViewBox()
             view.setAspectLocked()
 
-#           extra_args = {}
-#           if isinstance(G.plotting['vertex_color'], list):
-#               extra_args['symbolPen'] = [qtg.mkPen(v_col) for v_col in G.plotting['vertex_color']]
-#               extra_args['brush'] = [qtg.mkBrush(v_col) for v_col in G.plotting['vertex_color']]
-#           elif isinstance(G.plotting['vertex_color'], int):
-#               extra_args['symbolPen'] = G.plotting['vertex_color']
-#               extra_args['brush'] = G.plotting['vertex_color']
-
-            # Define syntactic sugar mapping keywords for the display options
-#           for plot_args, qtg_args in [('vertex_mask', 'mask'), ('edge_color', 'pen'), ('symbolPen', 'symbolPen')]:
-#               if plot_args in G.plotting:
-#                   extra_args[qtg_args] = G.plotting[plot_args]
-
             if show_edges:
                 pen = tuple(np.array(G.plotting['edge_color']) * 255)
             else:
@@ -324,8 +299,7 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
 
         elif G.coords.shape[1] == 3:
             if not QtGui.QApplication.instance():
-                # We want only one application.
-                QtGui.QApplication([])
+                QtGui.QApplication([])  # We want only one application.
             widget = gl.GLViewWidget()
             widget.opts['distance'] = 10
             widget.show()
@@ -399,24 +373,20 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
 
     lambdas = np.linspace(0, G.lmax, npoints)
 
-    # Apply the filter
     fd = filters.evaluate(lambdas)
 
-    # Plot the filter
     if filters.Nf == 1:
         ax.plot(lambdas, fd, linewidth=line_width)
     else:
         for fd_i in fd:
             ax.plot(lambdas, fd_i, linewidth=line_width)
 
-    # Plot eigenvalues
     if plot_eigenvalues:
         ax.plot(G.e, np.zeros(G.N), 'xk', markeredgewidth=x_width,
                 markersize=x_size)
 
     # TODO: plot highlighted eigenvalues
 
-    # Plot the sum
     if show_sum:
         test_sum = np.sum(np.power(fd, 2), 0)
         ax.plot(lambdas, test_sum, 'k', linewidth=line_width)
@@ -576,16 +546,15 @@ def _qtg_plot_signal(G, signal, show_edges, plot_name, vertex_size, limits):
     if G.coords.shape[1] == 2:
         window = qtg.GraphicsWindow(plot_name)
         view = window.addViewBox()
+
     elif G.coords.shape[1] == 3:
         if not QtGui.QApplication.instance():
-            # We want only one application.
-            QtGui.QApplication([])
+            QtGui.QApplication([])  # We want only one application.
         widget = gl.GLViewWidget()
         widget.opts['distance'] = 10
         widget.show()
         widget.setWindowTitle(plot_name)
 
-    # Plot edges
     if show_edges:
 
         if G.is_directed():
@@ -607,28 +576,26 @@ def _qtg_plot_signal(G, signal, show_edges, plot_name, vertex_size, limits):
                                       color=G.plotting['edge_color'])
                 widget.addItem(g)
 
-    # Plot signal on top
     pos = [1, 8, 24, 40, 56, 64]
     color = np.array([[0, 0, 143, 255], [0, 0, 255, 255], [0, 255, 255, 255],
                       [255, 255, 0, 255], [255, 0, 0, 255], [128, 0, 0, 255]])
     cmap = qtg.ColorMap(pos, color)
 
-    normalized_signal = 1 + 63 * (signal - limits[0]) / limits[1] - limits[0]
+    signal = 1 + 63 * (signal - limits[0]) / limits[1] - limits[0]
 
     if G.coords.shape[1] == 2:
         gp = qtg.ScatterPlotItem(G.coords[:, 0],
                                  G.coords[:, 1],
                                  size=vertex_size/10,
-                                 brush=cmap.map(normalized_signal, 'qcolor'))
+                                 brush=cmap.map(signal, 'qcolor'))
         view.addItem(gp)
 
     if G.coords.shape[1] == 3:
         gp = gl.GLScatterPlotItem(pos=G.coords,
                                   size=vertex_size/3,
-                                  color=cmap.map(normalized_signal, 'float'))
+                                  color=cmap.map(signal, 'float'))
         widget.addItem(gp)
 
-    # Multiple windows handling
     if G.coords.shape[1] == 2:
         global _qtg_windows
         _qtg_windows.append(window)
@@ -659,28 +626,38 @@ def plot_spectrogram(G, node_idx=None):
     from pygsp import features
 
     if not qtg_import:
-        raise NotImplementedError("You need pyqtgraph to plot the spectrogram at the moment. Please install dependency and retry.")
+        raise NotImplementedError('You need pyqtgraph to plot the spectrogram '
+                                  'at the moment. Please install and retry.')
 
     if not hasattr(G, 'spectr'):
         features.compute_spectrogram(G)
 
     M = G.spectr.shape[1]
-    spectr = np.ravel(G.spectr[node_idx, :] if node_idx is not None else G.spectr)
-    min_spec, max_spec = np.min(spectr), np.max(spectr)
+    spectr = G.spectr[node_idx, :] if node_idx is not None else G.spectr
+    spectr = np.ravel(spectr)
+    min_spec, max_spec = spectr.min(), spectr.max()
 
     pos = np.array([0., 0.25, 0.5, 0.75, 1.])
-    color = np.array([[20, 133, 212, 255], [53, 42, 135, 255], [48, 174, 170, 255],
-                     [210, 184, 87, 255], [249, 251, 14, 255]], dtype=np.ubyte)
+    color = [[20, 133, 212, 255], [53, 42, 135, 255], [48, 174, 170, 255],
+             [210, 184, 87, 255], [249, 251, 14, 255]]
+    color = np.array(color, dtype=np.ubyte)
     cmap = qtg.ColorMap(pos, color)
 
+    spectr = (spectr.astype(float) - min_spec) / (max_spec - min_spec)
+
     w = qtg.GraphicsWindow()
-    w.setWindowTitle("Spectrogramm of {}".format(G.gtype))
+    w.setWindowTitle("Spectrogram of {}".format(G.gtype))
+    label = 'frequencies {}:{:.2f}:{:.2f}'.format(0, G.lmax/M, G.lmax)
     v = w.addPlot(labels={'bottom': 'nodes',
-                          'left': 'frequencies {}:{:.2f}:{:.2f}'.format(0, G.lmax/M, G.lmax)})
+                          'left': label})
     v.setAspectLocked()
 
-    spi = qtg.ScatterPlotItem(np.repeat(np.arange(G.N), M), np.ravel(np.tile(np.arange(M), (1, G.N))), pxMode=False, symbol='s',
-                             size=1, brush=cmap.map((spectr.astype(float) - min_spec)/(max_spec - min_spec), 'qcolor'))
+    spi = qtg.ScatterPlotItem(np.repeat(np.arange(G.N), M),
+                              np.ravel(np.tile(np.arange(M), (1, G.N))),
+                              pxMode=False,
+                              symbol='s',
+                              size=1,
+                              brush=cmap.map(spectr, 'qcolor'))
     v.addItem(spi)
 
     global _qtg_windows
