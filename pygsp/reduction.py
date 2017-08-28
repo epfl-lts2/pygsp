@@ -165,7 +165,7 @@ def interpolate(G, f_subsampled, keep_inds, order=100, reg_eps=0.005, **kwargs):
     L_reg = G.L + reg_eps * sparse.eye(G.N)
     K_reg = getattr(G.mr, 'K_reg', kron_reduction(L_reg, keep_inds))
     green_kernel = getattr(G.mr, 'green_kernel',
-                           filters.Filter(G, filters=lambda x: 1. / (reg_eps + x)))
+                           filters.Filter(G, lambda x: 1. / (reg_eps + x)))
 
     alpha = K_reg.dot(f_subsampled)
 
@@ -282,7 +282,7 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
 
         L_reg = Gs[i].L + reg_eps * sparse.eye(Gs[i].N)
         Gs[i].mr['K_reg'] = kron_reduction(L_reg, ind)
-        Gs[i].mr['green_kernel'] = filters.Filter(Gs[i], filters=lambda x: 1./(reg_eps + x))
+        Gs[i].mr['green_kernel'] = filters.Filter(Gs[i], lambda x: 1./(reg_eps + x))
 
     return Gs
 
@@ -420,7 +420,7 @@ def pyramid_analysis(Gs, f, **kwargs):
 
     for i in range(levels):
         # Low pass the signal
-        s_low = filters.Filter(Gs[i], filters=h_filters[i]).analysis(ca[i], **kwargs)
+        s_low = filters.Filter(Gs[i], h_filters[i]).analysis(ca[i], **kwargs)
         # Keep only the coefficient on the selected nodes
         ca.append(s_low[Gs[i+1].mr['idx']])
         # Compute prediction
@@ -594,9 +594,9 @@ def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
     if use_landweber:
         x = np.zeros(N)
         z = np.concatenate((ca, pe), axis=0)
-        green_kernel = filters.Filter(G, filters=lambda x: 1./(x+reg_eps))
+        green_kernel = filters.Filter(G, lambda x: 1./(x+reg_eps))
         PhiVlt = green_kernel.analysis(S.T, **kwargs).T
-        filt = filters.Filter(G, filters=h_filter, **kwargs)
+        filt = filters.Filter(G, h_filter, **kwargs)
 
         for iteration in range(landweber_its):
             h_filtered_sig = filt.analysis(x, **kwargs)

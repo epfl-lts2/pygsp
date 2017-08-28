@@ -23,21 +23,22 @@ class Filter(object):
     Parameters
     ----------
     G : graph
-        The graph to which the filterbank is tailored.
-    filters : function or list of functions
-        A (list of) function defining the filterbank. One function per filter.
+        The graph to which the filter bank is tailored.
+    kernels : function or list of functions
+        A (list of) function(s) defining the filter bank in the Fourier domain.
+        One function per filter.
 
     Attributes
     ----------
     G : Graph
-        The graph to which the filterbank was tailored. It is a reference to
+        The graph to which the filter bank was tailored. It is a reference to
         the graph passed when instantiating the class.
-    g : function or list of functions
-        A (list of) function defining the filterbank. One function per filter.
+    kernels : function or list of functions
+        A (list of) function defining the filter bank. One function per filter.
         Either passed by the user when instantiating the base class, either
         constructed by the derived classes.
     Nf : int
-        Number of filters in the filterbank.
+        Number of filters in the filter bank.
 
     Examples
     --------
@@ -55,14 +56,15 @@ class Filter(object):
 
     """
 
-    def __init__(self, G, filters):
+    def __init__(self, G, kernels):
 
         self.G = G
 
-        if isinstance(filters, list):
-            self.g = filters
-        else:
-            self.g = [filters]
+        try:
+            iter(kernels)
+        except TypeError:
+            kernels = [kernels]
+        self.g = kernels
 
         self.Nf = len(self.g)
 

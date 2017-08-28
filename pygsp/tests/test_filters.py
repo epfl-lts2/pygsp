@@ -90,11 +90,11 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(F, gL)
 
     def test_custom_filter(self):
-        def _filter(x):
+        def kernel(x):
             return x / (1. + x)
-        f = filters.Filter(self._G, filters=_filter)
+        f = filters.Filter(self._G, kernels=kernel)
         self.assertEqual(f.Nf, 1)
-        self.assertIs(f.g[0], _filter)
+        self.assertIs(f.g[0], kernel)
         self._test_methods(f)
 
     def test_abspline(self):
