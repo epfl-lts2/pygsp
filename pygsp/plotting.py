@@ -21,27 +21,33 @@ with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
 
 from __future__ import division
 
+import traceback
+
 import numpy as np
+
+from pygsp import utils
+
+_logger = utils.build_logger(__name__)
 
 try:
     import matplotlib.pyplot as plt
     # Not used directly, but needed for 3D projection.
     from mpl_toolkits.mplot3d import Axes3D  # noqa
-    plt_import = True
-except Exception as e:
-    print('ERROR : Could not import packages for matplotlib.')
-    print('Details : {}'.format(e))
-    plt_import = False
+    _PLT_IMPORT = True
+except Exception:
+    _logger.error('Cannot import packages for matplotlib: {}'.format(
+        traceback.format_exc()))
+    _PLT_IMPORT = False
 
 try:
     import pyqtgraph as qtg
     import pyqtgraph.opengl as gl
     from pyqtgraph.Qt import QtGui
-    qtg_import = True
-except Exception as e:
-    print('ERROR : Could not import packages for pyqtgraph.')
-    print('Details : {}'.format(e))
-    qtg_import = False
+    _QTG_IMPORT = True
+except Exception:
+    _logger.error('Cannot import packages for pyqtgraph: {}'.format(
+        traceback.format_exc()))
+    _QTG_IMPORT = False
 
 
 BACKEND = 'pyqtgraph'
@@ -205,9 +211,9 @@ def plot_graph(G, backend=None, **kwargs):
     if backend is None:
         backend = BACKEND
 
-    if backend == 'pyqtgraph' and qtg_import:
+    if backend == 'pyqtgraph' and _QTG_IMPORT:
         _qtg_plot_graph(G, **kwargs)
-    elif backend == 'matplotlib' and plt_import:
+    elif backend == 'matplotlib' and _PLT_IMPORT:
         _plt_plot_graph(G, **kwargs)
     else:
         raise ValueError('The {} backend is not available.'.format(backend))
@@ -478,9 +484,9 @@ def plot_signal(G, signal, backend=None, **kwargs):
     if backend is None:
         backend = BACKEND
 
-    if backend == 'pyqtgraph' and qtg_import:
+    if backend == 'pyqtgraph' and _QTG_IMPORT:
         _qtg_plot_signal(G, signal, **kwargs)
-    elif backend == 'matplotlib' and plt_import:
+    elif backend == 'matplotlib' and _PLT_IMPORT:
         _plt_plot_signal(G, signal, **kwargs)
     else:
         raise ValueError('The {} backend is not available.'.format(backend))
@@ -625,7 +631,7 @@ def plot_spectrogram(G, node_idx=None):
     """
     from pygsp import features
 
-    if not qtg_import:
+    if not _QTG_IMPORT:
         raise NotImplementedError('You need pyqtgraph to plot the spectrogram '
                                   'at the moment. Please install and retry.')
 
