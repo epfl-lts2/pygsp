@@ -220,19 +220,13 @@ def _plt_plot_graph(G, show_edges, vertex_size, plot_name, ax):
     # TODO integrate param when G is a clustered graph
 
     if show_edges:
-        ki, kj = np.nonzero(G.A)
 
         if G.is_directed():
             raise NotImplementedError
 
         else:
-            if G.coords.shape[1] == 2:
-                # TODO: use np.stack
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
-                                    np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
-                                    np.expand_dims(G.coords[kj, 1], axis=0)))
 
+            if G.coords.shape[1] == 2:
 #               if isinstance(G.plotting['vertex_color'], list):
 #                   ax.plot(x, y, linewidth=G.plotting['edge_width'],
 #                           color=G.plotting['edge_color'],
@@ -243,6 +237,7 @@ def _plt_plot_graph(G, show_edges, vertex_size, plot_name, ax):
 #                              s=vertex_size,
 #                              c=G.plotting['vertex_color'], zorder=2)
 #               else:
+                x, y = _get_coords(G)
                 ax.plot(x, y, linewidth=G.plotting['edge_width'],
                         color=G.plotting['edge_color'],
                         linestyle=G.plotting['edge_style'],
@@ -250,38 +245,24 @@ def _plt_plot_graph(G, show_edges, vertex_size, plot_name, ax):
                         markerfacecolor=G.plotting['vertex_color'])
 
             if G.coords.shape[1] == 3:
-                # Very dirty way to display a 3d graph
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
-                                    np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
-                                    np.expand_dims(G.coords[kj, 1], axis=0)))
-                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0),
-                                    np.expand_dims(G.coords[kj, 2], axis=0)))
-                ii = range(0, x.shape[1])
-                x2 = np.ndarray((0, 1))
-                y2 = np.ndarray((0, 1))
-                z2 = np.ndarray((0, 1))
-                for i in ii:
-                    x2 = np.append(x2, x[:, i])
-                for i in ii:
-                    y2 = np.append(y2, y[:, i])
-                for i in ii:
-                    z2 = np.append(z2, z[:, i])
-                for i in range(0, x.shape[1] * 2, 2):
-                    x3 = x2[i:i + 2]
-                    y3 = y2[i:i + 2]
-                    z3 = z2[i:i + 2]
-                    ax.plot(x3, y3, z3, linewidth=G.plotting['edge_width'],
+                # TODO: very dirty. Cannot we prepare a set of lines?
+                x, y, z = _get_coords(G)
+                for i in range(0, x.size, 2):
+                    x2, y2, z2 = x[i:i+2], y[i:i+2], z[i:i+2]
+                    ax.plot(x2, y2, z2, linewidth=G.plotting['edge_width'],
                             color=G.plotting['edge_color'],
                             linestyle=G.plotting['edge_style'],
                             marker='o', markersize=vertex_size/10,
                             markerfacecolor=G.plotting['vertex_color'])
+
     else:
+
         # TODO: is ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo') faster?
         if G.coords.shape[1] == 2:
             ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
                        s=vertex_size,
                        c=G.plotting['vertex_color'])
+
         if G.coords.shape[1] == 3:
             ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
                        marker='o', s=vertex_size,
@@ -302,13 +283,12 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
 
     # TODO handling when G is a list of graphs
 
-    ki, kj = np.nonzero(G.A)
     if G.is_directed():
         raise NotImplementedError
+
     else:
+
         if G.coords.shape[1] == 2:
-            adj = np.concatenate((np.expand_dims(ki, axis=1),
-                                  np.expand_dims(kj, axis=1)), axis=1)
 
             window = qtg.GraphicsWindow()
             window.setWindowTitle(plot_name)
@@ -333,6 +313,8 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
             else:
                 pen = None
 
+            adj = _get_coords(G, edge_list=True)
+
             g = qtg.GraphItem(pos=G.coords, adj=adj, pen=pen,
                               size=vertex_size/10)
             view.addItem(g)
@@ -349,30 +331,10 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
             widget.show()
             widget.setWindowTitle(plot_name)
 
-            # Very dirty way to display a 3d graph
-            x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
-                                np.expand_dims(G.coords[kj, 0], axis=0)))
-            y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
-                                np.expand_dims(G.coords[kj, 1], axis=0)))
-            z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0),
-                                np.expand_dims(G.coords[kj, 2], axis=0)))
-            ii = range(0, x.shape[1])
-            x2 = np.ndarray((0, 1))
-            y2 = np.ndarray((0, 1))
-            z2 = np.ndarray((0, 1))
-            for i in ii:
-                x2 = np.append(x2, x[:, i])
-            for i in ii:
-                y2 = np.append(y2, y[:, i])
-            for i in ii:
-                z2 = np.append(z2, z[:, i])
-
-            pts = np.concatenate((np.expand_dims(x2, axis=1),
-                                  np.expand_dims(y2, axis=1),
-                                  np.expand_dims(z2, axis=1)), axis=1)
-
             if show_edges:
-                g = gl.GLLinePlotItem(pos=pts, mode='lines',
+                x, y, z = _get_coords(G)
+                pos = np.stack((x, y, z), axis=1)
+                g = gl.GLLinePlotItem(pos=pos, mode='lines',
                                       color=G.plotting['edge_color'])
                 widget.addItem(g)
 
@@ -559,58 +521,41 @@ def _plt_plot_signal(G, signal, show_edges, limits, plot_name, ax,
                      vertex_size, colorbar=True):
 
     if show_edges:
-        ki, kj = np.nonzero(G.A)
 
         if G.is_directed():
             raise NotImplementedError
 
         else:
+
             if G.coords.ndim == 1:
                 pass
+
             elif G.coords.shape[1] == 2:
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
-                                    np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
-                                    np.expand_dims(G.coords[kj, 1], axis=0)))
+                x, y = _get_coords(G)
                 ax.plot(x, y, linewidth=G.plotting['edge_width'],
                         color=G.plotting['edge_color'],
                         linestyle=G.plotting['edge_style'],
                         zorder=1)
+
             elif G.coords.shape[1] == 3:
-                # Very dirty way to display 3D graph edges
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
-                                    np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
-                                    np.expand_dims(G.coords[kj, 1], axis=0)))
-                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0),
-                                    np.expand_dims(G.coords[kj, 2], axis=0)))
-                ii = range(0, x.shape[1])
-                x2 = np.ndarray((0, 1))
-                y2 = np.ndarray((0, 1))
-                z2 = np.ndarray((0, 1))
-                for i in ii:
-                    x2 = np.append(x2, x[:, i])
-                for i in ii:
-                    y2 = np.append(y2, y[:, i])
-                for i in ii:
-                    z2 = np.append(z2, z[:, i])
-                for i in range(0, x.shape[1] * 2, 2):
-                    x3 = x2[i:i + 2]
-                    y3 = y2[i:i + 2]
-                    z3 = z2[i:i + 2]
-                    ax.plot(x3, y3, z3, linewidth=G.plotting['edge_width'],
+                # TODO: very dirty. Cannot we prepare a set of lines?
+                x, y, z = _get_coords(G)
+                for i in range(0, x.size, 2):
+                    x2, y2, z2 = x[i:i+2], y[i:i+2], z[i:i+2]
+                    ax.plot(x2, y2, z2, linewidth=G.plotting['edge_width'],
                             color=G.plotting['edge_color'],
                             linestyle=G.plotting['edge_style'],
                             zorder=1)
 
-    # Plot signal
     if G.coords.ndim == 1:
         ax.plot(G.coords, signal)
         ax.set_ylim(limits)
+
     elif G.coords.shape[1] == 2:
         sc = ax.scatter(G.coords[:, 0], G.coords[:, 1],
                         s=vertex_size, c=signal, zorder=2,
                         vmin=limits[0], vmax=limits[1])
+
     elif G.coords.shape[1] == 3:
         sc = ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
                         s=vertex_size, c=signal, zorder=2,
@@ -642,43 +587,23 @@ def _qtg_plot_signal(G, signal, show_edges, plot_name, vertex_size, limits):
 
     # Plot edges
     if show_edges:
-        ki, kj = np.nonzero(G.A)
+
         if G.is_directed():
             raise NotImplementedError
-        else:
-            if G.coords.shape[1] == 2:
-                adj = np.concatenate((np.expand_dims(ki, axis=1),
-                                      np.expand_dims(kj, axis=1)), axis=1)
 
+        else:
+
+            if G.coords.shape[1] == 2:
+                adj = _get_coords(G, edge_list=True)
                 pen = tuple(np.array(G.plotting['edge_color']) * 255)
                 g = qtg.GraphItem(pos=G.coords, adj=adj, symbolBrush=None,
                                   symbolPen=None, pen=pen)
                 view.addItem(g)
 
-            if G.coords.shape[1] == 3:
-                # Very dirty way to display a 3d graph
-                x = np.concatenate((np.expand_dims(G.coords[ki, 0], axis=0),
-                                    np.expand_dims(G.coords[kj, 0], axis=0)))
-                y = np.concatenate((np.expand_dims(G.coords[ki, 1], axis=0),
-                                    np.expand_dims(G.coords[kj, 1], axis=0)))
-                z = np.concatenate((np.expand_dims(G.coords[ki, 2], axis=0),
-                                    np.expand_dims(G.coords[kj, 2], axis=0)))
-                ii = range(0, x.shape[1])
-                x2 = np.ndarray((0, 1))
-                y2 = np.ndarray((0, 1))
-                z2 = np.ndarray((0, 1))
-                for i in ii:
-                    x2 = np.append(x2, x[:, i])
-                for i in ii:
-                    y2 = np.append(y2, y[:, i])
-                for i in ii:
-                    z2 = np.append(z2, z[:, i])
-
-                pts = np.concatenate((np.expand_dims(x2, axis=1),
-                                      np.expand_dims(y2, axis=1),
-                                      np.expand_dims(z2, axis=1)), axis=1)
-
-                g = gl.GLLinePlotItem(pos=pts, mode='lines',
+            elif G.coords.shape[1] == 3:
+                x, y, z = _get_coords(G)
+                pos = np.stack((x, y, z), axis=1)
+                g = gl.GLLinePlotItem(pos=pos, mode='lines',
                                       color=G.plotting['edge_color'])
                 widget.addItem(g)
 
@@ -762,3 +687,20 @@ def plot_spectrogram(G, node_idx=None):
 
     global _qtg_windows
     _qtg_windows.append(w)
+
+
+def _get_coords(G, edge_list=False):
+
+    v_in, v_out, _ = G.get_edge_list()
+
+    if edge_list:
+        return np.stack((v_in, v_out), axis=1)
+
+    coords = [np.stack((G.coords[v_in, d], G.coords[v_out, d]), axis=0)
+              for d in range(G.coords.shape[1])]
+
+    if G.coords.shape[1] == 2:
+        return coords
+
+    elif G.coords.shape[1] == 3:
+        return [coord.reshape(-1, order='F') for coord in coords]
