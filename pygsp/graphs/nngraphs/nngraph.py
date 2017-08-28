@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
 
+import traceback
+
 import numpy as np
 from scipy import sparse, spatial
 
 from pygsp import utils
 from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
 
+_logger = utils.build_logger(__name__)
 
 try:
     import pyflann as pfl
-    pfl_import = True
+    _PFL_IMPORT = True
 except Exception:
-    print('ERROR: Could not import pyflann. '
-          'Try to install it for faster kNN computations.')
-    pfl_import = False
+    _logger.warning('Cannot import pyflann (used for faster kNN computations):'
+                    ' {}'.format(traceback.format_exc()))
+    _PFL_IMPORT = False
 
 
 class NNGraph(Graph):
@@ -114,7 +117,7 @@ class NNGraph(Graph):
             spj = np.zeros((N * k))
             spv = np.zeros((N * k))
 
-            if self.use_flann and pfl_import:
+            if self.use_flann and _PFL_IMPORT:
                 pfl.set_distance_type(dist_type, order=order)
                 flann = pfl.FLANN()
 
