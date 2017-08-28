@@ -613,10 +613,7 @@ def _qtg_plot_signal(G, signal, show_edges, plot_name, vertex_size, limits):
                       [255, 255, 0, 255], [255, 0, 0, 255], [128, 0, 0, 255]])
     cmap = qtg.ColorMap(pos, color)
 
-    mininum = min(signal)
-    maximum = max(signal)
-
-    normalized_signal = [1 + 63 *(float(x) - mininum) / (maximum - mininum) for x in signal]
+    normalized_signal = 1 + 63 * (signal - limits[0]) / limits[1] - limits[0]
 
     if G.coords.shape[1] == 2:
         gp = qtg.ScatterPlotItem(G.coords[:, 0],
@@ -624,10 +621,11 @@ def _qtg_plot_signal(G, signal, show_edges, plot_name, vertex_size, limits):
                                  size=vertex_size/10,
                                  brush=cmap.map(normalized_signal, 'qcolor'))
         view.addItem(gp)
+
     if G.coords.shape[1] == 3:
         gp = gl.GLScatterPlotItem(pos=G.coords,
                                   size=vertex_size/3,
-                                  color=signal)
+                                  color=cmap.map(normalized_signal, 'float'))
         widget.addItem(gp)
 
     # Multiple windows handling
