@@ -29,7 +29,6 @@ Then, derived classes implement various common graph filters.
 * :class:`MexicanHat`: design a mexican hat filter bank
 * :class:`Meyer`: design a Meyer filter bank
 * :class:`SimpleTight`: design a simple tight frame filter bank (tight frame)
-* :class:`WarpedTranslates`: design a filter bank with a warping function
 
 **Filter banks of 2 filters: a low pass and a high pass**
 
@@ -81,7 +80,6 @@ _FILTERS = [
     'Regular',
     'Simoncelli',
     'SimpleTight',
-    'WarpedTranslates'
 ]
 _APPROXIMATIONS = [
     'compute_cheby_coeff',

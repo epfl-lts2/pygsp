@@ -127,11 +127,6 @@ class TestCase(unittest.TestCase):
         f = filters.SimpleTight(self._G, Nf=4)
         self._test_methods(f)
 
-    def test_warpedtranslates(self):
-        self.assertRaises(NotImplementedError,
-                          filters.WarpedTranslates, self._G)
-        pass
-
     def test_regular(self):
         f = filters.Regular(self._G)
         self._test_methods(f)
