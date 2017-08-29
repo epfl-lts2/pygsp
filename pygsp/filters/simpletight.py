@@ -10,8 +10,7 @@ _logger = utils.build_logger(__name__)
 
 
 class SimpleTight(Filter):
-    r"""
-    Design a simple tight frame filter bank.
+    r"""Design a simple tight frame filter bank (tight frame).
 
     These filters have been designed to be a simple tight frame wavelet filter
     bank. The kernel is similar to Meyer, but simpler. The function is

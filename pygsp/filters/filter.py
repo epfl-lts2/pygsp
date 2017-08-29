@@ -67,8 +67,10 @@ class Filter(object):
         self.Nf = len(self.g)
 
     def analysis(self, s, method='chebyshev', order=30):
-        r"""
-        Analyze, or filter, a signal with the filter bank.
+        r"""Compute signal response to the filter bank.
+
+        This operation is also referred to as filtering a signal or as the
+        analysis operator.
 
         The method computes the transform coefficients of a signal :math:`s`,
         where the atoms of the transform dictionary are generalized
@@ -170,8 +172,7 @@ class Filter(object):
 
     @utils.filterbank_handler
     def evaluate(self, x, i=0):
-        r"""
-        Evaluate the response of the filter bank at frequencies x.
+        r"""Evaluate the kernels at given frequencies.
 
         Parameters
         ----------
@@ -208,8 +209,9 @@ class Filter(object):
         raise NotImplementedError
 
     def synthesis(self, c, method='chebyshev', order=30):
-        r"""
-        Synthesize a signal from its filter bank coefficients.
+        r"""Synthesize signal from filter bank response.
+
+        This operation is also referred to as the synthesis operator.
 
         The method synthesizes a signal :math:`s` from its coefficients
         :math:`c`, where the atoms of the transform dictionary are generalized
@@ -330,8 +332,7 @@ class Filter(object):
         return s
 
     def localize(self, i, **kwargs):
-        r"""
-        Localize the filter kernel at node i.
+        r"""Localize the kernels at a node (to visualize them).
 
         That is particularly useful to visualize a filter in the vertex domain.
 
@@ -384,8 +385,7 @@ class Filter(object):
 
     def estimate_frame_bounds(self, min=0, max=None, N=1000,
                               use_eigenvalues=False):
-        r"""
-        Compute approximate frame bounds for the filterbank.
+        r"""Estimate lower and upper frame bounds.
 
         The frame bounds are estimated using the vector :code:`np.linspace(min,
         max, N)` with min=0 and max=G.lmax by default. The eigenvalues G.e can
@@ -459,8 +459,7 @@ class Filter(object):
         return sum_filters.min(), sum_filters.max()
 
     def compute_frame(self, **kwargs):
-        r"""
-        Compute the frame associated with the filter bank.
+        r"""Compute the associated frame.
 
         The size of the returned matrix operator :math:`D` is N x MN, where M
         is the number of filters and N the number of nodes. Multiplying this
@@ -552,8 +551,7 @@ class Filter(object):
         return gdual
 
     def plot(self, **kwargs):
-        r"""
-        Plot the filter.
+        r"""Plot the filter bank's frequency response.
 
         See :func:`pygsp.plotting.plot_filter`.
         """

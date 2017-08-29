@@ -8,8 +8,7 @@ from . import Filter  # prevent circular import in Python < 3.5
 
 
 class Abspline(Filter):
-    r"""
-    Abspline filterbank
+    r"""Design an A B cubic spline wavelet filter bank.
 
     Parameters
     ----------

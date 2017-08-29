@@ -8,13 +8,15 @@ from . import Filter  # prevent circular import in Python < 3.5
 
 
 class Heat(Filter):
-    r"""
-    Design an heat low-pass filter (simulates heat diffusion when applied).
+    r"""Design a filter bank of heat kernels.
 
     The filter is defined in the spectral domain as
 
     .. math::
-        \hat{g}(x) = \exp \left( \frac{-\tau x}{\lambda_{\text{max}}} \right).
+        \hat{g}(x) = \exp \left( \frac{-\tau x}{\lambda_{\text{max}}} \right),
+
+    and is as such a low-pass filter. An application of this filter to a signal
+    simulates heat diffusion.
 
     Parameters
     ----------

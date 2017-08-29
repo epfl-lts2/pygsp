@@ -6,10 +6,9 @@ from . import Filter  # prevent circular import in Python < 3.5
 
 
 class Itersine(Filter):
-    r"""
-    Itersine filterbank
+    r"""Design an itersine filter bank (tight frame).
 
-    Create an itersine half overlap filterbank of Nf filters.
+    Create an itersine half overlap filter bank of Nf filters.
     Going from 0 to lambda_max.
 
     Parameters

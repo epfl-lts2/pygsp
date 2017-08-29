@@ -6,10 +6,9 @@ from . import Filter  # prevent circular import in Python < 3.5
 
 
 class Regular(Filter):
-    r"""
-    Regular filterbank
+    r"""Design 2 filters with the regular construction.
 
-    This function creates a parseval filterbank :math:`2` filters.
+    This function creates a Parseval filter bank of 2 filters.
     The low-pass filter is defined by a function :math:`f_l(x)`
     between :math:`0` and :math:`2`. For :math:`d = 0`.
 

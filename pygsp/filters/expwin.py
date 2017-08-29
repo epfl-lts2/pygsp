@@ -6,8 +6,7 @@ from . import Filter  # prevent circular import in Python < 3.5
 
 
 class Expwin(Filter):
-    r"""
-    Expwin filterbank
+    r"""Design an exponential window filter.
 
     Parameters
     ----------

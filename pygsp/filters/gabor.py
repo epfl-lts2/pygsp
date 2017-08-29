@@ -8,19 +8,16 @@ _logger = utils.build_logger(__name__)
 
 
 class Gabor(Filter):
-    r"""
-    Gabor filterbank
+    r"""Design a Gabor filter bank.
+
+    Design a filter bank where the kernel *k* is placed at each graph
+    frequency.
 
     Parameters
     ----------
     G : graph
     k : lambda function
         kernel
-
-    Notes
-    -----
-    This function create a filterbank with the kernel *k*. Every filter is
-    centered in a different frequency.
 
     Examples
     --------

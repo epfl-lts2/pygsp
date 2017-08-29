@@ -6,8 +6,7 @@ from . import Filter  # prevent circular import in Python < 3.5
 
 
 class HalfCosine(Filter):
-    r"""
-    HalfCosine filterbank
+    r"""Design an half cosine filter bank (tight frame).
 
     Parameters
     ----------

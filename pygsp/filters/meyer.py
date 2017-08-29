@@ -10,8 +10,7 @@ _logger = utils.build_logger(__name__)
 
 
 class Meyer(Filter):
-    r"""
-    Meyer filterbank
+    r"""Design a filter bank of Meyer wavelets (tight frame).
 
     Parameters
     ----------
