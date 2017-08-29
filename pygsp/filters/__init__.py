@@ -43,21 +43,6 @@ Then, derived classes implement various common graph filters.
 * :class:`Heat`: design an heat kernel filter
 * :class:`Expwin`: design an exponential window filter
 
-The below code shows the frequency response of each of those filter banks.
-
-.. plot::
-    :context: reset
-
-    >>> import matplotlib.pyplot as plt
-    >>>
-    >>> G = graphs.Logo()
-    >>> G.estimate_lmax()
-    >>>
-    >>> for filt in sorted(filters._FILTERS):
-    ...     if filt not in ['Filter', 'Gabor', 'WarpedTranslates']:
-    ...         fig, ax = plt.subplots(figsize=(10, 4))
-    ...         getattr(filters, filt)(G).plot(ax=ax)
-    ...         ax.set_title(filt)  # doctest: +SKIP
 
 Moreover, two approximation methods are provided for fast filtering. The
 computational complexity of filtering with those approximations is linear with

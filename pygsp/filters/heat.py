@@ -27,10 +27,10 @@ class Heat(Filter):
 
     Examples
     --------
-    >>> G = graphs.Logo()
 
     Regular heat kernel.
 
+    >>> G = graphs.Logo()
     >>> g = filters.Heat(G, tau=[5, 10])
     >>> print('{} filters'.format(g.Nf))
     2 filters
@@ -44,6 +44,19 @@ class Heat(Filter):
     >>> y = g.evaluate(G.e)
     >>> print('{:.2f}'.format(np.linalg.norm(y[0])))
     1.00
+
+    Filter bank's representation in Fourier and time (ring graph) domains.
+
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Ring(N=20)
+    >>> G.estimate_lmax()
+    >>> G.set_coordinates('line1D')
+    >>> g = filters.Heat(G, tau=[5, 10, 100])
+    >>> s = g.localize(G.N // 2)
+    >>> s = utils.vec2mat(s, g.Nf)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> g.plot(ax=axes[0])
+    >>> G.plot_signal(s, ax=axes[1])
 
     """
 

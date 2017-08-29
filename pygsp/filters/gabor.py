@@ -25,11 +25,11 @@ class Gabor(Filter):
     Examples
     --------
     >>> G = graphs.Logo()
-    >>> k = lambda x: x/(1.-x)
-    >>> F = filters.Gabor(G, k);
+    >>> k = lambda x: x / (1. - x)
+    >>> g = filters.Gabor(G, k);
 
     """
-    def __init__(self, G, k, **kwargs):
+    def __init__(self, G, k):
 
         Nf = G.e.shape[0]
 
@@ -37,4 +37,4 @@ class Gabor(Filter):
         for i in range(Nf):
             g.append(lambda x, ii=i: k(x - G.e[ii]))
 
-        super(Gabor, self).__init__(G, g, **kwargs)
+        super(Gabor, self).__init__(G, g)

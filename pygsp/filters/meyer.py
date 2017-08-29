@@ -28,8 +28,19 @@ class Meyer(Filter):
 
     Examples
     --------
-    >>> G = graphs.Logo()
-    >>> F = filters.Meyer(G)
+
+    Filter bank's representation in Fourier and time (ring graph) domains.
+
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Ring(N=20)
+    >>> G.estimate_lmax()
+    >>> G.set_coordinates('line1D')
+    >>> g = filters.Meyer(G)
+    >>> s = g.localize(G.N // 2)
+    >>> s = utils.vec2mat(s, g.Nf)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> g.plot(ax=axes[0])
+    >>> G.plot_signal(s, ax=axes[1])
 
     """
 
