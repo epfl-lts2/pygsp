@@ -49,7 +49,6 @@ The below code shows the frequency response of each of those filter banks.
     :context: reset
 
     >>> import matplotlib.pyplot as plt
-    >>> from pygsp import graphs, filters
     >>>
     >>> G = graphs.Logo()
     >>> G.estimate_lmax()

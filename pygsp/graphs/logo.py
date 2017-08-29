@@ -12,7 +12,6 @@ class Logo(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.Logo()
 
     """

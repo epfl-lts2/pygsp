@@ -24,7 +24,6 @@ class Gabor(Filter):
 
     Examples
     --------
-    >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> k = lambda x: x/(1.-x)
     >>> F = filters.Gabor(G, k);

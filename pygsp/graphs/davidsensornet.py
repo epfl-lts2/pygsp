@@ -19,7 +19,6 @@ class DavidSensorNet(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.DavidSensorNet(N=64)
     >>> G = graphs.DavidSensorNet(N=500)
     >>> G = graphs.DavidSensorNet(N=123)

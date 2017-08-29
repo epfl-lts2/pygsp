@@ -46,7 +46,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
 
     Examples
     --------
-    >>> from pygsp import graphs, reduction
+    >>> from pygsp import reduction
     >>> G = graphs.Sensor(256, Nc=20, distribute=True)
     >>> epsilon = 0.4
     >>> G2 = reduction.graph_sparsify(G, epsilon)
@@ -229,7 +229,7 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
 
     Examples
     --------
-    >>> from pygsp import graphs, reduction
+    >>> from pygsp import reduction
     >>> levels = 5
     >>> G = graphs.Sensor(N=512)
     >>> G.compute_fourier_basis()

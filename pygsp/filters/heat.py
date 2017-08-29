@@ -27,8 +27,6 @@ class Heat(Filter):
 
     Examples
     --------
-    >>> import numpy as np
-    >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
 
     Regular heat kernel.

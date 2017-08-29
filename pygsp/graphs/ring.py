@@ -19,7 +19,6 @@ class Ring(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.Ring()
 
     """

@@ -17,7 +17,6 @@ class LowStretchTree(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.LowStretchTree(k=3)
 
     """

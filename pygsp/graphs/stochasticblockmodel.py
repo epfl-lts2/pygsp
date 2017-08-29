@@ -42,7 +42,6 @@ class StochasticBlockModel(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.StochasticBlockModel(N=1024, k=5)
 
     """

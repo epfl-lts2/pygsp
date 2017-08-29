@@ -22,7 +22,6 @@ class Itersine(Filter):
 
     Examples
     --------
-    >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> F = filters.Itersine(G)
 

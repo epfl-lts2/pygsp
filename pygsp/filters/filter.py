@@ -42,8 +42,6 @@ class Filter(object):
 
     Examples
     --------
-    >>> import numpy as np
-    >>> from pygsp import graphs, filters
     >>>
     >>> G = graphs.Logo()
     >>> my_filter = filters.Filter(G, lambda x: x / (1. + x))
@@ -118,8 +116,6 @@ class Filter(object):
         --------
         Create a smooth graph signal by low-pass filtering white noise.
 
-        >>> import numpy as np
-        >>> from pygsp import graphs, filters
         >>> G = graphs.Logo()
         >>> G.estimate_lmax()
         >>> s1 = np.random.uniform(size=(G.N, 4))
@@ -194,7 +190,6 @@ class Filter(object):
         Frequency response of a low-pass filter.
 
         >>> import matplotlib.pyplot as plt
-        >>> from pygsp import graphs, filters
         >>> G = graphs.Logo()
         >>> f = filters.Expwin(G)
         >>> G.compute_fourier_basis()
@@ -259,8 +254,6 @@ class Filter(object):
 
         Examples
         --------
-        >>> import numpy as np
-        >>> from pygsp import graphs, filters
         >>> G = graphs.Sensor(30, seed=42)
         >>> G.estimate_lmax()
 
@@ -364,7 +357,6 @@ class Filter(object):
         --------
         Visualize heat diffusion on a grid.
 
-        >>> from pygsp import graphs, filters
         >>> N = 20
         >>> G = graphs.Grid2d(N)
         >>> G.estimate_lmax()
@@ -422,7 +414,6 @@ class Filter(object):
 
         Examples
         --------
-        >>> from pygsp import graphs, filters
         >>> G = graphs.Logo()
         >>> G.estimate_lmax()
         >>> f = filters.MexicanHat(G)
@@ -502,8 +493,6 @@ class Filter(object):
 
         Examples
         --------
-        >>> import numpy as np
-        >>> from pygsp import graphs, filters
         >>>
         >>> G = graphs.Logo()
         >>> G.estimate_lmax()

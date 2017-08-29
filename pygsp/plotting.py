@@ -151,7 +151,7 @@ def plot(O, **kwargs):
 
     Examples
     --------
-    >>> from pygsp import graphs, plotting
+    >>> from pygsp import plotting
     >>> G = graphs.Logo()
     >>> plotting.plot(G)
 
@@ -190,7 +190,7 @@ def plot_graph(G, backend=None, **kwargs):
 
     Examples
     --------
-    >>> from pygsp import graphs, plotting
+    >>> from pygsp import plotting
     >>> G = graphs.Logo()
     >>> plotting.plot_graph(G)
 
@@ -363,7 +363,7 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
 
     Examples
     --------
-    >>> from pygsp import graphs, filters, plotting
+    >>> from pygsp import plotting
     >>> G = graphs.Logo()
     >>> mh = filters.MexicanHat(G)
     >>> plotting.plot_filter(mh)
@@ -446,8 +446,7 @@ def plot_signal(G, signal, backend=None, **kwargs):
 
     Examples
     --------
-    >>> import numpy as np
-    >>> from pygsp import graphs, filters, plotting
+    >>> from pygsp import plotting
     >>> G = graphs.Grid2d(4)
     >>> signal = np.sin((np.arange(16) * 2*np.pi/16))
     >>> plotting.plot_signal(G, signal)
@@ -623,8 +622,7 @@ def plot_spectrogram(G, node_idx=None):
 
     Examples
     --------
-    >>> import numpy as np
-    >>> from pygsp import graphs, plotting
+    >>> from pygsp import plotting
     >>> G = graphs.Ring(15)
     >>> plotting.plot_spectrogram(G)
 

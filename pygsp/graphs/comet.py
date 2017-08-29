@@ -19,7 +19,6 @@ class Comet(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.Comet()
 
     """

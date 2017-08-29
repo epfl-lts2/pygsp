@@ -68,8 +68,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
     Examples
     --------
-    >>> from pygsp import graphs
-    >>> import numpy as np
     >>> W = np.arange(4).reshape(2, 2)
     >>> G = graphs.Graph(W)
 
@@ -129,8 +127,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> import numpy as np
-        >>> from pygsp import graphs
         >>> W = np.arange(4).reshape(2, 2)
         >>> G = graphs.Graph(W)
         >>> cw = G.check_weights()
@@ -192,7 +188,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> from pygsp import graphs
         >>> G = graphs.Ring(N=10)
         >>> newW = G.W
         >>> newW[1] = 1
@@ -250,7 +245,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> from pygsp import graphs
         >>> Torus = graphs.Torus()
         >>> G = graphs.TwoMoons()
         >>> G.copy_graph_attributes(ctype=False, Gn=Torus);
@@ -288,7 +282,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> from pygsp import graphs
         >>> G = graphs.ErdosRenyi()
         >>> G.set_coordinates()
         >>> G.plot()
@@ -377,8 +370,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> from pygsp import graphs
-        >>> import numpy as np
         >>> W = np.arange(16).reshape(4, 4)
         >>> G = graphs.Graph(W)
         >>> ind = [1, 3]
@@ -418,7 +409,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Examples
         --------
         >>> from scipy import sparse
-        >>> from pygsp import graphs
         >>> W = sparse.rand(10, 10, 0.2)
         >>> G = graphs.Graph(W=W)
         >>> connected = G.is_connected()
@@ -484,7 +474,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Examples
         --------
         >>> from scipy import sparse
-        >>> from pygsp import graphs
         >>> W = sparse.rand(10, 10, 0.2)
         >>> G = graphs.Graph(W=W)
         >>> directed = G.is_directed()
@@ -518,7 +507,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Examples
         --------
         >>> from scipy import sparse
-        >>> from pygsp import graphs, utils
         >>> W = sparse.rand(10, 10, 0.2)
         >>> W = utils.symmetrize(W)
         >>> G = graphs.Graph(W=W)
@@ -590,7 +578,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> from pygsp import graphs
         >>> G = graphs.Sensor(50)
         >>> G.L.shape
         (50, 50)
@@ -678,7 +665,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> from pygsp import graphs
         >>> G = graphs.Logo()
         >>> G.compute_fourier_basis()
         >>> print('{:.2f}'.format(G.lmax))
@@ -728,7 +714,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> from pygsp import graphs
         >>> G = graphs.Logo()
         >>> v_in, v_out, weights = G.get_edge_list()
         >>> v_in.shape, v_out.shape, weights.shape

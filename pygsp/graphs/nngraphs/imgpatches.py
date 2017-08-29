@@ -23,7 +23,6 @@ class ImgPatches(NNGraph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> from skimage import data, img_as_float
     >>> img = img_as_float(data.camera()[::2, ::2])
     >>> G = graphs.ImgPatches(img)

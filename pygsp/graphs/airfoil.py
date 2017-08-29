@@ -13,7 +13,6 @@ class Airfoil(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.Airfoil()
 
     """

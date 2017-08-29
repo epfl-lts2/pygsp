@@ -37,7 +37,6 @@ class RandomRegular(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.RandomRegular()
 
     """

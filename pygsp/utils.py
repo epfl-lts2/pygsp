@@ -135,7 +135,6 @@ def distanz(x, y=None):
 
     Examples
     --------
-    >>> import numpy as np
     >>> from pygsp import utils
     >>> x = np.arange(3)
     >>> utils.distanz(x, x)
@@ -230,7 +229,6 @@ def symmetrize(W, symmetrize_type='average'):
 
     Examples
     --------
-    >>> import numpy as np
     >>> from pygsp import utils
     >>> x = np.array([[1,0],[3,4.]])
     >>> x
@@ -350,7 +348,6 @@ def repmatline(A, ncol=1, nrow=1):
     Examples
     --------
     >>> from pygsp import utils
-    >>> import numpy as np
     >>> x = np.array([[1, 2], [3, 4]])
     >>> x
     array([[1, 2],

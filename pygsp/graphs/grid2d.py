@@ -25,7 +25,6 @@ class Grid2d(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.Grid2d(shape=(32,))
 
     """

@@ -29,7 +29,6 @@ class ErdosRenyi(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.ErdosRenyi(100, 0.05)
 
     """

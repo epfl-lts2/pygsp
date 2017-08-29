@@ -23,7 +23,6 @@ class Cube(NNGraph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.Cube(radius=5)
 
     """

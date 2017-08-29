@@ -41,7 +41,6 @@ class MexicanHat(Filter):
 
     Examples
     --------
-    >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> g = filters.MexicanHat(G)
 

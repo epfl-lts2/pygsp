@@ -17,6 +17,10 @@ plot_include_source = True
 plot_html_show_source_link = False
 plot_html_show_formats = False
 plot_working_directory = '.'
+plot_pre_code = """
+import numpy as np
+from pygsp import graphs, filters, utils
+"""
 
 extensions.append('numpydoc')
 numpydoc_show_class_members = False

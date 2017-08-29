@@ -19,7 +19,6 @@ class Torus(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.Torus(Nv=32)
 
     References

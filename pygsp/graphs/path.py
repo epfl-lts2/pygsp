@@ -17,7 +17,6 @@ class Path(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.Path(N=16)
 
     References

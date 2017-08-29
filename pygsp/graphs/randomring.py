@@ -19,7 +19,6 @@ class RandomRing(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.RandomRing(N=16)
 
     """

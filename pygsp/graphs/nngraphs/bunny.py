@@ -14,7 +14,6 @@ class Bunny(NNGraph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.Bunny()
 
     """

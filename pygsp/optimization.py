@@ -56,7 +56,6 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
 
     Examples
     --------
-    >>> from pygsp import optimization, graphs
 
     """
     if A is None:

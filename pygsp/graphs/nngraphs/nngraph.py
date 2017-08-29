@@ -64,8 +64,6 @@ class NNGraph(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
-    >>> import numpy as np
     >>> Xin = np.arange(90).reshape(30, 3)
     >>> G = graphs.NNGraph(Xin)
 

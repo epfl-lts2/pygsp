@@ -46,7 +46,6 @@ class GraphDifference(object):
 
         Examples
         --------
-        >>> from pygsp import graphs
         >>> G = graphs.Logo()
         >>> G.N, G.Ne
         (1130, 6262)
@@ -104,8 +103,6 @@ class GraphDifference(object):
 
         Examples
         --------
-        >>> import numpy as np
-        >>> from pygsp import graphs
         >>> G = graphs.Logo()
         >>> G.N, G.Ne
         (1130, 6262)
@@ -147,8 +144,6 @@ class GraphDifference(object):
 
         Examples
         --------
-        >>> import numpy as np
-        >>> from pygsp import graphs
         >>> G = graphs.Logo()
         >>> G.N, G.Ne
         (1130, 6262)

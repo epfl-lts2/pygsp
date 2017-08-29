@@ -21,17 +21,28 @@ def gen_recursive_file(root, ext):
                 yield os.path.join(root, name)
 
 
-def test_docstrings(root, ext):
+def test_docstrings(root, ext, setup=None):
     files = list(gen_recursive_file(root, ext))
-    return doctest.DocFileSuite(*files, module_relative=False)
+    return doctest.DocFileSuite(*files, setUp=setup, module_relative=False)
+
+
+def setup(doctest):
+    import numpy
+    import pygsp
+    doctest.globs = {
+        'graphs': pygsp.graphs,
+        'filters': pygsp.filters,
+        'utils': pygsp.utils,
+        'np': numpy,
+    }
 
 
 suites = []
 suites.append(test_graphs.suite)
 suites.append(test_filters.suite)
 suites.append(test_utils.suite)
-suites.append(test_docstrings('pygsp', '.py'))
-suites.append(test_docstrings('.', '.rst'))
+suites.append(test_docstrings('pygsp', '.py', setup))
+suites.append(test_docstrings('.', '.rst'))  # No setup to not forget imports.
 suites.append(test_plotting.suite)  # TODO: can SIGSEGV if not last
 suite = unittest.TestSuite(suites)
 

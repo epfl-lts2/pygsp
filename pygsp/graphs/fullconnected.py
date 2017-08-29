@@ -16,7 +16,6 @@ class FullConnected(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.FullConnected(N=5)
 
     """

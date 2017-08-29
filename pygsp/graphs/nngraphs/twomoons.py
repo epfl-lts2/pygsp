@@ -35,7 +35,6 @@ class TwoMoons(NNGraph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.TwoMoons(moontype='standard', dim=4)
     >>> G.coords.shape
     (2000, 4)

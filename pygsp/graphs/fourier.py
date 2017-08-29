@@ -79,7 +79,6 @@ class GraphFourier(object):
 
         Examples
         --------
-        >>> from pygsp import graphs
         >>> G = graphs.Torus()
         >>> G.compute_fourier_basis()
         >>> G.U.shape
@@ -133,8 +132,6 @@ class GraphFourier(object):
 
         Examples
         --------
-        >>> import numpy as np
-        >>> from pygsp import graphs
         >>> G = graphs.Logo()
         >>> s = np.random.normal(size=G.N)
         >>> s_hat = G.gft(s)
@@ -168,8 +165,6 @@ class GraphFourier(object):
 
         Examples
         --------
-        >>> import numpy as np
-        >>> from pygsp import graphs
         >>> G = graphs.Logo()
         >>> s_hat = np.random.normal(size=G.N)
         >>> s = G.igft(s_hat)
@@ -225,8 +220,6 @@ class GraphFourier(object):
 
         Examples
         --------
-        >>> import numpy as np
-        >>> from pygsp import graphs
         >>> G = graphs.Logo()
         >>> s = np.random.normal(size=G.N)
         >>> C = G.gft_windowed_gabor(s, lambda x: x/(1.-x))

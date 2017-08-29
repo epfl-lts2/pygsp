@@ -30,7 +30,6 @@ class Sensor(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.Sensor(N=300)
 
     """

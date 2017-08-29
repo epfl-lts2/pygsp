@@ -40,7 +40,6 @@ class Community(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.Community()
 
     """

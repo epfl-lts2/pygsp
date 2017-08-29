@@ -32,7 +32,6 @@ class SwissRoll(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.SwissRoll()
 
     """

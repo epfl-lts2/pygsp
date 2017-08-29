@@ -32,7 +32,6 @@ class BarabasiAlbert(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.BarabasiAlbert(500)
 
     """

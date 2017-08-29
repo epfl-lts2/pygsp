@@ -25,7 +25,6 @@ class Grid2dImgPatches(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> from skimage import data, img_as_float
     >>> img = img_as_float(data.camera()[::32, ::32])
     >>> G = graphs.Grid2dImgPatches(img)

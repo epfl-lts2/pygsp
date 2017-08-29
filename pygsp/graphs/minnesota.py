@@ -21,7 +21,6 @@ class Minnesota(Graph):
 
     Examples
     --------
-    >>> from pygsp import graphs
     >>> G = graphs.Minnesota()
 
     """

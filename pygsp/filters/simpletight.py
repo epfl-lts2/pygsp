@@ -28,7 +28,6 @@ class SimpleTight(Filter):
 
     Examples
     --------
-    >>> from pygsp import graphs, filters
     >>> G = graphs.Logo()
     >>> g = filters.SimpleTight(G)
 
