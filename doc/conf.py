@@ -9,6 +9,7 @@ extensions = ['sphinx.ext.viewcode',
               'sphinxcontrib.bibtex']
 
 extensions.append('sphinx.ext.autodoc')
+autodoc_default_flags = ['members', 'undoc-members']
 autodoc_member_order = 'groupwise'  # alphabetical, groupwise, bysource
 
 extensions.append('matplotlib.sphinxext.plot_directive')
