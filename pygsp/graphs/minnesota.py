@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from scipy import sparse
 
 from pygsp import utils
 from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Minnesota(Graph):
-    r"""Minnesota road graph.
+    r"""Minnesota road network (from MatlabBGL).
 
     Parameters
     ----------
     connect : bool
-        Change the graph to be connected. (default = True)
+        If True, the adjacency matrix is adjusted so that all edge weights are
+        equal to 1, and the graph is connected. Set to False to get the
+        original disconnected graph.
 
     References
     ----------
-    See :cite:`gleich`
+    See :cite:`gleich`.
 
     Examples
     --------
@@ -34,29 +37,20 @@ class Minnesota(Graph):
                     "vertex_size": 30}
 
         if connect:
-            # Edit adjacency matrix
-            A = (A > 0).astype(int)
 
-            # clean minnesota graph
-            A.setdiag(0)
+            # Missing edges needed to connect the graph.
+            A = sparse.lil_matrix(A)
+            A[348, 354] = 1
+            A[354, 348] = 1
+            A = sparse.csc_matrix(A)
 
-            # missing edge needed to connect graph
-            A[349, 355] = 1
-            A[355, 349] = 1
-
-            # change a handful of 2 values back to 1
-            A[86, 88] = 1
-            A[86, 88] = 1
-            A[345, 346] = 1
-            A[346, 345] = 1
-            A[1707, 1709] = 1
-            A[1709, 1707] = 1
-            A[2289, 2290] = 1
-            A[2290, 2289] = 1
+            # Binarize: 8 entries are equal to 2 instead of 1.
+            A = (A > 0).astype(bool)
 
             gtype = 'minnesota'
 
         else:
+
             gtype = 'minnesota-disconnected'
 
         super(Minnesota, self).__init__(W=A, coords=data['xy'],
