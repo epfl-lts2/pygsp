@@ -31,7 +31,7 @@ class BarabasiAlbert(Graph):
 
     Examples
     --------
-    >>> G = graphs.BarabasiAlbert(500)
+    >>> G = graphs.BarabasiAlbert()
 
     """
     def __init__(self, N=1000, m0=1, m=1, **kwargs):

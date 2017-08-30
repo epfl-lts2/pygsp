@@ -23,7 +23,9 @@ class Minnesota(Graph):
 
     Examples
     --------
-    >>> G = graphs.Minnesota()
+    >>> import matplotlib.pyplot as plt
+    >>> fig, ax = plt.subplots(figsize=(7, 5))
+    >>> graphs.Minnesota().plot(ax=ax)
 
     """
 
@@ -34,7 +36,7 @@ class Minnesota(Graph):
         A = data['A']
 
         plotting = {"limits": np.array([-98, -89, 43, 50]),
-                    "vertex_size": 30}
+                    "vertex_size": 40}
 
         if connect:
 

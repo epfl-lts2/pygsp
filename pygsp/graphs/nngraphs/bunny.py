@@ -13,7 +13,10 @@ class Bunny(NNGraph):
 
     Examples
     --------
-    >>> G = graphs.Bunny()
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure(figsize=(10, 8))
+    >>> ax = fig.add_subplot(111, projection='3d')
+    >>> graphs.Bunny().plot(ax=ax)
 
     """
 
@@ -21,10 +24,12 @@ class Bunny(NNGraph):
 
         data = utils.loadmat('pointclouds/bunny')
 
-        plotting = {'vertex_size': 10,
-                    'elevation': -89,
-                    'azimuth': 94,
-                    'distance': 7}
+        plotting = {
+            'vertex_size': 10,
+            'elevation': -90,
+            'azimuth': 90,
+            'distance': 7,
+        }
 
         super(Bunny, self).__init__(Xin=data['bunny'], epsilon=0.2,
                                     NNtype='radius', plotting=plotting,

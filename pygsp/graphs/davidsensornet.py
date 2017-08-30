@@ -18,9 +18,8 @@ class DavidSensorNet(Graph):
 
     Examples
     --------
-    >>> G = graphs.DavidSensorNet(N=64)
-    >>> G = graphs.DavidSensorNet(N=500)
-    >>> G = graphs.DavidSensorNet(N=123)
+    >>> import matplotlib
+    >>> graphs.DavidSensorNet().plot()
 
     """
 

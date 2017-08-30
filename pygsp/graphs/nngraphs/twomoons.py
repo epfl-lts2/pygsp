@@ -34,12 +34,8 @@ class TwoMoons(NNGraph):
 
     Examples
     --------
-    >>> G = graphs.TwoMoons(moontype='standard', dim=4)
-    >>> G.coords.shape
-    (2000, 4)
-    >>> G = graphs.TwoMoons(moontype='synthesized', N=1000, sigmad=0.1, d=1)
-    >>> G.coords.shape
-    (1000, 2)
+    >>> import matplotlib
+    >>> graphs.TwoMoons().plot()
 
     """
 
@@ -86,4 +82,9 @@ class TwoMoons(NNGraph):
 
         self.labels = np.concatenate((np.zeros(N1), np.ones(N2)))
 
-        super(TwoMoons, self).__init__(Xin=Xin, sigma=sigmag, k=5, gtype=gtype)
+        plotting = {
+            'vertex_size': 5,
+        }
+
+        super(TwoMoons, self).__init__(Xin=Xin, sigma=sigmag, k=5,
+                                       plotting=plotting, gtype=gtype)

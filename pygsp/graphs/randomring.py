@@ -18,7 +18,8 @@ class RandomRing(Graph):
 
     Examples
     --------
-    >>> G = graphs.RandomRing(N=16)
+    >>> import matplotlib
+    >>> graphs.RandomRing().plot()
 
     """
 

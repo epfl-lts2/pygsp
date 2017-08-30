@@ -22,7 +22,10 @@ class Sphere(NNGraph):
 
     Examples
     --------
-    >>> G = graphs.Sphere(radius=5)
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure(figsize=(10, 8))
+    >>> ax = fig.add_subplot(111, projection='3d')
+    >>> graphs.Sphere().plot(ax=ax)
 
     """
 
@@ -40,4 +43,9 @@ class Sphere(NNGraph):
         else:
             raise ValueError('Unknow sampling!')
 
-        super(Sphere, self).__init__(Xin=pts, gtype='Sphere', k=10, **kwargs)
+        plotting = {
+            'vertex_size': 80,
+        }
+
+        super(Sphere, self).__init__(Xin=pts, gtype='Sphere', k=10,
+                                     plotting=plotting, **kwargs)

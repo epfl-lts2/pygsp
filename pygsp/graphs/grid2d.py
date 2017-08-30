@@ -19,7 +19,8 @@ class Grid2d(Graph):
 
     Examples
     --------
-    >>> G = graphs.Grid2d(shape=(32,))
+    >>> import matplotlib
+    >>> graphs.Grid2d().plot()
 
     """
 

@@ -12,7 +12,8 @@ class Airfoil(Graph):
 
     Examples
     --------
-    >>> G = graphs.Airfoil()
+    >>> import matplotlib
+    >>> graphs.Airfoil().plot()
 
     """
 

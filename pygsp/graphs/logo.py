@@ -11,7 +11,8 @@ class Logo(Graph):
 
     Examples
     --------
-    >>> G = graphs.Logo()
+    >>> import matplotlib
+    >>> graphs.Logo().plot()
 
     """
 

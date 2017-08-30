@@ -12,11 +12,12 @@ class Path(Graph):
     Parameters
     ----------
     N : int
-        Number of vertices (default = 32)
+        Number of vertices.
 
     Examples
     --------
-    >>> G = graphs.Path(N=16)
+    >>> import matplotlib
+    >>> graphs.Path().plot()
 
     References
     ----------

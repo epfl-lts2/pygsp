@@ -18,7 +18,8 @@ class Ring(Graph):
 
     Examples
     --------
-    >>> G = graphs.Ring()
+    >>> import matplotlib
+    >>> graphs.Ring().plot()
 
     """
 

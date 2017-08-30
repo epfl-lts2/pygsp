@@ -31,7 +31,8 @@ class SwissRoll(Graph):
 
     Examples
     --------
-    >>> G = graphs.SwissRoll()
+    >>> import matplotlib
+    >>> graphs.SwissRoll().plot()
 
     """
 
@@ -67,7 +68,13 @@ class SwissRoll(Graph):
         W -= np.diag(np.diag(W))
         W[W < thresh] = 0
 
-        plotting = {'limits': np.array([-1, 1, -1, 1, -1, 1])}
+        plotting = {
+            'vertex_size': 60,
+            'limits': np.array([-1, 1, -1, 1, -1, 1]),
+            'elevation': 15,
+            'azimuth': -90,
+            'distance': 7,
+        }
         gtype = 'swiss roll {}'.format(srtype)
 
         super(SwissRoll, self).__init__(W=W, coords=coords.T,

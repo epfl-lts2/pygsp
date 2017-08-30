@@ -7,16 +7,21 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class LowStretchTree(Graph):
-    r"""Low stretch tree graph.
+    r"""Low stretch tree.
+
+    Build the root of a low stretch tree on a grid of points. There are
+    :math:`2k` points on each side of the grid, and therefore :math:`2^{2k}`
+    vertices in total. The edge weights are all equal to 1.
 
     Parameters
     ----------
     k : int
-        2^k points on each side of the grid of vertices (default 6)
+        :math:`2^k` points on each side of the grid of vertices.
 
     Examples
     --------
-    >>> G = graphs.LowStretchTree(k=3)
+    >>> import matplotlib
+    >>> graphs.LowStretchTree(k=3).plot()
 
     """
 
@@ -54,8 +59,11 @@ class LowStretchTree(Graph):
         self.root = 4**(k - 1)
 
         plotting = {"edges_width": 1.25,
-                    "vertex_sizee": 75,
+                    "vertex_size": 75,
                     "limits": np.array([0, 2**k + 1, 0, 2**k + 1])}
 
-        super(LowStretchTree, self).__init__(W=W, coords=coords, plotting=plotting,
-                                             gtype="low strech tree", **kwargs)
+        super(LowStretchTree, self).__init__(W=W,
+                                             coords=coords,
+                                             plotting=plotting,
+                                             gtype="low stretch tree",
+                                             **kwargs)

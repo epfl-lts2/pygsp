@@ -16,19 +16,20 @@ class Torus(Graph):
     Mv : int
         Number of vertices along the second dimension (default is Nv)
 
-    Examples
-    --------
-    >>> G = graphs.Torus(Nv=32)
-
     References
     ----------
     See :cite:`strang1999discrete` for more informations.
+
+    Examples
+    --------
+    >>> import matplotlib
+    >>> graphs.Torus().plot()
 
     """
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
 
-        if not Mv:
+        if Mv is None:
             Mv = Nv
 
         # Create weighted adjancency matrix
@@ -79,8 +80,10 @@ class Torus(Graph):
         self.Nv = Nv
         self.Mv = Nv
 
-        plotting = {"vertex_size": 30,
-                    "limits": np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])}
+        plotting = {
+            'vertex_size': 60,
+            'limits': np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])
+        }
 
         super(Torus, self).__init__(W=W, gtype='Torus', coords=coords,
                                     plotting=plotting, **kwargs)

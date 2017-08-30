@@ -39,7 +39,8 @@ class Community(Graph):
 
     Examples
     --------
-    >>> G = graphs.Community()
+    >>> import matplotlib
+    >>> graphs.Community().plot()
 
     """
     def __init__(self, N=256, **kwargs):

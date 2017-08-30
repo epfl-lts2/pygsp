@@ -63,8 +63,9 @@ class NNGraph(Graph):
 
     Examples
     --------
-    >>> Xin = np.arange(90).reshape(30, 3)
-    >>> G = graphs.NNGraph(Xin)
+    >>> import matplotlib
+    >>> X = np.random.uniform(size=(30, 2))
+    >>> graphs.NNGraph(X).plot()
 
     """
 

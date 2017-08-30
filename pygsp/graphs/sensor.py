@@ -29,7 +29,8 @@ class Sensor(Graph):
 
     Examples
     --------
-    >>> G = graphs.Sensor(N=300)
+    >>> import matplotlib
+    >>> graphs.Sensor().plot()
 
     """
 

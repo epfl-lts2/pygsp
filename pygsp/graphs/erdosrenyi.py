@@ -28,7 +28,7 @@ class ErdosRenyi(Graph):
 
     Examples
     --------
-    >>> G = graphs.ErdosRenyi(100, 0.05)
+    >>> G = graphs.ErdosRenyi()
 
     """
 

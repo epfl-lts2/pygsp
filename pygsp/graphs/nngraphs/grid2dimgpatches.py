@@ -24,15 +24,16 @@ class Grid2dImgPatches(Graph):
 
     Examples
     --------
+    >>> import matplotlib
     >>> from skimage import data, img_as_float
     >>> img = img_as_float(data.camera()[::32, ::32])
-    >>> G = graphs.Grid2dImgPatches(img)
+    >>> graphs.Grid2dImgPatches(img).plot()
 
     """
 
     def __init__(self, img, patch_shape=(3, 3), n_nbrs=8,
                  aggregate=lambda Wp, Wg: Wp + Wg, **kwargs):
-        Gg = Grid2d(shape=img.shape)
+        Gg = Grid2d(*img.shape)
         Gp = ImgPatches(img=img, patch_shape=patch_shape, n_nbrs=n_nbrs)
         gtype = '{}_{}'.format(Gg.gtype, Gp.gtype)
         super(Grid2dImgPatches, self).__init__(W=aggregate(Gp.W, Gg.W),

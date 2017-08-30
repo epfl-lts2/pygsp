@@ -41,7 +41,7 @@ class StochasticBlockModel(Graph):
 
     Examples
     --------
-    >>> G = graphs.StochasticBlockModel(N=1024, k=5)
+    >>> G = graphs.StochasticBlockModel()
 
     """
 

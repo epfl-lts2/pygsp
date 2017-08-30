@@ -22,7 +22,10 @@ class Cube(NNGraph):
 
     Examples
     --------
-    >>> G = graphs.Cube(radius=5)
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure(figsize=(10, 8))
+    >>> ax = fig.add_subplot(111, projection='3d')
+    >>> graphs.Cube().plot(ax=ax)
 
     """
 
@@ -65,4 +68,12 @@ class Cube(NNGraph):
         else:
             raise ValueError("Unknown sampling !")
 
-        super(Cube, self).__init__(Xin=pts, k=10, gtype="Cube", **kwargs)
+        plotting = {
+            'vertex_size': 80,
+            'elevation': 15,
+            'azimuth': 0,
+            'distance': 7,
+        }
+
+        super(Cube, self).__init__(Xin=pts, k=10, gtype="Cube",
+                                   plotting=plotting, **kwargs)
