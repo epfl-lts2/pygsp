@@ -224,12 +224,8 @@ class TestCase(unittest.TestCase):
         graphs.SwissRoll(dim=3)
 
     def test_grid2d(self):
-        G = graphs.Grid2d(shape=(3, 2))
-        self.assertEqual([G.h, G.w], [3, 2])
-        G = graphs.Grid2d(shape=(3,))
-        self.assertEqual([G.h, G.w], [3, 3])
-        G = graphs.Grid2d(shape=3)
-        self.assertEqual([G.h, G.w], [3, 3])
+        graphs.Grid2d(3, 2)
+        graphs.Grid2d(3)
 
     def test_imgpatches(self):
         graphs.ImgPatches(img=self._img, patch_shape=(3, 3))
