@@ -76,17 +76,11 @@ class TestCase(unittest.TestCase):
 
             signal = np.arange(G.N) + 0.3
 
-            if G.is_directed():
-                self.assertRaises(NotImplementedError,
-                                  G.plot, backend='pyqtgraph')
-                self.assertRaises(NotImplementedError,
-                                  G.plot, backend='matplotlib')
-            else:
-                G.plot(backend='pyqtgraph')
-                G.plot(backend='matplotlib')
-                G.plot_signal(signal, backend='pyqtgraph')
-                G.plot_signal(signal, backend='matplotlib')
-                plotting.close_all()
+            G.plot(backend='pyqtgraph')
+            G.plot(backend='matplotlib')
+            G.plot_signal(signal, backend='pyqtgraph')
+            G.plot_signal(signal, backend='matplotlib')
+            plotting.close_all()
 
     def test_save(self):
         G = graphs.Logo()

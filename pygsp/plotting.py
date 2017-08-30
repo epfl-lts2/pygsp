@@ -211,6 +211,8 @@ def plot_graph(G, backend=None, **kwargs):
     if backend is None:
         backend = BACKEND
 
+    G = _handle_directed(G)
+
     if backend == 'pyqtgraph' and _QTG_IMPORT:
         _qtg_plot_graph(G, **kwargs)
     elif backend == 'matplotlib' and _PLT_IMPORT:
@@ -483,6 +485,8 @@ def plot_signal(G, signal, backend=None, **kwargs):
     if backend is None:
         backend = BACKEND
 
+    G = _handle_directed(G)
+
     if backend == 'pyqtgraph' and _QTG_IMPORT:
         _qtg_plot_signal(G, signal, **kwargs)
     elif backend == 'matplotlib' and _PLT_IMPORT:
@@ -683,3 +687,15 @@ def _get_coords(G, edge_list=False):
 
     elif G.coords.shape[1] == 3:
         return [coord.reshape(-1, order='F') for coord in coords]
+
+
+def _handle_directed(G):
+    # FIXME: plot edge direction. For now we just symmetrize the weight matrix.
+    if not G.is_directed():
+        return G
+    else:
+        from pygsp import graphs
+        G2 = graphs.Graph(utils.symmetrize(G.W))
+        G2.coords = G.coords
+        G2.plotting = G.plotting
+        return G2
