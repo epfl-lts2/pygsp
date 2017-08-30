@@ -5,91 +5,125 @@ The :mod:`pygsp.graphs` module implements the graph class hierarchy. A graph
 object is either constructed from an adjacency matrix, or by instantiating one
 of the built-in graph models.
 
+Interface
+=========
+
 The :class:`Graph` base class allows to construct a graph object from any
 adjacency matrix and provides a common interface to that object. Derived
 classes then allows to instantiate various standard graph models.
 
-**Matrix operators**
+Matrix operators
+----------------
 
-* :attr:`Graph.W`: weight matrix
-* :attr:`Graph.L`: Laplacian
-* :attr:`Graph.U`: Fourier basis
-* :attr:`Graph.D`: differential operator
+.. autosummary::
 
-**Checks**
+    Graph.W
+    Graph.L
+    Graph.U
+    Graph.D
 
-* :meth:`Graph.check_weights`: check the characteristics of the weights matrix
-* :meth:`Graph.is_connected`: check the strong connectivity of the input graph
-* :meth:`Graph.is_directed`: check if the graph has directed edges
+Checks
+------
 
-**Attributes computation**
+.. autosummary::
 
-* :meth:`Graph.compute_laplacian`: compute a graph Laplacian
-* :meth:`Graph.estimate_lmax`: estimate largest eigenvalue
-* :meth:`Graph.compute_fourier_basis`: compute Fourier basis
-* :meth:`Graph.compute_differential_operator`: compute differential operator
+    Graph.check_weights
+    Graph.is_connected
+    Graph.is_directed
 
-**Differential operators**
+Attributes computation
+----------------------
 
-* :meth:`Graph.grad`: compute the gradient of a graph signal
-* :meth:`Graph.div`: compute the divergence of a graph signal
+.. autosummary::
 
-**Localization**
+    Graph.compute_laplacian
+    Graph.estimate_lmax
+    Graph.compute_fourier_basis
+    Graph.compute_differential_operator
 
-* :meth:`Graph.modulate`: generalized modulation operator
-* :meth:`Graph.translate`: generalized translation operator
+Differential operators
+----------------------
 
-**Transforms** (frequency and vertex-frequency)
+.. autosummary::
 
-* :meth:`Graph.gft`: graph Fourier transform (GFT)
-* :meth:`Graph.igft`: inverse graph Fourier transform
-* :meth:`Graph.gft_windowed`: windowed GFT
-* :meth:`Graph.gft_windowed_gabor`: Gabor windowed GFT
-* :meth:`Graph.gft_windowed_normalized`: normalized windowed GFT
+    Graph.grad
+    Graph.div
 
-**Plotting**
+Localization
+------------
 
-* :meth:`Graph.plot`: plot the graph
-* :meth:`Graph.plot_signal`: plot a signal on that graph
-* :meth:`Graph.plot_spectrogram`: plot the spectrogram for the graph object
+.. autosummary::
 
-**Others**
+    Graph.modulate
+    Graph.translate
 
-* :meth:`Graph.get_edge_list`: return an edge list (alternative representation)
-* :meth:`Graph.set_coordinates`: set nodes' coordinates (for plotting)
-* :meth:`Graph.subgraph`: create a subgraph
-* :meth:`Graph.extract_components`: split the graph into connected components
+Transforms (frequency and vertex-frequency)
+-------------------------------------------
 
-**Graph models**
+.. autosummary::
 
-* :class:`Airfoil`
-* :class:`BarabasiAlbert`
-* :class:`Comet`
-* :class:`Community`
-* :class:`DavidSensorNet`
-* :class:`ErdosRenyi`
-* :class:`FullConnected`
-* :class:`Grid2d`
-* :class:`Logo`
-* :class:`LowStretchTree`
-* :class:`Minnesota`
-* :class:`Path`
-* :class:`RandomRegular`
-* :class:`RandomRing`
-* :class:`Ring`
-* :class:`Sensor`
-* :class:`StochasticBlockModel`
-* :class:`SwissRoll`
-* :class:`Torus`
+    Graph.gft
+    Graph.igft
+    Graph.gft_windowed
+    Graph.gft_windowed_gabor
+    Graph.gft_windowed_normalized
 
-**Nearest-neighbors graphs constructed from point clouds**
+Plotting
+--------
 
-* :class:`Bunny`
-* :class:`Cube`
-* :class:`ImgPatches`
-* :class:`Grid2dImgPatches`
-* :class:`Sphere`
-* :class:`TwoMoons`
+.. autosummary::
+
+    Graph.plot
+    Graph.plot_signal
+    Graph.plot_spectrogram
+
+Others
+------
+
+.. autosummary::
+
+    Graph.get_edge_list
+    Graph.set_coordinates
+    Graph.subgraph
+    Graph.extract_components
+
+Graph models
+============
+
+.. autosummary::
+
+    Airfoil
+    BarabasiAlbert
+    Comet
+    Community
+    DavidSensorNet
+    ErdosRenyi
+    FullConnected
+    Grid2d
+    Logo
+    LowStretchTree
+    Minnesota
+    Path
+    RandomRegular
+    RandomRing
+    Ring
+    Sensor
+    StochasticBlockModel
+    SwissRoll
+    Torus
+
+Nearest-neighbors graphs constructed from point clouds
+------------------------------------------------------
+
+.. autosummary::
+
+    NNGraph
+    Bunny
+    Cube
+    ImgPatches
+    Grid2dImgPatches
+    Sphere
+    TwoMoons
 
 """
 

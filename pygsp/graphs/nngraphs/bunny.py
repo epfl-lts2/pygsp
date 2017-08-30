@@ -5,8 +5,7 @@ from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
 
 class Bunny(NNGraph):
-    r"""
-    Create a graph of the Stanford bunny.
+    r"""Stanford bunny (NN-graph).
 
     References
     ----------

@@ -6,8 +6,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class FullConnected(Graph):
-    r"""
-    Create a fully connected graph.
+    r"""Fully connected graph.
 
     Parameters
     ----------

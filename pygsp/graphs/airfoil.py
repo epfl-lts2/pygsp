@@ -8,8 +8,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Airfoil(Graph):
-    r"""
-    Create the airfoil graph.
+    r"""Airfoil graph.
 
     Examples
     --------

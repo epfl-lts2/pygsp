@@ -6,8 +6,7 @@ from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
 
 class Cube(NNGraph):
-    r"""
-    Creates the graph of an hyper-cube.
+    r"""Hyper-cube (NN-graph).
 
     Parameters
     ----------

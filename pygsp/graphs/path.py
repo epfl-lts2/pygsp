@@ -7,8 +7,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Path(Graph):
-    r"""
-    Create a path graph.
+    r"""Path graph.
 
     Parameters
     ----------

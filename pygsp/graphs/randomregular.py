@@ -8,8 +8,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class RandomRegular(Graph):
-    r"""
-    Create a random regular graph.
+    r"""Random k-regular graph.
 
     The random regular graph has the property that every node is connected to
     k other nodes. That graph is simple (without loops or double edges),

@@ -7,8 +7,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class ErdosRenyi(Graph):
-    r"""
-    Create a random Erdos Renyi graph.
+    r"""Erdos Renyi graph.
 
     The Erdos Renyi graph is constructed by connecting nodes randomly. Each
     edge is included in the graph with probability p independent from every

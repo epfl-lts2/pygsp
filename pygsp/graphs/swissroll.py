@@ -7,8 +7,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class SwissRoll(Graph):
-    r"""
-    Create a swiss roll graph.
+    r"""Sampled Swiss roll manifold.
 
     Parameters
     ----------

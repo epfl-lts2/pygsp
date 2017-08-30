@@ -7,8 +7,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Comet(Graph):
-    r"""
-    Create a Comet graph.
+    r"""Comet graph.
 
     Parameters
     ----------

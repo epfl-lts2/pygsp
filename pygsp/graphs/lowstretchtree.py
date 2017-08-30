@@ -7,8 +7,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class LowStretchTree(Graph):
-    r"""
-    Create a low stretch tree graph.
+    r"""Low stretch tree graph.
 
     Parameters
     ----------

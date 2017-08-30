@@ -7,8 +7,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Logo(Graph):
-    r"""
-    Create a graph with the GSP logo.
+    r"""GSP logo.
 
     Examples
     --------

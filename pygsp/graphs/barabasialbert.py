@@ -7,8 +7,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class BarabasiAlbert(Graph):
-    r"""
-    Create a graph following the preferential attachment concept like Barabasi-Albert graphs.
+    r"""Barabasi-Albert preferential attachment.
 
     The Barabasi-Albert graph is constructed by connecting nodes in two steps.
     First, m0 nodes are created. Then, nodes are added one by one.

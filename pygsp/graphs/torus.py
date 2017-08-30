@@ -7,8 +7,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Torus(Graph):
-    r"""
-    Create a Torus graph.
+    r"""Sampled torus manifold.
 
     Parameters
     ----------

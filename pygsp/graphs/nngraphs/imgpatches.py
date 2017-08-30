@@ -5,8 +5,7 @@ from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
 
 class ImgPatches(NNGraph):
-    r"""
-    Create a nearest neighbors graph from patches of an image.
+    r"""NN-graph between patches of an image.
 
     Parameters
     ----------

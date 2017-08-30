@@ -7,8 +7,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Ring(Graph):
-    r"""
-    Create a ring graph.
+    r"""K-regular ring graph.
 
     Parameters
     ----------

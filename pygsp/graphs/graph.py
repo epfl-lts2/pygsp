@@ -10,8 +10,7 @@ from . import fourier, difference  # prevent circular import in Python < 3.5
 
 
 class Graph(fourier.GraphFourier, difference.GraphDifference):
-    r"""
-    The base graph class.
+    r"""Base graph class.
 
     * Provide a common interface (and implementation) to graph objects.
     * Can be instantiated to construct custom graphs from a weight matrix.
@@ -109,8 +108,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         self.plotting.update(plotting)
 
     def check_weights(self):
-        r"""
-        Check the characteristics of the weights matrix.
+        r"""Check the characteristics of the weights matrix.
 
         Returns
         -------
@@ -165,8 +163,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                 'diag_is_not_zero': diag_is_not_zero}
 
     def update_graph_attr(self, *args, **kwargs):
-        r"""
-        Recompute some attribute of the graph.
+        r"""Recompute some attribute of the graph.
 
         Parameters
         ----------
@@ -228,8 +225,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             super(type(self), self).__init__(**graph_attr)
 
     def copy_graph_attributes(self, Gn, ctype=True):
-        r"""
-        Copy some parameters of the graph into a given one.
+        r"""Copy some parameters of the graph into a given one.
 
         Parameters
         ----------:
@@ -265,8 +261,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             # TODO: an existing Fourier basis should be updated
 
     def set_coordinates(self, kind='spring', **kwargs):
-        r"""
-        Set the coordinates of the nodes. Used to position them when plotting.
+        r"""Set node's coordinates (their position when plotting).
 
         Parameters
         ----------
@@ -355,8 +350,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             raise ValueError('Unexpected argument king={}.'.format(kind))
 
     def subgraph(self, ind):
-        r"""
-        Create a subgraph from G keeping only the given indices.
+        r"""Create a subgraph given indices.
 
         Parameters
         ----------
@@ -385,8 +379,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return Graph(sub_W, gtype="sub-{}".format(self.gtype))
 
     def is_connected(self, recompute=False):
-        r"""
-        Check the strong connectivity of the input graph. Result is cached.
+        r"""Check the strong connectivity of the graph (cached).
 
         It uses DFS travelling on graph to ensure that each node is visited.
         For undirected graphs, starting at any vertex and trying to access all
@@ -451,8 +444,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return self._connected
 
     def is_directed(self, recompute=False):
-        r"""
-        Check if the graph has directed edges. Result is cached.
+        r"""Check if the graph has directed edges (cached).
 
         In this framework, we consider that a graph is directed if and
         only if its weight matrix is non symmetric.
@@ -490,8 +482,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return self._directed
 
     def extract_components(self):
-        r"""
-        Split the graph into several connected components.
+        r"""Split the graph into connected components.
 
         See :func:`is_connected` for the method used to determine
         connectedness.
@@ -553,8 +544,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return graphs
 
     def compute_laplacian(self, lap_type='combinatorial'):
-        r"""
-        Compute a graph Laplacian.
+        r"""Compute a graph Laplacian.
 
         The result is accessible by the L attribute.
 
@@ -624,9 +614,10 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
     @property
     def lmax(self):
-        r"""
-        Largest eigenvalue of the graph Laplacian. Can be exactly computed by
-        :func:`compute_fourier_basis` or approximated by :func:`estimate_lmax`.
+        r"""Largest eigenvalue of the graph Laplacian.
+
+        Can be exactly computed by :func:`compute_fourier_basis` or
+        approximated by :func:`estimate_lmax`.
         """
         if not hasattr(self, '_lmax'):
             self.logger.warning('The largest eigenvalue G.lmax is not '
@@ -638,8 +629,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return self._lmax
 
     def estimate_lmax(self, recompute=False):
-        r"""
-        Estimate the largest eigenvalue of the graph Laplacian.
+        r"""Estimate the Laplacian's largest eigenvalue (cached).
 
         The result is cached and accessible by the :attr:`lmax` property.
 
@@ -699,8 +689,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         self._lmax = lmax
 
     def get_edge_list(self):
-        r"""
-        Return an edge list, an alternative representation of the graph.
+        r"""Return an edge list, an alternative representation of the graph.
 
         The weighted adjacency matrix is the canonical form used in this
         package to represent a graph as it is the easiest to work with when
@@ -737,8 +726,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             return v_in, v_out, weights
 
     def modulate(self, f, k):
-        r"""
-        Modulation the signal f to the frequency k.
+        r"""Modulate the signal *f* to the frequency *k*.
 
         Parameters
         ----------
@@ -761,8 +749,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return fm
 
     def plot(self, **kwargs):
-        r"""
-        Plot the graph.
+        r"""Plot the graph.
 
         See :func:`pygsp.plotting.plot_graph`.
         """
@@ -770,8 +757,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         plotting.plot_graph(self, **kwargs)
 
     def plot_signal(self, signal, **kwargs):
-        r"""
-        Plot a signal on that graph.
+        r"""Plot a signal on that graph.
 
         See :func:`pygsp.plotting.plot_signal`.
         """
@@ -779,8 +765,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         plotting.plot_signal(self, signal, **kwargs)
 
     def plot_spectrogram(self, **kwargs):
-        r"""
-        Plot the spectrogram for the graph object.
+        r"""Plot the graph's spectrogram.
 
         See :func:`pygsp.plotting.plot_spectrogram`.
         """

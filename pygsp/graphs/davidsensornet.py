@@ -7,8 +7,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class DavidSensorNet(Graph):
-    r"""
-    Create a sensor network.
+    r"""Sensor network.
 
     Parameters
     ----------

@@ -7,8 +7,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class StochasticBlockModel(Graph):
-    r"""
-    Create a graph generated with the Stochastic Block Model.
+    r"""Stochastic Block Model (SBM).
 
     The Stochastic Block Model graph is constructed by connecting nodes with a
     probability which depends on the cluster of the two nodes.  One can define

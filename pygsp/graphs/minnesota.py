@@ -7,8 +7,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Minnesota(Graph):
-    r"""
-    Create a community graph.
+    r"""Minnesota road graph.
 
     Parameters
     ----------

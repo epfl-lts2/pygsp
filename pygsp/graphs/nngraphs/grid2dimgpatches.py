@@ -5,8 +5,7 @@ from pygsp.graphs import Graph, Grid2d, ImgPatches
 
 
 class Grid2dImgPatches(Graph):
-    r"""
-    Create the union of an image patch graph with a 2-dimensional grid graph.
+    r"""Union of a patch graph with a 2D grid graph.
 
     Parameters
     ----------

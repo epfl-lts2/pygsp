@@ -13,8 +13,8 @@ class GraphDifference(object):
 
     @property
     def D(self):
-        r"""
-        Difference operator of the graph.
+        r"""Differential operator (for gradient and divergence).
+
         Is computed by :func:`compute_differential_operator`.
         """
         if not hasattr(self, '_D'):
@@ -26,8 +26,7 @@ class GraphDifference(object):
         return self._D
 
     def compute_differential_operator(self):
-        r"""
-        Compute the graph differential operator.
+        r"""Compute the graph differential operator (cached).
 
         The differential operator is a matrix such that
 
@@ -37,7 +36,7 @@ class GraphDifference(object):
         Laplacian. It is used to compute the gradient and the divergence of a
         graph signal, see :meth:`grad` and :meth:`div`.
 
-        The result is cached and accessible by the :py:attr:`D` property.
+        The result is cached and accessible by the :attr:`D` property.
 
         See also
         --------
@@ -76,8 +75,7 @@ class GraphDifference(object):
         self._D = sparse.csc_matrix((Dv, (Dr, Dc)), shape=(n, self.N))
 
     def grad(self, s):
-        r"""
-        Compute the graph gradient of a signal.
+        r"""Compute the gradient of a graph signal.
 
         The gradient of a signal :math:`s` is defined as
 
@@ -118,8 +116,7 @@ class GraphDifference(object):
         return self.D.dot(s)
 
     def div(self, s):
-        r"""
-        Compute the graph divergence of a signal.
+        r"""Compute the divergence of a graph signal.
 
         The divergence of a signal :math:`s` is defined as
 

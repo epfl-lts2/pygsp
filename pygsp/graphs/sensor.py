@@ -8,8 +8,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Sensor(Graph):
-    r"""
-    Create a random sensor graph.
+    r"""Random sensor graph.
 
     Parameters
     ----------

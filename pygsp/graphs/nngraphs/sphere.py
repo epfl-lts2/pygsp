@@ -6,8 +6,7 @@ from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
 
 class Sphere(NNGraph):
-    r"""
-    Creates a spherical-shaped graph.
+    r"""Spherical-shaped graph (NN-graph).
 
     Parameters
     ----------

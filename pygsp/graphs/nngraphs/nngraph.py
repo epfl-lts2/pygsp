@@ -20,8 +20,7 @@ except Exception:
 
 
 class NNGraph(Graph):
-    r"""
-    Create a nearest-neighbor graph from a point cloud.
+    r"""Nearest-neighbor graph from given point cloud.
 
     Parameters
     ----------

@@ -22,35 +22,33 @@ class GraphFourier(object):
 
     @property
     def U(self):
-        r"""
-        Fourier basis, i.e. the eigenvectors of the Laplacian.
+        r"""Fourier basis (eigenvectors of the Laplacian).
+
         Is computed by :func:`compute_fourier_basis`.
         """
         return self._check_fourier_properties('U', 'Fourier basis')
 
     @property
     def e(self):
-        r"""
-        The eigenvalues of the Laplacian.
-        Their square root are the graph frequencies.
+        r"""Eigenvalues of the Laplacian (square of graph frequencies).
+
         Is computed by :func:`compute_fourier_basis`.
         """
         return self._check_fourier_properties('e', 'eigenvalues vector')
 
     @property
     def mu(self):
-        r"""
-        Coherence of the Fourier basis.
+        r"""Coherence of the Fourier basis.
+
         Is computed by :func:`compute_fourier_basis`.
         """
         return self._check_fourier_properties('mu', 'Fourier basis coherence')
 
     def compute_fourier_basis(self, recompute=False):
-        r"""
-        Compute the Fourier basis of the graph.
+        r"""Compute the Fourier basis of the graph (cached).
 
-        The result is cached and accessible by the :py:attr:`U`,
-        :py:attr:`e`, :py:attr:`lmax`, and :py:attr:`mu` properties.
+        The result is cached and accessible by the :attr:`U`, :attr:`e`,
+        :attr:`lmax`, and :attr:`mu` properties.
 
         Parameters
         ----------
@@ -110,8 +108,7 @@ class GraphFourier(object):
         self._mu = np.max(np.abs(self._U))
 
     def gft(self, s):
-        r"""
-        Compute graph Fourier transform.
+        r"""Compute the graph Fourier transform.
 
         The graph Fourier transform of a signal :math:`s` is defined as
 
@@ -143,8 +140,7 @@ class GraphFourier(object):
         return np.dot(np.conjugate(self.U.T), s)  # True Hermitian here.
 
     def igft(self, s_hat):
-        r"""
-        Compute inverse graph Fourier transform.
+        r"""Compute the inverse graph Fourier transform.
 
         The inverse graph Fourier transform of a Fourier domain signal
         :math:`\hat{s}` is defined as
@@ -176,8 +172,7 @@ class GraphFourier(object):
         return np.dot(self.U, s_hat)
 
     def translate(self, f, i):
-        r"""
-        Translate the signal f to the node i.
+        r"""Translate the signal *f* to the node *i*.
 
         Parameters
         ----------
@@ -203,8 +198,7 @@ class GraphFourier(object):
         return ft
 
     def gft_windowed_gabor(self, f, k):
-        r"""
-        Gabor windowed graph Fourier transform.
+        r"""Gabor windowed graph Fourier transform.
 
         Parameters
         ----------
@@ -238,8 +232,7 @@ class GraphFourier(object):
         return C
 
     def gft_windowed(self, g, f, lowmemory=True):
-        r"""
-        Windowed graph Fourier transform.
+        r"""Windowed graph Fourier transform.
 
         Parameters
         ----------
@@ -289,8 +282,7 @@ class GraphFourier(object):
         return C
 
     def gft_windowed_normalized(self, g, f, lowmemory=True):
-        r"""
-        Normalized windowed graph Fourier transform.
+        r"""Normalized windowed graph Fourier transform.
 
         Parameters
         ----------
@@ -337,8 +329,7 @@ class GraphFourier(object):
         return C
 
     def _frame_matrix(self, g, normalize=False):
-        r"""
-        Create the GWFT frame.
+        r"""Create the GWFT frame.
 
         Parameters
         ----------

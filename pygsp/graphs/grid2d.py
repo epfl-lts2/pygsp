@@ -8,8 +8,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Grid2d(Graph):
-    r"""
-    Create a 2-dimensional grid graph.
+    r"""2-dimensional grid graph.
 
     Parameters
     ----------

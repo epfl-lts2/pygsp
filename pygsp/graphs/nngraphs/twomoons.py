@@ -7,8 +7,7 @@ from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
 
 class TwoMoons(NNGraph):
-    r"""
-    Create a 2 dimensional graph of the Two Moons.
+    r"""Two Moons (NN-graph).
 
     Parameters
     ----------
