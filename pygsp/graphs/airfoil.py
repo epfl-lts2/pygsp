@@ -12,8 +12,9 @@ class Airfoil(Graph):
 
     Examples
     --------
-    >>> import matplotlib
-    >>> graphs.Airfoil().plot()
+    >>> import matplotlib.pyplot as plt
+    >>> fig, ax = plt.subplots(figsize=(7, 5))
+    >>> graphs.Airfoil().plot(show_edges=True, ax=ax)
 
     """
 
