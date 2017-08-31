@@ -145,7 +145,7 @@ class Filter(object):
                 c = np.zeros((N * self.Nf))
                 is2d = False
 
-            fie = self.evaluate(self.G.e)
+            fie = self.evaluate(self.G.e).squeeze()
 
             if self.Nf == 1:
                 if is2d:
@@ -170,37 +170,38 @@ class Filter(object):
 
         return c
 
-    @utils.filterbank_handler
-    def evaluate(self, x, i=0):
+    def evaluate(self, x):
         r"""Evaluate the kernels at given frequencies.
 
         Parameters
         ----------
         x : ndarray
             Graph frequencies at which to evaluate the filter.
-        i : int
-            Index of the filter to evaluate. Default: evaluate all of them.
 
         Returns
         -------
         y : ndarray
-            Responses of the filters.
+            Frequency response of the filters. Shape ``(G.Nf, len(x))``.
 
         Examples
         --------
-        Frequency response of a low-pass filter.
+        Frequency response of a low-pass filter:
 
         >>> import matplotlib.pyplot as plt
         >>> G = graphs.Logo()
+        >>> G.compute_fourier_basis()
         >>> f = filters.Expwin(G)
         >>> G.compute_fourier_basis()
         >>> y = f.evaluate(G.e)
-        >>> plt.plot(G.e, y)  # doctest: +ELLIPSIS
+        >>> plt.plot(G.e, y[0])  # doctest: +ELLIPSIS
         [<matplotlib.lines.Line2D object at ...>]
 
         """
-
-        return self.g[i](x)
+        # Avoid to copy data as with np.array([g(x) for g in self.g]).
+        y = np.empty((self.Nf, len(x)))
+        for i, g in enumerate(self.g):
+            y[i] = g(x)
+        return y
 
     def inverse(self, c):
         r"""
@@ -366,7 +367,6 @@ class Filter(object):
         >>> G.plot_signal(s)
 
         """
-
         s = np.zeros(self.G.N)
         s[i] = 1
         return np.sqrt(self.G.N) * self.analysis(s, **kwargs)
@@ -445,7 +445,6 @@ class Filter(object):
         A=1.000, B=1.000
 
         """
-
         if max is None:
             max = self.G.lmax
 
@@ -454,7 +453,7 @@ class Filter(object):
         else:
             x = np.linspace(min, max, N)
 
-        sum_filters = np.sum(np.abs(np.power(self.evaluate(x), 2)), axis=0)
+        sum_filters = np.sum(np.abs(self.evaluate(x)**2), axis=0)
 
         return sum_filters.min(), sum_filters.max()
 

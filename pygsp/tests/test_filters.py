@@ -81,7 +81,7 @@ class TestCase(unittest.TestCase):
         s1 = g.localize(NODE, method='exact')
 
         # Should be equal to a row / column of the filtering operator.
-        gL = G.U.dot(np.diag(g.evaluate(G.e)).dot(G.U.T))
+        gL = G.U.dot(np.diag(g.evaluate(G.e)[0]).dot(G.U.T))
         s2 = np.sqrt(G.N) * gL[NODE, :]
         np.testing.assert_allclose(s1, s2)
 

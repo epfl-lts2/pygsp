@@ -379,15 +379,9 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     if show_sum is None:
         show_sum = filters.Nf > 1
 
-    lambdas = np.linspace(0, G.lmax, npoints)
-
-    fd = filters.evaluate(lambdas)
-
-    if filters.Nf == 1:
-        ax.plot(lambdas, fd, linewidth=line_width)
-    else:
-        for fd_i in fd:
-            ax.plot(lambdas, fd_i, linewidth=line_width)
+    x = np.linspace(0, G.lmax, npoints)
+    y = filters.evaluate(x).T
+    ax.plot(x, y, linewidth=line_width)
 
     if plot_eigenvalues:
         ax.plot(G.e, np.zeros(G.N), 'xk', markeredgewidth=x_width,
@@ -396,8 +390,7 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     # TODO: plot highlighted eigenvalues
 
     if show_sum:
-        test_sum = np.sum(np.power(fd, 2), 0)
-        ax.plot(lambdas, test_sum, 'k', linewidth=line_width)
+        ax.plot(x, np.sum(y**2, 1), 'k', linewidth=line_width)
 
     ax.set_xlabel("laplacian's eigenvalues / graph frequencies")
     ax.set_ylabel('filter response')
