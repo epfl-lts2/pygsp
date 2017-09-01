@@ -9,7 +9,6 @@ of graphs' vertex set while keeping the graph structure.
 * :func:`kron_reduction`: compute the Kron reduction
 * :func:`pyramid_analysis`: analysis operator for graph pyramid
 * :func:`pyramid_synthesis`: synthesis operator for graph pyramid
-* :func:`pyramid_cell2coeff`: keep only the necessary coefficients
 * :func:`interpolate`: interpolate a signal
 * :func:`graph_sparsify`: sparsify a graph
 """
@@ -89,7 +88,6 @@ def graph_sparsify(M, epsilon, maxiter=10):
     W.data[W.data < 1e-10] = 0
     W = W.tocsc()
     W.eliminate_zeros()
-
 
     start_nodes, end_nodes, weights = sparse.find(sparse.tril(W))
 
@@ -435,52 +433,6 @@ def pyramid_analysis(Gs, f, **kwargs):
         pe.append(ca[i] - s_pred)
 
     return ca, pe
-
-
-def pyramid_cell2coeff(ca, pe):
-    r"""
-    Cell array to vector transform for the pyramid.
-    NOT NECESSARY ANYMORE.
-
-    Parameters
-    ----------
-    ca : ndarray
-        Array with the coarse approximation at each level
-    pe : ndarray
-        Array with the prediction errors at each level
-
-    Returns
-    -------
-    coeff : ndarray
-        Array of coefficient
-
-    """
-    Nl = len(ca) - 1
-    N = 0
-
-    for ele in ca:
-        N += np.shape(ele)[0]
-
-    try:
-        Nt, Nv = np.shape(ca[Nl])
-        coeff = np.zeros((N, Nv))
-    except ValueError:
-        Nt = np.shape(ca[Nl])[0]
-        coeff = np.zeros((N))
-
-    coeff[:Nt] = ca[Nl]
-    ind = Nt
-
-    for i in range(Nl):
-        Nt = np.shape(ca[Nl - 1 - i])[0]
-        tmpNt = np.arange(Nt, dtype=int)
-        coeff[ind + tmpNt] = pe[Nl - 1 - i]
-        ind += Nt
-
-    if ind != N:
-        raise ValueError('Something is wrong here: contact the gspbox team.')
-
-    return coeff
 
 
 def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
