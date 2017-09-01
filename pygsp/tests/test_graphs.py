@@ -20,8 +20,8 @@ class TestCase(unittest.TestCase):
         cls._G = graphs.Logo()
         cls._G.compute_fourier_basis()
 
-        rs = np.random.RandomState(42)
-        cls._signal = rs.uniform(size=cls._G.N)
+        cls._rs = np.random.RandomState(42)
+        cls._signal = cls._rs.uniform(size=cls._G.N)
 
         cls._img = img_as_float(data.camera()[::16, ::16])
 
@@ -57,9 +57,10 @@ class TestCase(unittest.TestCase):
                           lap_type='normalized')
 
     def test_fourier_transform(self):
-        f_hat = self._G.gft(self._signal)
-        f_star = self._G.igft(f_hat)
-        np.testing.assert_allclose(self._signal, f_star)
+        s = self._rs.uniform(size=(self._G.N, 99, 21))
+        s_hat = self._G.gft(s)
+        s_star = self._G.igft(s_hat)
+        np.testing.assert_allclose(s, s_star)
 
     def test_gft_windowed_gabor(self):
         self._G.gft_windowed_gabor(self._signal, lambda x: x/(1.-x))

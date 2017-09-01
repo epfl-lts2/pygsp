@@ -50,7 +50,7 @@ class Filter(object):
     >>> signal = np.zeros(G.N)
     >>> signal[42] = 1
     >>>
-    >>> filtered_signal = my_filter.analysis(signal)
+    >>> filtered_signal = my_filter.filter(signal)
 
     """
 
@@ -65,110 +65,6 @@ class Filter(object):
         self.g = kernels
 
         self.Nf = len(self.g)
-
-    def analysis(self, s, method='chebyshev', order=30):
-        r"""Compute signal response to the filter bank.
-
-        This operation is also referred to as filtering a signal or as the
-        analysis operator.
-
-        The method computes the transform coefficients of a signal :math:`s`,
-        where the atoms of the transform dictionary are generalized
-        translations of each graph spectral filter to each vertex on the graph:
-
-        .. math:: c = D^* s,
-
-        where the columns of :math:`D` are :math:`g_{i,m} = T_i g_m` and
-        :math:`T_i` is a generalized translation operator applied to each
-        filter :math:`\hat{g}_m(\cdot)`. Each column of :math:`c` is the
-        response of the signal to one filter.
-
-        In other words, this function is applying the analysis operator
-        :math:`D^*` associated with the frame defined by the filter bank to the
-        signals.
-
-        Parameters
-        ----------
-        s : ndarray
-            Graph signals to analyze, a matrix of size N x Ns where N is the
-            number of nodes and Ns the number of signals.
-        method : 'exact', 'chebyshev', 'lanczos'
-            Whether to use the exact method (via the graph Fourier transform)
-            or the Chebyshev polynomial approximation. The Lanczos
-            approximation is not working yet.
-        order : int
-            Degree of the Chebyshev polynomials.
-
-        Returns
-        -------
-        c : ndarray
-            Transform coefficients, a matrix of size Nf*N x Ns where Nf is the
-            number of filters, N the number of nodes, and Ns the number of
-            signals.
-
-        See Also
-        --------
-        synthesis : adjoint of the analysis operator
-
-        References
-        ----------
-        See :cite:`hammond2011wavelets` for more details.
-
-        Examples
-        --------
-        Create a smooth graph signal by low-pass filtering white noise.
-
-        >>> G = graphs.Logo()
-        >>> G.estimate_lmax()
-        >>> s1 = np.random.uniform(size=(G.N, 4))
-        >>> s2 = filters.Expwin(G).analysis(s1)
-        >>> G.plot_signal(s1[:, 0])
-        >>> G.plot_signal(s2[:, 0])
-
-        """
-
-        if method == 'chebyshev':
-            cheb_coef = approximations.compute_cheby_coeff(self, m=order)
-            c = approximations.cheby_op(self.G, cheb_coef, s)
-
-        elif method == 'lanczos':
-            raise NotImplementedError
-            # c = approximations.lanczos_op(self, s, order=order)
-
-        elif method == 'exact':
-            N = self.G.N  # nb of nodes
-            try:
-                Ns = np.shape(s)[1]  # nb signals
-                c = np.zeros((N * self.Nf, Ns))
-                is2d = True
-            except IndexError:
-                c = np.zeros((N * self.Nf))
-                is2d = False
-
-            fie = self.evaluate(self.G.e).squeeze()
-
-            if self.Nf == 1:
-                if is2d:
-                    fs = np.tile(fie, (Ns, 1)).T * self.G.gft(s)
-                    return self.G.igft(fs)
-                else:
-                    fs = fie * self.G.gft(s)
-                    return self.G.igft(fs)
-            else:
-                tmpN = np.arange(N, dtype=int)
-                for i in range(self.Nf):
-                    if is2d:
-                        fs = self.G.gft(s)
-                        fs *= np.tile(fie[i], (Ns, 1)).T
-                        c[tmpN + N * i] = self.G.igft(fs)
-                    else:
-                        fs = fie[i] * self.G.gft(s)
-                        c[tmpN + N * i] = self.G.igft(fs)
-
-        else:
-            raise ValueError('Unknown method: {}'.format(method))
-
-        return c
 
     def evaluate(self, x):
         r"""Evaluate the kernels at given frequencies.
@@ -343,9 +239,9 @@ class Filter(object):
             f = np.expand_dims(f.T, axis)
             assert f.shape == (N_NODES, N_FEATURES_IN, N_FEATURES_OUT)
 
-            s = self.G.gft2(s)
+            s = self.G.gft(s)
             s = np.matmul(s, f)
-            s = self.G.igft2(s)
+            s = self.G.igft(s)
 
         elif method == 'chebyshev':
 
@@ -379,129 +275,6 @@ class Filter(object):
         Not implemented yet.
         """
         raise NotImplementedError
-
-    def synthesis(self, c, method='chebyshev', order=30):
-        r"""Synthesize signal from filter bank response.
-
-        This operation is also referred to as the synthesis operator.
-
-        The method synthesizes a signal :math:`s` from its coefficients
-        :math:`c`, where the atoms of the transform dictionary are generalized
-        translations of each graph spectral filter to each vertex on the graph:
-
-        .. math:: s = D c,
-
-        where the columns of :math:`D` are :math:`g_{i,m} = T_i g_m` and
-        :math:`T_i` is a generalized translation operator applied to each
-        filter :math:`\hat{g}_m(\cdot)`.
-
-        In other words, this function is applying the synthesis operator
-        :math:`D` associated with the frame defined from the filter bank to the
-        coefficients.
-
-        Parameters
-        ----------
-        c : ndarray
-            Transform coefficients, a matrix of size Nf*N x Ns where Nf is the
-            number of filters, N the number of nodes, and Ns the number of
-            signals.
-        method : 'exact', 'chebyshev', 'lanczos'
-            Whether to use the exact method (via the graph Fourier transform)
-            or the Chebyshev polynomial approximation. The Lanczos
-            approximation is not working yet.
-        order : int
-            Degree of the Chebyshev approximation.
-
-        Returns
-        -------
-        s : ndarray
-            Synthesized graph signals, a matrix of size N x Ns where N is the
-            number of nodes and Ns the number of signals.
-
-        See Also
-        --------
-        analysis : adjoint of the synthesis operator
-
-        References
-        ----------
-        See :cite:`hammond2011wavelets` for more details.
-
-        Examples
-        --------
-        >>> G = graphs.Sensor(30, seed=42)
-        >>> G.estimate_lmax()
-
-        Localized smooth signal:
-
-        >>> s1 = np.zeros((G.N, 1))
-        >>> s1[13] = 1
-        >>> s1 = filters.Heat(G, tau=3).analysis(s1)
-
-        Filter and reconstruct our signal:
-
-        >>> g = filters.MexicanHat(G, Nf=4)
-        >>> c = g.analysis(s1)
-        >>> s2 = g.synthesis(c)
-
-        Look how well we were able to reconstruct:
-
-        >>> g.plot()
-        >>> G.plot_signal(s1[:, 0])
-        >>> G.plot_signal(s2[:, 0])
-        >>> print('{:.1f}'.format(np.linalg.norm(s1 - s2)))
-        0.3
-
-        Perfect reconstruction with Itersine, a tight frame:
-
-        >>> g = filters.Itersine(G)
-        >>> c = g.analysis(s1)
-        >>> s2 = g.synthesis(c)
-        >>> err = np.linalg.norm(s1 - s2)
-        >>> print('{:.2f}'.format(np.linalg.norm(s1 - s2)))
-        0.00
-
-        """
-
-        N = self.G.N
-
-        if method == 'exact':
-            fie = self.evaluate(self.G.e)
-            Nv = np.shape(c)[1]
-            s = np.zeros((N, Nv))
-            tmpN = np.arange(N, dtype=int)
-
-            if self.Nf == 1:
-                fc = np.tile(fie, (Nv, 1)).T * self.G.gft(c[tmpN])
-                s += self.G.igft(fc)
-            else:
-                for i in range(self.Nf):
-                    fc = self.G.gft(c[N * i + tmpN])
-                    fc *= np.tile(fie[:][i], (Nv, 1)).T
-                    s += self.G.igft(fc)
-
-        elif method == 'chebyshev':
-            cheb_coeffs = approximations.compute_cheby_coeff(self, m=order,
-                                                             N=order+1)
-            s = np.zeros((N, np.shape(c)[1]))
-            tmpN = np.arange(N, dtype=int)
-
-            for i in range(self.Nf):
-                s += approximations.cheby_op(self.G,
-                                             cheb_coeffs[i], c[i * N + tmpN])
-
-        elif method == 'lanczos':
-            raise NotImplementedError
-            s = np.zeros((N, np.shape(c)[1]))
-            tmpN = np.arange(N, dtype=int)
-
-            for i in range(self.Nf):
-                s += approximations.lanczos_op(self.G, self.g[i],
-                                               c[i * N + tmpN], order=order)
-
-        else:
-            raise ValueError('Unknown method: {}'.format(method))
-
-        return s
 
     def localize(self, i, **kwargs):
         r"""Localize the kernels at a node (to visualize them).

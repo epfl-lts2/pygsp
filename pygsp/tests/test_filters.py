@@ -9,7 +9,7 @@ import unittest
 
 import numpy as np
 
-from pygsp import graphs, filters, utils
+from pygsp import graphs, filters
 
 
 class TestCase(unittest.TestCase):
@@ -32,15 +32,17 @@ class TestCase(unittest.TestCase):
             S[vertex_delta + i * self._G.N, i] = 1
         return S
 
-    def _test_synthesis(self, f):
-        if 1 < f.Nf < 10:
-            S = self._generate_coefficients(f.G.N, f.Nf)
-            f.synthesis(S, method='chebyshev')
-            f.synthesis(S, method='exact')
-            self.assertRaises(NotImplementedError, f.synthesis, S,
-                              method='lanczos')
+    def _test_methods(self, f, tight):
+        self.assertIs(f.G, self._G)
 
-    def _test_filter(self, f, tight):
+        f.evaluate(self._G.e)
+
+        A, B = f.estimate_frame_bounds(use_eigenvalues=True)
+        if tight:
+            np.testing.assert_allclose(A, B)
+        else:
+            assert B - A > 0.01
+
         # Analysis.
         s2 = f.filter(self._signal, method='exact')
         s3 = f.filter(self._signal, method='chebyshev', order=100)
@@ -50,46 +52,30 @@ class TestCase(unittest.TestCase):
         s5 = f.filter(s3, method='chebyshev', order=100)
 
         if f.Nf < 100:
+            # Chebyshev should be close to exact.
             # TODO: does not pass for Gabor.
             np.testing.assert_allclose(s2, s3, rtol=0.1, atol=0.01)
             np.testing.assert_allclose(s4, s5, rtol=0.1, atol=0.01)
 
         if tight:
-            A, _ = f.estimate_frame_bounds(use_eigenvalues=True)
+            # Tight frames should not loose information.
             np.testing.assert_allclose(s4.squeeze(), A * self._signal)
             assert np.linalg.norm(s5.squeeze() - A * self._signal) < 0.1
 
-    def _test_methods(self, f, tight):
-        self.assertIs(f.G, self._G)
-
-        self._test_filter(f, tight)
-
-        c_exact = f.analysis(self._signal, method='exact')
-        c_cheby = f.analysis(self._signal, method='chebyshev')
-        self.assertEqual(c_exact.shape, c_cheby.shape)
-        # TODO: a bit far for some filterbanks.
-        # np.testing.assert_allclose(c_exact, c_cheby)
-        self.assertRaises(NotImplementedError, f.analysis,
-                          self._signal, method='lanczos')
+        self.assertRaises(ValueError, f.filter, s2, method='lanczos')
 
         if f.Nf < 10:
-            F = f.compute_frame(method='chebyshev').reshape(self._G.N, -1)
-            c_frame = F.T.dot(self._signal).reshape(self._G.N, 1, -1)
-            c_cheby = utils.vec2mat(c_cheby, f.Nf).reshape((self._G.N, 1, -1))
-            np.testing.assert_allclose(c_frame, c_cheby)
-            F = f.compute_frame(method='exact').reshape(self._G.N, -1)
-            c_frame = F.T.dot(self._signal).reshape(self._G.N, 1, -1)
-            c_exact = utils.vec2mat(c_exact, f.Nf).reshape((self._G.N, 1, -1))
-            np.testing.assert_allclose(c_frame, c_exact)
+            # Computing the frame is an alternative way to filter.
+            # Though it is memory intensive.
+            F = f.compute_frame(method='exact')
+            F = F.reshape(self._G.N, -1)
+            s = F.T.dot(self._signal).reshape(self._G.N, 1, -1)
+            np.testing.assert_allclose(s, s2)
 
-        self._test_synthesis(f)
-        f.evaluate(self._G.e)
-
-        A, B = f.estimate_frame_bounds(use_eigenvalues=True)
-        if tight:
-            np.testing.assert_allclose(A, B)
-        else:
-            assert B - A > 0.01
+            F = f.compute_frame(method='chebyshev', order=100)
+            F = F.reshape(self._G.N, -1)
+            s = F.T.dot(self._signal).reshape(self._G.N, 1, -1)
+            np.testing.assert_allclose(s, s3)
 
         # TODO: f.can_dual()
 
@@ -201,15 +187,14 @@ class TestCase(unittest.TestCase):
         Test that the different methods for filter analysis, i.e. 'exact',
         'cheby', and 'lanczos', produce the same output.
         """
-        # TODO: synthesis
+        # TODO: done in _test_methods.
 
         f = filters.Heat(self._G)
-        c_exact = f.analysis(self._signal, method='exact')
-        c_cheby = f.analysis(self._signal, method='chebyshev')
+        c_exact = f.filter(self._signal, method='exact')
+        c_cheby = f.filter(self._signal, method='chebyshev')
 
         np.testing.assert_allclose(c_exact, c_cheby)
-        self.assertRaises(NotImplementedError, f.analysis,
-                          self._signal, method='lanczos')
+        self.assertRaises(ValueError, f.filter, self._signal, method='lanczos')
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

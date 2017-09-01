@@ -130,16 +130,14 @@ class GraphFourier(object):
         Examples
         --------
         >>> G = graphs.Logo()
-        >>> s = np.random.normal(size=G.N)
+        >>> G.compute_fourier_basis()
+        >>> s = np.random.normal(size=(G.N, 5, 1))
         >>> s_hat = G.gft(s)
         >>> s_star = G.igft(s_hat)
-        >>> np.linalg.norm(s - s_star) < 1e-10
+        >>> np.all((s - s_star) < 1e-10)
         True
 
         """
-        return np.dot(np.conjugate(self.U.T), s)  # True Hermitian here.
-
-    def gft2(self, s):
         s = self.sanitize_signal(s)
         U = np.conjugate(self.U)  # True Hermitian. (Although U is often real.)
         return np.tensordot(U, s, ([0], [0]))
@@ -167,16 +165,14 @@ class GraphFourier(object):
         Examples
         --------
         >>> G = graphs.Logo()
-        >>> s_hat = np.random.normal(size=G.N)
+        >>> G.compute_fourier_basis()
+        >>> s_hat = np.random.normal(size=(G.N, 5, 1))
         >>> s = G.igft(s_hat)
         >>> s_hat_star = G.gft(s)
-        >>> np.linalg.norm(s_hat - s_hat_star) < 1e-10
+        >>> np.all((s_hat - s_hat_star) < 1e-10)
         True
 
         """
-        return np.dot(self.U, s_hat)
-
-    def igft2(self, s_hat):
         s_hat = self.sanitize_signal(s_hat)
         return np.tensordot(self.U, s_hat, ([1], [0]))
 

@@ -324,11 +324,6 @@ def compute_log_scales(lmin, lmax, Nscales, t1=1, t2=2):
     return np.exp(np.linspace(np.log(scale_max), np.log(scale_min), Nscales))
 
 
-def mat2vec(d):
-    r"""Not implemented yet."""
-    raise NotImplementedError
-
-
 def repmatline(A, ncol=1, nrow=1):
     r"""
     Repeat the matrix A in a specific manner.
@@ -365,32 +360,6 @@ def repmatline(A, ncol=1, nrow=1):
                          'equal to one, or you will get an empty array.')
 
     return np.repeat(np.repeat(A, ncol, axis=1), nrow, axis=0)
-
-
-def vec2mat(d, Nf):
-    r"""
-    Vector to matrix transformation.
-
-    Parameters
-    ----------
-    d : ndarray
-        Coefficients from :func:`pygsp.filters.Filter.analysis`.
-    Nf : int
-        Number of filters.
-
-    Returns
-    -------
-    d : list of ndarray
-        Reshaped coefficients.
-
-    """
-    if d.ndim == 1:
-        M = d.shape[0]
-        return d.reshape((M // Nf, Nf), order='F')
-
-    elif d.ndim == 2:
-        M, N = d.shape
-        return d.reshape((M // Nf, Nf, N), order='F')
 
 
 def extract_patches(img, patch_shape=(3, 3)):
