@@ -73,7 +73,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     """
 
     def __init__(self, W, gtype='unknown', lap_type='combinatorial',
-                 coords=None, plotting={}, perform_checks=True, **kwargs):
+                 coords=None, plotting={}, **kwargs):
 
         self.logger = utils.build_logger(__name__, **kwargs)
 
@@ -94,11 +94,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         if coords is not None:
             self.coords = coords
-
-        # Very expensive for big graphs. Allow user to opt out.
-        if perform_checks:
-            if not self.is_connected():
-                self.logger.warning('Graph is not connected!')
 
         self.plotting = {'vertex_size': 100,
                          'vertex_color': (0.12, 0.47, 0.71, 1),
