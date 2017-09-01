@@ -26,39 +26,38 @@ def compute_avg_adj_deg(G):
 
 
 @utils.filterbank_handler
-def compute_tig(filt, **kwargs):
+def compute_tig(g, **kwargs):
     r"""
-    Compute the Tig for a given filter or filterbank.
+    Compute the Tig for a given filter or filter bank.
 
     .. math:: T_ig(n) = g(L)_{i, n}
 
     Parameters
     ----------
-    filt: Filter object
-        The filter or filterbank.
+    g: Filter
+        One of :mod:`pygsp.filters`.
     kwargs: dict
         Additional parameters to be passed to the
-        :func:`pygsp.filters.Filter.analysis` method.
+        :func:`pygsp.filters.Filter.filter` method.
     """
-    signals = np.eye(filt.G.N)
-    return filt.analysis(signals, **kwargs)
+    return g.compute_frame()
 
 
 @utils.filterbank_handler
-def compute_norm_tig(filt, **kwargs):
+def compute_norm_tig(g, **kwargs):
     r"""
     Compute the :math:`\ell_2` norm of the Tig.
     See :func:`compute_tig`.
 
     Parameters
     ----------
-    filt: Filter
-        The filter or filterbank.
+    g: Filter
+        The filter or filter bank.
     kwargs: dict
         Additional parameters to be passed to the
-        :func:`pygsp.filters.Filter.analysis` method.
+        :func:`pygsp.filters.Filter.filter` method.
     """
-    tig = compute_tig(filt, **kwargs)
+    tig = compute_tig(g, **kwargs)
     return np.linalg.norm(tig, axis=1, ord=2)
 
 
@@ -71,13 +70,13 @@ def compute_spectrogram(G, atom=None, M=100, **kwargs):
     ----------
     G : Graph
         Graph on which to compute the spectrogram.
-    atom : Filter kernel (optional)
+    atom : func
         Kernel to use in the spectrogram (default = exp(-M*(x/lmax)²)).
     M : int (optional)
         Number of samples on the spectral scale. (default = 100)
     kwargs: dict
         Additional parameters to be passed to the
-        :func:`pygsp.filters.Filter.analysis` method.
+        :func:`pygsp.filters.Filter.filter` method.
     """
 
     if not atom:
@@ -89,7 +88,8 @@ def compute_spectrogram(G, atom=None, M=100, **kwargs):
 
     for shift_idx in range(M):
         shift_filter = filters.Filter(G, lambda x: atom(x - scale[shift_idx]))
-        spectr[:, shift_idx] = compute_norm_tig(shift_filter, **kwargs)**2
+        tig = compute_norm_tig(shift_filter, **kwargs).squeeze()**2
+        spectr[:, shift_idx] = tig
 
     G.spectr = spectr
     return spectr
