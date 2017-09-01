@@ -40,8 +40,29 @@ class TestCase(unittest.TestCase):
             self.assertRaises(NotImplementedError, f.synthesis, S,
                               method='lanczos')
 
+    def _test_filter(self, f, tight):
+        # Analysis.
+        s2 = f.filter(self._signal, method='exact')
+        s3 = f.filter(self._signal, method='chebyshev', order=100)
+
+        # Synthesis.
+        s4 = f.filter(s2, method='exact')
+        s5 = f.filter(s3, method='chebyshev', order=100)
+
+        if f.Nf < 100:
+            # TODO: does not pass for Gabor.
+            np.testing.assert_allclose(s2, s3, rtol=0.1, atol=0.01)
+            np.testing.assert_allclose(s4, s5, rtol=0.1, atol=0.01)
+
+        if tight:
+            A, _ = f.estimate_frame_bounds(use_eigenvalues=True)
+            np.testing.assert_allclose(s4.squeeze(), A * self._signal)
+            assert np.linalg.norm(s5.squeeze() - A * self._signal) < 0.1
+
     def _test_methods(self, f, tight):
         self.assertIs(f.G, self._G)
+
+        self._test_filter(f, tight)
 
         c_exact = f.analysis(self._signal, method='exact')
         c_cheby = f.analysis(self._signal, method='chebyshev')

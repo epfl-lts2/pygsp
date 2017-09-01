@@ -16,6 +16,7 @@ The :class:`Filter` base class implements a common interface to all filters:
 .. autosummary::
 
     Filter.evaluate
+    Filter.filter
     Filter.analysis
     Filter.synthesis
     Filter.compute_frame

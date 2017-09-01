@@ -86,6 +86,7 @@ Others
     Graph.set_coordinates
     Graph.subgraph
     Graph.extract_components
+    Graph.sanitize_signal
 
 Graph models
 ============

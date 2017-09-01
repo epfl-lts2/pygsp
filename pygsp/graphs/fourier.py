@@ -139,6 +139,11 @@ class GraphFourier(object):
         """
         return np.dot(np.conjugate(self.U.T), s)  # True Hermitian here.
 
+    def gft2(self, s):
+        s = self.sanitize_signal(s)
+        U = np.conjugate(self.U)  # True Hermitian. (Although U is often real.)
+        return np.tensordot(U, s, ([0], [0]))
+
     def igft(self, s_hat):
         r"""Compute the inverse graph Fourier transform.
 
@@ -170,6 +175,10 @@ class GraphFourier(object):
 
         """
         return np.dot(self.U, s_hat)
+
+    def igft2(self, s_hat):
+        s_hat = self.sanitize_signal(s_hat)
+        return np.tensordot(self.U, s_hat, ([1], [0]))
 
     def translate(self, f, i):
         r"""Translate the signal *f* to the node *i*.

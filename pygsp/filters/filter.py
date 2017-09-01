@@ -203,6 +203,177 @@ class Filter(object):
             y[i] = g(x)
         return y
 
+    def filter(self, s, method='chebyshev', order=30):
+        r"""
+        Filter signals with the filter bank (analysis or synthesis).
+
+        A signal is defined as a rank-3 tensor of shape ``(N_NODES, N_SIGNALS,
+        N_FEATURES)``, where ``N_NODES`` is the number of nodes in the graph,
+        ``N_SIGNALS`` is the number of independent signals, and ``N_FEATURES``
+        is the number of features which compose a graph signal, or the
+        dimensionality of a graph signal. For example if you filter a signal
+        with a filter bank of 8 filters, you're extracting 8 features and
+        decomposing your signal into 8 parts. That is called analysis. Your are
+        thus transforming your signal tensor from ``(G.N, 1, 1)`` to ``(G.N, 1,
+        8)``. Now you may want to combine back the features to form an unique
+        signal. For this you apply again 8 filters, one filter per feature, and
+        sum the result up. As such you're transforming your ``(G.N, 1, 8)``
+        tensor signal back to ``(G.N, 1, 1)``. That is known as synthesis. More
+        generally, you may want to map a set of features to another, though
+        that is not implemented yet.
+
+        The method computes the transform coefficients of a signal :math:`s`,
+        where the atoms of the transform dictionary are generalized
+        translations of each graph spectral filter to each vertex on the graph:
+
+        .. math:: c = D^* s,
+
+        where the columns of :math:`D` are :math:`g_{i,m} = T_i g_m` and
+        :math:`T_i` is a generalized translation operator applied to each
+        filter :math:`\hat{g}_m(\cdot)`. Each column of :math:`c` is the
+        response of the signal to one filter.
+
+        In other words, this function is applying the analysis operator
+        :math:`D^*`, respectively the synthesis operator :math:`D`, associated
+        with the frame defined by the filter bank to the signals.
+
+        Parameters
+        ----------
+        s : ndarray
+            Graph signals, a tensor of shape ``(N_NODES, N_SIGNALS,
+            N_FEATURES)``, where ``N_NODES`` is the number of nodes in the
+            graph, ``N_SIGNALS`` the number of independent signals you want to
+            filter, and ``N_FEATURES`` is either 1 (analysis) or the number of
+            filters in the filter bank (synthesis).
+        method : {'exact', 'chebyshev'}
+            Whether to use the exact method (via the graph Fourier transform)
+            or the Chebyshev polynomial approximation. A Lanczos
+            approximation is coming.
+        order : int
+            Degree of the Chebyshev polynomials.
+
+        Returns
+        -------
+        s : ndarray
+            Graph signals, a tensor of shape ``(N_NODES, N_SIGNALS,
+            N_FEATURES)``, where ``N_NODES`` and ``N_SIGNALS`` are the number
+            of nodes and signals of the signal tensor that pas passed in, and
+            ``N_FEATURES`` is either 1 (synthesis) or the number of filters in
+            the filter bank (analysis).
+
+        References
+        ----------
+        See :cite:`hammond2011wavelets` for details on filtering graph signals.
+
+        Examples
+        --------
+
+        Create a bunch of smooth signals by low-pass filtering white noise:
+
+        >>> import matplotlib.pyplot as plt
+        >>> G = graphs.Ring(N=60)
+        >>> G.estimate_lmax()
+        >>> s = np.random.RandomState(42).uniform(size=(G.N, 10))
+        >>> taus = [1, 10, 100]
+        >>> s = filters.Heat(G, taus).filter(s)
+        >>> s.shape
+        (60, 10, 3)
+
+        Plot the 3 smoothed versions of the 10th signal:
+
+        >>> fig, ax = plt.subplots()
+        >>> G.set_coordinates('line1D')  # To visualize multiple signals in 1D.
+        >>> G.plot_signal(s[:, 9, :], ax=ax)
+        >>> legend = [r'$\tau={}$'.format(t) for t in taus]
+        >>> ax.legend(legend)  # doctest: +ELLIPSIS
+        <matplotlib.legend.Legend object at ...>
+
+        Low-pass filter a delta to create a localized smooth signal:
+
+        >>> G = graphs.Sensor(30, seed=42)
+        >>> G.compute_fourier_basis()  # Reproducible computation of lmax.
+        >>> s1 = np.zeros(G.N)
+        >>> s1[13] = 1
+        >>> s1 = filters.Heat(G, 3).filter(s1)
+        >>> s1.shape
+        (30, 1, 1)
+
+        Filter and reconstruct our signal:
+
+        >>> g = filters.MexicanHat(G, Nf=4)
+        >>> s2 = g.filter(s1)
+        >>> s2.shape
+        (30, 1, 4)
+        >>> s2 = g.filter(s2)
+        >>> s2.shape
+        (30, 1, 1)
+
+        Look how well we were able to reconstruct:
+
+        >>> fig, axes = plt.subplots(1, 2)
+        >>> G.plot_signal(s1, ax=axes[0])
+        >>> G.plot_signal(s2, ax=axes[1])
+        >>> print('{:.5f}'.format(np.linalg.norm(s1 - s2)))
+        0.29620
+
+        Perfect reconstruction with Itersine, a tight frame:
+
+        >>> g = filters.Itersine(G)
+        >>> s2 = g.filter(s1, method='exact')
+        >>> s2 = g.filter(s2, method='exact')
+        >>> np.linalg.norm(s1 - s2) < 1e-10
+        True
+
+        """
+        s = self.G.sanitize_signal(s)
+        N_NODES, N_SIGNALS, N_FEATURES_IN = s.shape
+
+        # TODO: generalize to 2D (m --> n) filter banks.
+        # Only 1 --> Nf (analysis) and Nf --> 1 (synthesis) for now.
+        if N_FEATURES_IN not in [1, self.Nf]:
+            raise ValueError('Last dimension (N_FEATURES) should either be '
+                             '1 or the number of filters (Nf), '
+                             'not {}.'.format(s.shape))
+        N_FEATURES_OUT = self.Nf if N_FEATURES_IN == 1 else 1
+
+        if method == 'exact':
+
+            axis = 1 if N_FEATURES_IN == 1 else 2
+            f = self.evaluate(self.G.e)
+            f = np.expand_dims(f.T, axis)
+            assert f.shape == (N_NODES, N_FEATURES_IN, N_FEATURES_OUT)
+
+            s = self.G.gft2(s)
+            s = np.matmul(s, f)
+            s = self.G.igft2(s)
+
+        elif method == 'chebyshev':
+
+            # TODO: update Chebyshev implementation (after 2D filter banks).
+            c = approximations.compute_cheby_coeff(self, m=order)
+
+            if N_FEATURES_IN == 1:  # Analysis.
+                s = s.squeeze(axis=2)
+                s = approximations.cheby_op(self.G, c, s)
+                s = s.reshape((N_NODES, N_FEATURES_OUT, N_SIGNALS), order='F')
+                s = s.swapaxes(1, 2)
+
+            elif N_FEATURES_IN == self.Nf:  # Synthesis.
+                s = s.swapaxes(1, 2)
+                s_in = s.reshape((N_NODES*N_FEATURES_IN, N_SIGNALS), order='F')
+                s = np.zeros((N_NODES, N_SIGNALS))
+                tmpN = np.arange(N_NODES, dtype=int)
+                for i in range(N_FEATURES_IN):
+                    s += approximations.cheby_op(self.G,
+                                                 c[i],
+                                                 s_in[i * N_NODES + tmpN])
+                s = np.expand_dims(s, 2)
+
+        else:
+            raise ValueError('Unknown method {}.'.format(method))
+
+        return s
+
     def inverse(self, c):
         r"""
         Not implemented yet.
