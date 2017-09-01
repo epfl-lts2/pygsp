@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import copy
-
 import numpy as np
 
 from pygsp import utils
@@ -62,9 +60,9 @@ class Filter(object):
             iter(kernels)
         except TypeError:
             kernels = [kernels]
-        self.g = kernels
+        self._kernels = kernels
 
-        self.Nf = len(self.g)
+        self.Nf = len(kernels)
 
     def evaluate(self, x):
         r"""Evaluate the kernels at given frequencies.
@@ -93,9 +91,9 @@ class Filter(object):
         [<matplotlib.lines.Line2D object at ...>]
 
         """
-        # Avoid to copy data as with np.array([g(x) for g in self.g]).
+        # Avoid to copy data as with np.array([g(x) for g in self._kernels]).
         y = np.empty((self.Nf, len(x)))
-        for i, g in enumerate(self.g):
+        for i, g in enumerate(self._kernels):
             y[i] = g(x)
         return y
 
@@ -462,13 +460,11 @@ class Filter(object):
             ret = s[:, n]
             return ret
 
-        gdual = copy.deepcopy(self)
-
+        kernels = []
         for i in range(self.Nf):
-            gdual.g[i] = lambda x, ind=i: can_dual_func(self, ind,
-                                                        copy.deepcopy(x))
+            kernels.append(lambda x, i=i: can_dual_func(self, i, x))
 
-        return gdual
+        return Filter(self.G, kernels)
 
     def plot(self, **kwargs):
         r"""Plot the filter bank's frequency response.

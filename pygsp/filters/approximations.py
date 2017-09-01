@@ -49,8 +49,8 @@ def compute_cheby_coeff(f, m=30, N=None, *args, **kwargs):
     tmpN = np.arange(N)
     num = np.cos(np.pi * (tmpN + 0.5) / N)
     for o in range(m + 1):
-        c[o] = 2. / N * np.dot(f.g[i](a1 * num + a2),
-                                  np.cos(np.pi * o * (tmpN + 0.5) / N))
+        c[o] = 2. / N * np.dot(f._kernels[i](a1 * num + a2),
+                               np.cos(np.pi * o * (tmpN + 0.5) / N))
 
     return c
 

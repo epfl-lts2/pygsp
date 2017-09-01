@@ -102,7 +102,7 @@ class TestCase(unittest.TestCase):
             return x / (1. + x)
         f = filters.Filter(self._G, kernels=kernel)
         self.assertEqual(f.Nf, 1)
-        self.assertIs(f.g[0], kernel)
+        self.assertIs(f._kernels[0], kernel)
         self._test_methods(f, tight=False)
 
     def test_abspline(self):
