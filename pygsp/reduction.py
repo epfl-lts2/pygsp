@@ -4,13 +4,16 @@ r"""
 The :mod:`pygsp.reduction` module implements functionalities for the reduction
 of graphs' vertex set while keeping the graph structure.
 
-* :func:`tree_multiresolution`: compute a multiresolution of trees
-* :func:`graph_multiresolution`: compute a pyramid of graphs
-* :func:`kron_reduction`: compute the Kron reduction
-* :func:`pyramid_analysis`: analysis operator for graph pyramid
-* :func:`pyramid_synthesis`: synthesis operator for graph pyramid
-* :func:`interpolate`: interpolate a signal
-* :func:`graph_sparsify`: sparsify a graph
+.. autosummary::
+
+    tree_multiresolution
+    graph_multiresolution
+    kron_reduction
+    pyramid_analysis
+    pyramid_synthesis
+    interpolate
+    graph_sparsify
+
 """
 
 import numpy as np
@@ -30,8 +33,7 @@ def analysis(g, s, **kwargs):
 
 
 def graph_sparsify(M, epsilon, maxiter=10):
-    r"""
-    Sparsify a graph using Spielman-Srivastava algorithm.
+    r"""Sparsify a graph (with Spielman-Srivastava).
 
     Parameters
     ----------
@@ -139,8 +141,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
 
 
 def interpolate(G, f_subsampled, keep_inds, order=100, reg_eps=0.005, **kwargs):
-    r"""
-    Interpolation of a graph signal.
+    r"""Interpolate a graph signal.
 
     Parameters
     ----------
@@ -188,8 +189,7 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
                           downsampling_method='largest_eigenvector',
                           reduction_method='kron', compute_full_eigen=False,
                           reg_eps=0.005):
-    r"""
-    Compute a pyramid of graphs using the kron reduction.
+    r"""Compute a pyramid of graphs (by Kron reduction).
 
     'graph_multiresolution(G,levels)' computes a multiresolution of
     graph by repeatedly downsampling and performing graph reduction. The
@@ -292,8 +292,7 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
 
 
 def kron_reduction(G, ind):
-    r"""
-    Compute the kron reduction.
+    r"""Compute the Kron reduction.
 
     This function perform the Kron reduction of the weight matrix in the
     graph *G*, with boundary nodes labeled by *ind*. This function will
@@ -369,8 +368,7 @@ def kron_reduction(G, ind):
 
 
 def pyramid_analysis(Gs, f, **kwargs):
-    r"""
-    Compute the graph pyramid transform coefficients.
+    r"""Compute the graph pyramid transform coefficients.
 
     Parameters
     ----------
@@ -436,8 +434,7 @@ def pyramid_analysis(Gs, f, **kwargs):
 
 
 def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
-    r"""
-    Synthesize a signal from its graph pyramid transform coefficients.
+    r"""Synthesize a signal from its pyramid coefficients.
 
     Parameters
     ----------
@@ -507,8 +504,7 @@ def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
 
 
 def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
-    r"""
-    Synthesize a single level of the graph pyramid transform.
+    r"""Synthesize a single level of the graph pyramid transform.
 
     Parameters
     ----------
@@ -588,7 +584,6 @@ def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
 
 
 def _tree_depths(A, root):
-    r"""Empty docstring. TODO."""
     if not graphs.Graph(A=A).is_connected():
         raise ValueError('Graph is not connected')
 
@@ -619,8 +614,7 @@ def _tree_depths(A, root):
 
 def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
                          compute_full_eigen=False, root=None):
-    r"""
-    Compute a multiresolution of trees
+    r"""Compute a multiresolution of trees
 
     Parameters
     ----------
