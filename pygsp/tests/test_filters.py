@@ -79,10 +79,6 @@ class TestCase(unittest.TestCase):
 
         # TODO: f.can_dual()
 
-        self.assertRaises(NotImplementedError, f.approx, 0, 0)
-        self.assertRaises(NotImplementedError, f.inverse, 0)
-        self.assertRaises(NotImplementedError, f.tighten)
-
     def test_localize(self):
         G = graphs.Grid2d(20)
         G.compute_fourier_basis()

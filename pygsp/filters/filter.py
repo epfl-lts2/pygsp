@@ -270,12 +270,6 @@ class Filter(object):
 
         return s
 
-    def inverse(self, c):
-        r"""
-        Not implemented yet.
-        """
-        raise NotImplementedError
-
     def localize(self, i, **kwargs):
         r"""Localize the kernels at a node (to visualize them).
 
@@ -315,18 +309,6 @@ class Filter(object):
         s = np.zeros(self.G.N)
         s[i] = 1
         return np.sqrt(self.G.N) * self.filter(s, **kwargs)
-
-    def approx(self, m, N):
-        r"""
-        Not implemented yet.
-        """
-        raise NotImplementedError
-
-    def tighten(self):
-        r"""
-        Not implemented yet.
-        """
-        raise NotImplementedError
 
     def estimate_frame_bounds(self, min=0, max=None, N=1000,
                               use_eigenvalues=False):
