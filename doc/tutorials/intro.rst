@@ -134,7 +134,7 @@ As in classical signal processing, the Fourier transform plays a central role
 in graph signal processing. Getting the Fourier basis is however
 computationally intensive as it needs to fully diagonalize the Laplacian. While
 it can be used to filter signals on graphs, a better alternative is to use one
-of the fast approximations (see :meth:`pygsp.filters.Filter.analysis`). Let's
+of the fast approximations (see :meth:`pygsp.filters.Filter.filter`). Let's
 compute it nonetheless to visualize the eigenvectors of the Laplacian.
 Analogous to classical Fourier analysis, they look like sinuses on the graph.
 Let's plot the second and third eigenvectors (the first is constant). Those are
@@ -225,7 +225,7 @@ low-pass filter.
 .. plot::
     :context: close-figs
 
-    >>> s2 = g.analysis(s)
+    >>> s2 = g.filter(s)
     >>>
     >>> fig, axes = plt.subplots(1, 2, figsize=(10, 3))
     >>> G.plot_signal(s, vertex_size=30, ax=axes[0])

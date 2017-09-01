@@ -39,7 +39,7 @@ This example demonstrates how to create a graph, a filter and analyse a signal o
 >>> from pygsp import graphs, filters
 >>> G = graphs.Logo()
 >>> f = filters.Heat(G)
->>> Sl = f.analysis(G.L.todense(), method='chebyshev')
+>>> Sl = f.filter(G.L.todense(), method='chebyshev')
 
 Features
 --------

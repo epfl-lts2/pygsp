@@ -33,7 +33,7 @@ results using wavelets.
     :meth:`pygsp.graphs.Graph.compute_fourier_basis`, but this would take some
     time, and can be avoided with a Chebychev polynomials approximation to
     graph filtering. See the documentation of the
-    :meth:`pygsp.filters.Filter.analysis` filtering function and
+    :meth:`pygsp.filters.Filter.filter` filtering function and
     :cite:`hammond2011wavelets` for details on how it is down.
 
 Simple filtering: heat diffusion
@@ -56,8 +56,8 @@ vertex 20. That signal is our heat source.
     :context: close-figs
 
     >>> s = np.zeros(G.N)
-    >>> delta = 20
-    >>> s[delta] = 1
+    >>> DELTA = 20
+    >>> s[DELTA] = 1
 
 We can now simulate heat diffusion by filtering our signal `s` with each of our
 heat kernels.
@@ -65,8 +65,7 @@ heat kernels.
 .. plot::
     :context: close-figs
 
-    >>> s = g.analysis(s, method='chebyshev')
-    >>> s = utils.vec2mat(s, g.Nf)
+    >>> s = g.filter(s, method='chebyshev')
 
 And finally plot the filtered signal showing heat diffusion at different
 scales.
@@ -77,7 +76,7 @@ scales.
     >>> fig = plt.figure(figsize=(10, 3))
     >>> for i in range(g.Nf):
     ...     ax = fig.add_subplot(1, g.Nf, i+1, projection='3d')
-    ...     G.plot_signal(s[:, i], vertex_size=20, colorbar=False, ax=ax)
+    ...     G.plot_signal(s[:, 0, i], colorbar=False, ax=ax)
     ...     title = r'Heat diffusion, $\tau={}$'.format(taus[i])
     ...     ax.set_title(title)  #doctest:+SKIP
     ...     ax.set_axis_off()
@@ -117,29 +116,19 @@ Then plot the frequency response of those filters.
     bank with :class:`pygsp.filters.WarpedTranslates` or by using another
     filter bank like :class:`pygsp.filters.Itersine`.
 
-We can visualize the filtering by one atom as we did with the heat kernel, by
-filtering a Kronecker delta placed at one specific vertex.
+We can visualize the atoms as we did with the heat kernel, by filtering
+a Kronecker delta placed at one specific vertex.
 
 .. plot::
     :context: close-figs
 
-    >>> s = np.zeros((G.N * g.Nf, g.Nf))
-    >>> s[delta] = 1
-    >>> for i in range(g.Nf):
-    ...     s[delta + i * G.N, i] = 1
-    >>> s = g.synthesis(s)
+    >>> s = g.localize(DELTA)
     >>>
-    >>> fig = plt.figure(figsize=(10, 7))
-    >>> for i in range(4):
-    ... 
-    ...     # Clip the signal.
-    ...     mu = np.mean(s[:, i])
-    ...     sigma = np.std(s[:, i])
-    ...     limits = [mu-4*sigma, mu+4*sigma]
-    ... 
-    ...     ax = fig.add_subplot(2, 2, i+1, projection='3d')
-    ...     G.plot_signal(s[:, i], vertex_size=20, limits=limits, ax=ax)
-    ...     ax.set_title('Wavelet {}'.format(i+1))  # doctest:+SKIP
+    >>> fig = plt.figure(figsize=(10, 2.5))
+    >>> for i in range(3):
+    ...     ax = fig.add_subplot(1, 3, i+1, projection='3d')
+    ...     G.plot_signal(s[:, 0, i], ax=ax)
+    ...     ax.set_title('Wavelet {}'.format(i+1))  #doctest:+SKIP
     ...     ax.set_axis_off()
     >>> fig.tight_layout()  # doctest:+SKIP
 
@@ -160,16 +149,15 @@ which describes variation along the 3 coordinates.
     :context: close-figs
 
     >>> s = G.coords
-    >>> s = g.analysis(s)
-    >>> s = utils.vec2mat(s, g.Nf)
+    >>> s = g.filter(s)
 
 The curvature is then estimated by taking the :math:`\ell_1` or :math:`\ell_2`
-norm of the filtered signal.
+norm across the 3D position.
 
 .. plot::
     :context: close-figs
 
-    >>> s = np.linalg.norm(s, ord=2, axis=2)
+    >>> s = np.linalg.norm(s, ord=2, axis=1)
 
 Let's finally plot the result to observe that we indeed have a measure of the
 curvature at different scales.
@@ -180,7 +168,7 @@ curvature at different scales.
     >>> fig = plt.figure(figsize=(10, 7))
     >>> for i in range(4):
     ...     ax = fig.add_subplot(2, 2, i+1, projection='3d')
-    ...     G.plot_signal(s[:, i], vertex_size=20, ax=ax)
+    ...     G.plot_signal(s[:, i], ax=ax)
     ...     title = 'Curvature estimation (scale {})'.format(i+1)
     ...     ax.set_title(title)  # doctest:+SKIP
     ...     ax.set_axis_off()
