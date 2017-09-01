@@ -40,7 +40,7 @@ class TestCase(unittest.TestCase):
             self.assertRaises(NotImplementedError, f.synthesis, S,
                               method='lanczos')
 
-    def _test_methods(self, f):
+    def _test_methods(self, f, tight):
         self.assertIs(f.G, self._G)
 
         c_exact = f.analysis(self._signal, method='exact')
@@ -62,8 +62,11 @@ class TestCase(unittest.TestCase):
         self._test_synthesis(f)
         f.evaluate(self._G.e)
 
-        # Minimum is not 0 to avoid division by 0 in expwin.
-        f.estimate_frame_bounds(min=0.01)
+        A, B = f.estimate_frame_bounds(use_eigenvalues=True)
+        if tight:
+            np.testing.assert_allclose(A, B)
+        else:
+            assert B - A > 0.01
 
         # TODO: f.can_dual()
 
@@ -95,80 +98,80 @@ class TestCase(unittest.TestCase):
         f = filters.Filter(self._G, kernels=kernel)
         self.assertEqual(f.Nf, 1)
         self.assertIs(f.g[0], kernel)
-        self._test_methods(f)
+        self._test_methods(f, tight=False)
 
     def test_abspline(self):
         f = filters.Abspline(self._G, Nf=4)
-        self._test_methods(f)
+        self._test_methods(f, tight=False)
 
     def test_gabor(self):
         f = filters.Gabor(self._G, lambda x: x / (1. + x))
-        self._test_methods(f)
+        self._test_methods(f, tight=False)
 
     def test_halfcosine(self):
         f = filters.HalfCosine(self._G, Nf=4)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
 
     def test_itersine(self):
         f = filters.Itersine(self._G, Nf=4)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
 
     def test_mexicanhat(self):
         f = filters.MexicanHat(self._G, Nf=5, normalize=False)
-        self._test_methods(f)
+        self._test_methods(f, tight=False)
         f = filters.MexicanHat(self._G, Nf=4, normalize=True)
-        self._test_methods(f)
+        self._test_methods(f, tight=False)
 
     def test_meyer(self):
         f = filters.Meyer(self._G, Nf=4)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
 
     def test_simpletf(self):
         f = filters.SimpleTight(self._G, Nf=4)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
 
     def test_regular(self):
         f = filters.Regular(self._G)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
         f = filters.Regular(self._G, d=5)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
         f = filters.Regular(self._G, d=0)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
 
     def test_held(self):
         f = filters.Held(self._G)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
         f = filters.Held(self._G, a=0.25)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
 
     def test_simoncelli(self):
         f = filters.Simoncelli(self._G)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
         f = filters.Simoncelli(self._G, a=0.25)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
 
     def test_papadakis(self):
         f = filters.Papadakis(self._G)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
         f = filters.Papadakis(self._G, a=0.25)
-        self._test_methods(f)
+        self._test_methods(f, tight=True)
 
     def test_heat(self):
         f = filters.Heat(self._G, normalize=False, tau=10)
-        self._test_methods(f)
+        self._test_methods(f, tight=False)
         f = filters.Heat(self._G, normalize=False, tau=np.array([5, 10]))
-        self._test_methods(f)
+        self._test_methods(f, tight=False)
         f = filters.Heat(self._G, normalize=True, tau=10)
         np.testing.assert_allclose(np.linalg.norm(f.evaluate(self._G.e)), 1)
-        self._test_methods(f)
+        self._test_methods(f, tight=False)
         f = filters.Heat(self._G, normalize=True, tau=[5, 10])
         np.testing.assert_allclose(np.linalg.norm(f.evaluate(self._G.e)[0]), 1)
         np.testing.assert_allclose(np.linalg.norm(f.evaluate(self._G.e)[1]), 1)
-        self._test_methods(f)
+        self._test_methods(f, tight=False)
 
     def test_expwin(self):
         f = filters.Expwin(self._G)
-        self._test_methods(f)
+        self._test_methods(f, tight=False)
 
     def test_approximations(self):
         r"""

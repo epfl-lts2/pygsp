@@ -6,7 +6,7 @@ from . import Filter  # prevent circular import in Python < 3.5
 
 
 class Held(Filter):
-    r"""Design 2 filters with the Held construction.
+    r"""Design 2 filters with the Held construction (tight frame).
 
     This function create a parseval filterbank of :math:`2` filters.
     The low-pass filter is defined by the function

@@ -6,7 +6,7 @@ from . import Filter  # prevent circular import in Python < 3.5
 
 
 class Simoncelli(Filter):
-    r"""Design 2 filters with the Simoncelli construction.
+    r"""Design 2 filters with the Simoncelli construction (tight frame).
 
     This function creates a Parseval filter bank of 2 filters.
     The low-pass filter is defined by the function
