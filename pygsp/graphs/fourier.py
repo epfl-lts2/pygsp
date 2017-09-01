@@ -206,39 +206,32 @@ class GraphFourier(object):
 
         return ft
 
-    def gft_windowed_gabor(self, f, k):
+    def gft_windowed_gabor(self, s, k):
         r"""Gabor windowed graph Fourier transform.
 
         Parameters
         ----------
-        f : ndarray
+        s : ndarray
             Graph signal in the vertex domain.
         k : function
             Gabor kernel. See :class:`pygsp.filters.Gabor`.
 
         Returns
         -------
-        C : ndarray
-            Coefficients.
+        s : ndarray
+            Vertex-frequency representation of the signals.
 
         Examples
         --------
         >>> G = graphs.Logo()
-        >>> s = np.random.normal(size=G.N)
-        >>> C = G.gft_windowed_gabor(s, lambda x: x/(1.-x))
-        >>> C.shape == (G.N, G.N)
-        True
+        >>> s = np.random.normal(size=(G.N, 2))
+        >>> s = G.gft_windowed_gabor(s, lambda x: x/(1.-x))
+        >>> s.shape
+        (1130, 2, 1130)
 
         """
-
         from pygsp import filters
-
-        g = filters.Gabor(self, k)
-
-        C = g.analysis(f)
-        C = utils.vec2mat(C, self.N).T
-
-        return C
+        return filters.Gabor(self, k).filter(s)
 
     def gft_windowed(self, g, f, lowmemory=True):
         r"""Windowed graph Fourier transform.
