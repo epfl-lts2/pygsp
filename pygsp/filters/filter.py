@@ -98,8 +98,7 @@ class Filter(object):
         return y
 
     def filter(self, s, method='chebyshev', order=30):
-        r"""
-        Filter signals with the filter bank (analysis or synthesis).
+        r"""Filter signals (analysis or synthesis).
 
         A signal is defined as a rank-3 tensor of shape ``(N_NODES, N_SIGNALS,
         N_FEATURES)``, where ``N_NODES`` is the number of nodes in the graph,
@@ -443,9 +442,8 @@ class Filter(object):
         return self.filter(s, **kwargs)
 
     def can_dual(self):
-        r"""
-        Creates a dual graph form a given graph
-        """
+        r"""Creates a dual graph form a given graph"""
+
         def can_dual_func(g, n, x):
             # Nshape = np.shape(x)
             x = np.ravel(x)
