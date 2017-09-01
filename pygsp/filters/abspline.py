@@ -34,7 +34,6 @@ class Abspline(Filter):
     >>> G.set_coordinates('line1D')
     >>> g = filters.Abspline(G)
     >>> s = g.localize(G.N // 2)
-    >>> s = utils.vec2mat(s, g.Nf)
     >>> fig, axes = plt.subplots(1, 2)
     >>> g.plot(ax=axes[0])
     >>> G.plot_signal(s, ax=axes[1])

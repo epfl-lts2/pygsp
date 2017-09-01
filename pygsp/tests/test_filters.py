@@ -9,7 +9,7 @@ import unittest
 
 import numpy as np
 
-from pygsp import graphs, filters
+from pygsp import graphs, filters, utils
 
 
 class TestCase(unittest.TestCase):
@@ -73,11 +73,13 @@ class TestCase(unittest.TestCase):
                           self._signal, method='lanczos')
 
         if f.Nf < 10:
-            F = f.compute_frame(method='chebyshev')
-            c_frame = F.T.dot(self._signal)
+            F = f.compute_frame(method='chebyshev').reshape(self._G.N, -1)
+            c_frame = F.T.dot(self._signal).reshape(self._G.N, 1, -1)
+            c_cheby = utils.vec2mat(c_cheby, f.Nf).reshape((self._G.N, 1, -1))
             np.testing.assert_allclose(c_frame, c_cheby)
-            F = f.compute_frame(method='exact')
-            c_frame = F.T.dot(self._signal)
+            F = f.compute_frame(method='exact').reshape(self._G.N, -1)
+            c_frame = F.T.dot(self._signal).reshape(self._G.N, 1, -1)
+            c_exact = utils.vec2mat(c_exact, f.Nf).reshape((self._G.N, 1, -1))
             np.testing.assert_allclose(c_frame, c_exact)
 
         self._test_synthesis(f)
@@ -107,11 +109,11 @@ class TestCase(unittest.TestCase):
         # Should be equal to a row / column of the filtering operator.
         gL = G.U.dot(np.diag(g.evaluate(G.e)[0]).dot(G.U.T))
         s2 = np.sqrt(G.N) * gL[NODE, :]
-        np.testing.assert_allclose(s1, s2)
+        np.testing.assert_allclose(s1.squeeze(), s2)
 
         # That is actually a row / column of the analysis operator.
         F = g.compute_frame(method='exact')
-        np.testing.assert_allclose(F, gL)
+        np.testing.assert_allclose(F.squeeze(), gL)
 
     def test_custom_filter(self):
         def kernel(x):

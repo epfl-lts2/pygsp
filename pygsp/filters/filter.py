@@ -528,8 +528,9 @@ class Filter(object):
 
         Examples
         --------
-        Visualize heat diffusion on a grid.
+        Visualize heat diffusion on a grid by localizing the heat kernel.
 
+        >>> import matplotlib
         >>> N = 20
         >>> G = graphs.Grid2d(N)
         >>> G.estimate_lmax()
@@ -540,7 +541,7 @@ class Filter(object):
         """
         s = np.zeros(self.G.N)
         s[i] = 1
-        return np.sqrt(self.G.N) * self.analysis(s, **kwargs)
+        return np.sqrt(self.G.N) * self.filter(s, **kwargs)
 
     def approx(self, m, N):
         r"""
@@ -662,37 +663,31 @@ class Filter(object):
 
         Examples
         --------
-        >>>
-        >>> G = graphs.Logo()
+        Filtering signals as a matrix multiplication.
+
+        >>> G = graphs.Sensor(N=1000, seed=42)
         >>> G.estimate_lmax()
-        >>>
-        >>> f = filters.MexicanHat(G)
-        >>> frame = f.compute_frame()
-        >>> print('{} nodes, matrix is {} x {}'.format(G.N, *frame.shape))
-        1130 nodes, matrix is 1130 x 6780
-        >>>
+        >>> f = filters.MexicanHat(G, Nf=6)
         >>> s = np.random.uniform(size=G.N)
-        >>> c1 = frame.T.dot(s)
-        >>> c2 = f.analysis(s)
         >>>
-        >>> np.linalg.norm(c1 - c2) < 1e-10
+        >>> frame = f.compute_frame()
+        >>> frame.shape
+        (1000, 1000, 6)
+        >>> frame = frame.reshape(G.N, -1).T
+        >>> s1 = np.dot(frame, s)
+        >>> s1 = s1.reshape(G.N, 1, -1)
+        >>>
+        >>> s2 = f.filter(s)
+        >>> np.all((s1 - s2) < 1e-10)
         True
 
         """
-
-        N = self.G.N
-
-        if N > 2000:
+        if self.G.N > 2000:
             _logger.warning('Creating a big matrix, you can use other means.')
 
-        Ft = self.analysis(np.identity(N), **kwargs)
-        F = np.empty(Ft.T.shape)
-        tmpN = np.arange(N, dtype=int)
-
-        for i in range(self.Nf):
-            F[:, N * i + tmpN] = Ft[N * i + tmpN]
-
-        return F
+        # Filter one delta per vertex.
+        s = np.identity(self.G.N)
+        return self.filter(s, **kwargs)
 
     def can_dual(self):
         r"""
