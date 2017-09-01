@@ -24,6 +24,12 @@ from pygsp import graphs, filters, utils
 logger = utils.build_logger(__name__)
 
 
+def analysis(g, s, **kwargs):
+    # TODO: that is the legacy analysis method.
+    s = g.filter(s, **kwargs)
+    return s.swapaxes(1, 2).reshape(-1, s.shape[1], order='F')
+
+
 def graph_sparsify(M, epsilon, maxiter=10):
     r"""
     Sparsify a graph using Spielman-Srivastava algorithm.
@@ -177,7 +183,7 @@ def interpolate(G, f_subsampled, keep_inds, order=100, reg_eps=0.005, **kwargs):
 
     f_interpolated[keep_inds] = alpha
 
-    return green_kernel.analysis(f_interpolated, order=order, **kwargs)
+    return analysis(green_kernel, f_interpolated, order=order, **kwargs)
 
 
 def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
@@ -420,7 +426,7 @@ def pyramid_analysis(Gs, f, **kwargs):
 
     for i in range(levels):
         # Low pass the signal
-        s_low = filters.Filter(Gs[i], h_filters[i]).analysis(ca[i], **kwargs)
+        s_low = analysis(filters.Filter(Gs[i], h_filters[i]), ca[i], **kwargs)
         # Keep only the coefficient on the selected nodes
         ca.append(s_low[Gs[i+1].mr['idx']])
         # Compute prediction
@@ -595,11 +601,11 @@ def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
         x = np.zeros(N)
         z = np.concatenate((ca, pe), axis=0)
         green_kernel = filters.Filter(G, lambda x: 1./(x+reg_eps))
-        PhiVlt = green_kernel.analysis(S.T, **kwargs).T
+        PhiVlt = analysis(green_kernel, S.T, **kwargs).T
         filt = filters.Filter(G, h_filter, **kwargs)
 
         for iteration in range(landweber_its):
-            h_filtered_sig = filt.analysis(x, **kwargs)
+            h_filtered_sig = analysis(filt, x, **kwargs)
             x_bar = h_filtered_sig[keep_inds]
             y_bar = x - interpolate(G, x_bar, keep_inds, **kwargs)
             z_delt = np.concatenate((x_bar, y_bar), axis=0)
@@ -616,7 +622,7 @@ def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
 
             next_term = L_red * alpha_new - L_in_out * linalg.spsolve(L_comp, L_out_in * alpha_new)
             next_up = sparse.csr_matrix((next_term, (keep_inds, [1] * nb_ind)), shape=(N, 1))
-            x += landweber_tau * filt.analysis(x_up - next_up, **kwargs) + z_delt[nb_ind:]
+            x += landweber_tau * analysis(filt, x_up - next_up, **kwargs) + z_delt[nb_ind:]
 
         finer_approx = x
 
