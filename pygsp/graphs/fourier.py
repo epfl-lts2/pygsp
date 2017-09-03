@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import scipy.linalg
 
 from pygsp import utils
 
@@ -93,18 +92,29 @@ class GraphFourier(object):
         if hasattr(self, '_e') and hasattr(self, '_U') and not recompute:
             return
 
+        assert self.L.shape == (self.N, self.N)
         if self.N > 3000:
-            self.logger.warning("Performing full eigendecomposition of a "
-                                "large matrix may take some time.")
+            self.logger.warning('Computing the full eigendecomposition of a '
+                                'large matrix ({0} x {0}) may take some '
+                                'time.'.format(self.N))
 
-        # TODO: np.linalg.{svd,eigh}, sparse.linalg.{svds,eigsh}
-        eigenvectors, eigenvalues, _ = scipy.linalg.svd(self.L.todense())
+        # TODO: handle non-symmetric Laplatians. Test lap_type?
 
-        inds = np.argsort(eigenvalues)
+        self._e, self._U = np.linalg.eigh(self.L.toarray())
+        # Columns are eigenvectors. Sorted in ascending eigenvalue order.
 
-        self._e = np.sort(eigenvalues)
-        self._lmax = np.max(self._e)
-        self._U = eigenvectors[:, inds]
+        # Smallest eigenvalue should be zero: correct numerical errors.
+        # Eigensolver might sometimes return small negative values, which
+        # filter's implementations may not anticipate. Better for plotting too.
+        assert -1e-12 < self._e[0] < 1e-12
+        self._e[0] = 0
+
+        if self.lap_type == 'normalized':
+            # Spectrum bounded by [0, 2].
+            assert self._e[-1] <= 2
+
+        assert np.max(self._e) == self._e[-1]
+        self._lmax = self._e[-1]
         self._mu = np.max(np.abs(self._U))
 
     def gft(self, s):

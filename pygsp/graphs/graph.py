@@ -569,14 +569,12 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>>
         >>> G.compute_laplacian('combinatorial')
         >>> G.compute_fourier_basis()
-        >>> 0 < G.e[0] < 1e-10  # Smallest eigenvalue close to 0.
+        >>> -1e-10 < G.e[0] < 1e-10  # Smallest eigenvalue close to 0.
         True
         >>>
         >>> G.compute_laplacian('normalized')
         >>> G.compute_fourier_basis(recompute=True)
-        >>> 0 < G.e[0] < G.e[-1] < 2  # Spectrum bounded by [0, 2].
-        True
-        >>> G.e[0] < 1e-10  # Smallest eigenvalue close to 0.
+        >>> -1e-10 < G.e[0] < 1e-10 < G.e[-1] < 2  # Spectrum in [0, 2].
         True
 
         """
