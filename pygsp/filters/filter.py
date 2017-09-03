@@ -411,7 +411,7 @@ class Filter(object):
 
         See also
         --------
-        analysis: more efficient way to filter signals
+        filter: more efficient way to filter signals
 
         Examples
         --------
