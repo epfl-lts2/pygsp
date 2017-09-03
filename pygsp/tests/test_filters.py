@@ -84,7 +84,7 @@ class TestCase(unittest.TestCase):
         G.compute_fourier_basis()
         g = filters.Heat(G, 100)
 
-        # Localize signal at node by filterting Kronecker delta.
+        # Localize signal at node by filtering Kronecker delta.
         NODE = 10
         s1 = g.localize(NODE, method='exact')
 

@@ -8,6 +8,7 @@ Test suite for the graphs module of the pygsp package.
 import unittest
 
 import numpy as np
+import scipy.linalg
 from skimage import data, img_as_float
 
 from pygsp import graphs
@@ -55,6 +56,55 @@ class TestCase(unittest.TestCase):
         G.compute_laplacian(lap_type='combinatorial')
         self.assertRaises(NotImplementedError, G.compute_laplacian,
                           lap_type='normalized')
+
+    def test_fourier_basis(self):
+        # Smallest eigenvalue close to zero.
+        np.testing.assert_allclose(self._G.e[0], 0, atol=1e-12)
+        # First eigenvector is constant.
+        N = self._G.N
+        np.testing.assert_allclose(self._G.U[:, 0], np.sqrt(N) / N)
+        # Control eigenvector direction.
+        # assert (self._G.U[0, :] > 0).all()
+        # Spectrum bounded by [0, 2] for the normalized Laplacian.
+        G = graphs.Logo(lap_type='normalized')
+        G.compute_fourier_basis()
+        assert G.e[-1] < 2
+
+    def test_eigendecompositions(self):
+        G = graphs.Logo()
+        U1, e1, V1 = scipy.linalg.svd(G.L.toarray())
+        U2, e2, V2 = np.linalg.svd(G.L.toarray())
+        e3, U3 = np.linalg.eig(G.L.toarray())
+        e4, U4 = scipy.linalg.eig(G.L.toarray())
+        e5, U5 = np.linalg.eigh(G.L.toarray())
+        e6, U6 = scipy.linalg.eigh(G.L.toarray())
+
+        def correct_sign(U):
+            signs = np.sign(U[0, :])
+            signs[signs == 0] = 1
+            return U * signs
+        U1 = correct_sign(U1)
+        U2 = correct_sign(U2)
+        U3 = correct_sign(U3)
+        U4 = correct_sign(U4)
+        U5 = correct_sign(U5)
+        U6 = correct_sign(U6)
+        V1 = correct_sign(V1.T)
+        V2 = correct_sign(V2.T)
+
+        inds = np.argsort(e3)[::-1]
+        np.testing.assert_allclose(e2, e1)
+        np.testing.assert_allclose(e3[inds], e1, atol=1e-12)
+        np.testing.assert_allclose(e4[inds], e1, atol=1e-12)
+        np.testing.assert_allclose(e5[::-1], e1, atol=1e-12)
+        np.testing.assert_allclose(e6[::-1], e1, atol=1e-12)
+        np.testing.assert_allclose(U2, U1)
+        np.testing.assert_allclose(V1, U1, atol=1e-12)
+        np.testing.assert_allclose(V2, U1, atol=1e-12)
+        np.testing.assert_allclose(U3[:, inds], U1, atol=1e-10)
+        np.testing.assert_allclose(U4[:, inds], U1, atol=1e-10)
+        np.testing.assert_allclose(U5[:, ::-1], U1, atol=1e-10)
+        np.testing.assert_allclose(U6[:, ::-1], U1, atol=1e-10)
 
     def test_fourier_transform(self):
         s = self._rs.uniform(size=(self._G.N, 99, 21))
