@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
 from setuptools import setup
 
 
@@ -24,10 +23,15 @@ setup(
         'scipy',
         'matplotlib',
         'pyqtgraph',
-        'PyQt5' if sys.version_info >= (3, 5) else 'PySide',
+        # PyQt5 is only available on PyPI as wheels for Python 3.5 and up.
+        'PyQt5; python_version >= "3.5"',
+        # No source package for PyQt5 on PyPI, fall back to PySide.
+        'PySide; python_version < "3.5"',
         'pyopengl',
         'scikit-image',
-        'pyflann' if sys.version_info.major == 2 else 'pyflann3'],
+        'pyflann; python_version == "2.*"',
+        'pyflann3; python_version == "3.*"',
+    ],
     license="BSD",
     keywords='graph signal processing',
     platforms='any',

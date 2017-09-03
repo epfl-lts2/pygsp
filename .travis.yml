@@ -15,7 +15,7 @@ addons:
       - xvfb
 
 install:
-  - pip install -U pip
+  - pip install -U pip setuptools
   - pip install -U -r requirements.txt
   - pip install .
 
