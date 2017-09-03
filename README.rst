@@ -1,5 +1,3 @@
-.. _about:
-
 ========================================
 PyGSP: Graph Signal Processing in Python
 ========================================
@@ -34,62 +32,45 @@ documentation is available on `Read the Docs
 <https://pygsp.readthedocs.io>`_ and development takes place on `GitHub
 <https://github.com/epfl-lts2/pygsp>`_.
 
-This example demonstrates how to create a graph, a filter and analyse a signal on the graph.
+The PyGSP facilitates a wide variety of operations on graphs, like computing
+their Fourier basis, filtering or interpolating signals, plotting graphs,
+signals, and filters. Its core is spectral graph theory, and many of the
+provided operations scale to very large graphs. The package includes a wide
+range of graphs, from point clouds like the Stanford bunny and the Swiss roll;
+to networks like the Minnesota road network; to models for generating random
+graphs like stochastic block models, sensor networks, Erdős–Rényi model,
+Barabási-Albert model; to simple graphs like the path, the ring, and the grid.
+Many filter banks are also provided, e.g. various wavelets like the Mexican
+hat, Meyer, Half Cosine; some low-pass filters like the heat kernel and the
+exponential window; and Gabor filters. Despite all the pre-defined models, you
+can easily use a custom graph by defining its adjacency matrix, and a custom
+filter bank by defining a set of functions in the spectral domain.
+
+The following example demonstrates how to instantiate a graph and a filter, the
+two main objects of the package.
 
 >>> from pygsp import graphs, filters
 >>> G = graphs.Logo()
->>> f = filters.Heat(G)
->>> Sl = f.filter(G.L.todense(), method='chebyshev')
+>>> G.estimate_lmax()
+>>> g = filters.Heat(G, tau=100)
 
-Features
---------
+Let's now create a graph signal which a set of three Kronecker deltas. Then
+filter it with the above defined filter and look at one step of heat diffusion
+on that particular graph. Note how the diffusion follows the local structure!
 
-This package facilitates graph constructions and give tools to perform signal processing on them.
+>>> import numpy as np
+>>> s = np.zeros(G.N)
+>>> s[[20, 30, 1090]] = 1
+>>> s = g.filter(s)
+>>> G.plot_signal(s, backend='matplotlib')
 
-A whole list of pre-constructed graphs can be used as well as core functions to create any other graph among which::
+.. image:: ../pygsp/data/readme_example.png
+    :alt:
+.. image:: pygsp/data/readme_example.png
+    :alt:
 
-  - Neighest Neighbor Graphs
-    - Bunny
-    - Cube
-    - Sphere
-    - TwoMoons
-    - ImgPatches
-    - Grid2dImgPatches
-  - Airfoil
-  - BarabasiAlbert
-  - Comet
-  - Community
-  - DavidSensorNet
-  - ErdosRenyi
-  - FullConnected
-  - Grid2d
-  - Logo GSP
-  - LowStretchTree
-  - Minnesota
-  - Path
-  - RandomRegular
-  - RandomRing
-  - Ring
-  - Sensor
-  - StochasticBlockModel
-  - SwissRoll
-  - Torus
-
-On these graphs, filters can be applied to do signal processing. To this end, there is also a list of predefined filters on this toolbox::
-
-  - Abspline
-  - Expwin
-  - Gabor
-  - HalfCosine
-  - Heat
-  - Held
-  - Itersine
-  - MexicanHat
-  - Meyer
-  - Papadakis
-  - Regular
-  - Simoncelli
-  - SimpleTf
+Please see the tutorials for more usage examples and the reference guide for an
+exhaustive documentation of the API. Enjoy the package!
 
 Installation
 ------------
