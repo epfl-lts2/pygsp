@@ -13,9 +13,8 @@ tests for any new code.
 The package can be set up (ideally in a virtual environment) for local
 development with the following::
 
-    $ git clone git@github.com:epfl-lts2/pygsp.git
-    $ pip install -U -r pygsp/requirements.txt
-    $ pip install -e pygsp
+    $ git clone https://github.com/epfl-lts2/pygsp.git
+    $ pip install -U -e pygsp[test,doc,pkg]
 
 You can improve or add functionality in the ``pygsp`` folder, along with
 corresponding unit tests in ``pygsp/tests/test_*.py`` (with reasonable
@@ -45,7 +44,6 @@ Repository organization
   LICENSE.txt         Project license
   *.rst               Important documentation
   Makefile            Targets for make
-  requirements.txt    List of packages installed by pip (strong dep in setup.py)
   setup.py            Meta information about package (published on PyPI)
   .gitignore          Files ignored by the git revision control system
   .travis.yml         Defines testing on Travis continuous integration

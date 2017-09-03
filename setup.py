@@ -11,11 +11,13 @@ setup(
     long_description=open('README.rst').read(),
     author='EPFL LTS2',
     url='https://github.com/epfl-lts2/pygsp',
-    packages=['pygsp',
-              'pygsp.graphs',
-              'pygsp.graphs.nngraphs',
-              'pygsp.filters',
-              'pygsp.tests'],
+    packages=[
+        'pygsp',
+        'pygsp.graphs',
+        'pygsp.graphs.nngraphs',
+        'pygsp.filters',
+        'pygsp.tests',
+    ],
     package_data={'pygsp': ['data/pointclouds/*.mat']},
     test_suite='pygsp.tests.test_all.suite',
     install_requires=[
@@ -32,6 +34,23 @@ setup(
         'pyflann; python_version == "2.*"',
         'pyflann3; python_version == "3.*"',
     ],
+    extras_require={
+        'test': [
+            'flake8',
+            'coverage',
+            'coveralls',
+        ],
+        'doc': [
+            'sphinx',
+            'numpydoc',
+            'sphinxcontrib-bibtex',
+            'sphinx-rtd-theme',
+        ],
+        'pkg': [
+            'wheel',
+            'twine',
+        ],
+    },
     license="BSD",
     keywords='graph signal processing',
     platforms='any',
