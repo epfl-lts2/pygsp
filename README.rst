@@ -46,17 +46,18 @@ exponential window; and Gabor filters. Despite all the pre-defined models, you
 can easily use a custom graph by defining its adjacency matrix, and a custom
 filter bank by defining a set of functions in the spectral domain.
 
-The following example demonstrates how to instantiate a graph and a filter, the
-two main objects of the package.
+The following demonstrates how to instantiate a graph and a filter, the two
+main objects of the package.
 
 >>> from pygsp import graphs, filters
 >>> G = graphs.Logo()
 >>> G.estimate_lmax()
 >>> g = filters.Heat(G, tau=100)
 
-Let's now create a graph signal which a set of three Kronecker deltas. Then
-filter it with the above defined filter and look at one step of heat diffusion
-on that particular graph. Note how the diffusion follows the local structure!
+Let's now create a graph signal: a set of three Kronecker deltas for that
+example. We can now look at one step of heat diffusion by filtering the deltas
+with the above defined filter. Note how the diffusion follows the local
+structure!
 
 >>> import numpy as np
 >>> s = np.zeros(G.N)
