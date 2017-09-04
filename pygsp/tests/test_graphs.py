@@ -92,17 +92,18 @@ class TestCase(unittest.TestCase):
         V1 = correct_sign(V1.T)
         V2 = correct_sign(V2.T)
 
-        inds = np.argsort(e3)[::-1]
+        inds3 = np.argsort(e3)[::-1]
+        inds4 = np.argsort(e4)[::-1]
         np.testing.assert_allclose(e2, e1)
-        np.testing.assert_allclose(e3[inds], e1, atol=1e-12)
-        np.testing.assert_allclose(e4[inds], e1, atol=1e-12)
+        np.testing.assert_allclose(e3[inds3], e1, atol=1e-12)
+        np.testing.assert_allclose(e4[inds4], e1, atol=1e-12)
         np.testing.assert_allclose(e5[::-1], e1, atol=1e-12)
         np.testing.assert_allclose(e6[::-1], e1, atol=1e-12)
-        np.testing.assert_allclose(U2, U1)
+        np.testing.assert_allclose(U2, U1, atol=1e-12)
         np.testing.assert_allclose(V1, U1, atol=1e-12)
         np.testing.assert_allclose(V2, U1, atol=1e-12)
-        np.testing.assert_allclose(U3[:, inds], U1, atol=1e-10)
-        np.testing.assert_allclose(U4[:, inds], U1, atol=1e-10)
+        np.testing.assert_allclose(U3[:, inds3], U1, atol=1e-10)
+        np.testing.assert_allclose(U4[:, inds4], U1, atol=1e-10)
         np.testing.assert_allclose(U5[:, ::-1], U1, atol=1e-10)
         np.testing.assert_allclose(U6[:, ::-1], U1, atol=1e-10)
 
