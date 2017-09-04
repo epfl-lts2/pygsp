@@ -405,12 +405,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         if hasattr(self, '_connected') and not recompute:
             return self._connected
 
-        if self.A.shape[0] != self.A.shape[1]:
-            self.logger.error("Inconsistent shape to test connectedness. "
-                              "Set to False.")
-            self._connected = False
-            return self._connected
-
         if self.is_directed(recompute=recompute):
             adj_matrices = [self.A, self.A.T]
         else:
@@ -468,10 +462,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         """
         if hasattr(self, '_directed') and not recompute:
             return self._directed
-
-        if np.diff(self.W.shape)[0]:
-            raise ValueError("Matrix dimensions mismatch, expecting square "
-                             "matrix.")
 
         self._directed = np.abs(self.W - self.W.T).sum() != 0
         return self._directed
