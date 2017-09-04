@@ -40,7 +40,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     Ne : int
         the number of edges / links in the graph, i.e. connections between
         nodes.
-    W : ndarray
+    W : sparse matrix or ndarray
         the weight matrix which contains the weights of the connections.
         It is represented as an N-by-N matrix of floats.
         :math:`W_{i,j} = 0` means that there is no direct connection from
@@ -82,10 +82,17 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         self.N = W.shape[0]
         self.W = sparse.lil_matrix(W)
+
+        # Don't count edges two times if undirected.
+        # Be consistent with the size of the differential operator.
+        if self.is_directed():
+            self.Ne = self.W.nnz
+        else:
+            self.Ne = sparse.tril(W).nnz
+
         self.check_weights()
 
         self.A = self.W > 0
-        self.Ne = self.W.nnz
         self.d = np.asarray(self.A.sum(axis=1)).squeeze()
         assert self.d.ndim == 1
         self.gtype = gtype
@@ -703,9 +710,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
             # TODO G.ind_edges = sub2ind(size(G.W), G.v_in, G.v_out)
 
-            assert v_in.size == v_out.size == weights.size
-            assert self.Ne >= v_in.size  # graph might have self-loops
-
+            assert self.Ne == v_in.size == v_out.size == weights.size
             return v_in, v_out, weights
 
     def sanitize_signal(self, s):

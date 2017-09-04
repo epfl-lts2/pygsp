@@ -47,9 +47,9 @@ class GraphDifference(object):
         --------
         >>> G = graphs.Logo()
         >>> G.N, G.Ne
-        (1130, 6262)
+        (1130, 3131)
         >>> G.compute_differential_operator()
-        >>> G.D.shape == (G.Ne//2, G.N)
+        >>> G.D.shape == (G.Ne, G.N)
         True
 
         """
@@ -103,7 +103,7 @@ class GraphDifference(object):
         --------
         >>> G = graphs.Logo()
         >>> G.N, G.Ne
-        (1130, 6262)
+        (1130, 3131)
         >>> s = np.random.normal(size=G.N)
         >>> s_grad = G.grad(s)
         >>> s_div = G.div(s_grad)
@@ -143,12 +143,12 @@ class GraphDifference(object):
         --------
         >>> G = graphs.Logo()
         >>> G.N, G.Ne
-        (1130, 6262)
-        >>> s = np.random.normal(size=G.Ne//2)  # Symmetric weight matrix.
+        (1130, 3131)
+        >>> s = np.random.normal(size=G.Ne)
         >>> s_div = G.div(s)
         >>> s_grad = G.grad(s_div)
 
         """
-        if self.Ne != 2 * s.shape[0]:
+        if self.Ne != s.shape[0]:
             raise ValueError('Signal length should be the number of edges.')
         return self.D.T.dot(s)

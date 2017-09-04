@@ -42,9 +42,10 @@ follows.
     >>> W = rs.uniform(size=(30, 30))  # Full graph.
     >>> W[W < 0.93] = 0  # Sparse graph.
     >>> W = W + W.T  # Symmetric graph.
+    >>> np.fill_diagonal(W, 0)  # No self-loops.
     >>> G = graphs.Graph(W)
     >>> print('{} nodes, {} edges'.format(G.N, G.Ne))
-    30 nodes, 122 edges
+    30 nodes, 60 edges
 
 The :class:`pygsp.graphs.Graph` class we just instantiated is the base class
 for all graph objects, which offers many methods and attributes.
@@ -96,8 +97,8 @@ smoothness of a signal.
     :context: close-figs
 
     >>> G.compute_differential_operator()
-    >>> G.D.shape  # Not G.Ne / 2 because of self-loops.
-    (62, 30)
+    >>> G.D.shape
+    (60, 30)
 
 .. note::
     Note that we called :meth:`pygsp.graphs.Graph.compute_fourier_basis` and
