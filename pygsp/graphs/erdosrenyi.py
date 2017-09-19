@@ -36,7 +36,7 @@ class ErdosRenyi(Graph):
                  max_iter=10, **kwargs):
         self.p = p
 
-        if not 0 < p < 1:
+        if not 0 <= p <= 1:
             raise ValueError('Probability p should be in [0, 1].')
 
         M = int(N * (N-1) if directed else N * (N-1) / 2)
