@@ -80,6 +80,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         if len(W.shape) != 2 or W.shape[0] != W.shape[1]:
             raise ValueError('W has incorrect shape {}'.format(W.shape))
 
+        # Don't keep edges of 0 weight. Otherwise Ne will not correspond to the
+        # real number of edges. Problematic when e.g. plotting.
+        W = sparse.csr_matrix(W)
+        W.eliminate_zeros()
+
         self.N = W.shape[0]
         self.W = sparse.lil_matrix(W)
 
