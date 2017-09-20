@@ -62,8 +62,8 @@ class StochasticBlockModel(Graph):
                 p = np.array(p)
 
             if p.shape != (k, ):
-                raise ValueError('Optional parameter p is neither a scalar nor'
-                                 'a vector of length k.')
+                raise ValueError('Optional parameter p is neither a scalar '
+                                 'nor a vector of length k.')
 
             if q is None:
                 q = 0.3 / k
@@ -73,8 +73,8 @@ class StochasticBlockModel(Graph):
                 q = np.array(q)
 
             if q.shape != (k, k):
-                raise ValueError('Optional parameter q is neither a scalar nor'
-                                 'a matrix of size k x k.')
+                raise ValueError('Optional parameter q is neither a scalar '
+                                 'nor a matrix of size k x k.')
 
             M = q
             M.flat[::k+1] = p  # edit the diagonal terms
@@ -83,7 +83,7 @@ class StochasticBlockModel(Graph):
         csr_data, csr_i, csr_j = [], [], []
         for _ in range(N**2):
             if nb_row != nb_col or not no_self_loop:
-                if nb_row > nb_col or not undirected:
+                if nb_row >= nb_col or not undirected:
                     if rs.uniform() < M[z[nb_row], z[nb_col]]:
                         csr_data.append(1)
                         csr_i.append(nb_row)
