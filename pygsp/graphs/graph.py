@@ -812,7 +812,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         plotting.plot_spectrogram(self, **kwargs)
 
     def _fruchterman_reingold_layout(self, dim=2, k=None, pos=None, fixed=[],
-                                     iterations=50, scale=1.0, center=None):
+                                     iterations=50, scale=1.0, center=None,
+                                     seed=None):
         # TODO doc
         # fixed: list of nodes with fixed coordinates
         # Position nodes using Fruchterman-Reingold force-directed algorithm.
@@ -824,24 +825,23 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             self.logger.error('Spring coordinates: center has wrong size.')
             center = np.zeros((1, dim))
 
-        dom_size = 1.
-
-        if pos is not None:
+        if pos is None:
+            dom_size = 1
+            pos_arr = None
+        else:
             # Determine size of existing domain to adjust initial positions
             dom_size = np.max(pos)
-            shape = (self.N, dim)
-            pos_arr = np.random.random(shape) * dom_size + center
+            pos_arr = np.random.RandomState(seed).uniform(size=(self.N, dim))
+            pos_arr = pos_arr * dom_size + center
             for i in range(self.N):
                 pos_arr[i] = np.asarray(pos[i])
-        else:
-            pos_arr = None
 
         if k is None and len(fixed) > 0:
             # We must adjust k by domain size for layouts that are not near 1x1
             k = dom_size / np.sqrt(self.N)
 
         pos = _sparse_fruchterman_reingold(self.A, dim, k, pos_arr,
-                                           fixed, iterations)
+                                           fixed, iterations, seed)
 
         if len(fixed) == 0:
             pos = _rescale_layout(pos, scale=scale) + center
@@ -849,7 +849,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return pos
 
 
-def _sparse_fruchterman_reingold(A, dim, k, pos, fixed, iterations):
+def _sparse_fruchterman_reingold(A, dim, k, pos, fixed, iterations, seed):
     # Position nodes in adjacency matrix A using Fruchterman-Reingold
     nnodes = A.shape[0]
 
@@ -861,7 +861,7 @@ def _sparse_fruchterman_reingold(A, dim, k, pos, fixed, iterations):
 
     if pos is None:
         # random initial positions
-        pos = np.random.uniform(size=(nnodes, dim))
+        pos = np.random.RandomState(seed).uniform(size=(nnodes, dim))
 
     # optimal distance between nodes
     if k is None:
