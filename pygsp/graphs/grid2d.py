@@ -35,14 +35,13 @@ class Grid2d(Graph):
         # looping through all the grid points:
         diag_1 = np.ones(N - 1)
         diag_1[(N2 - 1)::N2] = 0
-        stride = N2
-        diag_2 = np.ones((N - stride,))
+        diag_2 = np.ones(N - N2)
         W = sparse.diags(diagonals=[diag_1, diag_2],
-                         offsets=[-1, -stride],
+                         offsets=[-1, -N2],
                          shape=(N, N),
                          format='csr',
                          dtype='float')
-        W = utils.symmetrize(W, symmetrize_type='full')
+        W = utils.symmetrize(W, method='tril')
 
         x = np.kron(np.ones((N1, 1)), (np.arange(N2)/float(N2)).reshape(N2, 1))
         y = np.kron(np.ones((N2, 1)), np.arange(N1)/float(N1)).reshape(N, 1)

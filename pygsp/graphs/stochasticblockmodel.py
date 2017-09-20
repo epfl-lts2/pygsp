@@ -3,6 +3,7 @@
 import numpy as np
 from scipy import sparse
 
+from pygsp import utils
 from . import Graph  # prevent circular import in Python < 3.5
 
 
@@ -97,11 +98,7 @@ class StochasticBlockModel(Graph):
         W = sparse.csr_matrix((csr_data, (csr_i, csr_j)), shape=(N, N))
 
         if undirected:
-            W = W + W.T
-
-            if not no_self_loop:
-                # avoid doubling the self loops with the above sum
-                W[range(N), range(N)] = (W.diagonal() == 2)
+            W = utils.symmetrize(W, method='tril')
 
         self.info = {'node_com': z, 'comm_sizes': np.bincount(z),
                      'world_rad': np.sqrt(N)}

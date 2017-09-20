@@ -61,7 +61,7 @@ class Sensor(Graph):
             W, coords = self._create_weight_matrix(N, distribute, regular, Nc)
 
         W = sparse.lil_matrix(W)
-        W = (W + W.T) / 2.
+        W = utils.symmetrize(W, method='average')
 
         gtype = 'regular sensor' if self.regular else 'sensor'
 
@@ -82,7 +82,7 @@ class Sensor(Graph):
                 W[i, ind] = val
                 l[ind] = 0
 
-        W = (W + W.T)/2.
+        W = utils.symmetrize(W, method='average')
 
         return W
 

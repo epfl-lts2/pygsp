@@ -215,7 +215,7 @@ def resistance_distance(G):
     return rd
 
 
-def symmetrize(W, symmetrize_type='average'):
+def symmetrize(W, method='average'):
     r"""
     Symmetrize a square matrix.
 
@@ -223,43 +223,85 @@ def symmetrize(W, symmetrize_type='average'):
     ----------
     W : array_like
         Square matrix to be symmetrized
-    symmetrize_type : string
-        'average' : symmetrize by averaging with the transpose.
-        'full' : symmetrize by filling in the holes in the transpose.
+    method : string
+        * 'average' : symmetrize by averaging with the transpose. Most useful
+          when transforming a directed graph to an undirected one.
+        * 'maximum' : symmetrize by taking the maximum with the transpose.
+          Similar to 'fill' except that ambiguous entries are resolved by
+          taking the largest value.
+        * 'fill' : symmetrize by filling in the zeros in both the upper and
+          lower triangular parts. Ambiguous entries are resolved by averaging
+          the values.
+        * 'tril' : symmetrize by considering the lower triangular part only.
+        * 'triu' : symmetrize by considering the upper triangular part only.
 
     Examples
     --------
     >>> from pygsp import utils
-    >>> x = np.array([[1,0],[3,4.]])
-    >>> x
-    array([[ 1.,  0.],
-           [ 3.,  4.]])
-    >>> utils.symmetrize(x)
-    array([[ 1. ,  1.5],
-           [ 1.5,  4. ]])
-    >>> utils.symmetrize(x, symmetrize_type='full')
-    array([[ 1.,  3.],
-           [ 3.,  4.]])
+    >>> W = np.array([[0, 3, 0], [3, 1, 6], [4, 2, 3]], dtype=float)
+    >>> W
+    array([[ 0.,  3.,  0.],
+           [ 3.,  1.,  6.],
+           [ 4.,  2.,  3.]])
+    >>> utils.symmetrize(W, method='average')
+    array([[ 0.,  3.,  2.],
+           [ 3.,  1.,  4.],
+           [ 2.,  4.,  3.]])
+    >>> utils.symmetrize(W, method='maximum')
+    array([[ 0.,  3.,  4.],
+           [ 3.,  1.,  6.],
+           [ 4.,  6.,  3.]])
+    >>> utils.symmetrize(W, method='fill')
+    array([[ 0.,  3.,  4.],
+           [ 3.,  1.,  4.],
+           [ 4.,  4.,  3.]])
+    >>> utils.symmetrize(W, method='tril')
+    array([[ 0.,  3.,  4.],
+           [ 3.,  1.,  2.],
+           [ 4.,  2.,  3.]])
+    >>> utils.symmetrize(W, method='triu')
+    array([[ 0.,  3.,  0.],
+           [ 3.,  1.,  6.],
+           [ 0.,  6.,  3.]])
 
     """
     if W.shape[0] != W.shape[1]:
-        raise ValueError("Matrix must be square")
+        raise ValueError('Matrix must be square.')
 
-    sparse_flag = True if sparse.issparse(W) else False
+    if method == 'average':
+        return (W + W.T) / 2
 
-    if symmetrize_type == 'average':
-        return (W + W.T) / 2.
-    elif symmetrize_type == 'full':
-        A = (W > 0)
-        if sparse_flag:
-            mask = ((A + A.T) - A).astype('float')
+    # Sum is 2x average. It is not a good candidate as it modifies an already
+    # symmetric matrix.
+
+    elif method == 'maximum':
+        if sparse.issparse(W):
+            bigger = (W.T > W)
+            return W - W.multiply(bigger) + W.T.multiply(bigger)
         else:
-            # numpy boolean subtract is deprecated in python 3
-            mask = np.logical_xor(np.logical_or(A, A.T), A).astype('float')
-        W = W + (mask.multiply(W.T) if sparse_flag else (mask * W.T))
-        return (W + W.T) / 2.  # Resolve ambiguous entries
+            return np.maximum(W, W.T)
+
+    elif method == 'fill':
+        A = (W > 0)  # Boolean type.
+        if sparse.issparse(W):
+            mask = (A + A.T) - A
+            W = W + mask.multiply(W.T)
+        else:
+            # Numpy boolean subtract is deprecated.
+            mask = np.logical_xor(np.logical_or(A, A.T), A)
+            W = W + mask * W.T
+        return symmetrize(W, method='average')  # Resolve ambiguous entries.
+
+    elif method in ['tril', 'triu']:
+        if sparse.issparse(W):
+            tri = getattr(sparse, method)
+        else:
+            tri = getattr(np, method)
+        W = tri(W)
+        return symmetrize(W, method='maximum')
+
     else:
-        raise ValueError("Unknown symmetrization type.")
+        raise ValueError('Unknown symmetrization method {}.'.format(method))
 
 
 def rescale_center(x):

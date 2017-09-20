@@ -23,6 +23,15 @@ class TestCase(unittest.TestCase):
     def tearDownClass(cls):
         pass
 
+    def test_symmetrize(self):
+        W = sparse.random(100, 100, random_state=42)
+        for method in ['average', 'maximum', 'fill', 'tril', 'triu']:
+            # Test that the regular and sparse versions give the same result.
+            W1 = utils.symmetrize(W, method=method)
+            W2 = utils.symmetrize(W.toarray(), method=method)
+            np.testing.assert_equal(W1.toarray(), W2)
+        self.assertRaises(ValueError, utils.symmetrize, W, 'sum')
+
     def test_utils(self):
         # Data init
         W1 = np.arange(16).reshape((4, 4))

@@ -3,6 +3,7 @@
 import numpy as np
 from scipy import sparse
 
+from pygsp import utils
 from . import Graph  # prevent circular import in Python < 3.5
 
 
@@ -36,8 +37,8 @@ class RandomRing(Graph):
 
         W = sparse.csc_matrix((weight, (inds_i, inds_j)), shape=(N, N))
         W = W.tolil()
-        W[N-1, 0] = weight_end
-        W = W + W.T
+        W[0, N-1] = weight_end
+        W = utils.symmetrize(W, method='triu')
 
         angle = position * 2 * np.pi
         coords = np.stack([np.cos(angle), np.sin(angle)], axis=1)

@@ -169,7 +169,7 @@ class NNGraph(Graph):
 
         # Enforce symmetry. Note that checking symmetry with
         # np.abs(W - W.T).sum() is as costly as the symmetrization itself.
-        W = utils.symmetrize(W, symmetrize_type=symmetrize_type)
+        W = utils.symmetrize(W, method=symmetrize_type)
 
         super(NNGraph, self).__init__(W=W, gtype=gtype, plotting=plotting,
                                       coords=Xout, **kwargs)

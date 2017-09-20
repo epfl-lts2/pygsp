@@ -29,7 +29,7 @@ class ImgPatches(NNGraph):
     """
 
     def __init__(self, img, patch_shape=(3, 3), n_nbrs=8, use_flann=True,
-                 dist_type='euclidean', symmetrize_type='full', **kwargs):
+                 dist_type='euclidean', symmetrize_type='fill', **kwargs):
 
         X = utils.extract_patches(img, patch_shape=patch_shape)
 
