@@ -135,5 +135,3 @@ class RandomRegular(Graph):
 
         if warn:
             self.logger.warning('{}.'.format(msg[:-1]))
-        else:
-            self.logger.info('{} is ok.'.format(msg))
