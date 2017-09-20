@@ -38,6 +38,8 @@ class StochasticBlockModel(Graph):
         force the graph to be undirected. Default True.
     no_self_loop : bool
         force the graph to have no self loop. Default True.
+    seed : int
+        Seed for the random number generator (for reproducible graphs).
 
     Examples
     --------
@@ -46,10 +48,12 @@ class StochasticBlockModel(Graph):
     """
 
     def __init__(self, N=1024, k=5, z=None, M=None, p=0.7, q=None,
-                 undirected=True, no_self_loop=True, **kwargs):
+                 undirected=True, no_self_loop=True, seed=None, **kwargs):
+
+        rs = np.random.RandomState(seed)
 
         if z is None:
-            z = np.random.randint(0, k, N)
+            z = rs.randint(0, k, N)
 
         if M is None:
             if isinstance(p, float):
@@ -80,7 +84,7 @@ class StochasticBlockModel(Graph):
         for _ in range(N**2):
             if nb_row != nb_col or not no_self_loop:
                 if nb_row > nb_col or not undirected:
-                    if np.random.rand() < M[z[nb_row], z[nb_col]]:
+                    if rs.uniform() < M[z[nb_row], z[nb_col]]:
                         csr_data.append(1)
                         csr_i.append(nb_row)
                         csr_j.append(nb_col)

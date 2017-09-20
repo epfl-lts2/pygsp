@@ -15,6 +15,8 @@ class DavidSensorNet(Graph):
         Number of vertices (default = 64). Values of 64 and 500 yield
         pre-computed and saved graphs. Other values yield randomly generated
         graphs.
+    seed : int
+        Seed for the random number generator (for reproducible graphs).
 
     Examples
     --------
@@ -23,7 +25,7 @@ class DavidSensorNet(Graph):
 
     """
 
-    def __init__(self, N=64):
+    def __init__(self, N=64, seed=None):
         if N == 64:
             data = utils.loadmat('pointclouds/david64')
             assert data['N'][0, 0] == N
@@ -37,7 +39,7 @@ class DavidSensorNet(Graph):
             coords = data['coords']
 
         else:
-            coords = np.random.rand(N, 2)
+            coords = np.random.RandomState(seed).rand(N, 2)
 
             target_dist_cutoff = -0.125 * N / 436.075 + 0.2183
             T = 0.6

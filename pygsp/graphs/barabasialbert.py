@@ -28,25 +28,30 @@ class BarabasiAlbert(Graph):
     m : int
         Number of connections at each step (default is 1)
         m can never be larger than m0.
+    seed : int
+        Seed for the random number generator (for reproducible graphs).
 
     Examples
     --------
     >>> G = graphs.BarabasiAlbert()
 
     """
-    def __init__(self, N=1000, m0=1, m=1, **kwargs):
+    def __init__(self, N=1000, m0=1, m=1, seed=None, **kwargs):
         if m > m0:
             raise ValueError('Parameter m cannot be above parameter m0.')
 
         W = sparse.lil_matrix((N, N))
+        rs = np.random.RandomState(seed)
 
         for i in range(m0, N):
             distr = W.sum(axis=1)
             distr += np.concatenate((np.ones((i, 1)), np.zeros((N-i, 1))))
 
-            connections = np.random.choice(N, size=m, replace=False, p=np.ravel(distr/distr.sum()))
+            connections = rs.choice(
+                N, size=m, replace=False, p=np.ravel(distr / distr.sum()))
             for elem in connections:
                 W[elem, i] = 1
                 W[i, elem] = 1
 
-        super(BarabasiAlbert, self).__init__(W=W, gtype=u"Barabasi-Albert", **kwargs)
+        super(BarabasiAlbert, self).__init__(
+            W=W, gtype=u"Barabasi-Albert", **kwargs)

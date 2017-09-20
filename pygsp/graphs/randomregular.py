@@ -22,6 +22,8 @@ class RandomRegular(Graph):
         Number of connections, or degree, of each node (default is 6)
     maxIter : int
         Maximum number of iterations (default is 10)
+    seed : int
+        Seed for the random number generator (for reproducible graphs).
 
     Notes
     -----
@@ -40,10 +42,12 @@ class RandomRegular(Graph):
 
     """
 
-    def __init__(self, N=64, k=6, maxIter=10, **kwargs):
+    def __init__(self, N=64, k=6, maxIter=10, seed=None, **kwargs):
         self.k = k
 
         self.logger = utils.build_logger(__name__, **kwargs)
+
+        rs = np.random.RandomState(seed)
 
         # continue until a proper graph is formed
         if (N * k) % 2 == 1:
@@ -58,7 +62,6 @@ class RandomRegular(Graph):
         edgesTested = 0
         repetition = 1
 
-        # check that there are no loops nor parallel edges
         while np.size(U) and repetition < maxIter:
             edgesTested += 1
 
@@ -68,8 +71,8 @@ class RandomRegular(Graph):
                                   "{}/{}.".format(edgesTested, N*k/2))
 
             # chose at random 2 half edges
-            i1 = np.random.randint(0, np.shape(U)[0])
-            i2 = np.random.randint(0, np.shape(U)[0])
+            i1 = rs.randint(0, np.shape(U)[0])
+            i2 = rs.randint(0, np.shape(U)[0])
             v1 = U[i1]
             v2 = U[i2]
 

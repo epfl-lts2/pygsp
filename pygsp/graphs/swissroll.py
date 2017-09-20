@@ -28,22 +28,25 @@ class SwissRoll(Graph):
     srtype : str
         Swiss roll Type, possible arguments are 'uniform' or 'classic'
         (default = 'uniform')
+    seed : int
+        Seed for the random number generator (for reproducible graphs).
 
     Examples
     --------
     >>> import matplotlib
-    >>> graphs.SwissRoll().plot()
+    >>> graphs.SwissRoll(seed=42).plot()
 
     """
 
     def __init__(self, N=400, a=1, b=4, dim=3, thresh=1e-6, s=None,
-                 noise=False, srtype='uniform'):
+                 noise=False, srtype='uniform', seed=None):
 
         if s is None:
             s = np.sqrt(2. / N)
 
-        y1 = np.random.rand(N)
-        y2 = np.random.rand(N)
+        rs = np.random.RandomState(seed)
+        y1 = rs.rand(N)
+        y2 = rs.rand(N)
 
         if srtype == 'uniform':
             tt = np.sqrt((b * b - a * a) * y1 + a * a)
@@ -57,7 +60,7 @@ class SwissRoll(Graph):
             x = np.array((tt * np.cos(tt), 21 * y2, tt * np.sin(tt)))
 
         if noise:
-            x += np.random.randn(*x.shape)
+            x += rs.randn(*x.shape)
 
         self.x = x
         self.dim = dim

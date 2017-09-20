@@ -31,6 +31,8 @@ class TwoMoons(NNGraph):
     d : float
         Distance of the two moons (default = 0.5)
         Only valid for moontype == 'synthesized'.
+    seed : int
+        Seed for the random number generator (for reproducible graphs).
 
     Examples
     --------
@@ -39,11 +41,12 @@ class TwoMoons(NNGraph):
 
     """
 
-    def _create_arc_moon(self, N, sigmad, d, number):
-        phi = np.random.rand(N, 1) * np.pi
+    def _create_arc_moon(self, N, sigmad, d, number, seed):
+        rs = np.random.RandomState(seed)
+        phi = rs.rand(N, 1) * np.pi
         r = 1
-        rb = sigmad * np.random.normal(size=(N, 1))
-        ab = np.random.rand(N, 1) * 2 * np.pi
+        rb = sigmad * rs.normal(size=(N, 1))
+        ab = rs.rand(N, 1) * 2 * np.pi
         b = rb * np.exp(1j * ab)
         bx = np.real(b)
         by = np.imag(b)
@@ -58,7 +61,7 @@ class TwoMoons(NNGraph):
         return np.concatenate((moonx, moony), axis=1)
 
     def __init__(self, moontype='standard', dim=2, sigmag=0.05,
-                 N=400, sigmad=0.07, d=0.5):
+                 N=400, sigmad=0.07, d=0.5, seed=None):
 
         if moontype == 'standard':
             gtype = 'Two Moons standard'
@@ -72,8 +75,8 @@ class TwoMoons(NNGraph):
             N1 = N // 2
             N2 = N - N1
 
-            coords1 = self._create_arc_moon(N1, sigmad, d, 1)
-            coords2 = self._create_arc_moon(N2, sigmad, d, 2)
+            coords1 = self._create_arc_moon(N1, sigmad, d, 1, seed)
+            coords2 = self._create_arc_moon(N2, sigmad, d, 2, seed)
 
             Xin = np.concatenate((coords1, coords2))
 

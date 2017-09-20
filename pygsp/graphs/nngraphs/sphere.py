@@ -19,29 +19,42 @@ class Sphere(NNGraph):
     sampling : sting
         Variance of the distance kernel (default = 'random')
         (Can now only be 'random')
+    seed : int
+        Seed for the random number generator (for reproducible graphs).
 
     Examples
     --------
     >>> import matplotlib.pyplot as plt
     >>> fig = plt.figure(figsize=(10, 8))
     >>> ax = fig.add_subplot(111, projection='3d')
-    >>> graphs.Sphere().plot(ax=ax)
+    >>> graphs.Sphere(seed=42).plot(ax=ax)
 
     """
 
-    def __init__(self, radius=1, nb_pts=300, nb_dim=3, sampling='random', **kwargs):
+    def __init__(self,
+                 radius=1,
+                 nb_pts=300,
+                 nb_dim=3,
+                 sampling='random',
+                 seed=None,
+                 **kwargs):
+
         self.radius = radius
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
         self.sampling = sampling
 
         if self.sampling == 'random':
-            pts = np.random.normal(0, 1, (self.nb_pts, self.nb_dim))
+
+            rs = np.random.RandomState(seed)
+            pts = rs.normal(0, 1, (self.nb_pts, self.nb_dim))
 
             for i in range(self.nb_pts):
                 pts[i] /= np.linalg.norm(pts[i])
+
         else:
-            raise ValueError('Unknow sampling!')
+
+            raise ValueError('Unknown sampling!')
 
         plotting = {
             'vertex_size': 80,
