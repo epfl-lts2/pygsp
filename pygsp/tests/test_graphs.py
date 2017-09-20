@@ -229,7 +229,10 @@ class TestCase(unittest.TestCase):
         graphs.LowStretchTree()
 
     def test_randomregular(self):
-        graphs.RandomRegular()
+        k = 6
+        G = graphs.RandomRegular(k=k)
+        np.testing.assert_equal(G.W.sum(0), k)
+        np.testing.assert_equal(G.W.sum(1), k)
 
     def test_ring(self):
         graphs.Ring()
