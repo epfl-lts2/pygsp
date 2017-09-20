@@ -242,7 +242,7 @@ class TestCase(unittest.TestCase):
         graphs.Community()
         graphs.Community(comm_density=0.2)
         graphs.Community(k_neigh=5)
-        graphs.Community(world_density=0.8)
+        graphs.Community(N=100, Nc=3, comm_sizes=[20, 50, 30])
 
     def test_minnesota(self):
         graphs.Minnesota()

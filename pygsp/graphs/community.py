@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import collections
 import copy
 
@@ -16,26 +18,34 @@ class Community(Graph):
     Parameters
     ----------
     N : int
-        Number of nodes (default = 256)
+        Number of nodes (default = 256).
     Nc : int (optional)
-        Number of communities (default = :math:`round(\sqrt{N}/2)`)
+        Number of communities (default = :math:`\lfloor \sqrt{N}/2 \rceil`).
     min_comm : int (optional)
-        Minimum size of the communities (default = round(N/Nc/3))
+        Minimum size of the communities
+        (default = :math:`\lfloor N/Nc/3 \rceil`).
     min_deg : int (optional)
-        Minimum degree of each node (default = 0, NOT IMPLEMENTED YET)
+        NOT IMPLEMENTED. Minimum degree of each node (default = 0).
     comm_sizes : int (optional)
-        Size of the communities (default = random)
+        Size of the communities (default = random).
     size_ratio : float (optional)
-        Ratio between the radius of world and the radius of communities (default = 1)
+        Ratio between the radius of world and the radius of communities
+        (default = 1).
     world_density : float (optional)
-        Probability of a random edge between two different communities (default = 1/N)
+        Probability of a random edge between two different communities
+        (default = 1/N).
     comm_density : float (optional)
-        Probability of a random edge inside any community (default = None, not used if None)
+        Probability of a random edge inside any community (default = None,
+        which implies k_neigh or epsilon will be used to determine
+        intra-edges).
     k_neigh : int (optional)
-        Number of intra-community connections (default = None, not used if None or comm_density is defined)
+        Number of intra-community connections.
+        Not used if comm_density is defined (default = None, which implies
+        comm_density or epsilon will be used to determine intra-edges).
     epsilon : float (optional)
-        Max distance at which two nodes sharing a community are connected
-        (default = :math:`sqrt(2\sqrt{N})/2`, not used if k_neigh or comm_density is defined)
+        Largest distance at which two nodes sharing a community are connected.
+        Not used if k_neigh or comm_density is defined
+        (default = :math:`\sqrt{2\sqrt{N}}/2`).
 
     Examples
     --------
@@ -43,33 +53,32 @@ class Community(Graph):
     >>> graphs.Community().plot()
 
     """
-    def __init__(self, N=256, **kwargs):
+    def __init__(self,
+                 N=256,
+                 Nc=None,
+                 min_comm=None,
+                 min_deg=0,
+                 comm_sizes=None,
+                 size_ratio=1,
+                 world_density=None,
+                 comm_density=None,
+                 k_neigh=None,
+                 epsilon=None,
+                 **kwargs):
 
-        # Parameter initialisation #
-        N = int(N)
-        Nc = int(kwargs.pop('Nc', int(round(np.sqrt(N)/2.))))
-        min_comm = int(kwargs.pop('min_comm', int(round(N / (3. * Nc)))))
-        min_deg = int(kwargs.pop('min_deg', 0))
-        comm_sizes = kwargs.pop('comm_sizes', np.array([]))
-        size_ratio = float(kwargs.pop('size_ratio', 1.))
-        world_density = float(kwargs.pop('world_density', 1. / N))
-        world_density = world_density if 0 <= world_density <= 1 else 1. / N
-        comm_density = kwargs.pop('comm_density', None)
-        k_neigh = kwargs.pop('k_neigh', None)
-        epsilon = float(kwargs.pop('epsilon', np.sqrt(2 * np.sqrt(N)) / 2))
+        if Nc is None:
+            Nc = int(round(np.sqrt(N) / 2))
+        if min_comm is None:
+            min_comm = int(round(N / (3 * Nc)))
+        if world_density is None:
+            world_density = 1 / N
+        if not 0 <= world_density <= 1:
+            raise ValueError('World density should be in [0, 1].')
+        if epsilon is None:
+            epsilon = np.sqrt(2 * np.sqrt(N)) / 2
 
         self.logger = utils.build_logger(__name__, **kwargs)
         w_data = [[], [[], []]]
-
-        try:
-            if len(comm_sizes) > 0:
-                if np.sum(comm_sizes) != N:
-                    raise ValueError('The sum of the community sizes has to be equal to N.')
-                if len(comm_sizes) != Nc:
-                    raise ValueError('The length of the community sizes has to be equal to Nc.')
-
-        except TypeError:
-            raise TypeError('comm_sizes expected to be a list or array, got {}'.format(type(comm_sizes)))
 
         if min_comm * Nc > N:
             raise ValueError('The constraint on minimum size for communities is unsolvable.')
@@ -78,11 +87,15 @@ class Community(Graph):
                 'world_density': world_density, 'min_comm': min_comm}
 
         # Communities construction #
-        if comm_sizes.shape[0] == 0:
+        if comm_sizes is None:
             mandatory_labels = np.tile(np.arange(Nc), (min_comm,))  # min_comm labels for each of the Nc communities
             remaining_labels = np.random.choice(Nc, N - min_comm * Nc)  # random choice for the remaining labels
             info['node_com'] = np.sort(np.concatenate((mandatory_labels, remaining_labels)))
         else:
+            if len(comm_sizes) != Nc:
+                raise ValueError('There should be Nc community sizes.')
+            if np.sum(comm_sizes) != N:
+                raise ValueError('The sum of community sizes should be N.')
             # create labels based on the constraint given for the community sizes. No random assignation here.
             info['node_com'] = np.concatenate([[val] * cnt for (val, cnt) in enumerate(comm_sizes)])
 
@@ -91,16 +104,16 @@ class Community(Graph):
         info['world_rad'] = size_ratio * np.sqrt(N)
 
         # Intra-community edges construction #
-        if comm_density:
+        if comm_density is not None:
             # random picking edges following the community density (same for all communities)
             comm_density = float(comm_density)
             comm_density = comm_density if 0. <= comm_density <= 1. else 0.1
             info['comm_density'] = comm_density
             self.logger.info('Constructed using community density = {}'.format(comm_density))
-        elif k_neigh:
+        elif k_neigh is not None:
             # k-NN among the nodes in the same community (same k for all communities)
-            k_neigh = int(k_neigh)
-            k_neigh = k_neigh if k_neigh > 0 else 10
+            if k_neigh < 0:
+                raise ValueError('k_neigh cannot be negative.')
             info['k_neigh'] = k_neigh
             self.logger.info('Constructed using K-NN with k = {}'.format(k_neigh))
         else:
@@ -128,7 +141,7 @@ class Community(Graph):
             com_siz = info['comm_sizes'][i]
             M = com_siz * (com_siz - 1) / 2
 
-            if comm_density:
+            if comm_density is not None:
                 nb_edges = int(comm_density * M)
                 tril_ind = np.tril_indices(com_siz, -1)
                 indices = np.random.permutation(int(M))[:nb_edges]
@@ -137,7 +150,7 @@ class Community(Graph):
                 w_data[1][0] += [first_node + tril_ind[1][elem] for elem in indices]
                 w_data[1][1] += [first_node + tril_ind[0][elem] for elem in indices]
 
-            elif k_neigh:
+            elif k_neigh is not None:
                 comm_coords = coords[first_node:first_node + com_siz]
                 kdtree = spatial.KDTree(comm_coords)
                 __, indices = kdtree.query(comm_coords, k=k_neigh + 1)
