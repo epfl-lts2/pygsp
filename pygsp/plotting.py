@@ -209,7 +209,7 @@ def plot_graph(G, backend=None, **kwargs):
     default = G.plotting['vertex_size']
     kwargs['vertex_size'] = kwargs.pop('vertex_size', default)
 
-    plot_name = '{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
+    plot_name = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
     kwargs['plot_name'] = kwargs.pop('plot_name', plot_name)
 
     if backend is None:
@@ -474,7 +474,7 @@ def plot_signal(G, signal, backend=None, **kwargs):
     default = G.plotting['vertex_size']
     kwargs['vertex_size'] = kwargs.pop('vertex_size', default)
 
-    plot_name = '{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
+    plot_name = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
     kwargs['plot_name'] = kwargs.pop('plot_name', plot_name)
 
     limits = [1.05*signal.min(), 1.05*signal.max()]
