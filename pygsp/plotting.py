@@ -244,7 +244,8 @@ def _plt_plot_graph(G, show_edges, vertex_size, ax):
                         color=G.plotting['edge_color'],
                         linestyle=G.plotting['edge_style'],
                         marker='o', markersize=vertex_size/10,
-                        markerfacecolor=G.plotting['vertex_color'])
+                        markerfacecolor=G.plotting['vertex_color'],
+                        markeredgecolor=G.plotting['vertex_color'])
 
             if G.coords.shape[1] == 3:
                 # TODO: very dirty. Cannot we prepare a set of lines?
@@ -255,7 +256,8 @@ def _plt_plot_graph(G, show_edges, vertex_size, ax):
                             color=G.plotting['edge_color'],
                             linestyle=G.plotting['edge_style'],
                             marker='o', markersize=vertex_size/10,
-                            markerfacecolor=G.plotting['vertex_color'])
+                            markerfacecolor=G.plotting['vertex_color'],
+                            markeredgecolor=G.plotting['vertex_color'])
 
     else:
 
