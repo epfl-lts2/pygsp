@@ -30,7 +30,12 @@ class ErdosRenyi(StochasticBlockModel):
 
     Examples
     --------
-    >>> G = graphs.ErdosRenyi()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.ErdosRenyi(N=64, seed=42)
+    >>> G.set_coordinates(kind='spring', seed=42)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=2)
+    >>> G.plot(ax=axes[1])
 
     """
 

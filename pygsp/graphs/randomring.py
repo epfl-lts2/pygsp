@@ -19,8 +19,13 @@ class RandomRing(Graph):
 
     Examples
     --------
-    >>> import matplotlib
-    >>> graphs.RandomRing().plot()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.RandomRing(N=10, seed=42)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W)
+    >>> G.plot(ax=axes[1])
+    >>> _ = axes[1].set_xlim(-1.1, 1.1)
+    >>> _ = axes[1].set_ylim(-1.1, 1.1)
 
     """
 

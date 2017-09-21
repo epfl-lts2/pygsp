@@ -22,8 +22,14 @@ class Torus(Graph):
 
     Examples
     --------
-    >>> import matplotlib
-    >>> graphs.Torus().plot()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Torus(10)
+    >>> fig = plt.figure()
+    >>> ax1 = fig.add_subplot(121)
+    >>> ax2 = fig.add_subplot(122, projection='3d')
+    >>> _ = ax1.spy(G.W, markersize=1.5)
+    >>> G.plot(ax=ax2)
+    >>> _ = ax2.set_zlim(-1.5, 1.5)
 
     """
 

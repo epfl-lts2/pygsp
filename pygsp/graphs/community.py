@@ -51,8 +51,11 @@ class Community(Graph):
 
     Examples
     --------
-    >>> import matplotlib
-    >>> graphs.Community().plot()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Community(N=250, Nc=3, comm_sizes=[50, 120, 80], seed=42)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=0.5)
+    >>> G.plot(ax=axes[1])
 
     """
     def __init__(self,

@@ -20,8 +20,11 @@ class Comet(Graph):
 
     Examples
     --------
-    >>> import matplotlib
-    >>> graphs.Comet(20, 10).plot()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Comet(15, 10)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W)
+    >>> G.plot(ax=axes[1])
 
     """
 

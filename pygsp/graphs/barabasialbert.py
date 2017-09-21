@@ -33,7 +33,12 @@ class BarabasiAlbert(Graph):
 
     Examples
     --------
-    >>> G = graphs.BarabasiAlbert()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.BarabasiAlbert(N=150, seed=42)
+    >>> G.set_coordinates(kind='spring', seed=42)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=2)
+    >>> G.plot(ax=axes[1])
 
     """
     def __init__(self, N=1000, m0=1, m=1, seed=None, **kwargs):

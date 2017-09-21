@@ -22,9 +22,14 @@ class ImgPatches(NNGraph):
 
     Examples
     --------
+    >>> import matplotlib.pyplot as plt
     >>> from skimage import data, img_as_float
-    >>> img = img_as_float(data.camera()[::2, ::2])
-    >>> G = graphs.ImgPatches(img)
+    >>> img = img_as_float(data.camera()[::64, ::64])
+    >>> G = graphs.ImgPatches(img, use_flann=False)
+    >>> G.set_coordinates(kind='spring', seed=42)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=2)
+    >>> G.plot(ax=axes[1])
 
     """
 

@@ -13,8 +13,10 @@ class Airfoil(Graph):
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> fig, ax = plt.subplots(figsize=(7, 5))
-    >>> graphs.Airfoil().plot(show_edges=True, ax=ax)
+    >>> G = graphs.Airfoil()
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=0.5)
+    >>> G.plot(show_edges=True, ax=axes[1])
 
     """
 

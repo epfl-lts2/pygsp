@@ -36,8 +36,11 @@ class TwoMoons(NNGraph):
 
     Examples
     --------
-    >>> import matplotlib
-    >>> graphs.TwoMoons().plot()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.TwoMoons()
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=0.5)
+    >>> G.plot(show_edges=True, ax=axes[1])
 
     """
 
@@ -86,7 +89,7 @@ class TwoMoons(NNGraph):
         self.labels = np.concatenate((np.zeros(N1), np.ones(N2)))
 
         plotting = {
-            'vertex_size': 5,
+            'vertex_size': 30,
         }
 
         super(TwoMoons, self).__init__(Xin=Xin, sigma=sigmag, k=5,

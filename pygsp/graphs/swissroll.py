@@ -33,8 +33,13 @@ class SwissRoll(Graph):
 
     Examples
     --------
-    >>> import matplotlib
-    >>> graphs.SwissRoll(seed=42).plot()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.SwissRoll(N=200, seed=42)
+    >>> fig = plt.figure()
+    >>> ax1 = fig.add_subplot(121)
+    >>> ax2 = fig.add_subplot(122, projection='3d')
+    >>> _ = ax1.spy(G.W, markersize=1)
+    >>> G.plot(ax=ax2)
 
     """
 

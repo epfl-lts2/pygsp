@@ -48,7 +48,13 @@ class StochasticBlockModel(Graph):
 
     Examples
     --------
-    >>> G = graphs.StochasticBlockModel()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.StochasticBlockModel(
+    ...     100, k=3, p=[0.4, 0.6, 0.3], q=0.02, seed=42)
+    >>> G.set_coordinates(kind='spring', seed=42)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=0.8)
+    >>> G.plot(ax=axes[1])
 
     """
 
@@ -60,6 +66,7 @@ class StochasticBlockModel(Graph):
 
         if z is None:
             z = rs.randint(0, k, N)
+            z.sort()  # Sort for nice spy plot of W, where blocks are apparent.
 
         if M is None:
 

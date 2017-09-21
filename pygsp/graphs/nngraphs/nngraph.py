@@ -63,9 +63,12 @@ class NNGraph(Graph):
 
     Examples
     --------
-    >>> import matplotlib
-    >>> X = np.random.uniform(size=(30, 2))
-    >>> graphs.NNGraph(X).plot()
+    >>> import matplotlib.pyplot as plt
+    >>> X = np.random.RandomState(42).uniform(size=(30, 2))
+    >>> G = graphs.NNGraph(X)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=5)
+    >>> G.plot(ax=axes[1])
 
     """
 

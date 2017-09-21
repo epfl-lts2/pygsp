@@ -25,9 +25,12 @@ class Sphere(NNGraph):
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> fig = plt.figure(figsize=(10, 8))
-    >>> ax = fig.add_subplot(111, projection='3d')
-    >>> graphs.Sphere(seed=42).plot(ax=ax)
+    >>> G = graphs.Sphere(nb_pts=100, seed=42)
+    >>> fig = plt.figure()
+    >>> ax1 = fig.add_subplot(121)
+    >>> ax2 = fig.add_subplot(122, projection='3d')
+    >>> _ = ax1.spy(G.W, markersize=1.5)
+    >>> G.plot(ax=ax2)
 
     """
 

@@ -16,8 +16,11 @@ class Path(Graph):
 
     Examples
     --------
-    >>> import matplotlib
-    >>> graphs.Path().plot()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Path(N=10)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W)
+    >>> G.plot(ax=axes[1])
 
     References
     ----------

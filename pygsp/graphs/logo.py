@@ -11,8 +11,11 @@ class Logo(Graph):
 
     Examples
     --------
-    >>> import matplotlib
-    >>> graphs.Logo().plot()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Logo()
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=0.5)
+    >>> G.plot(ax=axes[1])
 
     """
 

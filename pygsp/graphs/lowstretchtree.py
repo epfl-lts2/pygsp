@@ -20,8 +20,11 @@ class LowStretchTree(Graph):
 
     Examples
     --------
-    >>> import matplotlib
-    >>> graphs.LowStretchTree(k=3).plot()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.LowStretchTree(k=2)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W)
+    >>> G.plot(ax=axes[1])
 
     """
 
