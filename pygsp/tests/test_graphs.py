@@ -256,10 +256,14 @@ class TestCase(unittest.TestCase):
         graphs.Sensor(connected=False)
 
     def test_stochasticblockmodel(self):
-        graphs.StochasticBlockModel(undirected=True)
-        graphs.StochasticBlockModel(undirected=False)
-        graphs.StochasticBlockModel(no_self_loop=True)
-        graphs.StochasticBlockModel(no_self_loop=False)
+        graphs.StochasticBlockModel(directed=True)
+        graphs.StochasticBlockModel(directed=False)
+        graphs.StochasticBlockModel(self_loops=True)
+        graphs.StochasticBlockModel(self_loops=False)
+        graphs.StochasticBlockModel(connected=True)
+        graphs.StochasticBlockModel(connected=False)
+        self.assertRaises(ValueError, graphs.StochasticBlockModel,
+                          p=0, q=0, connected=True)
 
     def test_airfoil(self):
         graphs.Airfoil()
@@ -270,10 +274,12 @@ class TestCase(unittest.TestCase):
         graphs.DavidSensorNet(N=128)
 
     def test_erdosreny(self):
-        graphs.ErdosRenyi(connected=False)
-        graphs.ErdosRenyi(connected=True)
-        graphs.ErdosRenyi(directed=False)
-        # graphs.ErdosRenyi(directed=True)  # TODO: bug in implementation
+        graphs.ErdosRenyi(connected=False, directed=False)
+        graphs.ErdosRenyi(connected=False, directed=True)
+        graphs.ErdosRenyi(connected=True, directed=False)
+        graphs.ErdosRenyi(connected=True, directed=True)
+        G = graphs.ErdosRenyi(N=100, p=1, self_loops=True)
+        self.assertEqual(G.W.nnz, 100**2)
 
     def test_fullconnected(self):
         graphs.FullConnected()
