@@ -46,12 +46,12 @@ class TestCase(unittest.TestCase):
     def test_laplacian(self):
         # TODO: should test correctness.
 
-        G = graphs.StochasticBlockModel(undirected=True)
+        G = graphs.StochasticBlockModel(N=100, directed=False)
         self.assertFalse(G.is_directed())
         G.compute_laplacian(lap_type='combinatorial')
         G.compute_laplacian(lap_type='normalized')
 
-        G = graphs.StochasticBlockModel(undirected=False)
+        G = graphs.StochasticBlockModel(N=100, directed=True)
         self.assertTrue(G.is_directed())
         G.compute_laplacian(lap_type='combinatorial')
         self.assertRaises(NotImplementedError, G.compute_laplacian,
@@ -134,19 +134,19 @@ class TestCase(unittest.TestCase):
         pass
 
     def test_edge_list(self):
-        G = graphs.StochasticBlockModel(undirected=True)
+        G = graphs.StochasticBlockModel(N=100, directed=False)
         v_in, v_out, weights = G.get_edge_list()
         self.assertEqual(G.W[v_in[42], v_out[42]], weights[42])
 
-        G = graphs.StochasticBlockModel(undirected=False)
+        G = graphs.StochasticBlockModel(N=100, directed=True)
         self.assertRaises(NotImplementedError, G.get_edge_list)
 
     def test_differential_operator(self):
-        G = graphs.StochasticBlockModel(undirected=True)
+        G = graphs.StochasticBlockModel(N=100, directed=False)
         L = G.D.T.dot(G.D)
         np.testing.assert_allclose(L.toarray(), G.L.toarray())
 
-        G = graphs.StochasticBlockModel(undirected=False)
+        G = graphs.StochasticBlockModel(N=100, directed=True)
         self.assertRaises(NotImplementedError, G.compute_differential_operator)
 
     def test_difference(self):
@@ -158,7 +158,7 @@ class TestCase(unittest.TestCase):
 
     def test_set_coordinates(self):
         G = graphs.FullConnected()
-        coords = np.random.uniform(size=(G.N, 2))
+        coords = self._rs.uniform(size=(G.N, 2))
         G.set_coordinates(coords)
         G.set_coordinates('ring2D')
         G.set_coordinates('random2D')
@@ -216,7 +216,7 @@ class TestCase(unittest.TestCase):
         graphs.Sphere()
 
     def test_twomoons(self):
-        graphs.TwoMoons()
+        graphs.TwoMoons(moontype='standard')
         graphs.TwoMoons(moontype='synthesized')
 
     def test_torus(self):
@@ -256,14 +256,14 @@ class TestCase(unittest.TestCase):
         graphs.Sensor(connected=False)
 
     def test_stochasticblockmodel(self):
-        graphs.StochasticBlockModel(directed=True)
-        graphs.StochasticBlockModel(directed=False)
-        graphs.StochasticBlockModel(self_loops=True)
-        graphs.StochasticBlockModel(self_loops=False)
-        graphs.StochasticBlockModel(connected=True)
-        graphs.StochasticBlockModel(connected=False)
+        graphs.StochasticBlockModel(N=100, directed=True)
+        graphs.StochasticBlockModel(N=100, directed=False)
+        graphs.StochasticBlockModel(N=100, self_loops=True)
+        graphs.StochasticBlockModel(N=100, self_loops=False)
+        graphs.StochasticBlockModel(N=100, connected=True)
+        graphs.StochasticBlockModel(N=100, connected=False)
         self.assertRaises(ValueError, graphs.StochasticBlockModel,
-                          p=0, q=0, connected=True)
+                          N=100, p=0, q=0, connected=True)
 
     def test_airfoil(self):
         graphs.Airfoil()
@@ -274,10 +274,10 @@ class TestCase(unittest.TestCase):
         graphs.DavidSensorNet(N=128)
 
     def test_erdosreny(self):
-        graphs.ErdosRenyi(connected=False, directed=False)
-        graphs.ErdosRenyi(connected=False, directed=True)
-        graphs.ErdosRenyi(connected=True, directed=False)
-        graphs.ErdosRenyi(connected=True, directed=True)
+        graphs.ErdosRenyi(N=100, connected=False, directed=False)
+        graphs.ErdosRenyi(N=100, connected=False, directed=True)
+        graphs.ErdosRenyi(N=100, connected=True, directed=False)
+        graphs.ErdosRenyi(N=100, connected=True, directed=True)
         G = graphs.ErdosRenyi(N=100, p=1, self_loops=True)
         self.assertEqual(G.W.nnz, 100**2)
 
