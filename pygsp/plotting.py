@@ -75,8 +75,11 @@ def _plt_handle_figure(plot):
             kwargs.update(ax=ax)
 
         save_as = kwargs.pop('save_as', None)
+        plot_name = kwargs.pop('plot_name', '')
 
         plot(obj, *args, **kwargs)
+
+        kwargs['ax'].set_title(plot_name)
 
         try:
             if save_as is not None:
@@ -206,7 +209,8 @@ def plot_graph(G, backend=None, **kwargs):
     default = G.plotting['vertex_size']
     kwargs['vertex_size'] = kwargs.pop('vertex_size', default)
 
-    kwargs['plot_name'] = kwargs.pop('plot_name', G.gtype)
+    plot_name = '{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
+    kwargs['plot_name'] = kwargs.pop('plot_name', plot_name)
 
     if backend is None:
         backend = BACKEND
@@ -222,7 +226,7 @@ def plot_graph(G, backend=None, **kwargs):
 
 
 @_plt_handle_figure
-def _plt_plot_graph(G, show_edges, vertex_size, plot_name, ax):
+def _plt_plot_graph(G, show_edges, vertex_size, ax):
 
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
@@ -330,8 +334,7 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
 
 @_plt_handle_figure
 def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
-                x_size=10, plot_eigenvalues=None, show_sum=None,
-                plot_name=None, ax=None):
+                x_size=10, plot_eigenvalues=None, show_sum=None, ax=None):
     r"""
     Plot the spectral response of a filter bank, a set of graph filters.
 
@@ -471,7 +474,8 @@ def plot_signal(G, signal, backend=None, **kwargs):
     default = G.plotting['vertex_size']
     kwargs['vertex_size'] = kwargs.pop('vertex_size', default)
 
-    kwargs['plot_name'] = kwargs.pop('plot_name', G.gtype)
+    plot_name = '{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
+    kwargs['plot_name'] = kwargs.pop('plot_name', plot_name)
 
     limits = [1.05*signal.min(), 1.05*signal.max()]
     kwargs['limits'] = kwargs.pop('limits', limits)
@@ -490,7 +494,7 @@ def plot_signal(G, signal, backend=None, **kwargs):
 
 
 @_plt_handle_figure
-def _plt_plot_signal(G, signal, show_edges, limits, plot_name, ax,
+def _plt_plot_signal(G, signal, show_edges, limits, ax,
                      vertex_size, colorbar=True):
 
     if show_edges:
