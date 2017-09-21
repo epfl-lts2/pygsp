@@ -47,5 +47,6 @@ class ErdosRenyi(StochasticBlockModel):
                                          self_loops=self_loops,
                                          connected=connected,
                                          max_iter=max_iter,
-                                         seed=seed)
+                                         seed=seed,
+                                         **kwargs)
         self.gtype = u"Erdös Renyi"

@@ -28,7 +28,7 @@ class DavidSensorNet(Graph):
 
     """
 
-    def __init__(self, N=64, seed=None):
+    def __init__(self, N=64, seed=None, **kwargs):
         if N == 64:
             data = utils.loadmat('pointclouds/david64')
             assert data['N'][0, 0] == N
@@ -55,4 +55,5 @@ class DavidSensorNet(Graph):
         plotting = {"limits": [0, 1, 0, 1]}
 
         super(DavidSensorNet, self).__init__(W=W, gtype='davidsensornet',
-                                             coords=coords, plotting=plotting)
+                                             coords=coords, plotting=plotting,
+                                             **kwargs)

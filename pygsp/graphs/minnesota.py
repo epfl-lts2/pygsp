@@ -31,7 +31,7 @@ class Minnesota(Graph):
 
     """
 
-    def __init__(self, connect=True):
+    def __init__(self, connect=True, **kwargs):
 
         data = utils.loadmat('pointclouds/minnesota')
         self.labels = data['labels']
@@ -57,5 +57,5 @@ class Minnesota(Graph):
 
             gtype = 'minnesota-disconnected'
 
-        super(Minnesota, self).__init__(W=A, coords=data['xy'],
-                                        gtype=gtype, plotting=plotting)
+        super(Minnesota, self).__init__(W=A, coords=data['xy'], gtype=gtype,
+                                        plotting=plotting, **kwargs)

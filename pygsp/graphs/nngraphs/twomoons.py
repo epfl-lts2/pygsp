@@ -64,7 +64,7 @@ class TwoMoons(NNGraph):
         return np.concatenate((moonx, moony), axis=1)
 
     def __init__(self, moontype='standard', dim=2, sigmag=0.05,
-                 N=400, sigmad=0.07, d=0.5, seed=None):
+                 N=400, sigmad=0.07, d=0.5, seed=None, **kwargs):
 
         if moontype == 'standard':
             gtype = 'Two Moons standard'
@@ -93,4 +93,5 @@ class TwoMoons(NNGraph):
         }
 
         super(TwoMoons, self).__init__(Xin=Xin, sigma=sigmag, k=5,
-                                       plotting=plotting, gtype=gtype)
+                                       plotting=plotting, gtype=gtype,
+                                       **kwargs)

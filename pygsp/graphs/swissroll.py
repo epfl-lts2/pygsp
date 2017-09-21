@@ -44,7 +44,7 @@ class SwissRoll(Graph):
     """
 
     def __init__(self, N=400, a=1, b=4, dim=3, thresh=1e-6, s=None,
-                 noise=False, srtype='uniform', seed=None):
+                 noise=False, srtype='uniform', seed=None, **kwargs):
 
         if s is None:
             s = np.sqrt(2. / N)
@@ -86,4 +86,5 @@ class SwissRoll(Graph):
         gtype = 'swiss roll {}'.format(srtype)
 
         super(SwissRoll, self).__init__(W=W, coords=coords.T,
-                                        plotting=plotting, gtype=gtype)
+                                        plotting=plotting, gtype=gtype,
+                                        **kwargs)

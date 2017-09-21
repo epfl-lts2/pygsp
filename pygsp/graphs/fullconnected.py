@@ -26,10 +26,10 @@ class FullConnected(Graph):
 
     """
 
-    def __init__(self, N=10):
+    def __init__(self, N=10, **kwargs):
 
         W = np.ones((N, N)) - np.identity(N)
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
         super(FullConnected, self).__init__(W=W, gtype='full',
-                                            plotting=plotting)
+                                            plotting=plotting, **kwargs)
