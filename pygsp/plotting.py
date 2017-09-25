@@ -397,7 +397,6 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
     if show_sum:
         ax.plot(x, np.sum(y**2, 1), 'k', linewidth=line_width)
 
-    ax.set_ylim(-0.1, 1.1)
     ax.set_xlabel("$\lambda$: laplacian's eigenvalues / graph frequencies")
     ax.set_ylabel('$\hat{g}(\lambda)$: filter response')
 
