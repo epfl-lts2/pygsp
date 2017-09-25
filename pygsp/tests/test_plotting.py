@@ -89,5 +89,22 @@ class TestCase(unittest.TestCase):
         os.remove(name + '.png')
         os.remove(name + '.pdf')
 
+    def test_highlight(self):
+
+        def test(G):
+            s = np.arange(G.N)
+            G.plot_signal(s, backend='matplotlib', highlight=0)
+            G.plot_signal(s, backend='matplotlib', highlight=[0])
+            G.plot_signal(s, backend='matplotlib', highlight=[0, 1])
+
+        # Test for 1, 2, and 3D graphs.
+        G = graphs.Ring()
+        test(G)
+        G = graphs.Ring()
+        G.set_coordinates('line1D')
+        test(G)
+        G = graphs.Torus(Nv=5)
+        test(G)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

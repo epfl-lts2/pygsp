@@ -296,11 +296,12 @@ class Filter(object):
 
         >>> import matplotlib
         >>> N = 20
+        >>> DELTA = N//2 * (N+1)
         >>> G = graphs.Grid2d(N)
         >>> G.estimate_lmax()
         >>> g = filters.Heat(G, 100)
-        >>> s = g.localize(N//2 * (N+1))
-        >>> G.plot_signal(s)
+        >>> s = g.localize(DELTA)
+        >>> G.plot_signal(s, highlight=DELTA)
 
         """
         s = np.zeros(self.G.N)

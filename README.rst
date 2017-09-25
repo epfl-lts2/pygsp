@@ -60,10 +60,11 @@ with the above defined filter. Note how the diffusion follows the local
 structure!
 
 >>> import numpy as np
+>>> DELTAS = [20, 30, 1090]
 >>> s = np.zeros(G.N)
->>> s[[20, 30, 1090]] = 1
+>>> s[DELTAS] = 1
 >>> s = g.filter(s)
->>> G.plot_signal(s, backend='matplotlib')
+>>> G.plot_signal(s, highlight=DELTAS, backend='matplotlib')
 
 .. image:: ../pygsp/data/readme_example.png
     :alt:

@@ -419,8 +419,10 @@ def plot_signal(G, signal, backend=None, **kwargs):
         NOT IMPLEMENTED. Camera position when plotting a 3D graph.
     vertex_size : float
         Size of circle representing each node.
-    vertex_highlight : list of boolean
-        NOT IMPLEMENTED. Vector of indices for vertices to be highlighted.
+    highlight : iterable
+        List of indices of vertices to be highlighted.
+        Useful to e.g. show where a filter was localized.
+        Only available with the matplotlib backend.
     colorbar : bool
         Whether to plot a colorbar indicating the signal's amplitude.
         Only available with the matplotlib backend.
@@ -429,8 +431,8 @@ def plot_signal(G, signal, backend=None, **kwargs):
         Defaults to signal minimum and maximum value.
         Only available with the matplotlib backend.
     bar : boolean
-        NOT IMPLEMENTED: False display color, True display bar for the graph
-        (default False).
+        NOT IMPLEMENTED. Signal values are displayed using colors when False,
+        and bars when True (default False).
     bar_width : int
         NOT IMPLEMENTED. Width of the bar (default 1).
     backend: {'matplotlib', 'pyqtgraph'}
@@ -496,7 +498,7 @@ def plot_signal(G, signal, backend=None, **kwargs):
 
 @_plt_handle_figure
 def _plt_plot_signal(G, signal, show_edges, limits, ax,
-                     vertex_size, colorbar=True):
+                     vertex_size, highlight=[], colorbar=True):
 
     if show_edges:
 
@@ -525,19 +527,33 @@ def _plt_plot_signal(G, signal, show_edges, limits, ax,
                             linestyle=G.plotting['edge_style'],
                             zorder=1)
 
+    try:
+        iter(highlight)
+    except TypeError:
+        highlight = [highlight]
+    coords_hl = G.coords[highlight]
+
     if G.coords.ndim == 1:
         ax.plot(G.coords, signal)
         ax.set_ylim(limits)
+        for coord_hl in coords_hl:
+            ax.axvline(x=coord_hl, color='C1', linewidth=2)
 
     elif G.coords.shape[1] == 2:
         sc = ax.scatter(G.coords[:, 0], G.coords[:, 1],
                         s=vertex_size, c=signal, zorder=2,
                         vmin=limits[0], vmax=limits[1])
+        ax.scatter(coords_hl[:, 0], coords_hl[:, 1],
+                   s=2*vertex_size, zorder=3,
+                   marker='o', c='None', edgecolors='C1', linewidths=2)
 
     elif G.coords.shape[1] == 3:
         sc = ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
                         s=vertex_size, c=signal, zorder=2,
                         vmin=limits[0], vmax=limits[1])
+        ax.scatter(coords_hl[:, 0], coords_hl[:, 1], coords_hl[:, 2],
+                   s=2*vertex_size, zorder=3,
+                   marker='o', c='None', edgecolors='C1', linewidths=2)
         try:
             ax.view_init(elev=G.plotting['elevation'],
                          azim=G.plotting['azimuth'])
