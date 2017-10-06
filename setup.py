@@ -36,11 +36,13 @@ setup(
     ],
     extras_require={
         'test': [
+            'pyunlocbox',
             'flake8',
             'coverage',
             'coveralls',
         ],
         'doc': [
+            'pyunlocbox',
             'sphinx',
             'numpydoc',
             'sphinxcontrib-bibtex',
