@@ -718,57 +718,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             assert self.Ne == v_in.size == v_out.size == weights.size
             return v_in, v_out, weights
 
-    def sanitize_signal(self, s):
-        r"""Standardize signal shape.
-
-        Add singleton dimensions at the end and check the resulting shape.
-
-        Parameters
-        ----------
-        s : ndarray
-            Signal tensor of shape ``(N_NODES)``, ``(N_NODES, N_SIGNALS)``, or
-            ``(N_NODES, N_SIGNALS, N_FEATURES)``.
-
-        Returns
-        -------
-        s : ndarray
-            Signal tensor of shape ``(N_NODES, N_SIGNALS, N_FEATURES)``.
-
-        Raises
-        ------
-        ValueError
-            If the passed signal tensor is more than 3 dimensions or if the
-            first dimension's size is not the number of nodes.
-
-        Examples
-        --------
-        >>> G = graphs.Logo()
-        >>> s = np.ones(G.N)  # One signal, one feature.
-        >>> G.sanitize_signal(s).shape
-        (1130, 1, 1)
-        >>> s = np.ones((G.N, 10))  # Ten signals of one feature.
-        >>> G.sanitize_signal(s).shape
-        (1130, 10, 1)
-        >>> s = np.ones((G.N, 10, 5))  # Ten signals of 5 features.
-        >>> G.sanitize_signal(s).shape
-        (1130, 10, 5)
-
-        """
-        if s.ndim == 1:
-            # Single signal, single feature.
-            s = np.expand_dims(s, axis=1)
-
-        if s.ndim == 2:
-            # Multiple signals, single feature.
-            s = np.expand_dims(s, axis=2)
-
-        if s.ndim != 3 or s.shape[0] != self.N:
-            raise ValueError('Signal must have shape N_NODES x N_SIGNALS x '
-                             'N_FEATURES, not {}. Last singleton dimensions '
-                             'may be omitted.'.format(s.shape))
-
-        return s
-
     def modulate(self, f, k):
         r"""Modulate the signal *f* to the frequency *k*.
 

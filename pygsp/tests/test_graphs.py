@@ -171,23 +171,6 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('community2D')
         self.assertRaises(ValueError, G.set_coordinates, 'invalid')
 
-    def test_sanitize_signal(self):
-        s1 = np.arange(self._G.N)
-        s2 = np.reshape(s1, (self._G.N, 1))
-        s3 = np.reshape(s1, (self._G.N, 1, 1))
-        s4 = np.arange(self._G.N*10).reshape((self._G.N, 10))
-        s5 = np.reshape(s4, (self._G.N, 10, 1))
-        s1 = self._G.sanitize_signal(s1)
-        s2 = self._G.sanitize_signal(s2)
-        s3 = self._G.sanitize_signal(s3)
-        s4 = self._G.sanitize_signal(s4)
-        s5 = self._G.sanitize_signal(s5)
-        np.testing.assert_equal(s2, s1)
-        np.testing.assert_equal(s3, s1)
-        np.testing.assert_equal(s5, s4)
-        self.assertRaises(ValueError, self._G.sanitize_signal,
-                          np.ones((2, 2, 2, 2)))
-
     def test_nngraph(self):
         Xin = np.arange(90).reshape(30, 3)
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
