@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name='PyGSP',
-    version='0.4.2',
+    version='0.5.0',
     description='Graph Signal Processing in Python',
     long_description=open('README.rst').read(),
     author='EPFL LTS2',

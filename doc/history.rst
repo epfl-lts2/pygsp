@@ -2,7 +2,7 @@
 History
 =======
 
-x.x.x (xxxx-xx-xx)
+0.5.0 (2017-10-06)
 ------------------
 
 * Generalized the analysis and synthesis methods into the filter method.

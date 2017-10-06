@@ -30,5 +30,5 @@ __all__ = [
 
 _utils.import_modules(__all__[::-1], 'pygsp', 'pygsp')
 
-__version__ = '0.4.2'
-__release_date__ = '2017-04-27'
+__version__ = '0.5.0'
+__release_date__ = '2017-10-06'
