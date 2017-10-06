@@ -17,7 +17,7 @@ This tutorial focuses on the problem of recovering a label signal on a graph fro
     >>> plotting.BACKEND = 'matplotlib'
     >>>
     >>> # Create a random sensor graph
-    >>> G = graphs.Sensor(N=256, distribute=True)
+    >>> G = graphs.Sensor(N=256, distribute=True, seed=42)
     >>> G.compute_fourier_basis()
     >>>
     >>> # Create label signal
@@ -30,13 +30,15 @@ The first figure shows a plot of the original label signal, that we wish to reco
 .. plot::
     :context: close-figs
 
+    >>> rs = np.random.RandomState(42)
+    >>>
     >>> # Create the mask
-    >>> M = np.random.rand(G.N)
+    >>> M = rs.rand(G.N)
     >>> M = (M > 0.6).astype(float)  # Probability of having no label on a vertex.
     >>>
     >>> # Applying the mask to the data
     >>> sigma = 0.1
-    >>> subsampled_noisy_label_signal = M * (label_signal + sigma * np.random.standard_normal(G.N))
+    >>> subsampled_noisy_label_signal = M * (label_signal + sigma * rs.standard_normal(G.N))
     >>>
     >>> G.plot_signal(subsampled_noisy_label_signal)
 
@@ -66,20 +68,22 @@ We start with the graph TV regularization. We will use the :meth:`pyunlocbox.sol
     >>> import pyunlocbox
     >>>
     >>> # Set the functions in the problem
+    >>> gamma = 3.0
     >>> d = pyunlocbox.functions.dummy()
     >>> r = pyunlocbox.functions.norm_l1()
     >>> f = pyunlocbox.functions.norm_l2(w=M, y=subsampled_noisy_label_signal,
-    ...                                  lambda_=3.0)
+    ...                                  lambda_=gamma)
     >>>
     >>> # Define the solver
+    >>> G.compute_differential_operator()
     >>> L = G.D.toarray()
-    >>> step = 0.5 / (1 + np.linalg.norm(L))
+    >>> step = 0.999 / (1 + np.linalg.norm(L))
     >>> solver = pyunlocbox.solvers.mlfbf(L=L, step=step)
     >>>
     >>> # Solve the problem
     >>> x0 = subsampled_noisy_label_signal.copy()
     >>> prob1 = pyunlocbox.solvers.solve([d, r, f], solver=solver,
-    ...                                  x0=x0, atol=1e-7, rtol=0, maxit=200,
+    ...                                  x0=x0, rtol=0, maxit=1000,
     ...                                  verbosity='LOW')
     >>>
     >>> G.plot_signal(prob1['sol'])
@@ -93,13 +97,13 @@ This figure shows the label signal recovered by graph total variation regulariza
     >>> r = pyunlocbox.functions.norm_l2(A=L, tight=False)
     >>>
     >>> # Define the solver
-    >>> step = 0.5 / np.linalg.norm(np.dot(L.T, L) + 3.0 * np.diag(M), 2)
+    >>> step = 0.999 / np.linalg.norm(np.dot(L.T, L) + gamma * np.diag(M), 2)
     >>> solver = pyunlocbox.solvers.gradient_descent(step=step)
     >>>
     >>> # Solve the problem
     >>> x0 = subsampled_noisy_label_signal.copy()
     >>> prob2 = pyunlocbox.solvers.solve([r, f], solver=solver,
-    ...                                  x0=x0, atol=1e-7, rtol=0, maxit=200,
+    ...                                  x0=x0, rtol=0, maxit=1000,
     ...                                  verbosity='LOW')
     >>>
     >>> G.plot_signal(prob2['sol'])
