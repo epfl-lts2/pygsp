@@ -3,7 +3,7 @@ PyGSP: Graph Signal Processing in Python
 ========================================
 
 .. image:: https://readthedocs.org/projects/pygsp/badge/?version=latest
-   :target: https://pygsp.readthedocs.io/en/latest/
+   :target: https://pygsp.readthedocs.io
 
 .. image:: https://img.shields.io/pypi/v/pygsp.svg
    :target: https://pypi.python.org/pypi/PyGSP
