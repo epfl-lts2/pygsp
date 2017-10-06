@@ -12,6 +12,11 @@ extensions.append('sphinx.ext.autodoc')
 autodoc_default_flags = ['members', 'undoc-members']
 autodoc_member_order = 'groupwise'  # alphabetical, groupwise, bysource
 
+extensions.append('sphinx.ext.intersphinx')
+intersphinx_mapping = {
+    'pyunlocbox': ('https://pyunlocbox.readthedocs.io/en/stable', None)
+}
+
 extensions.append('numpydoc')
 numpydoc_show_class_members = False
 numpydoc_use_plots = True  # Add the plot directive whenever mpl is imported.
