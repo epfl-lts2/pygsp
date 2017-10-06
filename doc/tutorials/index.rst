@@ -10,5 +10,5 @@ how to use it to solve some problems.
 
     intro
     wavelet
-    graph_tv
     pyramid
+    opt_prob_graph_tv
