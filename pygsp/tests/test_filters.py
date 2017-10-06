@@ -18,8 +18,8 @@ class TestCase(unittest.TestCase):
     def setUpClass(cls):
         cls._G = graphs.Logo()
         cls._G.compute_fourier_basis()
-        rs = np.random.RandomState(42)
-        cls._signal = rs.uniform(size=cls._G.N)
+        cls._rs = np.random.RandomState(42)
+        cls._signal = cls._rs.uniform(size=cls._G.N)
 
     @classmethod
     def tearDownClass(cls):
@@ -59,8 +59,8 @@ class TestCase(unittest.TestCase):
 
         if tight:
             # Tight frames should not loose information.
-            np.testing.assert_allclose(s4.squeeze(), A * self._signal)
-            assert np.linalg.norm(s5.squeeze() - A * self._signal) < 0.1
+            np.testing.assert_allclose(s4, A * self._signal)
+            assert np.linalg.norm(s5 - A * self._signal) < 0.1
 
         self.assertRaises(ValueError, f.filter, s2, method='lanczos')
 
@@ -69,15 +69,44 @@ class TestCase(unittest.TestCase):
             # Though it is memory intensive.
             F = f.compute_frame(method='exact')
             F = F.reshape(self._G.N, -1)
-            s = F.T.dot(self._signal).reshape(self._G.N, 1, -1)
+            s = F.T.dot(self._signal).reshape(self._G.N, -1).squeeze()
             np.testing.assert_allclose(s, s2)
 
             F = f.compute_frame(method='chebyshev', order=100)
             F = F.reshape(self._G.N, -1)
-            s = F.T.dot(self._signal).reshape(self._G.N, 1, -1)
+            s = F.T.dot(self._signal).reshape(self._G.N, -1).squeeze()
             np.testing.assert_allclose(s, s3)
 
         # TODO: f.can_dual()
+
+    def test_filter(self):
+        Nf = 5
+        g = filters.MexicanHat(self._G, Nf=Nf)
+
+        s1 = self._rs.uniform(size=self._G.N)
+        s2 = s1.reshape((self._G.N, 1))
+        s3 = g.filter(s1)
+        s4 = g.filter(s2)
+        assert s3.shape == (self._G.N, Nf)
+        np.testing.assert_allclose(s3, s4)
+
+        s1 = self._rs.uniform(size=(self._G.N, 4))
+        s2 = s1.reshape((self._G.N, 4, 1))
+        s3 = g.filter(s1)
+        s4 = g.filter(s2)
+        assert s3.shape == (self._G.N, 4, Nf)
+        np.testing.assert_allclose(s3, s4)
+
+        s1 = self._rs.uniform(size=(self._G.N, Nf))
+        s2 = s1.reshape((self._G.N, 1, Nf))
+        s3 = g.filter(s1)
+        s4 = g.filter(s2)
+        assert s3.shape == (self._G.N,)
+        np.testing.assert_allclose(s3, s4)
+
+        s1 = self._rs.uniform(size=(self._G.N, 10, Nf))
+        s3 = g.filter(s1)
+        assert s3.shape == (self._G.N, 10)
 
     def test_localize(self):
         G = graphs.Grid2d(20)
@@ -91,11 +120,11 @@ class TestCase(unittest.TestCase):
         # Should be equal to a row / column of the filtering operator.
         gL = G.U.dot(np.diag(g.evaluate(G.e)[0]).dot(G.U.T))
         s2 = np.sqrt(G.N) * gL[NODE, :]
-        np.testing.assert_allclose(s1.squeeze(), s2)
+        np.testing.assert_allclose(s1, s2)
 
         # That is actually a row / column of the analysis operator.
         F = g.compute_frame(method='exact')
-        np.testing.assert_allclose(F.squeeze(), gL)
+        np.testing.assert_allclose(F, gL)
 
     def test_custom_filter(self):
         def kernel(x):

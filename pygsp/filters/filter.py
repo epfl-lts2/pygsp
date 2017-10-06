@@ -189,17 +189,17 @@ class Filter(object):
         >>> s1[13] = 1
         >>> s1 = filters.Heat(G, 3).filter(s1)
         >>> s1.shape
-        (30, 1, 1)
+        (30,)
 
         Filter and reconstruct our signal:
 
         >>> g = filters.MexicanHat(G, Nf=4)
         >>> s2 = g.filter(s1)
         >>> s2.shape
-        (30, 1, 4)
+        (30, 4)
         >>> s2 = g.filter(s2)
         >>> s2.shape
-        (30, 1, 1)
+        (30,)
 
         Look how well we were able to reconstruct:
 
@@ -218,23 +218,39 @@ class Filter(object):
         True
 
         """
-        s = self.G.sanitize_signal(s)
-        N_NODES, N_SIGNALS, N_FEATURES_IN = s.shape
+        if s.shape[0] != self.G.N:
+            raise ValueError('First dimension should be the number of nodes '
+                             'G.N = {}, got {}.'.format(self.G.N, s.shape))
+
+        # TODO: not in self.Nin (Nf = Nin x Nout).
+        if s.ndim == 1 or s.shape[-1] not in [1, self.Nf]:
+            if s.ndim == 3:
+                raise ValueError('Third dimension (#features) should be '
+                                 'either 1 or the number of filters Nf = {}, '
+                                 'got {}.'.format(self.Nf, s.shape))
+            s = np.expand_dims(s, -1)
+        n_features_in = s.shape[-1]
+
+        if s.ndim < 3:
+            s = np.expand_dims(s, 1)
+        n_signals = s.shape[1]
+
+        if s.ndim > 3:
+            raise ValueError('At most 3 dimensions: '
+                             '#nodes x #signals x #features.')
+        assert s.ndim == 3
 
         # TODO: generalize to 2D (m --> n) filter banks.
         # Only 1 --> Nf (analysis) and Nf --> 1 (synthesis) for now.
-        if N_FEATURES_IN not in [1, self.Nf]:
-            raise ValueError('Last dimension (N_FEATURES) should either be '
-                             '1 or the number of filters (Nf), '
-                             'not {}.'.format(s.shape))
-        N_FEATURES_OUT = self.Nf if N_FEATURES_IN == 1 else 1
+        n_features_out = self.Nf if n_features_in == 1 else 1
 
         if method == 'exact':
 
-            axis = 1 if N_FEATURES_IN == 1 else 2
+            # TODO: will be handled by g.adjoint().
+            axis = 1 if n_features_in == 1 else 2
             f = self.evaluate(self.G.e)
             f = np.expand_dims(f.T, axis)
-            assert f.shape == (N_NODES, N_FEATURES_IN, N_FEATURES_OUT)
+            assert f.shape == (self.G.N, n_features_in, n_features_out)
 
             s = self.G.gft(s)
             s = np.matmul(s, f)
@@ -245,27 +261,29 @@ class Filter(object):
             # TODO: update Chebyshev implementation (after 2D filter banks).
             c = approximations.compute_cheby_coeff(self, m=order)
 
-            if N_FEATURES_IN == 1:  # Analysis.
+            if n_features_in == 1:  # Analysis.
                 s = s.squeeze(axis=2)
                 s = approximations.cheby_op(self.G, c, s)
-                s = s.reshape((N_NODES, N_FEATURES_OUT, N_SIGNALS), order='F')
+                s = s.reshape((self.G.N, n_features_out, n_signals), order='F')
                 s = s.swapaxes(1, 2)
 
-            elif N_FEATURES_IN == self.Nf:  # Synthesis.
+            elif n_features_in == self.Nf:  # Synthesis.
                 s = s.swapaxes(1, 2)
-                s_in = s.reshape((N_NODES*N_FEATURES_IN, N_SIGNALS), order='F')
-                s = np.zeros((N_NODES, N_SIGNALS))
-                tmpN = np.arange(N_NODES, dtype=int)
-                for i in range(N_FEATURES_IN):
+                s_in = s.reshape(
+                    (self.G.N * n_features_in, n_signals), order='F')
+                s = np.zeros((self.G.N, n_signals))
+                tmpN = np.arange(self.G.N, dtype=int)
+                for i in range(n_features_in):
                     s += approximations.cheby_op(self.G,
                                                  c[i],
-                                                 s_in[i * N_NODES + tmpN])
+                                                 s_in[i * self.G.N + tmpN])
                 s = np.expand_dims(s, 2)
 
         else:
             raise ValueError('Unknown method {}.'.format(method))
 
-        return s
+        # Return a 1D signal if e.g. a 1D signal was filtered by one filter.
+        return s.squeeze()
 
     def localize(self, i, **kwargs):
         r"""Localize the kernels at a node (to visualize them).
@@ -428,7 +446,7 @@ class Filter(object):
         (1000, 1000, 6)
         >>> frame = frame.reshape(G.N, -1).T
         >>> s1 = np.dot(frame, s)
-        >>> s1 = s1.reshape(G.N, 1, -1)
+        >>> s1 = s1.reshape(G.N, -1)
         >>>
         >>> s2 = f.filter(s)
         >>> np.all((s1 - s2) < 1e-10)

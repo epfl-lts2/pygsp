@@ -29,6 +29,8 @@ logger = utils.build_logger(__name__)
 def _analysis(g, s, **kwargs):
     # TODO: that is the legacy analysis method.
     s = g.filter(s, **kwargs)
+    while s.ndim < 3:
+        s = np.expand_dims(s, 1)
     return s.swapaxes(1, 2).reshape(-1, s.shape[1], order='F')
 
 
