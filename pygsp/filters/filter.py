@@ -194,10 +194,10 @@ class Filter(object):
         Filter and reconstruct our signal:
 
         >>> g = filters.MexicanHat(G, Nf=4)
-        >>> s2 = g.filter(s1)
+        >>> s2 = g.analyze(s1)
         >>> s2.shape
         (30, 4)
-        >>> s2 = g.filter(s2)
+        >>> s2 = g.synthesize(s2)
         >>> s2.shape
         (30,)
 
@@ -212,8 +212,8 @@ class Filter(object):
         Perfect reconstruction with Itersine, a tight frame:
 
         >>> g = filters.Itersine(G)
-        >>> s2 = g.filter(s1, method='exact')
-        >>> s2 = g.filter(s2, method='exact')
+        >>> s2 = g.analyze(s1, method='exact')
+        >>> s2 = g.synthesize(s2, method='exact')
         >>> np.linalg.norm(s1 - s2) < 1e-10
         True
 
@@ -284,6 +284,24 @@ class Filter(object):
 
         # Return a 1D signal if e.g. a 1D signal was filtered by one filter.
         return s.squeeze()
+
+    def analyze(self, s, method='chebyshev', order=30):
+        r"""Convenience alias to :meth:`filter`."""
+        if s.ndim == 3 and s.shape[-1] != 1:
+            raise ValueError('Last dimension (#features) should be '
+                             '1, got {}.'.format(s.shape))
+        return self.filter(s, method, order)
+
+    def synthesize(self, s, method='chebyshev', order=30):
+        r"""Convenience wrapper around :meth:`filter`.
+
+        Will be an alias to `adjoint().filter()` in the future.
+        """
+        if s.shape[-1] != self.Nf:
+            raise ValueError('Last dimension (#features) should be the number '
+                             'of filters Nf = {}, got {}.'.format(self.Nf,
+                                                                  s.shape))
+        return self.filter(s, method, order)
 
     def localize(self, i, **kwargs):
         r"""Localize the kernels at a node (to visualize them).
