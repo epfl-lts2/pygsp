@@ -83,8 +83,7 @@ We start with the graph TV regularization. We will use the :class:`pyunlocbox.so
     >>> # Solve the problem
     >>> x0 = subsampled_noisy_label_signal.copy()
     >>> prob1 = pyunlocbox.solvers.solve([d, r, f], solver=solver,
-    ...                                  x0=x0, rtol=0, maxit=1000,
-    ...                                  verbosity='LOW')
+    ...                                  x0=x0, rtol=0, maxit=1000)
     Solution found after 1000 iterations:
         objective function f(sol) = 2.024594e+02
         stopping criterion: MAXIT
@@ -106,8 +105,7 @@ This figure shows the label signal recovered by graph total variation regulariza
     >>> # Solve the problem
     >>> x0 = subsampled_noisy_label_signal.copy()
     >>> prob2 = pyunlocbox.solvers.solve([r, f], solver=solver,
-    ...                                  x0=x0, rtol=0, maxit=1000,
-    ...                                  verbosity='LOW')
+    ...                                  x0=x0, rtol=0, maxit=1000)
     Solution found after 1000 iterations:
         objective function f(sol) = 9.555135e+01
         stopping criterion: MAXIT
