@@ -152,7 +152,7 @@ which assign a set of values (a vector in :math:`\mathbb{R}^d`) at every node
     >>> fig, axes = plt.subplots(1, 2, figsize=(10, 3))
     >>> for i, ax in enumerate(axes):
     ...     G.plot_signal(G.U[:, i+1], vertex_size=30, ax=ax)
-    ...     ax.set_title('Eigenvector {}'.format(i+2))  #doctest:+SKIP
+    ...     _ = ax.set_title('Eigenvector {}'.format(i+2))
     ...     ax.set_axis_off()
     >>> fig.tight_layout()
 
@@ -194,7 +194,7 @@ let's define and plot that low-pass filter:
     >>>
     >>> fig, ax = plt.subplots()
     >>> g.plot(plot_eigenvalues=True, ax=ax)
-    >>> ax.set_title('Filter frequency response')  #doctest:+SKIP
+    >>> _ = ax.set_title('Filter frequency response')
 
 The filter is plotted along all the spectrum of the graph. The black crosses
 are the eigenvalues of the Laplacian. They are the points where the continuous
@@ -230,10 +230,10 @@ low-pass filter.
     >>>
     >>> fig, axes = plt.subplots(1, 2, figsize=(10, 3))
     >>> G.plot_signal(s, vertex_size=30, ax=axes[0])
-    >>> axes[0].set_title('Noisy signal')  #doctest:+SKIP
+    >>> _ = axes[0].set_title('Noisy signal')
     >>> axes[0].set_axis_off()
     >>> G.plot_signal(s2, vertex_size=30, ax=axes[1])
-    >>> axes[1].set_title('Cleaned signal')  #doctest:+SKIP
+    >>> _ = axes[1].set_title('Cleaned signal')
     >>> axes[1].set_axis_off()
     >>> fig.tight_layout()
 

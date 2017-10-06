@@ -76,11 +76,11 @@ scales.
     >>> fig = plt.figure(figsize=(10, 3))
     >>> for i in range(g.Nf):
     ...     ax = fig.add_subplot(1, g.Nf, i+1, projection='3d')
-    ...     G.plot_signal(s[:, 0, i], colorbar=False, ax=ax)
+    ...     G.plot_signal(s[:, i], colorbar=False, ax=ax)
     ...     title = r'Heat diffusion, $\tau={}$'.format(taus[i])
-    ...     ax.set_title(title)  #doctest:+SKIP
+    ...     _ = ax.set_title(title)
     ...     ax.set_axis_off()
-    >>> fig.tight_layout()  # doctest:+SKIP
+    >>> fig.tight_layout()
 
 .. note::
     The :meth:`pygsp.filters.Filter.localize` method can be used to visualize a
@@ -108,7 +108,7 @@ Then plot the frequency response of those filters.
 
     >>> fig, ax = plt.subplots(figsize=(10, 5))
     >>> g.plot(ax=ax)
-    >>> ax.set_title('Filter bank of mexican hat wavelets')  # doctest:+SKIP
+    >>> _ = ax.set_title('Filter bank of mexican hat wavelets')
 
 .. note::
     We can see that the wavelet atoms are stacked on the low frequency part of
@@ -127,10 +127,10 @@ a Kronecker delta placed at one specific vertex.
     >>> fig = plt.figure(figsize=(10, 2.5))
     >>> for i in range(3):
     ...     ax = fig.add_subplot(1, 3, i+1, projection='3d')
-    ...     G.plot_signal(s[:, 0, i], ax=ax)
-    ...     ax.set_title('Wavelet {}'.format(i+1))  #doctest:+SKIP
+    ...     G.plot_signal(s[:, i], ax=ax)
+    ...     _ = ax.set_title('Wavelet {}'.format(i+1))
     ...     ax.set_axis_off()
-    >>> fig.tight_layout()  # doctest:+SKIP
+    >>> fig.tight_layout()
 
 Curvature estimation
 --------------------
@@ -170,6 +170,6 @@ curvature at different scales.
     ...     ax = fig.add_subplot(2, 2, i+1, projection='3d')
     ...     G.plot_signal(s[:, i], ax=ax)
     ...     title = 'Curvature estimation (scale {})'.format(i+1)
-    ...     ax.set_title(title)  # doctest:+SKIP
+    ...     _ = ax.set_title(title)
     ...     ax.set_axis_off()
-    >>> fig.tight_layout()  # doctest:+SKIP
+    >>> fig.tight_layout()
