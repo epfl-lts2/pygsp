@@ -8,6 +8,9 @@ PyGSP: Graph Signal Processing in Python
 .. image:: https://img.shields.io/pypi/v/pygsp.svg
    :target: https://pypi.python.org/pypi/PyGSP
 
+.. image:: https://zenodo.org/badge/16276560.svg
+   :target: https://doi.org/10.5281/zenodo.1003157
+
 .. image:: https://img.shields.io/pypi/l/pygsp.svg
    :target: https://github.com/epfl-lts2/pygsp/blob/master/LICENSE.txt
 
@@ -100,3 +103,7 @@ The PyGSP was started in 2014 as an academic open-source project for
 research purpose at the `EPFL LTS2 laboratory <https://lts2.epfl.ch>`_.
 This project has been partly funded by the Swiss National Science Foundation
 under grant 200021_154350 "Towards Signal Processing on Graphs".
+
+If you are using the library for your research, for the sake of
+reproducibility, please cite the version you used as indexed by
+`Zenodo <https://doi.org/10.5281/zenodo.1003157>`_.
