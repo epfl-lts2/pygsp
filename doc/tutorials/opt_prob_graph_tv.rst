@@ -44,7 +44,7 @@ The first figure shows a plot of the original label signal, that we wish to reco
 
 This figure shows the label signal on the graph after the application of the subsampling mask and the addition of noise. The label of more than half of the vertices has been set to :math:`0`.
 
-Since the problem is ill-posed, we will use some regularization to reach a solution that is more in tune with what we expect a label signal to look like. We will compare two approaches, but they are both based on measuring local differences on the label signal. Those differences are essentially an edge signal: to each edge we can associate the difference between the label signals of its associated nodes. The linear operator that does such a mapping is called the graph gradient :math:`\nabla_G`, and, fortunately for us, it is available under the :meth:`D` (for differential) attribute of any graph constructed within the :meth:`pygsp`.
+Since the problem is ill-posed, we will use some regularization to reach a solution that is more in tune with what we expect a label signal to look like. We will compare two approaches, but they are both based on measuring local differences on the label signal. Those differences are essentially an edge signal: to each edge we can associate the difference between the label signals of its associated nodes. The linear operator that does such a mapping is called the graph gradient :math:`\nabla_G`, and, fortunately for us, it is available under the :attr:`pygsp.graphs.Graph.D` (for differential) attribute of any :mod:`pygsp.graphs` graph.
 
 The reason for measuring local differences comes from prior knowledge: we assume label signals don't vary too much locally. The precise measure of such variation is what distinguishes the two regularization approaches we'll use.
 
@@ -58,9 +58,9 @@ The second approach, called graph Tikhonov regularization, is to use a smooth (d
 Results and code
 ----------------
 
-For solving the optimization problems we've assembled, you will need a numerical solver package. This part is implemented in this tutorial with the `pyunlocbox <https://github.com/epfl-lts2/pyunlocbox>`_, which is based on proximal splitting algorithms. Check also the :meth:`pyunlocbox` `documentation <https://pyunlocbox.readthedocs.io/en/latest/>`_ for more information about the parameters used here.
+For solving the optimization problems we've assembled, you will need a numerical solver package. This part is implemented in this tutorial with the `pyunlocbox <https://github.com/epfl-lts2/pyunlocbox>`_, which is based on proximal splitting algorithms. Check also its `documentation <https://pyunlocbox.readthedocs.io>`_ for more information about the parameters used here.
 
-We start with the graph TV regularization. We will use the :meth:`pyunlocbox.solvers.mlfbf` solver from :meth:`pyunlocbox`. It is a primal-dual solver, which means for our problem that the regularization term will be written in terms of the dual variable :math:`u = \nabla_G x`, and the graph gradient :math:`\nabla_G` will be passed to the solver as the primal-dual map. The value of :math:`3.0` for the regularization parameter :math:`\gamma` was chosen on the basis of the visual appeal of the returned solution.
+We start with the graph TV regularization. We will use the :class:`pyunlocbox.solvers.mlfbf` solver from :mod:`pyunlocbox`. It is a primal-dual solver, which means for our problem that the regularization term will be written in terms of the dual variable :math:`u = \nabla_G x`, and the graph gradient :math:`\nabla_G` will be passed to the solver as the primal-dual map. The value of :math:`3.0` for the regularization parameter :math:`\gamma` was chosen on the basis of the visual appeal of the returned solution.
 
 .. plot::
     :context: close-figs
