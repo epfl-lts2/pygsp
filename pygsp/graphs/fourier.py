@@ -148,7 +148,9 @@ class GraphFourier(object):
         True
 
         """
-        s = self.sanitize_signal(s)
+        if s.shape[0] != self.N:
+            raise ValueError('First dimension should be the number of nodes '
+                             'G.N = {}, got {}.'.format(self.N, s.shape))
         U = np.conjugate(self.U)  # True Hermitian. (Although U is often real.)
         return np.tensordot(U, s, ([0], [0]))
 
@@ -183,7 +185,9 @@ class GraphFourier(object):
         True
 
         """
-        s_hat = self.sanitize_signal(s_hat)
+        if s_hat.shape[0] != self.N:
+            raise ValueError('First dimension should be the number of nodes '
+                             'G.N = {}, got {}.'.format(self.N, s_hat.shape))
         return np.tensordot(self.U, s_hat, ([1], [0]))
 
     def translate(self, f, i):
