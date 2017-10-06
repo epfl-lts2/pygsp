@@ -22,10 +22,10 @@ x.x.x (xxxx-xx-xx)
 * data_handling module merged into utils.
 * Fourier basis computed with eigh instead of svd (faster).
 * estimate_lmax uses Lanczos instead of Arnoldi (symmetric sparse).
-* Add a seed parameter to various graphs and filters.
+* Add a seed parameter to all non-deterministic graphs and filters.
 * Filter.Nf indicates the number of filters in the filter bank.
 * Don't check connectedness on graph creation (can take a lot of time).
-* Show plots by default with matplotlib backend.
+* Erdos-Renyi now implemented as SBM with 1 block.
 * Many bug fixes (e.g. Minnesota graph, Meyer filter bank, Heat filter, Mexican
   hat filter bank, Gabor filter bank).
 * All GitHub issues fixed.
@@ -33,6 +33,7 @@ x.x.x (xxxx-xx-xx)
 Plotting:
 
 * Much better handling of plotting parameters.
+* With matplotlib backend, plots are shown by default .
 * Allows to set a default plotting backend as plotting.BACKEND = 'pyqtgraph'.
 * qtg_default=False becomes backend='matplotlib'
 * Added coordinates for path, ring, and randomring graphs.
@@ -41,6 +42,8 @@ Plotting:
 * Allows to pass existing matplotlib axes to the plotting functions.
 * Show colorbar with matplotlib.
 * Allows to set a 3D view point.
+* Eigenvalues shown as vertical lines instead of crosses.
+* Vertices can be highlighted, e.g. to show where filters where localized.
 
 Documentation:
 
