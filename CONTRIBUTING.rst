@@ -36,6 +36,28 @@ documentation with the following (enforced by Travis CI)::
 Check the generated coverage report at ``htmlcov/index.html`` to make sure the
 tests reasonably cover the changes you've introduced.
 
+Making a release
+----------------
+
+#. Update the version number and release date in ``setup.py``,
+   ``pygsp/__init__.py`` and ``doc/history.rst``.
+#. Create a git tag with ``git tag -a v0.5.0 -m "PyGSP v0.5.0"``.
+#. Push the tag to GitHub with ``git push github v0.5.0``. The tag should now
+   appear in the releases and tags tab.
+#. `Create a release <https://github.com/epfl-lts2/pygsp/releases/new>`_ on
+   GitHub and select the created tag. A DOI should then be issued by Zenodo.
+#. Go on Zenodo and fix the metadata if necessary.
+#. Build the distribution with ``make dist`` and check that the
+   ``dist/PyGSP-0.5.0.tar.gz`` source archive contains all required files. The
+   binary wheel should be found as ``dist/PyGSP-0.5.0-py2.py3-none-any.whl``.
+#. Test the upload and installation process::
+
+    $ twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+    $ pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple pygsp
+
+   Log in as the LTS2 user.
+#. Build and upload the distribution to the real PyPI with ``make release``.
+
 Repository organization
 -----------------------
 
