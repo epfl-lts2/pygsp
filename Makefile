@@ -9,17 +9,7 @@ help:
 	@echo "release  package and upload to PyPI"
 
 clean:
-	# Python files.
-	find . -name '__pycache__' -exec rm -rf {} +
-	# Documentation.
-	rm -rf doc/_build
-	# Coverage.
-	rm -rf .coverage
-	rm -rf htmlcov
-	# Package build.
-	rm -rf build
-	rm -rf dist
-	rm -rf *.egg-info
+	git clean -Xdf
 
 lint:
 	flake8 --doctests --exclude=doc
