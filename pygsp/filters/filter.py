@@ -376,14 +376,14 @@ class Filter(object):
         Examples
         --------
         >>> G = graphs.Logo()
-        >>> G.estimate_lmax()
+        >>> G.compute_fourier_basis()
         >>> f = filters.MexicanHat(G)
 
         Bad estimation:
 
         >>> A, B = f.estimate_frame_bounds(min=1, max=20, N=100)
         >>> print('A={:.3f}, B={:.3f}'.format(A, B))
-        A=0.126, B=0.270
+        A=0.125, B=0.270
 
         Better estimation:
 
@@ -396,7 +396,7 @@ class Filter(object):
         >>> G.compute_fourier_basis()
         >>> A, B = f.estimate_frame_bounds(use_eigenvalues=True)
         >>> print('A={:.3f}, B={:.3f}'.format(A, B))
-        A=0.178, B=0.270
+        A=0.177, B=0.270
 
         The Itersine filter bank defines a tight frame:
 
