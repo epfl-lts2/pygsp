@@ -69,7 +69,7 @@ We start with the graph TV regularization. We will use the :meth:`pyunlocbox.sol
     >>> d = pyunlocbox.functions.dummy()
     >>> r = pyunlocbox.functions.norm_l1()
     >>> f = pyunlocbox.functions.norm_l2(w=M, y=subsampled_noisy_label_signal,
-                                         lambda_=3.0)
+    ...                                  lambda_=3.0)
     >>>
     >>> # Define the solver
     >>> L = G.D.toarray()
@@ -79,7 +79,8 @@ We start with the graph TV regularization. We will use the :meth:`pyunlocbox.sol
     >>> # Solve the problem
     >>> x0 = subsampled_noisy_label_signal.copy()
     >>> prob1 = pyunlocbox.solvers.solve([d, r, f], solver=solver,
-                                         x0=x0, atol=1e-7, rtol=0, maxit=200, verbosity='LOW')
+    ...                                  x0=x0, atol=1e-7, rtol=0, maxit=200,
+    ...                                  verbosity='LOW')
     >>>
     >>> G.plot_signal(prob1['sol'])
 
@@ -98,7 +99,8 @@ This figure shows the label signal recovered by graph total variation regulariza
     >>> # Solve the problem
     >>> x0 = subsampled_noisy_label_signal.copy()
     >>> prob2 = pyunlocbox.solvers.solve([r, f], solver=solver,
-                                         x0=x0, atol=1e-7, rtol=0, maxit=200, verbosity='LOW')
+    ...                                  x0=x0, atol=1e-7, rtol=0, maxit=200,
+    ...                                  verbosity='LOW')
     >>>
     >>> G.plot_signal(prob2['sol'])
 
