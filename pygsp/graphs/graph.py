@@ -593,7 +593,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                 self.L = (D - self.W).tocsc()
 
             elif lap_type == 'normalized':
-                d = np.power(self.W.sum(1), -0.5)
+                d = np.power(self.dw, -0.5)
                 D = sparse.diags(np.ravel(d), 0).tocsc()
                 self.L = sparse.identity(self.N) - D * self.W * D
 
@@ -692,7 +692,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             if self.lap_type == 'normalized':
                 lmax = 2  # Spectrum is bounded by [0, 2].
             elif self.lap_type == 'combinatorial':
-                lmax = 2 * np.max(self.d)
+                lmax = 2 * np.max(self.dw)
             else:
                 raise ValueError('Unknown Laplacian type '
                                  '{}'.format(self.lap_type))
