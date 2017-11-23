@@ -43,6 +43,21 @@ class TestCase(unittest.TestCase):
         self.assertEqual(ki.shape[0], G.Ne)
         self.assertEqual(kj.shape[0], G.Ne)
 
+    def test_degree(self):
+        W = np.arange(1,17).reshape(4, 4)
+        G = graphs.Graph(W)
+        d = 4*np.ones([4])
+        dw = np.sum(W,axis=1).squeeze()
+        self.assertAlmostEqual(np.linalg.norm(G.d-d),0)
+        self.assertAlmostEqual(np.linalg.norm(G.dw-dw),0)
+
+        G = graphs.Sensor()
+        A = G.W>0
+        d = np.sum(A.toarray(),axis=1).squeeze()
+        dw = np.sum(G.W.toarray(),axis=1).squeeze()
+        self.assertAlmostEqual(np.linalg.norm(G.d-d),0)
+        self.assertAlmostEqual(np.linalg.norm(G.dw-dw),0)
+
     def test_laplacian(self):
         # TODO: should test correctness.
 

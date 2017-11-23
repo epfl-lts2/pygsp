@@ -122,7 +122,6 @@ class StochasticBlockModel(Graph):
                 break
             else:
                 self.W = W
-                self.A = (W > 0)
                 if self.is_connected(recompute=True):
                     break
             if nb_iter == max_iter - 1:

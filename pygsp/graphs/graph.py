@@ -45,13 +45,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         It is represented as an N-by-N matrix of floats.
         :math:`W_{i,j} = 0` means that there is no direct connection from
         i to j.
-    A : sparse matrix or ndarray
-        the adjacency matrix defines which edges exist on the graph.
-        It is represented as an N-by-N matrix of booleans.
-        :math:`A_{i,j}` is True if :math:`W_{i,j} > 0`.
-    d : ndarray
-        the degree vector is a vector of length N which represents the number
-        of edges connected to each node.
     gtype : string
         the graph type is a short description of the graph object designed to
         help sorting the graphs.
@@ -97,9 +90,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         self.check_weights()
 
-        self.A = self.W > 0
-        self.d = np.asarray(self.A.sum(axis=1)).squeeze()
-        assert self.d.ndim == 1
         self.gtype = gtype
 
         self.compute_laplacian(lap_type)
@@ -606,6 +596,32 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                 d = np.power(self.W.sum(1), -0.5)
                 D = sparse.diags(np.ravel(d), 0).tocsc()
                 self.L = sparse.identity(self.N) - D * self.W * D
+
+
+    @property
+    def A(self):
+        r"""Return the adjacency matrix.
+
+        The adjacency matrix defines which edges exist on the graph.
+        It is represented as an N-by-N matrix of booleans.
+        :math:`A_{i,j}` is True if :math:`W_{i,j} > 0`.
+
+        """
+        return self.W > 0
+
+    @property
+    def d(self):
+        r"""Return the number of neighboors of each nodes of the graph."""
+        if not hasattr(self, '_d'):
+            self._d = np.asarray(self.A.sum(axis=1)).squeeze()
+        return self._d
+
+    @property
+    def dw(self):
+        r"""Return the weighted degree of each nodes of the graph."""
+        if not hasattr(self, '_dw'):
+            self._dw = np.asarray(self.W.sum(axis=1)).squeeze()
+        return self._dw
 
     @property
     def lmax(self):

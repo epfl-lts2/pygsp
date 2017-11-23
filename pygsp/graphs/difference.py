@@ -67,8 +67,8 @@ class GraphDifference(object):
             Dv[:n] = np.sqrt(weights)
             Dv[n:] = -Dv[:n]
         elif self.lap_type == 'normalized':
-            Dv[:n] = np.sqrt(weights / self.d[v_in])
-            Dv[n:] = -np.sqrt(weights / self.d[v_out])
+            Dv[:n] = np.sqrt(weights / self.dw[v_in])
+            Dv[n:] = -np.sqrt(weights / self.dw[v_out])
         else:
             raise ValueError('Unknown lap_type {}'.format(self.lap_type))
 

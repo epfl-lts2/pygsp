@@ -53,7 +53,6 @@ class Sensor(Graph):
                 W, coords = self._create_weight_matrix(N, distribute,
                                                        regular, Nc)
                 self.W = W
-                self.A = W > 0
 
                 if self.is_connected(recompute=True):
                     break
