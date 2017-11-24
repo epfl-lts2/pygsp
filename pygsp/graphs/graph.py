@@ -40,7 +40,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     Ne : int
         the number of edges / links in the graph, i.e. connections between
         nodes.
-    W : sparse matrix or ndarray
+    W : sparse matrix
         the weight matrix which contains the weights of the connections.
         It is represented as an N-by-N matrix of floats.
         :math:`W_{i,j} = 0` means that there is no direct connection from
@@ -48,7 +48,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     gtype : string
         the graph type is a short description of the graph object designed to
         help sorting the graphs.
-    L : sparse matrix or ndarray
+    L : sparse matrix
         the graph Laplacian, an N-by-N matrix computed from W.
     lap_type : 'normalized', 'combinatorial'
         the kind of Laplacian that was computed by :func:`compute_laplacian`.
@@ -600,12 +600,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
     @property
     def A(self):
-        r"""Return the adjacency matrix.
+        r"""Graph adjacency matrix (the binary version of W).
 
         The adjacency matrix defines which edges exist on the graph.
         It is represented as an N-by-N matrix of booleans.
         :math:`A_{i,j}` is True if :math:`W_{i,j} > 0`.
-
         """
         if not hasattr(self, '_A'):
             self._A = self.W > 0
@@ -613,14 +612,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
     @property
     def d(self):
-        r"""Return the number of neighboors of each nodes of the graph."""
+        r"""The degree (the number of neighbors) of each node."""
         if not hasattr(self, '_d'):
             self._d = np.asarray(self.A.sum(axis=1)).squeeze()
         return self._d
 
     @property
     def dw(self):
-        r"""Return the weighted degree of each nodes of the graph."""
+        r"""The weighted degree (the sum of weighted edges) of each node."""
         if not hasattr(self, '_dw'):
             self._dw = np.asarray(self.W.sum(axis=1)).squeeze()
         return self._dw
