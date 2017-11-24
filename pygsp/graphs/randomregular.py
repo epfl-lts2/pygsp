@@ -111,30 +111,23 @@ class RandomRegular(Graph):
         warn = False
         msg = 'The given matrix'
 
-        # check if the sparse matrix is in a good format
-        A = self.A
-        if A.getformat() in ['lil', 'dia', 'bok']:
-            A = A.tocsc()
-
         # check symmetry
-        tmp = A - A.T
-        if np.abs(tmp).sum() > 0:
+        if np.abs(self.A - self.A.T).sum() > 0:
             warn = True
             msg = '{} is not symmetric,'.format(msg)
 
         # check parallel edged
-        if A.max(axis=None) > 1:
+        if self.A.max(axis=None) > 1:
             warn = True
             msg = '{} has parallel edges,'.format(msg)
 
         # check that d is d-regular
-        d_vec = A.sum(axis=0)
-        if np.min(d_vec) != np.max(d_vec):
+        if np.min(self.d) != np.max(self.d):
             warn = True
             msg = '{} is not d-regular,'.format(msg)
 
         # check that g doesn't contain any self-loop
-        if A.diagonal().any():
+        if self.A.diagonal().any():
             warn = True
             msg = '{} has self loop.'.format(msg)
 
