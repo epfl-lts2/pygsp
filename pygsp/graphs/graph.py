@@ -607,7 +607,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         :math:`A_{i,j}` is True if :math:`W_{i,j} > 0`.
 
         """
-        return self.W > 0
+        if not hasattr(self, '_A'):
+            self._A = self.W > 0
+        return self._A
 
     @property
     def d(self):
