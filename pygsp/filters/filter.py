@@ -319,7 +319,7 @@ class Filter(object):
         i : int
             Index of the node where to localize the kernel.
         kwargs: dict
-            Parameters to be passed to the :meth:`analysis` method.
+            Parameters to be passed to the :meth:`analyze` method.
 
         Returns
         -------
@@ -439,7 +439,7 @@ class Filter(object):
         Parameters
         ----------
         kwargs: dict
-            Parameters to be passed to the :meth:`analysis` method.
+            Parameters to be passed to the :meth:`analyze` method.
 
         Returns
         -------
