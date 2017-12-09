@@ -50,10 +50,11 @@ The reason for measuring local differences comes from prior knowledge: we assume
 
 The first one, shown below, is called graph total variation (TV) regularization. The quadratic fidelity term is multiplied by a regularization constant :math:`\gamma` and its goal is to force the solution to stay close to the observed labels :math:`b`. The :math:`\ell_1` norm of the action of the graph gradient is what's called the graph TV. We will see that it promotes piecewise-constant solutions.
 
-.. math:: arg \min_x  \|\nabla_G x\|_1 + \gamma \|Mx-b\|_2^2
+.. math:: \operatorname*{arg\,min}_x  \|\nabla_G x\|_1 + \gamma \|Mx-b\|_2^2
 
 The second approach, called graph Tikhonov regularization, is to use a smooth (differentiable) quadratic regularizer. A consequence of this choice is that the solution will tend to have smoother transitions. The quadratic fidelity term is still the same.
-.. math:: arg \min_x  \|\nabla_G x\|_2_2 + \gamma \|Mx-b\|_2^2
+
+.. math:: \operatorname*{arg\,min}_x  \|\nabla_G x\|_2^2 + \gamma \|Mx-b\|_2^2
 
 Results and code
 ----------------
