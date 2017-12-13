@@ -21,34 +21,12 @@ with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
 
 from __future__ import division
 
-import traceback
-
 import numpy as np
 
 from pygsp import utils
 
+
 _logger = utils.build_logger(__name__)
-
-try:
-    import matplotlib.pyplot as plt
-    # Not used directly, but needed for 3D projection.
-    from mpl_toolkits.mplot3d import Axes3D  # noqa
-    _PLT_IMPORT = True
-except Exception:
-    _logger.error('Cannot import packages for matplotlib: {}'.format(
-        traceback.format_exc()))
-    _PLT_IMPORT = False
-
-try:
-    import pyqtgraph as qtg
-    import pyqtgraph.opengl as gl
-    from pyqtgraph.Qt import QtGui
-    _QTG_IMPORT = True
-except Exception:
-    _logger.error('Cannot import packages for pyqtgraph: {}'.format(
-        traceback.format_exc()))
-    _QTG_IMPORT = False
-
 
 BACKEND = 'pyqtgraph'
 _qtg_windows = []
@@ -56,9 +34,36 @@ _qtg_widgets = []
 _plt_figures = []
 
 
+def _import_plt():
+    try:
+        import matplotlib.pyplot as plt
+        # Not used directly, but needed for 3D projection.
+        from mpl_toolkits.mplot3d import Axes3D  # noqa
+    except Exception:
+        raise ImportError('Cannot import matplotlib. Choose another backend '
+                          'or try to install it with '
+                          'pip (or conda) install matplotlib.')
+    return plt
+
+
+def _import_qtg():
+    try:
+        import pyqtgraph as qtg
+        import pyqtgraph.opengl as gl
+        from pyqtgraph.Qt import QtGui
+    except Exception:
+        raise ImportError('Cannot import pyqtgraph. Choose another backend '
+                          'or try to install it with '
+                          'pip (or conda) install pyqtgraph. You will also '
+                          'need PyQt5 (or PySide) and pyopengl.')
+    return qtg, gl, QtGui
+
+
 def _plt_handle_figure(plot):
 
     def inner(obj, *args, **kwargs):
+
+        plt = _import_plt()
 
         # Create a figure and an axis if none were passed.
         if 'ax' not in kwargs.keys():
@@ -114,6 +119,7 @@ def close_all():
 
     global _plt_figures
     for fig in _plt_figures:
+        plt = _import_plt()
         plt.close(fig)
     _plt_figures = []
 
@@ -126,6 +132,7 @@ def show(*args, **kwargs):
     By default, showing plots does not block the prompt.
 
     """
+    plt = _import_plt()
     plt.show(*args, **kwargs)
 
 
@@ -136,6 +143,7 @@ def close(*args, **kwargs):
     Alias to plt.close().
 
     """
+    plt = _import_plt()
     plt.close(*args, **kwargs)
 
 
@@ -217,12 +225,12 @@ def plot_graph(G, backend=None, **kwargs):
 
     G = _handle_directed(G)
 
-    if backend == 'pyqtgraph' and _QTG_IMPORT:
+    if backend == 'pyqtgraph':
         _qtg_plot_graph(G, **kwargs)
-    elif backend == 'matplotlib' and _PLT_IMPORT:
+    elif backend == 'matplotlib':
         _plt_plot_graph(G, **kwargs)
     else:
-        raise ValueError('The {} backend is not available.'.format(backend))
+        raise ValueError('Unknown backend {}.'.format(backend))
 
 
 @_plt_handle_figure
@@ -284,6 +292,8 @@ def _plt_plot_graph(G, show_edges, vertex_size, ax):
 def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
 
     # TODO handling when G is a list of graphs
+
+    qtg, gl, QtGui = _import_qtg()
 
     if G.is_directed():
         raise NotImplementedError
@@ -488,12 +498,12 @@ def plot_signal(G, signal, backend=None, **kwargs):
 
     G = _handle_directed(G)
 
-    if backend == 'pyqtgraph' and _QTG_IMPORT:
+    if backend == 'pyqtgraph':
         _qtg_plot_signal(G, signal, **kwargs)
-    elif backend == 'matplotlib' and _PLT_IMPORT:
+    elif backend == 'matplotlib':
         _plt_plot_signal(G, signal, **kwargs)
     else:
-        raise ValueError('The {} backend is not available.'.format(backend))
+        raise ValueError('Unknown backend {}.'.format(backend))
 
 
 @_plt_handle_figure
@@ -562,10 +572,13 @@ def _plt_plot_signal(G, signal, show_edges, limits, ax,
             pass
 
     if G.coords.ndim != 1 and colorbar:
+        plt = _import_plt()
         plt.colorbar(sc, ax=ax)
 
 
 def _qtg_plot_signal(G, signal, show_edges, plot_name, vertex_size, limits):
+
+    qtg, gl, QtGui = _import_qtg()
 
     if G.coords.shape[1] == 2:
         window = qtg.GraphicsWindow(plot_name)
@@ -648,9 +661,7 @@ def plot_spectrogram(G, node_idx=None):
     """
     from pygsp import features
 
-    if not _QTG_IMPORT:
-        raise NotImplementedError('You need pyqtgraph to plot the spectrogram '
-                                  'at the moment. Please install and retry.')
+    qtg, _, _ = _import_qtg()
 
     if not hasattr(G, 'spectr'):
         features.compute_spectrogram(G)
