@@ -64,9 +64,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     """
 
     def __init__(self, W, gtype='unknown', lap_type='combinatorial',
-                 coords=None, plotting={}, **kwargs):
+                 coords=None, plotting={}):
 
-        self.logger = utils.build_logger(__name__, **kwargs)
+        self.logger = utils.build_logger(__name__)
 
         if len(W.shape) != 2 or W.shape[0] != W.shape[1]:
             raise ValueError('W has incorrect shape {}'.format(W.shape))

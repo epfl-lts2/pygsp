@@ -84,7 +84,7 @@ class Community(Graph):
             epsilon = np.sqrt(2 * np.sqrt(N)) / 2
         rs = np.random.RandomState(seed)
 
-        self.logger = utils.build_logger(__name__, **kwargs)
+        self.logger = utils.build_logger(__name__)
         w_data = [[], [[], []]]
 
         if min_comm * Nc > N:

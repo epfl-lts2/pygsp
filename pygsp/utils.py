@@ -20,20 +20,18 @@ import scipy.io
 import skimage
 
 
-def build_logger(name, **kwargs):
+def build_logger(name):
     logger = logging.getLogger(name)
-
-    logging_level = kwargs.pop('logging_level', logging.DEBUG)
 
     if not logger.handlers:
         formatter = logging.Formatter(
             "%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s")
 
         steam_handler = logging.StreamHandler()
-        steam_handler.setLevel(logging_level)
+        steam_handler.setLevel(logging.DEBUG)
         steam_handler.setFormatter(formatter)
 
-        logger.setLevel(logging_level)
+        logger.setLevel(logging.DEBUG)
         logger.addHandler(steam_handler)
 
     return logger

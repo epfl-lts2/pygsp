@@ -50,7 +50,7 @@ class RandomRegular(Graph):
     def __init__(self, N=64, k=6, maxIter=10, seed=None, **kwargs):
         self.k = k
 
-        self.logger = utils.build_logger(__name__, **kwargs)
+        self.logger = utils.build_logger(__name__)
 
         rs = np.random.RandomState(seed)
 

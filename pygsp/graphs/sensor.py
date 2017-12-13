@@ -46,7 +46,7 @@ class Sensor(Graph):
         self.distribute = distribute
         self.seed = seed
 
-        self.logger = utils.build_logger(__name__, **kwargs)
+        self.logger = utils.build_logger(__name__)
 
         if connected:
             for x in range(self.n_try):
