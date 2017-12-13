@@ -2,6 +2,39 @@
 History
 =======
 
+0.5.1 (2017-12-xx)
+------------------
+
+The focus of this release was to ease installation by not requiring
+non-standard scientific Python packages to be installed.
+
+The core functionality of this package only depends on numpy and scipy.
+Dependencies which are only required for particular usages are included in the
+alldeps extra dependency list. The alldeps list allows users to install
+dependencies to enable all the features. Finally, those optional packages are
+only loaded when needed, not when the PyGSP is imported. A nice side-effect is
+that importing the PyGSP is now much faster!
+
+The following packages were made optional dependencies:
+* scikit-image, as it is only used to build patch graphs from images. The
+  problem was that scikit-image does not provide a wheel for Windows and its
+  build is painful and error-prone. Moreover, scikit-image has a lot of
+  dependencies.
+* pyqtgrpah, PyQt5 / PySide and pyopengl, as they are only used for interactive
+  visualization, which not many users need. The problem was that pyqtgraph
+  requires (via PyQt5, PySide, pyopengl) OpenGL (libGL.so) to be installed.
+* matplotlib: while it is a standard package for any scientific or data science
+  workflow, it's not necessary for users who only want to process data without
+  plotting graphs, signals and filters.
+* pyflann, as it is only used for approximate kNN. The problem was that the
+  source distribution would not build for Windows.  On conda-forge, (py)flann
+  is not built for Windows either.
+
+Moreover, matplotlib is now the default drawing backend. It's well integrated
+with the Jupyter environment for scientific and data science workflows, and
+most use cases do not require an interactive visualization. The pyqtgraph is
+still available for interactivity.
+
 0.5.0 (2017-10-06)
 ------------------
 
