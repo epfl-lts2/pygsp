@@ -537,7 +537,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Parameters
         ----------
-        lap_type : 'combinatorial', 'normalized'
+        lap_type : 'combinatorial', 'normalized', 'random_walk'.
             The type of Laplacian to compute. Default is combinatorial.
 
         Notes
@@ -546,12 +546,22 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         .. math:: L = D - W,
 
-        where :math:`W` is the weight matrix and :math:`D` the degree matrix,
-        and the normalized Laplacian is defined as
+        where :math:`W` is the weight matrix and :math:`D` the degree matrix.
+        The symmetric normalized Laplacian is defined as
 
         .. math:: L = I - D^{-1/2} W D^{-1/2},
 
         where :math:`I` is the identity matrix.
+        The random-walk (non-symmetric) normalized Laplacian is defined as
+
+        .. math:: L = I - D^{-1} W.
+
+        Note that the normalized Laplacians are basically normalizing the
+        weight :math:`W` such that the degree of each node is normalized to
+        one. For the random-walk Laplacian, :math:`\tilde{W}_{ij}` represents
+        the probability of a random walker to move from vertex :math:`j` to
+        vertex :math:`i`. As such, :math:`\tilde{W} = D^{-1} W` is a right
+        stochastic matrix, i.e. it's columns sum to one.
 
         Examples
         --------
@@ -571,8 +581,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         """
 
-        if lap_type not in ['combinatorial', 'normalized']:
-            raise ValueError('Unknown Laplacian type {}'.format(lap_type))
         self.lap_type = lap_type
 
         if self.is_directed():
@@ -582,21 +590,29 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                 D2 = sparse.diags(np.ravel(self.W.sum(1)), 0)
                 self.L = 0.5 * (D1 + D2 - self.W - self.W.T).tocsc()
 
-            elif lap_type == 'normalized':
-                raise NotImplementedError('Directed graphs with normalized '
-                                          'Laplacian not supported yet.')
+            else:
+                raise NotImplementedError('Directed graphs not supported yet. '
+                                          'Use the combinatorial Laplacian.')
 
         else:
 
             if lap_type == 'combinatorial':
-                D = sparse.diags(np.ravel(self.W.sum(1)), 0)
+                D = sparse.diags(np.ravel(self.dw), 0)
                 self.L = (D - self.W).tocsc()
 
             elif lap_type == 'normalized':
                 d = np.power(self.dw, -0.5)
+                # d = 1 / np.sqrt(self.dw)
                 D = sparse.diags(np.ravel(d), 0).tocsc()
                 self.L = sparse.identity(self.N) - D * self.W * D
 
+            elif lap_type == 'random_walk':
+                d = 1 / self.dw
+                D = sparse.diags(np.ravel(d), 0).tocsc()
+                self.L = sparse.identity(self.N) - D * self.W
+
+            else:
+                raise ValueError('Unknown Laplacian type {}'.format(lap_type))
 
     @property
     def A(self):

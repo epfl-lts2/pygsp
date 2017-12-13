@@ -98,10 +98,18 @@ class GraphFourier(object):
                                 'large matrix ({0} x {0}) may take some '
                                 'time.'.format(self.N))
 
-        # TODO: handle non-symmetric Laplatians. Test lap_type?
+        if self.lap_type in ['combinatorial', 'normalized']:
+            # Columns are eigenvectors. Sorted in ascending eigenvalue order.
+            self._e, self._U = np.linalg.eigh(self.L.toarray())
+        elif self.lap_type in ['random_walk']:
+            # The random-walk Laplacian is non-symmetric.
+            self._e, self._U = np.linalg.eig(self.L.toarray())
+            indices = np.argsort(self._e)
+            self._e, self._U = self._e[indices], self.U[:, indices]
+        else:
+            raise ValueError('Unknown Laplacian type {}'.format(self.lap_type))
 
-        self._e, self._U = np.linalg.eigh(self.L.toarray())
-        # Columns are eigenvectors. Sorted in ascending eigenvalue order.
+        # TODO test that both are equivalent in unit tests by forcing the lap_type
 
         # Smallest eigenvalue should be zero: correct numerical errors.
         # Eigensolver might sometimes return small negative values, which
@@ -109,7 +117,7 @@ class GraphFourier(object):
         assert -1e-12 < self._e[0] < 1e-12
         self._e[0] = 0
 
-        if self.lap_type == 'normalized':
+        if self.lap_type in ['normalized', 'random_walk']:
             # Spectrum bounded by [0, 2].
             assert self._e[-1] <= 2
 

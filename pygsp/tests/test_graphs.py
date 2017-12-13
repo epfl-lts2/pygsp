@@ -57,13 +57,26 @@ class TestCase(unittest.TestCase):
         G = graphs.StochasticBlockModel(N=100, directed=False)
         self.assertFalse(G.is_directed())
         G.compute_laplacian(lap_type='combinatorial')
+        np.testing.assert_equal(G.L.toarray(), G.L.T.toarray())
+        np.testing.assert_equal(G.L.diagonal(), G.dw)
+        np.testing.assert_equal(G.L.sum(axis=0), 0)
+        np.testing.assert_equal(G.L.sum(axis=1), 0)
         G.compute_laplacian(lap_type='normalized')
+        np.testing.assert_equal(G.L.toarray(), G.L.T.toarray())
+        np.testing.assert_equal(G.L.diagonal(), 1)
+        G.compute_laplacian(lap_type='random_walk')
+        np.testing.assert_equal(G.L.diagonal(), 1)
+        # RW Laplacian = the identity minus a right stochastic matrix.
+        np.testing.assert_allclose(G.L.sum(axis=1), 0, atol=1e-10)
+        self.assertRaises(ValueError, G.compute_laplacian, lap_type='unknown')
 
         G = graphs.StochasticBlockModel(N=100, directed=True)
         self.assertTrue(G.is_directed())
         G.compute_laplacian(lap_type='combinatorial')
         self.assertRaises(NotImplementedError, G.compute_laplacian,
                           lap_type='normalized')
+        self.assertRaises(NotImplementedError, G.compute_laplacian,
+                          lap_type='random_walk')
 
     def test_fourier_basis(self):
         # Smallest eigenvalue close to zero.
