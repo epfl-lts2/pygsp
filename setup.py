@@ -30,17 +30,23 @@ setup(
         # No source package for PyQt5 on PyPI, fall back to PySide.
         'PySide; python_version < "3.5"',
         'pyopengl',
-        'scikit-image',
         'pyflann; python_version == "2.*"',
         'pyflann3; python_version == "3.*"',
     ],
     extras_require={
+        # Optional dependencies for some functionalities.
+        'alldeps': (
+            # Construct patch graphs from images.
+            'scikit-image',
+        ),
+        # Testing dependencies.
         'test': [
             'pyunlocbox',
             'flake8',
             'coverage',
             'coveralls',
         ],
+        # Dependencies to build the documentation.
         'doc': [
             'pyunlocbox',
             'sphinx',
@@ -48,6 +54,7 @@ setup(
             'sphinxcontrib-bibtex',
             'sphinx-rtd-theme',
         ],
+        # Dependencies to build and upload packages.
         'pkg': [
             'wheel',
             'twine',

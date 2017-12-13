@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import skimage
 
 from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
@@ -80,6 +79,14 @@ class ImgPatches(NNGraph):
         img = np.pad(img, pad_width=pad_width, mode='symmetric')
 
         # Extract patches as node features.
+        # Alternative: sklearn.feature_extraction.image.extract_patches_2d.
+        #              sklearn has much less dependencies than skimage.
+        try:
+            import skimage
+        except Exception:
+            raise ImportError('Cannot import skimage, which is needed to '
+                              'extract patches. Try to install it with '
+                              'pip (or conda) install scikit-image.')
         patches = skimage.util.view_as_windows(img, window_shape=window_shape)
         patches = patches.reshape((h * w, r * c * d))
 
