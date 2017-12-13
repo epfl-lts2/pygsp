@@ -23,14 +23,15 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'pyflann; python_version == "2.*"',
-        'pyflann3; python_version == "3.*"',
     ],
     extras_require={
         # Optional dependencies for some functionalities.
         'alldeps': (
             # Construct patch graphs from images.
             'scikit-image',
+            # Approximate nearest neighbors for kNN graphs.
+            'pyflann; python_version == "2.*"',
+            'pyflann3; python_version == "3.*"',
             # Plot graphs, signals, and filters.
             'matplotlib',
             # Interactive graph visualization.
