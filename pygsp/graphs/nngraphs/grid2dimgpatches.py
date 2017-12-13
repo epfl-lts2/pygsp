@@ -11,34 +11,31 @@ class Grid2dImgPatches(Graph):
     ----------
     img : array
         Input image.
-    patch_shape : tuple, optional
-        Dimensions of the patch window. Syntax : (height, width).
-    n_nbrs : int
-        Number of neighbors to consider
-    dist_type : string
-        Type of distance between patches to compute. See
-        :func:`pyflann.index.set_distance_type` for possible options.
     aggregate: callable, optional
-        Function used for aggregating the weights Wp of the patch graph and the
-        weigths Wg 2d grid graph. Default is :func:`lambda Wp, Wg: Wp + Wg`.
+        Function to aggregate the weights ``Wp`` of the patch graph and the
+        ``Wg`` of the grid graph. Default is ``lambda Wp, Wg: Wp + Wg``.
+    kwargs : dict
+        Parameters passed to :class:`ImgPatches`.
 
     Examples
     --------
     >>> import matplotlib.pyplot as plt
     >>> from skimage import data, img_as_float
     >>> img = img_as_float(data.camera()[::64, ::64])
-    >>> G = graphs.Grid2dImgPatches(img, use_flann=False)
+    >>> G = graphs.Grid2dImgPatches(img)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
     >>> G.plot(ax=axes[1])
 
     """
 
-    def __init__(self, img, patch_shape=(3, 3), n_nbrs=8,
-                 aggregate=lambda Wp, Wg: Wp + Wg, **kwargs):
+    def __init__(self, img, aggregate=lambda Wp, Wg: Wp + Wg, **kwargs):
+
         Gg = Grid2d(img.shape[0], img.shape[1])
-        Gp = ImgPatches(img, patch_shape=patch_shape, n_nbrs=n_nbrs, **kwargs)
+        Gp = ImgPatches(img, **kwargs)
+
         gtype = '{}_{}'.format(Gg.gtype, Gp.gtype)
+
         super(Grid2dImgPatches, self).__init__(W=aggregate(Gp.W, Gg.W),
                                                gtype=gtype,
                                                coords=Gg.coords,

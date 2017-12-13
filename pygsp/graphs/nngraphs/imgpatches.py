@@ -14,18 +14,15 @@ class ImgPatches(NNGraph):
     patch_shape : tuple, optional
         Dimensions of the patch window. Syntax: (height, width), or (height,),
         in which case width = height.
-    n_nbrs : int, optional
-        Number of neighbors to consider
-    dist_type : string, optional
-        Type of distance between patches to compute. See
-        :func:`pyflann.index.set_distance_type` for possible options.
+    kwargs : dict
+        Parameters passed to :class:`NNGraph`.
 
     Examples
     --------
     >>> import matplotlib.pyplot as plt
     >>> from skimage import data, img_as_float
     >>> img = img_as_float(data.camera()[::64, ::64])
-    >>> G = graphs.ImgPatches(img, use_flann=False)
+    >>> G = graphs.ImgPatches(img)
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
@@ -33,15 +30,9 @@ class ImgPatches(NNGraph):
 
     """
 
-    def __init__(self, img, patch_shape=(3, 3), n_nbrs=8, use_flann=True,
-                 dist_type='euclidean', symmetrize_type='fill', **kwargs):
+    def __init__(self, img, patch_shape=(3, 3), **kwargs):
 
+        self.img = img
         X = utils.extract_patches(img, patch_shape=patch_shape)
 
-        super(ImgPatches, self).__init__(X,
-                                         use_flann=use_flann,
-                                         symmetrize_type=symmetrize_type,
-                                         dist_type=dist_type,
-                                         gtype='patch-graph',
-                                         **kwargs)
-        self.img = img
+        super(ImgPatches, self).__init__(X, gtype='patch-graph', **kwargs)
