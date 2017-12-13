@@ -43,5 +43,4 @@ class Grid2dImgPatches(Graph):
                                                gtype=gtype,
                                                coords=Gg.coords,
                                                plotting=Gg.plotting,
-                                               perform_all_checks=False,
                                                **kwargs)

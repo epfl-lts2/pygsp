@@ -43,6 +43,5 @@ class ImgPatches(NNGraph):
                                          symmetrize_type=symmetrize_type,
                                          dist_type=dist_type,
                                          gtype='patch-graph',
-                                         perform_all_checks=False,
                                          **kwargs)
         self.img = img

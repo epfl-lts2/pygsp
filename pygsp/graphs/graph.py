@@ -30,8 +30,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Vertices coordinates (default is None).
     plotting : dict
         Plotting parameters.
-    perform_checks : bool
-        Whether to check if the graph is connected. Warn if not.
 
     Attributes
     ----------
