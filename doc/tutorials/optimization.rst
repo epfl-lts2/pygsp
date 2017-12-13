@@ -14,7 +14,6 @@ This tutorial focuses on the problem of recovering a label signal on a graph fro
 
     >>> import numpy as np
     >>> from pygsp import graphs, plotting
-    >>> plotting.BACKEND = 'matplotlib'
     >>>
     >>> # Create a random sensor graph
     >>> G = graphs.Sensor(N=256, distribute=True, seed=42)

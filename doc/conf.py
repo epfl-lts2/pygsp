@@ -32,7 +32,6 @@ plot_rcparams = {
 plot_pre_code = """
 import numpy as np
 from pygsp import graphs, filters, utils, plotting
-plotting.BACKEND = 'matplotlib'
 """
 
 exclude_patterns = ['_build']

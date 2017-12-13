@@ -28,7 +28,7 @@ from pygsp import utils
 
 _logger = utils.build_logger(__name__)
 
-BACKEND = 'pyqtgraph'
+BACKEND = 'matplotlib'
 _qtg_windows = []
 _qtg_widgets = []
 _plt_figures = []

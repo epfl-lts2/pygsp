@@ -29,7 +29,6 @@ def test_docstrings(root, ext, setup=None):
 def setup(doctest):
     import numpy
     import pygsp
-    pygsp.plotting.BACKEND = 'matplotlib'
     doctest.globs = {
         'graphs': pygsp.graphs,
         'filters': pygsp.filters,
