@@ -36,7 +36,7 @@ setup(
             'matplotlib',
             # Interactive graph visualization.
             'pyqtgraph',
-            'pyopengl',
+            'PyOpenGL',
             # PyQt5 is only available on PyPI as wheels for Python 3.5 and up.
             'PyQt5; python_version >= "3.5"',
             # No source package for PyQt5 on PyPI, fall back to PySide.
