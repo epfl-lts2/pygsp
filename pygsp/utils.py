@@ -460,7 +460,7 @@ def extract_patches(img, patch_shape=(3, 3)):
                      (0, 0))
         window_shape = (r, c, d)
     # Pad the image
-    img_pad = skimage.util.pad(img, pad_width=pad_width, mode='symmetric')
+    img_pad = np.pad(img, pad_width=pad_width, mode='symmetric')
 
     # Extract patches
     patches = skimage.util.view_as_windows(img_pad, window_shape=window_shape)
