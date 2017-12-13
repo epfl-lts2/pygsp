@@ -135,7 +135,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
             sparserW = (sparserW + sparserW.T) / 2.
 
         Mnew = graphs.Graph(W=sparserW)
-        M.copy_graph_attributes(Mnew)
+        #M.copy_graph_attributes(Mnew)
     else:
         Mnew = sparse.lil_matrix(sparserL)
 
@@ -713,7 +713,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
 
         # Store new tree
         Gtemp = graphs.Graph(new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, gtype='tree', root=new_root)
-        Gs[lev].copy_graph_attributes(Gtemp, False)
+        #Gs[lev].copy_graph_attributes(Gtemp, False)
 
         if compute_full_eigen:
             Gs[lev + 1].compute_fourier_basis()
