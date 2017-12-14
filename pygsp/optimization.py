@@ -11,6 +11,16 @@ from pygsp import utils
 logger = utils.build_logger(__name__)
 
 
+def _import_pyunlocbox():
+    try:
+        from pyunlocbox import functions, solvers
+    except Exception:
+        raise ImportError('Cannot import pyunlocbox, which is needed to solve '
+                          'this optimization problem. Try to install it with '
+                          'pip (or conda) install pyunlocbox.')
+    return functions, solvers
+
+
 def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix=True):
     r"""
     Total Variation proximal operator for graphs.
@@ -81,4 +91,5 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
         def l1_at(x):
             return G.div(x)
 
-    pyunlocbox.prox_l1(x, gamma, A=l1_a, At=l1_at, tight=tight, maxit=maxit, verbose=verbose, tol=tol)
+    functions, _ = _import_pyunlocbox()
+    functions.norm_l1(x, gamma, A=l1_a, At=l1_at, tight=tight, maxit=maxit, verbose=verbose, tol=tol)
