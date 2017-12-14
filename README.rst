@@ -2,42 +2,38 @@
 PyGSP: Graph Signal Processing in Python
 ========================================
 
-.. image:: https://readthedocs.org/projects/pygsp/badge/?version=latest
++--------------------------------------------------+
+| |doc|  |pypi|  |zenodo|  |license|  |pyversions| |
++--------------------------------------------------+
+| |travis|  |coveralls|  |github|                  |
++--------------------------------------------------+
+
+.. |doc| image:: https://readthedocs.org/projects/pygsp/badge/?version=latest
    :target: https://pygsp.readthedocs.io
-
-.. image:: https://img.shields.io/pypi/v/pygsp.svg
+.. |pypi| image:: https://img.shields.io/pypi/v/pygsp.svg
    :target: https://pypi.python.org/pypi/PyGSP
-
-.. image:: https://zenodo.org/badge/16276560.svg
+.. |zenodo| image:: https://zenodo.org/badge/16276560.svg
    :target: https://doi.org/10.5281/zenodo.1003157
-
-.. image:: https://img.shields.io/pypi/l/pygsp.svg
+.. |license| image:: https://img.shields.io/pypi/l/pygsp.svg
    :target: https://github.com/epfl-lts2/pygsp/blob/master/LICENSE.txt
-
-.. image:: https://img.shields.io/pypi/pyversions/pygsp.svg
+.. |pyversions| image:: https://img.shields.io/pypi/pyversions/pygsp.svg
    :target: https://pypi.python.org/pypi/PyGSP
-
-|
-
-.. image:: https://img.shields.io/travis/epfl-lts2/pygsp.svg
+.. |travis| image:: https://img.shields.io/travis/epfl-lts2/pygsp.svg
    :target: https://travis-ci.org/epfl-lts2/pygsp
-
-.. image:: https://img.shields.io/coveralls/epfl-lts2/pygsp.svg
+.. |coveralls| image:: https://img.shields.io/coveralls/epfl-lts2/pygsp.svg
    :target: https://coveralls.io/github/epfl-lts2/pygsp
-
-.. image:: https://img.shields.io/github/stars/epfl-lts2/pygsp.svg?style=social
+.. |github| image:: https://img.shields.io/github/stars/epfl-lts2/pygsp.svg?style=social
    :target: https://github.com/epfl-lts2/pygsp
 
-|
-
-The PyGSP is a Python package to ease `Signal Processing on Graphs
-<https://arxiv.org/abs/1211.0053>`_
-(a `Matlab counterpart <https://lts2.epfl.ch/gsp>`_
-exists). It is a free software, distributed under the BSD license, and
-available on `PyPI <https://pypi.python.org/pypi/PyGSP>`_. The
-documentation is available on `Read the Docs
-<https://pygsp.readthedocs.io>`_ and development takes place on `GitHub
-<https://github.com/epfl-lts2/pygsp>`_.
+The PyGSP is a Python package to ease
+`Signal Processing on Graphs <https://arxiv.org/abs/1211.0053>`_.
+It is a free software, distributed under the BSD license, and
+available on `PyPI <https://pypi.python.org/pypi/PyGSP>`_.
+The documentation is available on
+`Read the Docs <https://pygsp.readthedocs.io>`_
+and development takes place on
+`GitHub <https://github.com/epfl-lts2/pygsp>`_.
+(A `Matlab counterpart <https://lts2.epfl.ch/gsp>`_ exists.)
 
 The PyGSP facilitates a wide variety of operations on graphs, like computing
 their Fourier basis, filtering or interpolating signals, plotting graphs,
