@@ -20,9 +20,9 @@ The following packages were made optional dependencies:
   problem was that scikit-image does not provide a wheel for Windows and its
   build is painful and error-prone. Moreover, scikit-image has a lot of
   dependencies.
-* pyqtgrpah, PyQt5 / PySide and pyopengl, as they are only used for interactive
+* pyqtgrpah, PyQt5 / PySide and PyOpenGl, as they are only used for interactive
   visualization, which not many users need. The problem was that pyqtgraph
-  requires (via PyQt5, PySide, pyopengl) OpenGL (libGL.so) to be installed.
+  requires (via PyQt5, PySide, PyOpenGL) OpenGL (libGL.so) to be installed.
 * matplotlib: while it is a standard package for any scientific or data science
   workflow, it's not necessary for users who only want to process data without
   plotting graphs, signals and filters.
