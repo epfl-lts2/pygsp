@@ -5,7 +5,7 @@ PyGSP: Graph Signal Processing in Python
 +--------------------------------------------------+
 | |doc|  |pypi|  |zenodo|  |license|  |pyversions| |
 +--------------------------------------------------+
-| |travis|  |coveralls|  |github|                  |
+| |binder|  |travis|  |coveralls|  |github|        |
 +--------------------------------------------------+
 
 .. |doc| image:: https://readthedocs.org/projects/pygsp/badge/?version=latest
@@ -24,6 +24,8 @@ PyGSP: Graph Signal Processing in Python
    :target: https://coveralls.io/github/epfl-lts2/pygsp
 .. |github| image:: https://img.shields.io/github/stars/epfl-lts2/pygsp.svg?style=social
    :target: https://github.com/epfl-lts2/pygsp
+.. |binder| image:: https://mybinder.org/badge.svg
+   :target: https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=playground.ipynb
 
 The PyGSP is a Python package to ease
 `Signal Processing on Graphs <https://arxiv.org/abs/1211.0053>`_.
@@ -74,8 +76,13 @@ structure!
 .. image:: pygsp/data/readme_example.png
     :alt:
 
-Please see the tutorials for more usage examples and the reference guide for an
-exhaustive documentation of the API. Enjoy the package!
+You can
+`try it online <https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=playground.ipynb>`_,
+look at the
+`tutorials <https://pygsp.readthedocs.io/en/stable/tutorials/index.html>`_
+to learn how to use it, or look at the
+`reference guide <https://pygsp.readthedocs.io/en/stable/reference/index.html>`_
+for an exhaustive documentation of the API. Enjoy the package!
 
 Installation
 ------------

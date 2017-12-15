@@ -1,0 +1,3 @@
+#!/bin/bash
+# Tell https://mybinder.org to simply install the package.
+pip install .[alldeps]
