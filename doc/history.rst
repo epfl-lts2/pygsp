@@ -2,11 +2,13 @@
 History
 =======
 
-0.5.1 (2017-12-xx)
+0.5.1 (2017-12-15)
 ------------------
 
 The focus of this release was to ease installation by not requiring
 non-standard scientific Python packages to be installed.
+It was mostly a maintenance release. A conda package is now available in
+conda-forge. Moreover, the package can now be tried online thanks to binder.
 
 The core functionality of this package only depends on numpy and scipy.
 Dependencies which are only required for particular usages are included in the
