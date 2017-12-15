@@ -28,7 +28,7 @@ class Itersine(Filter):
     >>> G = graphs.Ring(N=20)
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
-    >>> g = filters.HalfCosine(G)
+    >>> g = filters.Itersine(G)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> g.plot(ax=axes[0])
