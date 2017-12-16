@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name='PyGSP',
-    version='0.5.0',
+    version='0.5.1',
     description='Graph Signal Processing in Python',
     long_description=open('README.rst').read(),
     author='EPFL LTS2',
@@ -23,31 +23,41 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'matplotlib',
-        'pyqtgraph',
-        # PyQt5 is only available on PyPI as wheels for Python 3.5 and up.
-        'PyQt5; python_version >= "3.5"',
-        # No source package for PyQt5 on PyPI, fall back to PySide.
-        'PySide; python_version < "3.5"',
-        'pyopengl',
-        'scikit-image',
-        'pyflann; python_version == "2.*"',
-        'pyflann3; python_version == "3.*"',
     ],
     extras_require={
-        'test': [
+        # Optional dependencies for some functionalities.
+        'alldeps': (
+            # Construct patch graphs from images.
+            'scikit-image',
+            # Approximate nearest neighbors for kNN graphs.
+            'pyflann; python_version == "2.*"',
+            'pyflann3; python_version == "3.*"',
+            # Convex optimization on graph.
             'pyunlocbox',
+            # Plot graphs, signals, and filters.
+            'matplotlib',
+            # Interactive graph visualization.
+            'pyqtgraph',
+            'PyOpenGL',
+            # PyQt5 is only available on PyPI as wheels for Python 3.5 and up.
+            'PyQt5; python_version >= "3.5"',
+            # No source package for PyQt5 on PyPI, fall back to PySide.
+            'PySide; python_version < "3.5"',
+        ),
+        # Testing dependencies.
+        'test': [
             'flake8',
             'coverage',
             'coveralls',
         ],
+        # Dependencies to build the documentation.
         'doc': [
-            'pyunlocbox',
             'sphinx',
             'numpydoc',
             'sphinxcontrib-bibtex',
             'sphinx-rtd-theme',
         ],
+        # Dependencies to build and upload packages.
         'pkg': [
             'wheel',
             'twine',

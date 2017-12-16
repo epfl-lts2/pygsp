@@ -17,23 +17,20 @@ import io
 import numpy as np
 from scipy import sparse
 import scipy.io
-import skimage
 
 
-def build_logger(name, **kwargs):
+def build_logger(name):
     logger = logging.getLogger(name)
-
-    logging_level = kwargs.pop('logging_level', logging.DEBUG)
 
     if not logger.handlers:
         formatter = logging.Formatter(
             "%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s")
 
         steam_handler = logging.StreamHandler()
-        steam_handler.setLevel(logging_level)
+        steam_handler.setLevel(logging.DEBUG)
         steam_handler.setFormatter(formatter)
 
-        logger.setLevel(logging_level)
+        logger.setLevel(logging.DEBUG)
         logger.addHandler(steam_handler)
 
     return logger
@@ -402,72 +399,6 @@ def repmatline(A, ncol=1, nrow=1):
                          'equal to one, or you will get an empty array.')
 
     return np.repeat(np.repeat(A, ncol, axis=1), nrow, axis=0)
-
-
-def extract_patches(img, patch_shape=(3, 3)):
-    r"""
-    Extract a patch feature vector for every pixel of an image.
-
-    Parameters
-    ----------
-    img : array
-        Input image.
-    patch_shape : tuple, optional
-        Dimensions of the patch window. Syntax: (height, width), or (height,),
-        in which case width = height.
-
-    Returns
-    -------
-    array
-        Feature matrix.
-
-    Notes
-    -----
-    The feature vector of a pixel `i` will consist of the stacking of the
-    intensity values of all pixels in the patch centered at `i`, for all color
-    channels. So, if the input image has `d` color channels, the dimension of
-    the feature vector of each pixel is (patch_shape[0] * patch_shape[1] * d).
-
-    Examples
-    --------
-    >>> from pygsp import utils
-    >>> import skimage
-    >>> img = skimage.img_as_float(skimage.data.camera()[::2, ::2])
-    >>> X = utils.extract_patches(img)
-
-    """
-
-    try:
-        h, w, d = img.shape
-    except ValueError:
-        try:
-            h, w = img.shape
-            d = 0
-        except ValueError:
-            print("Image should be at least a 2-d array.")
-
-    try:
-        r, c = patch_shape
-    except ValueError:
-        r = patch_shape[0]
-        c = r
-    if d == 0:
-        pad_width = ((int((r - 0.5) / 2.), int((r + 0.5) / 2.)),
-                     (int((c - 0.5) / 2.), int((c + 0.5) / 2.)))
-        window_shape = (r, c)
-        d = 1  # For the reshape in the return call
-    else:
-        pad_width = ((int((r - 0.5) / 2.), int((r + 0.5) / 2.)),
-                     (int((c - 0.5) / 2.), int((c + 0.5) / 2.)),
-                     (0, 0))
-        window_shape = (r, c, d)
-    # Pad the image
-    img_pad = skimage.util.pad(img, pad_width=pad_width, mode='symmetric')
-
-    # Extract patches
-    patches = skimage.util.view_as_windows(img_pad, window_shape=window_shape)
-
-    return patches.reshape((h * w, r * c * d))
 
 
 def import_modules(names, src, dst):

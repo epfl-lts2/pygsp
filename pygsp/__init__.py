@@ -4,7 +4,7 @@ r"""
 The :mod:`pygsp` package is mainly organized around the following two modules:
 
 * :mod:`.graphs` to create and manipulate various kinds of graphs,
-* :mod:`.filters` to create and manipulate various graph filters,
+* :mod:`.filters` to create and manipulate various graph filters.
 
 Moreover, the following modules provide additional functionality:
 
@@ -30,5 +30,5 @@ __all__ = [
 
 _utils.import_modules(__all__[::-1], 'pygsp', 'pygsp')
 
-__version__ = '0.5.0'
-__release_date__ = '2017-10-06'
+__version__ = '0.5.1'
+__release_date__ = '2017-12-15'

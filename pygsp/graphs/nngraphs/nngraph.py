@@ -10,13 +10,15 @@ from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
 
 _logger = utils.build_logger(__name__)
 
-try:
-    import pyflann as pfl
-    _PFL_IMPORT = True
-except Exception:
-    _logger.warning('Cannot import pyflann (used for faster kNN computations):'
-                    ' {}'.format(traceback.format_exc()))
-    _PFL_IMPORT = False
+
+def _import_pfl():
+    try:
+        import pyflann as pfl
+    except Exception:
+        raise ImportError('Cannot import pyflann. Choose another nearest '
+                          'neighbors method or try to install it with '
+                          'pip (or conda) install pyflann (or pyflann3).')
+    return pfl
 
 
 class NNGraph(Graph):
@@ -118,7 +120,8 @@ class NNGraph(Graph):
             spj = np.zeros((N * k))
             spv = np.zeros((N * k))
 
-            if self.use_flann and _PFL_IMPORT:
+            if self.use_flann:
+                pfl = _import_pfl()
                 pfl.set_distance_type(dist_type, order=order)
                 flann = pfl.FLANN()
 

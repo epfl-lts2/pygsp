@@ -16,7 +16,7 @@ addons:
 
 install:
   - pip install -U pip setuptools
-  - pip install -U .[test,doc]
+  - pip install -U .[alldeps,test,doc]
 
 script:
 # - make lint
