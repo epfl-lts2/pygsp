@@ -2,11 +2,13 @@
 PyGSP: Graph Signal Processing in Python
 ========================================
 
-+--------------------------------------------------+
-| |doc|  |pypi|  |zenodo|  |license|  |pyversions| |
-+--------------------------------------------------+
-| |binder|  |travis|  |coveralls|  |github|        |
-+--------------------------------------------------+
++-----------------------------------+
+| |doc|  |pypi|  |conda|  |binder|  |
++-----------------------------------+
+| |zenodo|  |license|  |pyversions| |
++-----------------------------------+
+| |travis|  |coveralls|  |github|   |
++-----------------------------------+
 
 .. |doc| image:: https://readthedocs.org/projects/pygsp/badge/?version=latest
    :target: https://pygsp.readthedocs.io
@@ -26,6 +28,8 @@ PyGSP: Graph Signal Processing in Python
    :target: https://github.com/epfl-lts2/pygsp
 .. |binder| image:: https://mybinder.org/badge.svg
    :target: https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=playground.ipynb
+.. |conda| image:: https://anaconda.org/conda-forge/pygsp/badges/installer/conda.svg
+   :target: https://anaconda.org/conda-forge/pygsp
 
 The PyGSP is a Python package to ease
 `Signal Processing on Graphs <https://arxiv.org/abs/1211.0053>`_.
@@ -93,6 +97,10 @@ The PyGSP is available on PyPI::
 
 Note that you will need a recent version of ``pip`` and ``setuptools``. Please
 run ``pip install --upgrade pip setuptools`` if you get any installation error.
+
+The PyGSP is available on `conda-forge <https://github.com/conda-forge/pygsp-feedstock>`_::
+
+    $ conda install -c conda-forge pygsp
 
 Contributing
 ------------
