@@ -106,7 +106,11 @@ class GraphFourier(object):
         # Smallest eigenvalue should be zero: correct numerical errors.
         # Eigensolver might sometimes return small negative values, which
         # filter's implementations may not anticipate. Better for plotting too.
-        assert -1e-12 < self._e[0] < 1e-12
+        # Nati: Shall we make a difference for float32?
+        if np.dtype(self.L) == 'float32':
+            assert -1e-9 < self._e[0] < 1e-8
+        else:
+            assert -1e-12 < self._e[0] < 1e-12
         self._e[0] = 0
 
         if self.lap_type == 'normalized':

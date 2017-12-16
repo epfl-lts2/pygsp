@@ -47,3 +47,6 @@ class Itersine(Filter):
             g.append(lambda x, ind=i: k(x/scale - (ind - overlap/2.)/overlap) / np.sqrt(overlap)*np.sqrt(2))
 
         super(Itersine, self).__init__(G, g, **kwargs)
+
+        self.mu = np.linspace(0,G.lmax,num=Nf)
+        self.overlap = overlap

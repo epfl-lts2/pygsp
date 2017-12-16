@@ -575,11 +575,12 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             raise ValueError('Unknown Laplacian type {}'.format(lap_type))
         self.lap_type = lap_type
 
+        dtype = np.dtype(self.W)
         if self.is_directed():
 
             if lap_type == 'combinatorial':
-                D1 = sparse.diags(np.ravel(self.W.sum(0)), 0)
-                D2 = sparse.diags(np.ravel(self.W.sum(1)), 0)
+                D1 = sparse.diags(np.ravel(self.W.sum(0)), 0, dtype=dtype)
+                D2 = sparse.diags(np.ravel(self.W.sum(1)), 0, dtype=dtype)
                 self.L = 0.5 * (D1 + D2 - self.W - self.W.T).tocsc()
 
             elif lap_type == 'normalized':
@@ -589,13 +590,13 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         else:
 
             if lap_type == 'combinatorial':
-                D = sparse.diags(np.ravel(self.W.sum(1)), 0)
+                D = sparse.diags(np.ravel(self.W.sum(1)), 0, dtype=dtype)
                 self.L = (D - self.W).tocsc()
 
             elif lap_type == 'normalized':
                 d = np.power(self.dw, -0.5)
-                D = sparse.diags(np.ravel(d), 0).tocsc()
-                self.L = sparse.identity(self.N) - D * self.W * D
+                D = sparse.diags(np.ravel(d), 0, dtype=dtype).tocsc()
+                self.L = sparse.identity(self.N, dtype=dtype) - D * self.W * D
 
 
     @property
