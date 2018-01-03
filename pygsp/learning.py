@@ -8,6 +8,84 @@ throughout the package.
 import numpy as np
 import scipy
 
+from pyunlocbox import functions, solvers
+
+
+def classification_tik_simplex(G, y, M, tau=0.1, **kwargs):
+    assert(tau > 0)
+
+    def to_logits(x):
+        l = np.zeros([len(x), np.max(x)+1])
+        l[range(len(x)), x] = 1
+        return l
+    y[M == False] = 0
+    Y = to_logits(y.astype(np.int))
+    Y[M == False, :] = 0
+
+    def proj_simplex(y):
+        d = y.shape[1]
+        a = np.ones(d)
+        idx = np.argsort(y)
+
+        def evalpL(y, k, idx):
+            return np.sum(y[idx[k:]] - y[idx[k]]) - 1
+
+        def bisectsearch(idx, y):
+            idxL, idxH = 0, d-1
+            L = evalpL(y, idxL, idx)
+            H = evalpL(y, idxH, idx)
+
+            if L < 0:
+                return idxL
+
+            while (idxH-idxL) > 1:
+                iMid = int((idxL+idxH)/2)
+                M = evalpL(y, iMid, idx)
+
+                if M > 0:
+                    idxL, L = iMid, M
+                else:
+                    idxH, H = iMid, M
+
+            return idxH
+
+        def proj(idx, y):
+            k = bisectsearch(idx, y)
+            lam = (np.sum(y[idx[k:]])-1)/(d-k)
+            return np.maximum(0, y-lam)
+        x = np.zeros(y.shape)
+        for i in range(len(y)):
+            x[i] = proj(idx[i], y[i])
+        # x = np.stack(map(proj,idx,y))
+
+        return x
+
+    f1 = functions.func()
+
+    def smooth_eval(x):
+        xTLx = np.sum(x * (G.L @ x))
+        e = M*((M*x.T)-Y.T)
+        l2 = np.sum(e*e)
+        return tau*xTLx + l2
+
+    def smooth_grad(x):
+        return 2*((M*(M*x.T-Y.T)).T + tau*G.L*x)
+    f1._eval = smooth_eval
+    f1._grad = smooth_grad
+
+    f2 = functions.func()
+    f2._eval = lambda x: 0        # Indicator functions evaluate to zero.
+
+    def prox(x, step):
+        return proj_simplex(x)
+    f2._prox = prox
+
+    step = 1/(2*(1+tau*G.lmax))
+    solver = solvers.forward_backward(step=step)
+
+    ret = solvers.solve([f1, f2], Y.copy(), solver, **kwargs)
+    return ret['sol']
+
 
 def classification_tik(G, y, M, tau=0):
     ''' Solve a semi-supervised classification problem on the graph.
