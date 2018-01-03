@@ -12,6 +12,7 @@ import doctest
 
 from pygsp.tests import test_graphs, test_filters
 from pygsp.tests import test_utils, test_plotting
+from pygsp.tests import test_learning
 
 
 def gen_recursive_file(root, ext):
@@ -33,6 +34,7 @@ def setup(doctest):
         'graphs': pygsp.graphs,
         'filters': pygsp.filters,
         'utils': pygsp.utils,
+        'learning': pygsp.learning,
         'np': numpy,
     }
 
@@ -41,6 +43,8 @@ suites = []
 suites.append(test_graphs.suite)
 suites.append(test_filters.suite)
 suites.append(test_utils.suite)
+suites.append(test_learning.suite)
+
 suites.append(test_docstrings('pygsp', '.py', setup))
 suites.append(test_docstrings('.', '.rst'))  # No setup to not forget imports.
 suites.append(test_plotting.suite)  # TODO: can SIGSEGV if not last
