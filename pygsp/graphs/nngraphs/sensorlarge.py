@@ -24,7 +24,7 @@ class SensorLarge(NNGraph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.SensorLarge(N=3000, seed=42)
-    >>> plt.spy(G.W, markersize=2)
+    >>> _ = plt.spy(G.W, markersize=2)
 
     """
 

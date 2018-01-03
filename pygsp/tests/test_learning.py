@@ -80,7 +80,7 @@ class TestCase(unittest.TestCase):
         measurements[M == False] = 0
 
         L = G.L.toarray()
-        recovery = np.linalg.inv(np.diag(1*M) + tau * L) @ (M * measurements.T).T
+        recovery = np.matmul(np.linalg.inv(np.diag(1*M) + tau * L), (M * measurements.T).T)
 
         # Solve the problem
         recovery0 = learning.regression_tik(G, measurements, M, tau=tau)
