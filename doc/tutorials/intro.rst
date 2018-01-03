@@ -215,9 +215,9 @@ Let's create a graph signal and add some random noise.
 
     >>> # Graph signal: each letter gets a different value + additive noise.
     >>> s = np.zeros(G.N)
-    >>> s[G.info['idx_g']-1] = -1
-    >>> s[G.info['idx_s']-1] = 0
-    >>> s[G.info['idx_p']-1] = 1
+    >>> s[G.info['idx_g']] = -1
+    >>> s[G.info['idx_s']] = 0
+    >>> s[G.info['idx_p']] = 1
     >>> s += rs.uniform(-0.5, 0.5, size=G.N)
 
 We can now try to denoise that signal by filtering it with the above defined
