@@ -19,7 +19,9 @@ install:
   - pip install -U .[alldeps,test,doc]
 
 script:
-  - echo 1
+# - make lint
+  - make test
+  - make doc
 
 after_success:
   - coveralls
