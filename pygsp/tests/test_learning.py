@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Test suite for the filters module of the pygsp package.
+Test suite for the learning module of the pygsp package.
 
 """
 
