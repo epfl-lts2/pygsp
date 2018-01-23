@@ -10,56 +10,56 @@ import scipy
 
 
 def classification_tik(G, y, M, tau=0):
-    ''' Solve a semi-supervised classification problem on the graph.
+    r"""Solve a semi-supervised classification problem on the graph.
 
-        The function first transform y in logits Y. Then it solves
+    The function first transform y in logits Y. Then it solves
 
-            argmin_X   || M X - Y ||_2^2 + tau tr(X^T L X)
+        argmin_X   || M X - Y ||_2^2 + tau tr(X^T L X)
 
-        if tau > 0 and
+    if tau > 0 and
 
-            argmin_X   tr(X^T L X)   s. t.  Y = M X
+        argmin_X   tr(X^T L X)   s. t.  Y = M X
 
-        otherwise, where X and Y are logits. Eventually, the function return
-        the maximum of the logits.
+    otherwise, where X and Y are logits. Eventually, the function return
+    the maximum of the logits.
 
-        Inputs
-        ------
-        G : Graph
-        y : Measurements (numpy array [G.N, :])
-        M : Mask (vector of boolean [G.N,])
-        tau : regularization parameter
+    Inputs
+    ------
+    G : Graph
+    y : Measurements (numpy array [G.N, :])
+    M : Mask (vector of boolean [G.N,])
+    tau : regularization parameter
 
-        Example
-        -------
-        import numpy as np
-        import pygsp
-        import matplotlib.pyplot as plt
-        pygsp.plotting.BACKEND = 'matplotlib'
+    Example
+    -------
+    import numpy as np
+    import pygsp
+    import matplotlib.pyplot as plt
+    pygsp.plotting.BACKEND = 'matplotlib'
 
-        G = pygsp.graphs.Logo()
-        idx_g = np.squeeze(G.info['idx_g'])
-        idx_s = np.squeeze(G.info['idx_s'])
-        idx_p = np.squeeze(G.info['idx_p'])
-        sig = np.zeros([G.N])
-        sig[idx_s] = 1
-        sig[idx_p] = 2
+    G = pygsp.graphs.Logo()
+    idx_g = np.squeeze(G.info['idx_g'])
+    idx_s = np.squeeze(G.info['idx_s'])
+    idx_p = np.squeeze(G.info['idx_p'])
+    sig = np.zeros([G.N])
+    sig[idx_s] = 1
+    sig[idx_p] = 2
 
-        # Make the input signal
-        M = np.random.uniform(0,1,[G.N])>0.5 # Mask
+    # Make the input signal
+    M = np.random.uniform(0,1,[G.N])>0.5 # Mask
 
-        measurements = sig.copy()
-        measurements[M==False] = np.nan
+    measurements = sig.copy()
+    measurements[M==False] = np.nan
 
-        # Solve the classification problem
-        recovery = pygsp.learning.classification_tik(G, measurements, M, tau=0)
+    # Solve the classification problem
+    recovery = pygsp.learning.classification_tik(G, measurements, M, tau=0)
 
-        # Plotting
-        f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14,4))
-        G.plot_signal(sig, plot_name = 'Ground truth', ax=ax1)
-        G.plot_signal(measurements, plot_name = 'Measurement', ax=ax2)
-        G.plot_signal(recovery, plot_name = 'Recovery', ax=ax3)
-    '''
+    # Plotting
+    f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14,4))
+    G.plot_signal(sig, plot_name = 'Ground truth', ax=ax1)
+    G.plot_signal(measurements, plot_name = 'Measurement', ax=ax2)
+    G.plot_signal(recovery, plot_name = 'Recovery', ax=ax3)
+    """
 
     def to_logits(x):
         l = np.zeros([len(x), np.max(x)+1])
@@ -73,56 +73,56 @@ def classification_tik(G, y, M, tau=0):
 
 
 def regression_tik(G, y, M, tau=0):
-    ''' Solve a regression problem on the graph
+    r"""Solve a regression problem on the graph
 
-        If tau > 0:
+    If tau > 0:
 
-            argmin_x   || M x - y ||_2^2 + tau x^T L x
+        argmin_x   || M x - y ||_2^2 + tau x^T L x
 
-        else:
+    else:
 
-            argmin_x   x^T L x    s. t.  y = M x
+        argmin_x   x^T L x    s. t.  y = M x
 
-        Inputs
-        ------
-        G : Graph
-        y : Measurements (numpy array [G.N, :])
-        M : Mask (vector of boolean [G.N,])
-        tau : regularization parameter
+    Inputs
+    ------
+    G : Graph
+    y : Measurements (numpy array [G.N, :])
+    M : Mask (vector of boolean [G.N,])
+    tau : regularization parameter
 
-        Example
-        -------
-        import numpy as np
-        import pygsp
-        import matplotlib.pyplot as plt
-        pygsp.plotting.BACKEND = 'matplotlib'
+    Examples
+    --------
+    import numpy as np
+    import pygsp
+    import matplotlib.pyplot as plt
+    pygsp.plotting.BACKEND = 'matplotlib'
 
-        # Create the graph
-        G = pygsp.graphs.Sensor(N=100)
-        G.estimate_lmax()
+    # Create the graph
+    G = pygsp.graphs.Sensor(N=100)
+    G.estimate_lmax()
 
-        # Create a smooth signal
-        filt = lambda x: 1 / (1+10*x)
-        g_filt = pygsp.filters.Filter(G,filt)
-        sig = g_filt.analyze(np.random.randn(G.N,1))
+    # Create a smooth signal
+    filt = lambda x: 1 / (1+10*x)
+    g_filt = pygsp.filters.Filter(G,filt)
+    sig = g_filt.analyze(np.random.randn(G.N,1))
 
-        # Make the input signal
-        M = np.random.uniform(0,1,[G.N])>0.5 # Mask
+    # Make the input signal
+    M = np.random.uniform(0,1,[G.N])>0.5 # Mask
 
-        measurements = sig.copy()
-        measurements[M==False] = np.nan
+    measurements = sig.copy()
+    measurements[M==False] = np.nan
 
-        # Reconstructing the signal
-        recovery = pygsp.learning.regression_tik(G, measurements, M, tau=0)
+    # Reconstructing the signal
+    recovery = pygsp.learning.regression_tik(G, measurements, M, tau=0)
 
-        # Plotting
-        f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(9,3))
-        c = [np.min(sig), np.max(sig[:,0])]
-        G.plot_signal(sig, plot_name = 'Ground truth', ax=ax1, limits=c)
-        G.plot_signal(measurements plot_name = 'Measurement', ax=ax2, limits=c)
-        G.plot_signal(recovery, plot_name = 'Recovery', ax=ax3, limits=c)
+    # Plotting
+    f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(9,3))
+    c = [np.min(sig), np.max(sig[:,0])]
+    G.plot_signal(sig, plot_name = 'Ground truth', ax=ax1, limits=c)
+    G.plot_signal(measurements plot_name = 'Measurement', ax=ax2, limits=c)
+    G.plot_signal(recovery, plot_name = 'Recovery', ax=ax3, limits=c)
 
-    '''
+    """
 
     if tau > 0:
         y[M == False] = 0
