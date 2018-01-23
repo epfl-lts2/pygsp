@@ -18,6 +18,7 @@ only loaded when needed, not when the PyGSP is imported. A nice side-effect is
 that importing the PyGSP is now much faster!
 
 The following packages were made optional dependencies:
+
 * scikit-image, as it is only used to build patch graphs from images. The
   problem was that scikit-image does not provide a wheel for Windows and its
   build is painful and error-prone. Moreover, scikit-image has a lot of
