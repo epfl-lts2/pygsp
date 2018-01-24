@@ -201,9 +201,9 @@ class TestCase(unittest.TestCase):
 
     def test_senorlarge(self):
         graphs.SensorLarge()
-        graphs.SensorLarge(k = 10)
-        graphs.SensorLarge(N=1001, k = 10)
-        graphs.SensorLarge(N=500, distribute=True, k = 10, use_flann=True)
+        graphs.SensorLarge(k=10)
+        graphs.SensorLarge(N=1001, k=10)
+        graphs.SensorLarge(N=500, distribute=True, k=10, use_flann=True)
 
     def test_cube(self):
         graphs.Cube()

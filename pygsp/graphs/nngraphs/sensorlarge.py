@@ -43,7 +43,7 @@ class SensorLarge(NNGraph):
         coords = self._create_coords(N, distribute)
 
         super(SensorLarge, self).__init__(Xin=coords, k=k, gtype=gtype,
-                                     plotting=plotting, **kwargs)
+                                          plotting=plotting, **kwargs)
 
 
     def _create_coords(self, N, distribute):

@@ -183,7 +183,7 @@ def regression_tik(G, y, M, tau=0):
         Luu = G.L[indu, :][:, indu]
         Wul = - G.L[indu, :][:, indl]
         if type(Luu).__module__ == np.__name__:
-            sol_part = np.linalg.solve(Luu, np.matmul(Wul,y[indl]))
+            sol_part = np.linalg.solve(Luu, np.matmul(Wul, y[indl]))
         else:
             sol_part = scipy.sparse.linalg.spsolve(Luu, Wul.dot(y[indl]))
 
