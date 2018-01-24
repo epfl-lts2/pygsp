@@ -43,8 +43,8 @@ class NNGraph(Graph):
     k : int, optional
         Number of neighbors for knn (default is 10)
     sigma : float, optional
-        Width parameter of the similarity kernel (default is None)
-        By default sigma is set to the average of the nearest neighboor distance
+        Width parameter of the similarity kernel (default is None, sigma is set
+        to the average of the nearest neighboor distance).
     epsilon : float, optional
         Radius for the epsilon-neighborhood search (default is 0.01)
     gtype : string, optional
@@ -76,7 +76,7 @@ class NNGraph(Graph):
     """
 
     def __init__(self, Xin, NNtype='knn', use_flann=None, center=True,
-                 rescale=True, k=10, sigma=0.1, epsilon=0.01, gtype=None,
+                 rescale=True, k=10, sigma=None, epsilon=0.01, gtype=None,
                  plotting={}, symmetrize_type='average', dist_type='euclidean',
                  order=0, **kwargs):
 
@@ -189,6 +189,5 @@ class NNGraph(Graph):
                                       coords=Xout, **kwargs)
 
 
-    def _compute_default_sigma(self,D):
+    def _compute_default_sigma(self, D):
         self.sigma = np.mean(D)
-        return self.sigma
