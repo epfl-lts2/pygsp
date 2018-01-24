@@ -135,9 +135,9 @@ def distanz(x, y=None):
     >>> from pygsp import utils
     >>> x = np.arange(3)
     >>> utils.distanz(x, x)
-    array([[ 0.,  1.,  2.],
-           [ 1.,  0.,  1.],
-           [ 2.,  1.,  0.]])
+    array([[0., 1., 2.],
+           [1., 0., 1.],
+           [2., 1., 0.]])
 
     """
     try:
@@ -237,29 +237,29 @@ def symmetrize(W, method='average'):
     >>> from pygsp import utils
     >>> W = np.array([[0, 3, 0], [3, 1, 6], [4, 2, 3]], dtype=float)
     >>> W
-    array([[ 0.,  3.,  0.],
-           [ 3.,  1.,  6.],
-           [ 4.,  2.,  3.]])
+    array([[0., 3., 0.],
+           [3., 1., 6.],
+           [4., 2., 3.]])
     >>> utils.symmetrize(W, method='average')
-    array([[ 0.,  3.,  2.],
-           [ 3.,  1.,  4.],
-           [ 2.,  4.,  3.]])
+    array([[0., 3., 2.],
+           [3., 1., 4.],
+           [2., 4., 3.]])
     >>> utils.symmetrize(W, method='maximum')
-    array([[ 0.,  3.,  4.],
-           [ 3.,  1.,  6.],
-           [ 4.,  6.,  3.]])
+    array([[0., 3., 4.],
+           [3., 1., 6.],
+           [4., 6., 3.]])
     >>> utils.symmetrize(W, method='fill')
-    array([[ 0.,  3.,  4.],
-           [ 3.,  1.,  4.],
-           [ 4.,  4.,  3.]])
+    array([[0., 3., 4.],
+           [3., 1., 4.],
+           [4., 4., 3.]])
     >>> utils.symmetrize(W, method='tril')
-    array([[ 0.,  3.,  4.],
-           [ 3.,  1.,  2.],
-           [ 4.,  2.,  3.]])
+    array([[0., 3., 4.],
+           [3., 1., 2.],
+           [4., 2., 3.]])
     >>> utils.symmetrize(W, method='triu')
-    array([[ 0.,  3.,  0.],
-           [ 3.,  1.,  6.],
-           [ 0.,  6.,  3.]])
+    array([[0., 3., 0.],
+           [3., 1., 6.],
+           [0., 6., 3.]])
 
     """
     if W.shape[0] != W.shape[1]:
@@ -355,7 +355,7 @@ def compute_log_scales(lmin, lmax, Nscales, t1=1, t2=2):
     --------
     >>> from pygsp import utils
     >>> utils.compute_log_scales(1, 10, 3)
-    array([ 2.       ,  0.4472136,  0.1      ])
+    array([2.       , 0.4472136, 0.1      ])
 
     """
     scale_min = t1 / lmax
