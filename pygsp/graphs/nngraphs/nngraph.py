@@ -35,7 +35,7 @@ class NNGraph(Graph):
         is 'knn').
     use_flann : bool, optional
         Use Fast Library for Approximate Nearest Neighbors (FLANN) or not.
-        (default is None, use flann if N is greater than 2000)
+        (default is False)
     center : bool, optional
         Center the data so that it has zero mean (default is True)
     rescale : bool, optional
@@ -75,17 +75,14 @@ class NNGraph(Graph):
 
     """
 
-    def __init__(self, Xin, NNtype='knn', use_flann=None, center=True,
+    def __init__(self, Xin, NNtype='knn', use_flann=False, center=True,
                  rescale=True, k=10, sigma=None, epsilon=0.01, gtype=None,
                  plotting={}, symmetrize_type='average', dist_type='euclidean',
                  order=0, **kwargs):
 
         self.Xin = Xin
         self.NNtype = NNtype
-        if use_flann is None:
-            self.use_flann = np.shape(Xin)[0] > 2000
-        else:
-            self.use_flann = use_flann
+        self.use_flann = use_flann
         self.center = center
         self.rescale = rescale
         self.k = k
