@@ -131,13 +131,15 @@ class NNGraph(Graph):
                 # seems to work best).
                 NN, D = flann.nn(Xout, Xout, num_neighbors=(k + 1),
                                  algorithm='kdtree')
-                if self.sigma is None:
-                    self._compute_default_sigma(D)
 
             else:
                 kdt = spatial.KDTree(Xout)
                 D, NN = kdt.query(Xout, k=(k + 1),
                                   p=dist_translation[dist_type])
+
+            if self.sigma is None:
+                # Note that we discard distance to self.
+                self.sigma = np.mean(D[:, 1:])
 
             for i in range(N):
                 spi[i * k:(i + 1) * k] = np.kron(np.ones((k)), i)
@@ -151,7 +153,8 @@ class NNGraph(Graph):
             D, NN = kdt.query(Xout, k=None, distance_upper_bound=epsilon,
                               p=dist_translation[dist_type])
             if self.sigma is None:
-                self._compute_default_sigma(D)
+                # Note that we discard distance to self.
+                self.sigma = np.mean([np.mean(d[1:]) for d in D])
             count = 0
             for i in range(N):
                 count = count + len(NN[i])
@@ -184,7 +187,3 @@ class NNGraph(Graph):
 
         super(NNGraph, self).__init__(W=W, gtype=gtype, plotting=plotting,
                                       coords=Xout, **kwargs)
-
-
-    def _compute_default_sigma(self, D):
-        self.sigma = np.mean(D)
