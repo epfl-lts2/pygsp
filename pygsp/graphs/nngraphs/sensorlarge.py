@@ -8,6 +8,9 @@ from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 class SensorLarge(NNGraph):
     r"""Random sensor graph.
 
+    When creating large graphs, it is more computationally efficient than the
+    Sensor graph.
+
     Parameters
     ----------
     N : int
@@ -18,13 +21,13 @@ class SensorLarge(NNGraph):
         Seed for the random number generator (for reproducible graphs).
     k : number of neighboors (Default 6)
 
-    For additional parameters, please refer to NNGraph.
-
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> G = graphs.SensorLarge(N=3000, seed=42)
-    >>> _ = plt.spy(G.W, markersize=2)
+    >>> G = graphs.SensorLarge(N=64, seed=42)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=2)
+    >>> G.plot(ax=axes[1])
 
     """
 
@@ -40,7 +43,7 @@ class SensorLarge(NNGraph):
         coords = self._create_coords(N, distribute)
 
         super(SensorLarge, self).__init__(Xin=coords, k=k, gtype=gtype,
-                                     plotting=plotting, **kwargs)
+                                          plotting=plotting, **kwargs)
 
 
     def _create_coords(self, N, distribute):

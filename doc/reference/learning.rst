@@ -1,0 +1,5 @@
+========
+Learning
+========
+
+.. automodule:: pygsp.learning

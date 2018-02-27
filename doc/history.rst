@@ -2,6 +2,16 @@
 History
 =======
 
+0.x.x (xxxx-xx-xx)
+------------------
+
+New features:
+
+* A learning module with two functions to solve classification and regression
+  semi-supervised learning problems.
+* SensorLarge: a sensor graph model which scales linearly with the number of
+  nodes.
+
 0.5.1 (2017-12-15)
 ------------------
 

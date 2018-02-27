@@ -35,7 +35,7 @@ class NNGraph(Graph):
         is 'knn').
     use_flann : bool, optional
         Use Fast Library for Approximate Nearest Neighbors (FLANN) or not.
-        (default is None, use flann if N is greater than 2000)
+        (default is False)
     center : bool, optional
         Center the data so that it has zero mean (default is True)
     rescale : bool, optional
@@ -43,8 +43,8 @@ class NNGraph(Graph):
     k : int, optional
         Number of neighbors for knn (default is 10)
     sigma : float, optional
-        Width parameter of the similarity kernel (default is None)
-        By default sigma is set to the average of the nearest neighboor distance
+        Width parameter of the similarity kernel (default is None, sigma is set
+        to the average of the nearest neighboor distance).
     epsilon : float, optional
         Radius for the epsilon-neighborhood search (default is 0.01)
     gtype : string, optional
@@ -75,17 +75,14 @@ class NNGraph(Graph):
 
     """
 
-    def __init__(self, Xin, NNtype='knn', use_flann=None, center=True,
-                 rescale=True, k=10, sigma=0.1, epsilon=0.01, gtype=None,
+    def __init__(self, Xin, NNtype='knn', use_flann=False, center=True,
+                 rescale=True, k=10, sigma=None, epsilon=0.01, gtype=None,
                  plotting={}, symmetrize_type='average', dist_type='euclidean',
                  order=0, **kwargs):
 
         self.Xin = Xin
         self.NNtype = NNtype
-        if use_flann is None:
-            self.use_flann = np.shape(Xin)[0] > 2000
-        else:
-            self.use_flann = use_flann
+        self.use_flann = use_flann
         self.center = center
         self.rescale = rescale
         self.k = k
@@ -134,13 +131,15 @@ class NNGraph(Graph):
                 # seems to work best).
                 NN, D = flann.nn(Xout, Xout, num_neighbors=(k + 1),
                                  algorithm='kdtree')
-                if self.sigma is None:
-                    self._compute_default_sigma(D)
 
             else:
                 kdt = spatial.KDTree(Xout)
                 D, NN = kdt.query(Xout, k=(k + 1),
                                   p=dist_translation[dist_type])
+
+            if self.sigma is None:
+                # Note that we discard distance to self.
+                self.sigma = np.mean(D[:, 1:])
 
             for i in range(N):
                 spi[i * k:(i + 1) * k] = np.kron(np.ones((k)), i)
@@ -154,7 +153,8 @@ class NNGraph(Graph):
             D, NN = kdt.query(Xout, k=None, distance_upper_bound=epsilon,
                               p=dist_translation[dist_type])
             if self.sigma is None:
-                self._compute_default_sigma(D)
+                # Note that we discard distance to self.
+                self.sigma = np.mean([np.mean(d[1:]) for d in D])
             count = 0
             for i in range(N):
                 count = count + len(NN[i])
@@ -187,8 +187,3 @@ class NNGraph(Graph):
 
         super(NNGraph, self).__init__(W=W, gtype=gtype, plotting=plotting,
                                       coords=Xout, **kwargs)
-
-
-    def _compute_default_sigma(self,D):
-        self.sigma = np.mean(D)
-        return self.sigma

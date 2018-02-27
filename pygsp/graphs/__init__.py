@@ -122,6 +122,7 @@ Nearest-neighbors graphs constructed from point clouds
     Cube
     ImgPatches
     Grid2dImgPatches
+    SensorLarge
     Sphere
     TwoMoons
 

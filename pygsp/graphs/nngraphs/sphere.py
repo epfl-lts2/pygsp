@@ -10,13 +10,13 @@ class Sphere(NNGraph):
 
     Parameters
     ----------
-    radius : flaot
+    radius : float
         Radius of the sphere (default = 1)
     nb_pts : int
         Number of vertices (default = 300)
     nb_dim : int
         Dimension (default = 3)
-    sampling : sting
+    sampling : string
         Variance of the distance kernel (default = 'random')
         (Can now only be 'random')
     seed : int
