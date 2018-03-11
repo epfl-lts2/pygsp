@@ -36,14 +36,16 @@ def setup(doctest):
         'np': numpy,
     }
 
+loader = unittest.TestLoader()
 
 suites = []
-suites.append(test_graphs.suite)
-suites.append(test_filters.suite)
-suites.append(test_utils.suite)
+suites.append(loader.loadTestsFromModule(test_graphs))
+suites.append(loader.loadTestsFromModule(test_filters))
+suites.append(loader.loadTestsFromModule(test_utils))
 suites.append(test_docstrings('pygsp', '.py', setup))
 suites.append(test_docstrings('.', '.rst'))  # No setup to not forget imports.
-suites.append(test_plotting.suite)  # TODO: can SIGSEGV if not last
+# TODO: can SIGSEGV if not last.
+suites.append(loader.loadTestsFromModule(test_plotting))
 suite = unittest.TestSuite(suites)
 
 

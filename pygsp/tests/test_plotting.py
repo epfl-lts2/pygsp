@@ -105,6 +105,3 @@ class TestCase(unittest.TestCase):
         test(G)
         G = graphs.Torus(Nv=5)
         test(G)
-
-
-suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

@@ -228,6 +228,3 @@ class TestCase(unittest.TestCase):
 
         np.testing.assert_allclose(c_exact, c_cheby)
         self.assertRaises(ValueError, f.filter, self._signal, method='lanczos')
-
-
-suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
