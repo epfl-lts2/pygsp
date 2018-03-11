@@ -228,3 +228,28 @@ class TestCase(unittest.TestCase):
 
         np.testing.assert_allclose(c_exact, c_cheby)
         self.assertRaises(ValueError, f.filter, self._signal, method='lanczos')
+
+
+class TestApproximations(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls._G = graphs.Logo()
+        cls._G.compute_fourier_basis()
+        cls._rs = np.random.RandomState(42)
+        cls._signal = cls._rs.uniform(size=cls._G.N)
+
+    def test_chebyshev_basis(self):
+        r"""
+        Test that the evaluation of the Chebyshev series yields the expected
+        basis.
+        """
+        K = 5
+        c = 2
+        f = filters.Chebyshev(self._G, c * np.identity(K))
+        N = 100
+        x = np.linspace(0, self._G.lmax, N)
+        y = f.evaluate(x)
+        np.testing.assert_equal(y[0], c)
+        np.testing.assert_allclose(y[1], np.linspace(-c, c, 100))
+        # TODO: do it for higher orders with the trigonometric definition

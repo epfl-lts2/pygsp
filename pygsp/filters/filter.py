@@ -87,6 +87,7 @@ class Filter(object):
         [<matplotlib.lines.Line2D object at ...>]
 
         """
+        x = np.asarray(x)
         return self._evaluate(x)
 
     def _evaluate(self, x):
@@ -218,6 +219,7 @@ class Filter(object):
         True
 
         """
+        s = np.asarray(s)
         return self._filter(s, method, order)
 
     def _filter(self, s, method='chebyshev', order=30):
