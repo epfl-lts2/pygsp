@@ -61,7 +61,7 @@ class Heat(Filter):
 
     """
 
-    def __init__(self, G, tau=10, normalize=False, **kwargs):
+    def __init__(self, G, tau=10, normalize=False):
 
         try:
             iter(tau)
@@ -76,4 +76,4 @@ class Heat(Filter):
             norm = np.linalg.norm(kernel(G.e, t)) if normalize else 1
             g.append(lambda x, t=t, norm=norm: kernel(x, t) / norm)
 
-        super(Heat, self).__init__(G, g, **kwargs)
+        super(Heat, self).__init__(G, g)

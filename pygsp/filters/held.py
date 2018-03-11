@@ -45,7 +45,7 @@ class Held(Filter):
 
     """
 
-    def __init__(self, G, a=2./3, **kwargs):
+    def __init__(self, G, a=2./3):
 
         g = [lambda x: held(x * (2./G.lmax), a)]
         g.append(lambda x: np.real(np.sqrt(1 - (held(x * (2./G.lmax), a))
@@ -67,4 +67,4 @@ class Held(Filter):
 
             return y
 
-        super(Held, self).__init__(G, g, **kwargs)
+        super(Held, self).__init__(G, g)
