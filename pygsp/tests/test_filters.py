@@ -249,13 +249,18 @@ class TestApproximations(unittest.TestCase):
         x = np.linspace(0, self._G.lmax, N)
         y = f.evaluate(x)
         np.testing.assert_equal(y[0], c)
-        np.testing.assert_allclose(y[1], np.linspace(-c, c, 100))
+        np.testing.assert_allclose(y[1], np.linspace(-c, c, N))
 
     def test_evaluation_methods(self, K=30, F=5, N=100):
         r"""Test that all evaluation methods return the same results."""
         coefficients = np.random.RandomState(42).uniform(size=(K, F))
         f = filters.Chebyshev(self._G, coefficients)
         x = np.linspace(0, self._G.lmax, N)
+        y1 = f.evaluate(x, method='recursive')
+        y2 = f.evaluate(x, method='direct')
+        np.testing.assert_allclose(y1, y2)
+        # Evaluate on n-dimensional arrays.
+        x = np.random.RandomState(42).uniform(0, self._G.lmax, size=(3, 1, 19))
         y1 = f.evaluate(x, method='recursive')
         y2 = f.evaluate(x, method='direct')
         np.testing.assert_allclose(y1, y2)

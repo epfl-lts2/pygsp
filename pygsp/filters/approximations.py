@@ -59,6 +59,7 @@ class Chebyshev(Filter):
 
         x = 2 * x / self.G.lmax - 1  # [0, lmax] => [-1, 1]
 
+        # The recursive method is the fastest.
         method = 'recursive' if method is None else method
 
         return getattr(self, '_evaluate_' + method)(x)
@@ -83,7 +84,7 @@ class Chebyshev(Filter):
         K, F = self._coefficients.shape
         c = self._coefficients
         c = c.reshape(c.shape + (1,) * x.ndim)
-        result = np.zeros((F, x.shape[0]))
+        result = np.zeros((F,) + x.shape)
         x_arccos = np.arccos(x)
         for k in range(K):
             result += c[k] * np.cos(k * x_arccos).dot(s)
