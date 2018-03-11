@@ -60,7 +60,7 @@ class Filter(object):
 
         self.Nf = len(kernels)
 
-    def evaluate(self, x):
+    def evaluate(self, x, method=None):
         r"""Evaluate the kernels at given frequencies.
 
         Parameters
@@ -88,9 +88,9 @@ class Filter(object):
 
         """
         x = np.asarray(x)
-        return self._evaluate(x)
+        return self._evaluate(x, method)
 
-    def _evaluate(self, x):
+    def _evaluate(self, x, _):
         r"""Default implementation for filters defined as kernel functions."""
         # Avoid to copy data as with np.array([g(x) for g in self._kernels]).
         y = np.empty((self.Nf, len(x)))
@@ -98,7 +98,7 @@ class Filter(object):
             y[i] = kernel(x)
         return y
 
-    def filter(self, s, method='chebyshev', order=30):
+    def filter(self, s, method=None, order=30):
         r"""Filter signals (analysis or synthesis).
 
         A signal is defined as a rank-3 tensor of shape ``(N_NODES, N_SIGNALS,
@@ -224,6 +224,8 @@ class Filter(object):
 
     def _filter(self, s, method='chebyshev', order=30):
         r"""Default implementation for filters defined as kernel functions."""
+
+        method = 'chebyshev' if method is None else method
 
         if s.shape[0] != self.G.N:
             raise ValueError('First dimension should be the number of nodes '

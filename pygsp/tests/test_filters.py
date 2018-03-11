@@ -239,17 +239,23 @@ class TestApproximations(unittest.TestCase):
         cls._rs = np.random.RandomState(42)
         cls._signal = cls._rs.uniform(size=cls._G.N)
 
-    def test_chebyshev_basis(self):
+    def test_chebyshev_basis(self, K=5, c=2, N=100):
         r"""
         Test that the evaluation of the Chebyshev series yields the expected
-        basis.
+        basis. We only test the first two elements here. The higher-order
+        polynomials are compared with the trigonometric definition.
         """
-        K = 5
-        c = 2
         f = filters.Chebyshev(self._G, c * np.identity(K))
-        N = 100
         x = np.linspace(0, self._G.lmax, N)
         y = f.evaluate(x)
         np.testing.assert_equal(y[0], c)
         np.testing.assert_allclose(y[1], np.linspace(-c, c, 100))
-        # TODO: do it for higher orders with the trigonometric definition
+
+    def test_evaluation_methods(self, K=30, F=5, N=100):
+        r"""Test that all evaluation methods return the same results."""
+        coefficients = np.random.RandomState(42).uniform(size=(K, F))
+        f = filters.Chebyshev(self._G, coefficients)
+        x = np.linspace(0, self._G.lmax, N)
+        y1 = f.evaluate(x, method='recursive')
+        y2 = f.evaluate(x, method='direct')
+        np.testing.assert_allclose(y1, y2)
