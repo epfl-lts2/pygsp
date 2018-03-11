@@ -113,4 +113,4 @@ _APPROXIMATIONS = [
 __all__ = _FILTERS + _APPROXIMATIONS
 
 _utils.import_classes(_FILTERS, 'filters', 'filters')
-_utils.import_functions(_APPROXIMATIONS, 'filters.approximations', 'filters')
+_utils.import_functions(_APPROXIMATIONS, 'filters.approximations_old', 'filters')

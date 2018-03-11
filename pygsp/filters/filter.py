@@ -4,7 +4,7 @@ import numpy as np
 
 from pygsp import utils
 # prevent circular import in Python < 3.5
-from . import approximations
+from . import approximations_old as approximations
 
 
 _logger = utils.build_logger(__name__)
