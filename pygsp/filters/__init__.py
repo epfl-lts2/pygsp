@@ -69,6 +69,10 @@ account the cost of the necessary eigendecomposition of the graph Laplacian).
 
 .. autosummary::
 
+    Chebyshev
+
+.. autosummary::
+
     compute_cheby_coeff
     compute_jackson_cheby_coeff
     cheby_op
@@ -110,7 +114,9 @@ _APPROXIMATIONS = [
     'lanczos_op'
 ]
 
-__all__ = _FILTERS + _APPROXIMATIONS
+__all__ = _FILTERS + _APPROXIMATIONS + ['Chebyshev']
 
 _utils.import_classes(_FILTERS, 'filters', 'filters')
 _utils.import_functions(_APPROXIMATIONS, 'filters.approximations_old', 'filters')
+
+from .approximations import *

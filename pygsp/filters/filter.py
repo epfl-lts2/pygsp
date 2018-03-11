@@ -87,6 +87,10 @@ class Filter(object):
         [<matplotlib.lines.Line2D object at ...>]
 
         """
+        return self._evaluate(x)
+
+    def _evaluate(self, x):
+        r"""Default implementation for filters defined as kernel functions."""
         # Avoid to copy data as with np.array([g(x) for g in self._kernels]).
         y = np.empty((self.Nf, len(x)))
         for i, kernel in enumerate(self._kernels):
@@ -214,6 +218,11 @@ class Filter(object):
         True
 
         """
+        return self._filter(s, method, order)
+
+    def _filter(self, s, method='chebyshev', order=30):
+        r"""Default implementation for filters defined as kernel functions."""
+
         if s.shape[0] != self.G.N:
             raise ValueError('First dimension should be the number of nodes '
                              'G.N = {}, got {}.'.format(self.G.N, s.shape))
