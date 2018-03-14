@@ -33,13 +33,11 @@ PyGSP: Graph Signal Processing in Python
 
 The PyGSP is a Python package to ease
 `Signal Processing on Graphs <https://arxiv.org/abs/1211.0053>`_.
-It is a free software, distributed under the BSD license, and
-available on `PyPI <https://pypi.python.org/pypi/PyGSP>`_.
 The documentation is available on
 `Read the Docs <https://pygsp.readthedocs.io>`_
 and development takes place on
 `GitHub <https://github.com/epfl-lts2/pygsp>`_.
-(A `Matlab counterpart <https://lts2.epfl.ch/gsp>`_ exists.)
+A (mostly unmaintained) `Matlab version <https://lts2.epfl.ch/gsp>`_ exists.
 
 The PyGSP facilitates a wide variety of operations on graphs, like computing
 their Fourier basis, filtering or interpolating signals, plotting graphs,
@@ -60,8 +58,15 @@ main objects of the package.
 
 >>> from pygsp import graphs, filters
 >>> G = graphs.Logo()
->>> G.estimate_lmax()
->>> g = filters.Heat(G, tau=100)
+>>> G.compute_fourier_basis()  # Fourier to plot the eigenvalues.
+>>> # G.estimate_lmax() is otherwise sufficient.
+>>> g = filters.Heat(G, tau=50)
+>>> g.plot()
+
+.. image:: ../pygsp/data/readme_example_filter.png
+    :alt:
+.. image:: pygsp/data/readme_example_filter.png
+    :alt:
 
 Let's now create a graph signal: a set of three Kronecker deltas for that
 example. We can now look at one step of heat diffusion by filtering the deltas
@@ -73,11 +78,11 @@ structure!
 >>> s = np.zeros(G.N)
 >>> s[DELTAS] = 1
 >>> s = g.filter(s)
->>> G.plot_signal(s, highlight=DELTAS, backend='matplotlib')
+>>> G.plot_signal(s, highlight=DELTAS)
 
-.. image:: ../pygsp/data/readme_example.png
+.. image:: ../pygsp/data/readme_example_graph.png
     :alt:
-.. image:: pygsp/data/readme_example.png
+.. image:: pygsp/data/readme_example_graph.png
     :alt:
 
 You can
@@ -86,7 +91,7 @@ look at the
 `tutorials <https://pygsp.readthedocs.io/en/stable/tutorials/index.html>`_
 to learn how to use it, or look at the
 `reference guide <https://pygsp.readthedocs.io/en/stable/reference/index.html>`_
-for an exhaustive documentation of the API. Enjoy the package!
+for an exhaustive documentation of the API. Enjoy!
 
 Installation
 ------------
@@ -118,3 +123,16 @@ under grant 200021_154350 "Towards Signal Processing on Graphs".
 If you are using the library for your research, for the sake of
 reproducibility, please cite the version you used as indexed by
 `Zenodo <https://doi.org/10.5281/zenodo.1003157>`_.
+Or cite the generic concept as::
+
+    @misc{pygsp,
+      author = {Michaël Defferrard and
+                Rodrigo Pena and
+                Alexandre Lafaye and
+                Basile Châtillon and
+                Nicolas Rod and
+                Lionel Martin},
+      title  = {PyGSP: Graph Signal Processing in Python},
+      doi    = {10.5281/zenodo.1003157},
+      url    = {https://doi.org/10.5281/zenodo.1003157},
+    }
