@@ -55,7 +55,7 @@ class Chebyshev(Filter):
         if x.min() < 0 or x.max() > self.G.lmax:
             _logger.warning('You are trying to evaluate Chebyshev '
                             'polynomials outside of their orthonormal '
-                            'domain [0, {:.2f}].'.format(self.G.lmax))
+                            'domain [0, G.lmax={:.2f}].'.format(self.G.lmax))
 
         x = 2 * x / self.G.lmax - 1  # [0, lmax] => [-1, 1]
 
@@ -67,11 +67,18 @@ class Chebyshev(Filter):
     def _filter(self, s, method, _):
         # method = 'clenshaw' in constructor or filter?
 
-        M, M = L.shape
-        I = sparse.identity(M, format='csr', dtype=L.dtype)
-        L = 2 * L - self.G.lmax / 2 - I
+        L = self.G.L
+        if not sparse.issparse(L):
+            I = np.identity(self.G.N, dtype=L.dtype)
+        else:
+            I = sparse.identity(self.G.N, format=L.format, dtype=L.dtype)
 
-        return self._evaluate_direct(L, s)
+        L = 2 * L / self.G.lmax - I  # [0, lmax] => [-1, 1]
+
+        # The recursive method is the fastest.
+        method = 'recursive' if method is None else method
+
+        return getattr(self, '_filter_' + method)(L, s)
 
     def _compute_coefficients(self, filters):
         r"""Compute the coefficients of the Chebyshev series approximating the filters.
@@ -80,17 +87,17 @@ class Chebyshev(Filter):
         """
         pass
 
-    def _evaluate_direct(self, x, s=1):
+    def _evaluate_direct(self, x):
         K, F = self._coefficients.shape
         c = self._coefficients
         c = c.reshape(c.shape + (1,) * x.ndim)
         result = np.zeros((F,) + x.shape)
-        x_arccos = np.arccos(x)
+        x = np.arccos(x)
         for k in range(K):
-            result += c[k] * np.cos(k * x_arccos).dot(s)
+            result += c[k] * np.cos(k * x)
         return result
 
-    def _evaluate_recursive(self, x, s=1):
+    def _evaluate_recursive(self, x):
         """Evaluate a Chebyshev series for y. Optionally, times s.
 
         .. math: p(y) = \sum_{k=0}^{K} a_k * T_k(y) * s
@@ -112,18 +119,33 @@ class Chebyshev(Filter):
 
         """
 
-        K = self._coefficients.shape[0]
         c = self._coefficients
-        # Reshaping the coefficients to use broadcasting.
-        c = c.reshape(c.shape + (1,) * x.ndim)
+        K = c.shape[0]
+        c = c.reshape(c.shape + (1,) * x.ndim)  # For broadcasting.
 
         x0 = np.ones_like(x)
-        result = c[0] * x0.dot(s)
+        result = c[0] * x0
         if K > 1:
             x1 = x
             result += c[1] * x1
         for k in range(2, K):
-            x2 = 2 * x.dot(s) * x1 - x0
+            x2 = 2 * x * x1 - x0
+            result += c[k] * x2
+            x0, x1 = x1, x2
+        return result
+
+    def _filter_recursive(self, L, s):
+        c = self._coefficients
+        K = c.shape[0]
+        c = c.reshape(c.shape + (1,) * s.ndim)  # For broadcasting.
+
+        x0 = s
+        result = c[0] * x0
+        if K > 1:
+            x1 = L.dot(s)
+            result += c[1] * x1
+        for k in range(2, K):
+            x2 = 2 * L.dot(x1) - x0
             result += c[k] * x2
             x0, x1 = x1, x2
         return result

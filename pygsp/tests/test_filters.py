@@ -264,3 +264,16 @@ class TestApproximations(unittest.TestCase):
         y1 = f.evaluate(x, method='recursive')
         y2 = f.evaluate(x, method='direct')
         np.testing.assert_allclose(y1, y2)
+
+    def test_filter_identity(self, c=2.3):
+        r"""Test that filtering with c0 only scales the signal."""
+        x = np.random.uniform(size=(self._G.N, 2, 3))
+        f = filters.Chebyshev(self._G, [[c]])
+        y = f.filter(x, method='recursive').squeeze()
+        np.testing.assert_equal(y, c * x)
+        # Test with dense Laplacian.
+        L = self._G.L
+        self._G.L = L.toarray()
+        y = f.filter(x, method='recursive').squeeze()
+        self._G.L = L
+        np.testing.assert_equal(y, c * x)

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from scipy import sparse
 
 from pygsp import utils
 # prevent circular import in Python < 3.5
@@ -87,7 +88,7 @@ class Filter(object):
         [<matplotlib.lines.Line2D object at ...>]
 
         """
-        x = np.asarray(x)
+        x = np.asarray(x)  # For iterables. Sparse makes no sense here.
         return self._evaluate(x, method)
 
     def _evaluate(self, x, _):
@@ -219,7 +220,8 @@ class Filter(object):
         True
 
         """
-        s = np.asarray(s)
+        if not sparse.issparse(s):
+            s = np.asarray(s)  # For iterables.
         return self._filter(s, method, order)
 
     def _filter(self, s, method='chebyshev', order=30):
