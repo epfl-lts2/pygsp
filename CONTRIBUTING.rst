@@ -57,6 +57,9 @@ Making a release
 
    Log in as the LTS2 user.
 #. Build and upload the distribution to the real PyPI with ``make release``.
+#. Update the conda feedstock (at least the version number and sha256 in
+   ``recipe/meta.yaml``) by sending a PR to
+   `conda-forge <https://github.com/conda-forge/pygsp-feedstock>`_.
 
 Repository organization
 -----------------------
