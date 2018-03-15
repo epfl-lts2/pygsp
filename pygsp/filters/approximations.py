@@ -63,15 +63,18 @@ class Chebyshev(Filter):
 
         x = 2 * x / self.G.lmax - 1  # [0, lmax] => [-1, 1]
 
-        # The recursive method is the fastest.
+        c = self._coefficients
+        K, Fout, Fin = c.shape  # #order x #features_out x #features_in
+        c = c.reshape((K, Fout * Fin) + (1,) * x.ndim)  # For broadcasting.
+
+        # Recursive faster than direct faster than clenshaw.
         method = 'recursive' if method is None else method
 
-        return getattr(self, '_evaluate_' + method)(x)
+        y = getattr(self, '_evaluate_' + method)(c, x)
+
+        return y.reshape((Fout, Fin) + x.shape).squeeze()
 
     def _filter(self, s, method, _):
-        # method = 'clenshaw' in constructor or filter?
-        # Might be faster with signals in fortran-contiguous format.
-        # s: N_SIGNALS x N_FEATURES x N_NODES
 
         L = self.G.L
         if not sparse.issparse(L):
@@ -81,7 +84,7 @@ class Chebyshev(Filter):
 
         L = 2 * L / self.G.lmax - I  # [0, lmax] => [-1, 1]
 
-        # The recursive method is the fastest.
+        # Recursive and clenshaw are similarly fast.
         method = 'recursive' if method is None else method
 
         return getattr(self, '_filter_' + method)(L, s)
@@ -93,18 +96,16 @@ class Chebyshev(Filter):
         """
         pass
 
-    def _evaluate_direct(self, x):
+    def _evaluate_direct(self, c, x):
         r"""Evaluate Fout*Fin polynomials at each value in x."""
-        c = self._coefficients
-        K, Fout, Fin = c.shape  # #order x #features_out x #features_in
-        c = c.reshape((K, Fout * Fin) + (1,) * x.ndim)  # For broadcasting.
-        result = np.zeros((Fout * Fin,) + x.shape)
+        K, F = c.shape[:2]
+        result = np.zeros((F,) + x.shape)
         x = np.arccos(x)
         for k in range(K):
             result += c[k] * np.cos(k * x)
-        return result.reshape((Fout, Fin) + x.shape).squeeze()
+        return result
 
-    def _evaluate_recursive(self, x):
+    def _evaluate_recursive(self, c, x):
         """Evaluate a Chebyshev series for y. Optionally, times s.
 
         .. math: p(y) = \sum_{k=0}^{K} a_k * T_k(y) * s
@@ -125,11 +126,7 @@ class Chebyshev(Filter):
         corresponding Chebyshev Series. (size F x N)
 
         """
-
-        c = self._coefficients
-        K, Fout, Fin = c.shape  # #order x #features_out x #features_in
-        c = c.reshape((K, Fout * Fin) + (1,) * x.ndim)  # For broadcasting.
-
+        K = c.shape[0]
         x0 = np.ones_like(x)
         result = c[0] * x0
         if K > 1:
@@ -139,7 +136,7 @@ class Chebyshev(Filter):
             x2 = 2 * x * x1 - x0
             result += c[k] * x2
             x0, x1 = x1, x2
-        return result.reshape((Fout, Fin) + x.shape).squeeze()
+        return result
 
     def _filter_recursive(self, L, s):
         r"""Filter a signal with the 3-way recursive relation.
@@ -152,14 +149,14 @@ class Chebyshev(Filter):
 
         def mult(c, x):
             """Multiply the diffused signals by the Chebyshev coefficients."""
-            x.shape = (N, Fin, M)
-            return np.einsum('oi,nim->nom', c, x)
+            x.shape = (M, Fin, N)
+            return np.einsum('oi,min->mon', c, x)
         def dot(L, x):
             """One diffusion step by multiplication with the Laplacian."""
-            x.shape = (N, Fin * M)
-            return L.dot(x)
+            x.shape = (M * Fin, N)
+            return L.__rmul__(x)  # x @ L
 
-        x0 = np.asarray(s.T, order='C')
+        x0 = s.view()
         result = mult(c[0], x0)
         if K > 1:
             x1 = dot(L, x0)
@@ -168,4 +165,36 @@ class Chebyshev(Filter):
             x2 = 2 * dot(L, x1) - x0
             result += mult(c[k], x2)
             x0, x1 = x1, x2
-        return result.T
+        return result
+
+    def _filter_clenshaw(self, L, s):
+        c = self._coefficients
+        K, Fout, Fin = c.shape  # #order x #features_out x #features_in
+        M, Fin, N = s.shape  # #signals x #features x #nodes
+
+        def mult(c, s):
+            """Multiply the signals by the Chebyshev coefficients."""
+            return np.einsum('oi,min->mon', c, s)
+        def dot(L, x):
+            """One diffusion step by multiplication with the Laplacian."""
+            x.shape = (M * Fout, N)
+            y = L.__rmul__(x)  # x @ L
+            x.shape = (M, Fout, N)
+            y.shape = (M, Fout, N)
+            return y
+
+        b2 = 0
+        b1 = mult(c[K-1], s) if K >= 2 else np.zeros((M, Fout, N))
+        for k in range(K-2, 0, -1):
+            b = mult(c[k], s) + 2 * dot(L, b1) - b2
+            b2, b1 = b1, b
+        return mult(c[0], s) + dot(L, b1) - b2
+
+    def _evaluate_clenshaw(self, c, x):
+        K = c.shape[0]
+        b2 = 0
+        b1 = c[K-1] * np.ones_like(x) if K >= 2 else 0
+        for k in range(K-2, 0, -1):
+            b = c[k] + 2 * x * b1 - b2
+            b2, b1 = b1, b
+        return c[0] + x * b1 - b2
