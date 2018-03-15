@@ -253,27 +253,35 @@ class TestApproximations(unittest.TestCase):
 
     def test_evaluation_methods(self, K=30, F=5, N=100):
         r"""Test that all evaluation methods return the same results."""
-        coefficients = np.random.RandomState(42).uniform(size=(K, F))
+        coefficients = self._rs.uniform(size=(K, F, F))
         f = filters.Chebyshev(self._G, coefficients)
         x = np.linspace(0, self._G.lmax, N)
         y1 = f.evaluate(x, method='recursive')
         y2 = f.evaluate(x, method='direct')
         np.testing.assert_allclose(y1, y2)
         # Evaluate on n-dimensional arrays.
-        x = np.random.RandomState(42).uniform(0, self._G.lmax, size=(3, 1, 19))
+        x = self._rs.uniform(0, self._G.lmax, size=(3, 1, 19))
         y1 = f.evaluate(x, method='recursive')
         y2 = f.evaluate(x, method='direct')
         np.testing.assert_allclose(y1, y2)
 
-    def test_filter_identity(self, c=2.3):
+    def test_filter_identity(self, M=10, c=2.3):
         r"""Test that filtering with c0 only scales the signal."""
-        x = np.random.uniform(size=(self._G.N, 2, 3))
-        f = filters.Chebyshev(self._G, [[c]])
-        y = f.filter(x, method='recursive').squeeze()
+        x = self._rs.uniform(size=(M, 1, self._G.N))
+        f = filters.Chebyshev(self._G, c)
+        y = f.filter(x, method='recursive')
         np.testing.assert_equal(y, c * x)
         # Test with dense Laplacian.
         L = self._G.L
         self._G.L = L.toarray()
-        y = f.filter(x, method='recursive').squeeze()
+        y = f.filter(x, method='recursive')
         self._G.L = L
         np.testing.assert_equal(y, c * x)
+
+    def test_filter_methods(self, K=30, Fin=5, Fout=6, M=100):
+        r"""Test that all filter methods return the same results."""
+        coefficients = self._rs.uniform(size=(K, Fout, Fin))
+        x = self._rs.uniform(size=(M, Fin, self._G.N))
+        f = filters.Chebyshev(self._G, coefficients)
+        y = f.filter(x)
+        self.assertTupleEqual(y.shape, (M, Fout, self._G.N))

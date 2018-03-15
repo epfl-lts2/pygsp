@@ -33,6 +33,8 @@ class Chebyshev(Filter):
         Either a :class:`Filter` object or a set of Chebyshev coefficients
         represented as an array of size K x F, where K is the polynomial
         order and F the number of filters.
+        K x Fout x Fin
+        For convenience, Fin and Fout can be omitted.
     order : int
         Polynomial order.
 
@@ -48,6 +50,8 @@ class Chebyshev(Filter):
             self.Nf = filters.Nf
         except:
             self._coefficients = np.asarray(filters)
+            while self._coefficients.ndim < 3:
+                self._coefficients = np.expand_dims(self._coefficients, -1)
             self.Nf = self._coefficients.shape[1]
 
     def _evaluate(self, x, method):
@@ -66,6 +70,8 @@ class Chebyshev(Filter):
 
     def _filter(self, s, method, _):
         # method = 'clenshaw' in constructor or filter?
+        # Might be faster with signals in fortran-contiguous format.
+        # s: N_SIGNALS x N_FEATURES x N_NODES
 
         L = self.G.L
         if not sparse.issparse(L):
@@ -88,14 +94,15 @@ class Chebyshev(Filter):
         pass
 
     def _evaluate_direct(self, x):
-        K, F = self._coefficients.shape
+        r"""Evaluate Fout*Fin polynomials at each value in x."""
         c = self._coefficients
-        c = c.reshape(c.shape + (1,) * x.ndim)
-        result = np.zeros((F,) + x.shape)
+        K, Fout, Fin = c.shape  # #order x #features_out x #features_in
+        c = c.reshape((K, Fout * Fin) + (1,) * x.ndim)  # For broadcasting.
+        result = np.zeros((Fout * Fin,) + x.shape)
         x = np.arccos(x)
         for k in range(K):
             result += c[k] * np.cos(k * x)
-        return result
+        return result.reshape((Fout, Fin) + x.shape).squeeze()
 
     def _evaluate_recursive(self, x):
         """Evaluate a Chebyshev series for y. Optionally, times s.
@@ -120,8 +127,8 @@ class Chebyshev(Filter):
         """
 
         c = self._coefficients
-        K = c.shape[0]
-        c = c.reshape(c.shape + (1,) * x.ndim)  # For broadcasting.
+        K, Fout, Fin = c.shape  # #order x #features_out x #features_in
+        c = c.reshape((K, Fout * Fin) + (1,) * x.ndim)  # For broadcasting.
 
         x0 = np.ones_like(x)
         result = c[0] * x0
@@ -132,20 +139,33 @@ class Chebyshev(Filter):
             x2 = 2 * x * x1 - x0
             result += c[k] * x2
             x0, x1 = x1, x2
-        return result
+        return result.reshape((Fout, Fin) + x.shape).squeeze()
 
     def _filter_recursive(self, L, s):
+        r"""Filter a signal with the 3-way recursive relation.
+        Time: O(M N Fin Fout K)
+        Space: O(4 M Fin N)
+        """
         c = self._coefficients
-        K = c.shape[0]
-        c = c.reshape(c.shape + (1,) * s.ndim)  # For broadcasting.
+        K, Fout, Fin = c.shape  # #order x #features_out x #features_in
+        M, Fin, N = s.shape  # #signals x #features x #nodes
 
-        x0 = s
-        result = c[0] * x0
+        def mult(c, x):
+            """Multiply the diffused signals by the Chebyshev coefficients."""
+            x.shape = (N, Fin, M)
+            return np.einsum('oi,nim->nom', c, x)
+        def dot(L, x):
+            """One diffusion step by multiplication with the Laplacian."""
+            x.shape = (N, Fin * M)
+            return L.dot(x)
+
+        x0 = np.asarray(s.T, order='C')
+        result = mult(c[0], x0)
         if K > 1:
-            x1 = L.dot(s)
-            result += c[1] * x1
+            x1 = dot(L, x0)
+            result += mult(c[1], x1)
         for k in range(2, K):
-            x2 = 2 * L.dot(x1) - x0
-            result += c[k] * x2
+            x2 = 2 * dot(L, x1) - x0
+            result += mult(c[k], x2)
             x0, x1 = x1, x2
-        return result
+        return result.T
