@@ -120,17 +120,16 @@ research purpose at the `EPFL LTS2 laboratory <https://lts2.epfl.ch>`_.
 This project has been partly funded by the Swiss National Science Foundation
 under grant 200021_154350 "Towards Signal Processing on Graphs".
 
+The code in this repository is released under the terms of the `BSD 3-Clause license <LICENSE.txt>`_.
+
 If you are using the library for your research, for the sake of
 reproducibility, please cite the version you used as indexed by
 `Zenodo <https://doi.org/10.5281/zenodo.1003157>`_.
 Or cite the generic concept as::
 
     @misc{pygsp,
-      author = {Michaël Defferrard and
-                Lionel Martin and
-                Rodrigo Pena and
-                Nathanaël Perraudin},
-      title  = {PyGSP: Graph Signal Processing in Python},
-      doi    = {10.5281/zenodo.1003157},
-      url    = {https://doi.org/10.5281/zenodo.1003157},
+      title = {PyGSP: Graph Signal Processing in Python},
+      author = {Defferrard, Micha\"el and Martin, Lionel and Pena, Rodrigo and Perraudin, Nathana\"el},
+      doi = {10.5281/zenodo.1003157},
+      url = {https://github.com/epfl-lts2/pygsp/},
     }
