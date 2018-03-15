@@ -14,7 +14,7 @@ PyGSP: Graph Signal Processing in Python
    :target: https://pygsp.readthedocs.io
 .. |pypi| image:: https://img.shields.io/pypi/v/pygsp.svg
    :target: https://pypi.python.org/pypi/PyGSP
-.. |zenodo| image:: https://zenodo.org/badge/16276560.svg
+.. |zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1003157.svg
    :target: https://doi.org/10.5281/zenodo.1003157
 .. |license| image:: https://img.shields.io/pypi/l/pygsp.svg
    :target: https://github.com/epfl-lts2/pygsp/blob/master/LICENSE.txt
@@ -127,11 +127,9 @@ Or cite the generic concept as::
 
     @misc{pygsp,
       author = {Michaël Defferrard and
+                Lionel Martin and
                 Rodrigo Pena and
-                Alexandre Lafaye and
-                Basile Châtillon and
-                Nicolas Rod and
-                Lionel Martin},
+                Nathanaël Perraudin},
       title  = {PyGSP: Graph Signal Processing in Python},
       doi    = {10.5281/zenodo.1003157},
       url    = {https://doi.org/10.5281/zenodo.1003157},
