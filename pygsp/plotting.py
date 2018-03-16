@@ -4,16 +4,19 @@ r"""
 The :mod:`pygsp.plotting` module implements functionality to plot PyGSP objects
 with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
 <https://matplotlib.org>`_ drawing backend (which can be controlled by the
-:data:`BACKEND` constant or individually for each plotting call):
+:data:`BACKEND` constant or individually for each plotting call).
 
-* graphs from :mod:`pygsp.graphs` with :func:`plot_graph`,
-  :func:`plot_spectrogram`, and :func:`plot_signal`,
-* filters from :mod:`pygsp.filters` with :func:`plot_filter`.
+Most users won't use this module directly.
+Graphs (from :mod:`pygsp.graphs`) are to be plotted with
+:meth:`pygsp.graphs.Graph.plot`, :meth:`pygsp.graphs.Graph.plot_spectrogram`,
+and :meth:`pygsp.graphs.Graph.plot_signal`.
+Filters (from :mod:`pygsp.filters`) are to be plotted with
+:meth:`pygsp.filters.Filter.plot`.
 
 .. data:: BACKEND
 
     Indicates which drawing backend to use if none are provided to the plotting
-    functions. Should be either 'matplotlib' or 'pyqtgraph'. In general
+    functions. Should be either ``'matplotlib'`` or ``'pyqtgraph'``. In general
     pyqtgraph is better for interactive exploration while matplotlib is better
     at generating figures to be included in papers or elsewhere.
 
@@ -62,6 +65,8 @@ def _import_qtg():
 
 
 def _plt_handle_figure(plot):
+    r"""Handle the common work (creating an axis if not given, setting the
+    title, saving the created plot) of all matplotlib plot commands."""
 
     # Preserve documentation of plot.
     @functools.wraps(plot)
@@ -127,9 +132,8 @@ def close_all():
 
 
 def show(*args, **kwargs):
-    r"""Show created figures.
+    r"""Show created figures, alias to plt.show().
 
-    Alias to plt.show().
     By default, showing plots does not block the prompt.
     """
     plt = _import_plt()
@@ -137,39 +141,9 @@ def show(*args, **kwargs):
 
 
 def close(*args, **kwargs):
-    r"""Close created figures.
-
-    Alias to plt.close().
-    """
+    r"""Close created figures, alias to plt.close()."""
     plt = _import_plt()
     plt.close(*args, **kwargs)
-
-
-def plot(O, **kwargs):
-    r"""
-    Main plotting function.
-
-    This convenience function either calls :func:`plot_graph` or
-    :func:`plot_filter` given the type of the passed object. Parameters can be
-    passed to those functions.
-
-    Parameters
-    ----------
-    O : Graph, Filter
-        object to plot
-
-    Examples
-    --------
-    >>> from pygsp import plotting
-    >>> G = graphs.Logo()
-    >>> plotting.plot(G)
-
-    """
-
-    try:
-        O.plot(**kwargs)
-    except AttributeError:
-        raise TypeError('Unrecognized object, i.e. not a Graph or Filter.')
 
 
 def _plot_graph(G, edges, backend, vertex_size, title, save, ax):
