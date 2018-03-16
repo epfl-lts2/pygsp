@@ -345,8 +345,8 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
 
 
 @_plt_handle_figure
-def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
-                x_size=10, plot_eigenvalues=None, show_sum=None, ax=None):
+def plot_filter(filters, npoints=1000, x_width=3, x_size=10,
+                plot_eigenvalues=None, show_sum=None, ax=None, **kwargs):
     r"""
     Plot the spectral response of a filter bank, a set of graph filters.
 
@@ -356,8 +356,6 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
         Filter bank to plot.
     npoints : int
         Number of point where the filters are evaluated.
-    line_width : int
-        Width of the filters plots.
     x_width : int
         Width of the X marks representing the eigenvalues.
     x_size : int
@@ -375,8 +373,12 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
         Whether to save the plot as save_as.png and save_as.pdf. Shown in a
         window if None (default). Only available with the matplotlib backend.
     ax : matplotlib.axes
-        Axes where to draw the graph. Optional, created if not passed. Only
-        available with the matplotlib backend.
+        Axes where to draw the graph. Optional, created if not passed.
+        Only available with the matplotlib backend.
+    kwargs : dict
+        Additional parameters passed to the matplotlib plot function.
+        Useful for example to change the linewidth, linestyle, or set a label.
+        Only available with the matplotlib backend.
 
     Examples
     --------
@@ -400,12 +402,12 @@ def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
 
     x = np.linspace(0, G.lmax, npoints)
     y = filters.evaluate(x).T
-    ax.plot(x, y, linewidth=line_width)
+    ax.plot(x, y, **kwargs)
 
     # TODO: plot highlighted eigenvalues
 
     if show_sum:
-        ax.plot(x, np.sum(y**2, 1), 'k', linewidth=line_width)
+        ax.plot(x, np.sum(y**2, 1), 'k', **kwargs)
 
     ax.set_xlabel("$\lambda$: laplacian's eigenvalues / graph frequencies")
     ax.set_ylabel('$\hat{g}(\lambda)$: filter response')
