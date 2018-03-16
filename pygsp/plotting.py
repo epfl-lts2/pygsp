@@ -79,17 +79,17 @@ def _plt_handle_figure(plot):
 
             kwargs.update(ax=ax)
 
-        save_as = kwargs.pop('save_as', None)
-        plot_name = kwargs.pop('plot_name', '')
+        save = kwargs.pop('save', None)
+        title = kwargs.pop('title', '')
 
         plot(obj, *args, **kwargs)
 
-        kwargs['ax'].set_title(plot_name)
+        kwargs['ax'].set_title(title)
 
         try:
-            if save_as is not None:
-                fig.savefig(save_as + '.png')
-                fig.savefig(save_as + '.pdf')
+            if save is not None:
+                fig.savefig(save + '.png')
+                fig.savefig(save + '.pdf')
             else:
                 fig.show(warn=False)
         except NameError:
@@ -182,7 +182,7 @@ def plot_graph(G, backend=None, **kwargs):
     ----------
     G : Graph
         Graph to plot.
-    show_edges : bool
+    edges : bool
         True to draw edges, false to only draw vertices.
         Default True if less than 10,000 edges to draw.
         Note that drawing a large number of edges might be particularly slow.
@@ -190,10 +190,10 @@ def plot_graph(G, backend=None, **kwargs):
         Defines the drawing backend to use. Defaults to :data:`BACKEND`.
     vertex_size : float
         Size of circle representing each node.
-    plot_name : str
-        name of the plot
-    save_as : str
-        Whether to save the plot as save_as.png and save_as.pdf. Shown in a
+    title : str
+        Title of the figure.
+    save : str
+        Whether to save the plot as save.png and save.pdf. Shown in a
         window if None (default). Only available with the matplotlib backend.
     ax : matplotlib.axes
         Axes where to draw the graph. Optional, created if not passed. Only
@@ -212,13 +212,13 @@ def plot_graph(G, backend=None, **kwargs):
     if (G.coords.ndim != 2) or (G.coords.shape[1] not in [2, 3]):
         raise AttributeError('Coordinates should be in 2D or 3D space.')
 
-    kwargs['show_edges'] = kwargs.pop('show_edges', G.Ne < 10e3)
+    kwargs['edges'] = kwargs.pop('edges', G.Ne < 10e3)
 
     default = G.plotting['vertex_size']
     kwargs['vertex_size'] = kwargs.pop('vertex_size', default)
 
-    plot_name = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
-    kwargs['plot_name'] = kwargs.pop('plot_name', plot_name)
+    title = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
+    kwargs['title'] = kwargs.pop('title', title)
 
     if backend is None:
         backend = BACKEND
@@ -234,12 +234,12 @@ def plot_graph(G, backend=None, **kwargs):
 
 
 @_plt_handle_figure
-def _plt_plot_graph(G, show_edges, vertex_size, ax):
+def _plt_plot_graph(G, edges, vertex_size, ax):
 
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
 
-    if show_edges:
+    if edges:
 
         if G.is_directed():
             raise NotImplementedError
@@ -289,7 +289,7 @@ def _plt_plot_graph(G, show_edges, vertex_size, ax):
             pass
 
 
-def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
+def _qtg_plot_graph(G, edges, vertex_size, title):
 
     # TODO handling when G is a list of graphs
 
@@ -303,11 +303,11 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
         if G.coords.shape[1] == 2:
 
             window = qtg.GraphicsWindow()
-            window.setWindowTitle(plot_name)
+            window.setWindowTitle(title)
             view = window.addViewBox()
             view.setAspectLocked()
 
-            if show_edges:
+            if edges:
                 pen = tuple(np.array(G.plotting['edge_color']) * 255)
             else:
                 pen = None
@@ -327,9 +327,9 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
             widget = gl.GLViewWidget()
             widget.opts['distance'] = 10
             widget.show()
-            widget.setWindowTitle(plot_name)
+            widget.setWindowTitle(title)
 
-            if show_edges:
+            if edges:
                 x, y, z = _get_coords(G)
                 pos = np.stack((x, y, z), axis=1)
                 g = gl.GLLinePlotItem(pos=pos, mode='lines',
@@ -345,8 +345,7 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
 
 
 @_plt_handle_figure
-def plot_filter(filters, npoints=1000, x_width=3, x_size=10,
-                plot_eigenvalues=None, show_sum=None, ax=None, **kwargs):
+def plot_filter(filters, n=500, eigenvalues=None, sum=None, ax=None, **kwargs):
     r"""
     Plot the spectral response of a filter bank, a set of graph filters.
 
@@ -354,23 +353,19 @@ def plot_filter(filters, npoints=1000, x_width=3, x_size=10,
     ----------
     filters : Filter
         Filter bank to plot.
-    npoints : int
-        Number of point where the filters are evaluated.
-    x_width : int
-        Width of the X marks representing the eigenvalues.
-    x_size : int
-        Size of the X marks representing the eigenvalues.
-    plot_eigenvalues : boolean
+    n : int
+        Number of points where the filters are evaluated.
+    eigenvalues : boolean
         To plot black X marks at all eigenvalues of the graph. You need to
         compute the Fourier basis to use this option. By default the
         eigenvalues are plot if they are contained in the Graph.
-    show_sum : boolean
+    sum : boolean
         To plot an extra line showing the sum of the squared magnitudes
         of the filters (default True if there is multiple filters).
-    plot_name : string
-        name of the plot
-    save_as : str
-        Whether to save the plot as save_as.png and save_as.pdf. Shown in a
+    title : str
+        Title of the figure.
+    save : str
+        Whether to save the plot as save.png and save.pdf. Shown in a
         window if None (default). Only available with the matplotlib backend.
     ax : matplotlib.axes
         Axes where to draw the graph. Optional, created if not passed.
@@ -391,22 +386,22 @@ def plot_filter(filters, npoints=1000, x_width=3, x_size=10,
 
     G = filters.G
 
-    if plot_eigenvalues is None:
-        plot_eigenvalues = hasattr(G, '_e')
-    if show_sum is None:
-        show_sum = filters.Nf > 1
+    if eigenvalues is None:
+        eigenvalues = hasattr(G, '_e')
+    if sum is None:
+        sum = filters.Nf > 1
 
-    if plot_eigenvalues:
+    if eigenvalues:
         for e in G.e:
             ax.axvline(x=e, color=[0.9]*3, linewidth=1)
 
-    x = np.linspace(0, G.lmax, npoints)
+    x = np.linspace(0, G.lmax, n)
     y = filters.evaluate(x).T
     ax.plot(x, y, **kwargs)
 
     # TODO: plot highlighted eigenvalues
 
-    if show_sum:
+    if sum:
         ax.plot(x, np.sum(y**2, 1), 'k', **kwargs)
 
     ax.set_xlabel("$\lambda$: laplacian's eigenvalues / graph frequencies")
@@ -423,7 +418,7 @@ def plot_signal(G, signal, backend=None, **kwargs):
         Graph to plot a signal on top.
     signal : array of int
         Signal to plot. Signal length should be equal to the number of nodes.
-    show_edges : bool
+    edges : bool
         True to draw edges, false to only draw vertices.
         Default True if less than 10,000 edges to draw.
         Note that drawing a large number of edges might be particularly slow.
@@ -449,10 +444,10 @@ def plot_signal(G, signal, backend=None, **kwargs):
         NOT IMPLEMENTED. Width of the bar (default 1).
     backend: {'matplotlib', 'pyqtgraph'}
         Defines the drawing backend to use. Defaults to :data:`BACKEND`.
-    plot_name : string
-        Name of the plot.
-    save_as : str
-        Whether to save the plot as save_as.png and save_as.pdf. Shown in a
+    title : str
+        Title of the figure.
+    save : str
+        Whether to save the plot as save.png and save.pdf. Shown in a
         window if None (default). Only available with the matplotlib backend.
     ax : matplotlib.axes
         Axes where to draw the graph. Optional, created if not passed. Only
@@ -484,13 +479,13 @@ def plot_signal(G, signal, backend=None, **kwargs):
     if np.sum(np.abs(signal.imag)) > 1e-10:
         raise ValueError("Can't display complex signal.")
 
-    kwargs['show_edges'] = kwargs.pop('show_edges', G.Ne < 10e3)
+    kwargs['edges'] = kwargs.pop('edges', G.Ne < 10e3)
 
     default = G.plotting['vertex_size']
     kwargs['vertex_size'] = kwargs.pop('vertex_size', default)
 
-    plot_name = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
-    kwargs['plot_name'] = kwargs.pop('plot_name', plot_name)
+    title = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
+    kwargs['title'] = kwargs.pop('title', title)
 
     limits = [1.05*signal.min(), 1.05*signal.max()]
     kwargs['limits'] = kwargs.pop('limits', limits)
@@ -509,10 +504,10 @@ def plot_signal(G, signal, backend=None, **kwargs):
 
 
 @_plt_handle_figure
-def _plt_plot_signal(G, signal, show_edges, limits, ax,
+def _plt_plot_signal(G, signal, edges, limits, ax,
                      vertex_size, highlight=[], colorbar=True):
 
-    if show_edges:
+    if edges:
 
         if G.is_directed():
             raise NotImplementedError
@@ -578,12 +573,12 @@ def _plt_plot_signal(G, signal, show_edges, limits, ax,
         plt.colorbar(sc, ax=ax)
 
 
-def _qtg_plot_signal(G, signal, show_edges, plot_name, vertex_size, limits):
+def _qtg_plot_signal(G, signal, edges, title, vertex_size, limits):
 
     qtg, gl, QtGui = _import_qtg()
 
     if G.coords.shape[1] == 2:
-        window = qtg.GraphicsWindow(plot_name)
+        window = qtg.GraphicsWindow(title)
         view = window.addViewBox()
 
     elif G.coords.shape[1] == 3:
@@ -592,9 +587,9 @@ def _qtg_plot_signal(G, signal, show_edges, plot_name, vertex_size, limits):
         widget = gl.GLViewWidget()
         widget.opts['distance'] = 10
         widget.show()
-        widget.setWindowTitle(plot_name)
+        widget.setWindowTitle(title)
 
-    if show_edges:
+    if edges:
 
         if G.is_directed():
             raise NotImplementedError
