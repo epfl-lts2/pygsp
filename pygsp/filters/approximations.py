@@ -70,7 +70,10 @@ class Chebyshev(Filter):
         # Recursive faster than direct faster than clenshaw.
         method = 'recursive' if method is None else method
 
-        y = getattr(self, '_evaluate_' + method)(c, x)
+        try:
+            y = getattr(self, '_evaluate_' + method)(c, x)
+        except AttributeError:
+            raise ValueError('Unknown method {}.'.format(method))
 
         return y.reshape((Fout, Fin) + x.shape).squeeze()
 
@@ -87,7 +90,10 @@ class Chebyshev(Filter):
         # Recursive and clenshaw are similarly fast.
         method = 'recursive' if method is None else method
 
-        return getattr(self, '_filter_' + method)(L, s)
+        try:
+            return getattr(self, '_filter_' + method)(L, s)
+        except AttributeError:
+            raise ValueError('Unknown method {}.'.format(method))
 
     def _compute_coefficients(self, filters):
         r"""Compute the coefficients of the Chebyshev series approximating the filters.

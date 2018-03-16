@@ -258,12 +258,18 @@ class TestApproximations(unittest.TestCase):
         x = np.linspace(0, self._G.lmax, N)
         y1 = f.evaluate(x, method='recursive')
         y2 = f.evaluate(x, method='direct')
+        y3 = f.evaluate(x, method='clenshaw')
         np.testing.assert_allclose(y1, y2)
+        np.testing.assert_allclose(y1, y3)
         # Evaluate on n-dimensional arrays.
         x = self._rs.uniform(0, self._G.lmax, size=(3, 1, 19))
         y1 = f.evaluate(x, method='recursive')
         y2 = f.evaluate(x, method='direct')
+        y3 = f.evaluate(x, method='clenshaw')
         np.testing.assert_allclose(y1, y2)
+        np.testing.assert_allclose(y1, y3)
+        # Unknown method.
+        self.assertRaises(ValueError, f.evaluate, x, method='unk')
 
     def test_filter_identity(self, M=10, c=2.3):
         r"""Test that filtering with c0 only scales the signal."""
@@ -283,5 +289,9 @@ class TestApproximations(unittest.TestCase):
         coefficients = self._rs.uniform(size=(K, Fout, Fin))
         x = self._rs.uniform(size=(M, Fin, self._G.N))
         f = filters.Chebyshev(self._G, coefficients)
-        y = f.filter(x)
-        self.assertTupleEqual(y.shape, (M, Fout, self._G.N))
+        y1 = f.filter(x, method='recursive')
+        y2 = f.filter(x, method='clenshaw')
+        self.assertTupleEqual(y1.shape, (M, Fout, self._G.N))
+        np.testing.assert_allclose(y1, y2)
+        # Unknown method.
+        self.assertRaises(ValueError, f.filter, x, method='unk')
