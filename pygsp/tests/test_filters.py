@@ -239,6 +239,13 @@ class TestApproximations(unittest.TestCase):
         cls._rs = np.random.RandomState(42)
         cls._signal = cls._rs.uniform(size=cls._G.N)
 
+    def test_scaling(self, N=40):
+        x = np.linspace(0, self._G.lmax, N)
+        x = filters.Chebyshev.scale_data(x, self._G.lmax)
+        self.assertEqual(x.min(), -1)
+        self.assertEqual(x.max(), 1)
+        L = filters.Chebyshev.scale_operator(self._G.L, self._G.lmax)
+
     def test_chebyshev_basis(self, K=5, c=2, N=100):
         r"""
         Test that the evaluation of the Chebyshev series yields the expected

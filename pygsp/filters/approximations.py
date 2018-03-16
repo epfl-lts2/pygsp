@@ -54,14 +54,31 @@ class Chebyshev(Filter):
                 self._coefficients = np.expand_dims(self._coefficients, -1)
             self.Nf = self._coefficients.shape[1]
 
-    def _evaluate(self, x, method):
 
-        if x.min() < 0 or x.max() > self.G.lmax:
+    @staticmethod
+    def scale_data(x, lmax):
+        r"""Given numbers in [0, lmax], scale them to [-1, 1]."""
+
+        if x.min() < 0 or x.max() > lmax:
             _logger.warning('You are trying to evaluate Chebyshev '
                             'polynomials outside of their orthonormal '
-                            'domain [0, G.lmax={:.2f}].'.format(self.G.lmax))
+                            'domain [0, lmax={:.2f}].'.format(lmax))
 
-        x = 2 * x / self.G.lmax - 1  # [0, lmax] => [-1, 1]
+        return 2 * x / lmax - 1
+
+    @staticmethod
+    def scale_operator(L, lmax):
+        r"""Scale an operator's eigenvalues from [0, lmax] to [-1, 1]."""
+        if not sparse.issparse(L):
+            I = np.identity(L.shape[0], dtype=L.dtype)
+        else:
+            I = sparse.identity(L.shape[0], format=L.format, dtype=L.dtype)
+
+        return 2 * L / lmax - I
+
+    def _evaluate(self, x, method):
+
+        x = self.scale_data(x, self.G.lmax)
 
         c = self._coefficients
         K, Fout, Fin = c.shape  # #order x #features_out x #features_in
@@ -79,13 +96,7 @@ class Chebyshev(Filter):
 
     def _filter(self, s, method, _):
 
-        L = self.G.L
-        if not sparse.issparse(L):
-            I = np.identity(self.G.N, dtype=L.dtype)
-        else:
-            I = sparse.identity(self.G.N, format=L.format, dtype=L.dtype)
-
-        L = 2 * L / self.G.lmax - I  # [0, lmax] => [-1, 1]
+        L = self.scale_operator(self.G.L, self.G.lmax)
 
         # Recursive and clenshaw are similarly fast.
         method = 'recursive' if method is None else method
