@@ -299,6 +299,35 @@ class TestApproximations(unittest.TestCase):
         y1 = f.filter(x, method='recursive')
         y2 = f.filter(x, method='clenshaw')
         self.assertTupleEqual(y1.shape, (M, Fout, self._G.N))
-        np.testing.assert_allclose(y1, y2)
+        np.testing.assert_allclose(y1, y2, rtol=1e-5)
         # Unknown method.
         self.assertRaises(ValueError, f.filter, x, method='unk')
+
+    def test_coefficients(self, K=10, slope=3.14):
+        r"""Test that the computed Chebyshev coefficients are correct."""
+        # Identity filter.
+        f = filters.Heat(self._G, tau=0)
+        f = filters.Chebyshev.from_filter(f, order=K)
+        c = f._coefficients.squeeze()
+        np.testing.assert_allclose(c, [1] + K*[0], atol=1e-12)
+        # Linear filter.
+        f = filters.Filter(self._G, lambda x: slope*x)
+        f = filters.Chebyshev.from_filter(f, order=K)
+        c1 = f._coefficients.squeeze()
+        c2 = slope / 2 * self._G.lmax
+        np.testing.assert_allclose(c1, 2*[c2] + (K-1)*[0], atol=1e-12)
+
+    def test_approximations(self, N=100, K=20):
+        r"""Test that the approximations are not far from the exact filters."""
+        # Evaluation.
+        x = self._rs.uniform(0, self._G.lmax, N)
+        f1 = filters.Heat(self._G)
+        y1 = f1.evaluate(x)
+        f2 = f1.approximate('Chebyshev', order=K)
+        y2 = f2.evaluate(x)
+        np.testing.assert_allclose(y2, y1.squeeze())
+        # Filtering.
+        x = self._rs.uniform(size=(1, 1, self._G.N))
+        y1 = f1.filter(x.T).T
+        y2 = f2.filter(x)
+        np.testing.assert_allclose(y2.squeeze(), y1)

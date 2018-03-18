@@ -40,20 +40,85 @@ class Chebyshev(Filter):
 
     """
 
-    def __init__(self, G, filters, order=30):
+    def __init__(self, G, coefficients):
 
         self.G = G
-        self.order = order
 
-        try:
-            self._compute_coefficients(filters)
-            self.Nf = filters.Nf
-        except:
-            self._coefficients = np.asarray(filters)
-            while self._coefficients.ndim < 3:
-                self._coefficients = np.expand_dims(self._coefficients, -1)
-            self.Nf = self._coefficients.shape[1]
+        coefficients = np.asarray(coefficients)
+        while coefficients.ndim < 3:
+            coefficients = np.expand_dims(coefficients, -1)
 
+        self.Nout, self.Nin = coefficients.shape[1:]
+        self.Nf = self.Nout * self.Nin
+        self._coefficients = coefficients
+
+    # That is a factory method.
+    @classmethod
+    def from_filter(cls, filters, order=30, n=None):
+        r"""Compute the Chebyshev coefficients which approximate the filters.
+
+        The :math:`K+1` coefficients, where :math:`K` is the polynomial order,
+        to approximate the function :math:`f` are computed by the discrete
+        orthogonality condition as
+
+        .. math:: a_k \approx \frac{2-\delta_{0k}}{N}
+                              \sum_{n=0}^{N-1} T_k(x_n) f(x_n),
+
+        where :math:`\delta_{ij}` is the Kronecker delta function and the
+        :math:`x_n` are the N shifted Gauss–Chebyshev zeros of :math:`T_N(x)`,
+        given by
+
+        .. math:: x_n = \frac{\lambda_\text{max}}{2}
+                        \cos\left( \frac{\pi (2k+1)}{2N} \right)
+                        + \frac{\lambda_\text{max}}{2}.
+
+        For any N, these approximate coefficients provide an exact
+        approximation to the function at :math:`x_k` with a controlled error
+        between those points. The exact coefficients are obtained with
+        :math:`N=\infty`, thus representing the function exactly at all points
+        in :math:`[0, \lambda_\text{max}]`. The rate of convergence depends on
+        the function and its smoothness.
+
+        Parameters
+        ----------
+        filters : filters.Filter
+            A filterbank (:class:`Filter`) to be approximated by a set of
+            Chebyshev polynomials.
+        order : int
+            The order of the Chebyshev polynomials.
+        n : int
+            The number of Gauss–Chebyshev zeros used to approximate the
+            coefficients. Defaults to the polynomial order plus one.
+
+        Examples
+        --------
+        >>> G = graphs.Ring(50)
+        >>> G.estimate_lmax()
+        >>> g = filters.Filter(G, lambda x: 2*x)
+        >>> h = filters.Chebyshev.from_filter(g, order=4)
+        >>> print(', '.join([str(int(c)) for c in h._coefficients]))
+        4, 4, 0, 0, 0
+
+        """
+        lmax = filters.G.lmax
+
+        if n is None:
+            n = order + 1
+
+        points = np.pi * (np.arange(n) + 0.5) / n
+
+        # The Gauss–Chebyshev zeros of Tk(x), scaled to [0, lmax].
+        zeros = lmax/2 * np.cos(points) + lmax/2
+
+        # TODO: compute with scipy.fftpack.dct().
+        c = np.empty((order + 1, filters.Nf))
+        for i, kernel in enumerate(filters._kernels):
+            for k in range(order + 1):
+                T_k = np.cos(k * points)  # Chebyshev polynomials of order k.
+                c[k, i] = 2 / n * kernel(zeros).dot(T_k)
+        c[0, :] /= 2
+
+        return cls(filters.G, c)
 
     @staticmethod
     def scale_data(x, lmax):
@@ -106,13 +171,6 @@ class Chebyshev(Filter):
         except AttributeError:
             raise ValueError('Unknown method {}.'.format(method))
 
-    def _compute_coefficients(self, filters):
-        r"""Compute the coefficients of the Chebyshev series approximating the filters.
-
-        Some implementations define c_0 / 2.
-        """
-        pass
-
     def _evaluate_direct(self, c, x):
         r"""Evaluate Fout*Fin polynomials at each value in x."""
         K, F = c.shape[:2]
@@ -125,13 +183,13 @@ class Chebyshev(Filter):
     def _evaluate_recursive(self, c, x):
         """Evaluate a Chebyshev series for y. Optionally, times s.
 
-        .. math: p(y) = \sum_{k=0}^{K} a_k * T_k(y) * s
+        .. math:: p(x) = \sum_{k=0}^{K} a_k * T_k(x) * s
 
         Parameters
         ----------
         c: array-like
             set of Chebyshev coefficients. (size K x F where K is the polynomial order, F is the number of filters)
-        y: array-like
+        x: array-like
             vector to be evaluated. (size N x 1)
             vector or matrix
         signal: array-like
@@ -171,7 +229,7 @@ class Chebyshev(Filter):
         def dot(L, x):
             """One diffusion step by multiplication with the Laplacian."""
             x.shape = (M * Fin, N)
-            return L.__rmul__(x)  # x @ L
+            return L.__rmatmul__(x)  # x @ L
 
         x0 = s.view()
         result = mult(c[0], x0)
@@ -195,7 +253,7 @@ class Chebyshev(Filter):
         def dot(L, x):
             """One diffusion step by multiplication with the Laplacian."""
             x.shape = (M * Fout, N)
-            y = L.__rmul__(x)  # x @ L
+            y = L.__rmatmul__(x)  # x @ L
             x.shape = (M, Fout, N)
             y.shape = (M, Fout, N)
             return y

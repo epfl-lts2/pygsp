@@ -99,6 +99,27 @@ class Filter(object):
             y[i] = kernel(x)
         return y
 
+    def approximate(self, method, **kwargs):
+        r"""Returns a filter which approximates this filter.
+
+        While approximations might loose accuracy, they allow for much faster
+        computations.
+
+        Parameters
+        ----------
+        method : str
+            Approximation method. Only 'Chebyshev' is supported for now.
+        kwargs : dict
+            Parameters for the approximation method.
+
+        Examples
+        --------
+        TODO: approx plot from notebook (needs new plotting)
+
+        """
+        from . import approximations
+        return getattr(approximations, method).from_filter(self, **kwargs)
+
     def filter(self, s, method=None, order=30):
         r"""Filter signals (analysis or synthesis).
 
