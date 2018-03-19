@@ -182,24 +182,16 @@ class TestCase(unittest.TestCase):
     def test_nngraph(self):
         Xin = np.arange(90).reshape(30, 3)
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-        backends = ['scipy-kdtree', 'scipy-pdist', 'flann']
-        order=3 # for minkowski
+        backends = ['scipy-kdtree', 'scipy-pdist', 'flann'] 
+        order=3 # for minkowski, FLANN only accepts integer orders
         
         for cur_backend in backends:
             for dist_type in dist_types:
-                print("backend={} dist={}".format(cur_backend, dist_type))
-                if dist_type != 'minkowski':
-                    # curently radius only implemented with scipy kdtree
-                    if cur_backend == 'scipy-kdtree':
-                        graphs.NNGraph(Xin, NNtype='radius', 
-                                       backend=cur_backend, 
-                                       dist_type=dist_type)
-                    graphs.NNGraph(Xin, NNtype='knn', 
-                                   backend=cur_backend, 
-                                   dist_type=dist_type)
+                if cur_backend == 'flann' and dist_type == 'max_dist':
+                    self.assertRaises(ValueError, graphs.NNGraph, Xin, 
+                                      NNtype='knn', backend=cur_backend, 
+                                      dist_type=dist_type)
                 else:
-                    # Only p-norms with 1<=p<=infinity permitted.
-                    # flann only accepts integer orders
                     if cur_backend == 'scipy-kdtree':
                         graphs.NNGraph(Xin, NNtype='radius', 
                                        backend=cur_backend, 
@@ -207,7 +199,6 @@ class TestCase(unittest.TestCase):
                     graphs.NNGraph(Xin, NNtype='knn', 
                                    backend=cur_backend, 
                                    dist_type=dist_type, order=order)
-
 
     def test_bunny(self):
         graphs.Bunny()
