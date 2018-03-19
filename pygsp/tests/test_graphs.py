@@ -186,7 +186,8 @@ class TestCase(unittest.TestCase):
         order=3 # for minkowski
         
         for cur_backend in backends:
-            for dist_type in dist_types:     
+            for dist_type in dist_types:
+                print("backend={} dist={}".format(cur_backend, dist_type))
                 if dist_type != 'minkowski':
                     # curently radius only implemented with scipy kdtree
                     if cur_backend == 'scipy-kdtree':
