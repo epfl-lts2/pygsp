@@ -37,37 +37,37 @@ def _import_pfl():
 
     
     
-def _knn_sp_kdtree(_X, _num_neighbors, _dist_type, _order=0):
-    kdt = spatial.KDTree(_X)
-    D, NN = kdt.query(_X, k=(_num_neighbors + 1), 
-                      p=_dist_translation['scipy-kdtree'][_dist_type])
+def _knn_sp_kdtree(X, num_neighbors, dist_type, order=0):
+    kdt = spatial.KDTree(X)
+    D, NN = kdt.query(X, k=(num_neighbors + 1), 
+                      p=_dist_translation['scipy-kdtree'][dist_type])
     return NN, D
 
-def _knn_flann(_X, _num_neighbors, _dist_type, _order):
+def _knn_flann(X, num_neighbors, dist_type, order):
     pfl = _import_pfl()
-    pfl.set_distance_type(_dist_type, order=_order)
+    pfl.set_distance_type(dist_type, order=order)
     flann = pfl.FLANN()
 
     # Default FLANN parameters (I tried changing the algorithm and
     # testing performance on huge matrices, but the default one
     # seems to work best).
-    NN, D = flann.nn(_X, _X, num_neighbors=(_num_neighbors + 1), 
+    NN, D = flann.nn(X, X, num_neighbors=(num_neighbors + 1), 
                      algorithm='kdtree')
     return NN, D
 
-def _radius_sp_kdtree(_X, _epsilon, _dist_type, order=0):
-    kdt = spatial.KDTree(_X)
-    D, NN = kdt.query(_X, k=None, distance_upper_bound=_epsilon,
-                              p=_dist_translation['scipy-kdtree'][_dist_type])
+def _radius_sp_kdtree(X, epsilon, dist_type, order=0):
+    kdt = spatial.KDTree(X)
+    D, NN = kdt.query(X, k=None, distance_upper_bound=epsilon,
+                              p=_dist_translation['scipy-kdtree'][dist_type])
     return NN, D
 
-def _knn_sp_pdist(_X, _num_neighbors, _dist_type, _order):
+def _knn_sp_pdist(X, num_neighbors, dist_type, _order):
     pd = spatial.distance.squareform(
-            spatial.distance.pdist(_X, 
-                                   _dist_translation['scipy-pdist'][_dist_type], 
+            spatial.distance.pdist(X, 
+                                   _dist_translation['scipy-pdist'][dist_type], 
                                    p=_order))
-    pds = np.sort(pd)[:, 0:_num_neighbors+1]
-    pdi = pd.argsort()[:, 0:_num_neighbors+1]
+    pds = np.sort(pd)[:, 0:num_neighbors+1]
+    pdi = pd.argsort()[:, 0:num_neighbors+1]
     return pdi, pds
     
 def _radius_sp_pdist(_X, _epsilon, _dist_type, order=0):
@@ -148,12 +148,12 @@ class NNGraph(Graph):
 
         self._nn_functions = {
                 'knn': {
-                        'scipy-kdtree':_knn_sp_kdtree,
+                        'scipy-kdtree': _knn_sp_kdtree,
                         'scipy-pdist': _knn_sp_pdist,
                         'flann': _knn_flann
                         },
                 'radius': {
-                        'scipy-kdtree':_radius_sp_kdtree,
+                        'scipy-kdtree': _radius_sp_kdtree,
                         'scipy-pdist': _radius_sp_pdist,
                         'flann': _radius_flann
                         },
