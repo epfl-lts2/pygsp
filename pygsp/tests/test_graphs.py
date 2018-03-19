@@ -494,19 +494,22 @@ class TestCase(unittest.TestCase):
         rs = np.random.RandomState(42)
         Xin = rs.normal(size=(n_vertices, 3))
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
+        backends = ['scipy-kdtree', 'scipy-pdist', 'flann']
+        for cur_backend in backends:
+            for dist_type in dist_types:
 
-        for dist_type in dist_types:
-
-            # Only p-norms with 1<=p<=infinity permitted.
-            if dist_type != 'minkowski':
-                graphs.NNGraph(Xin, NNtype='radius', dist_type=dist_type)
-                graphs.NNGraph(Xin, NNtype='knn', dist_type=dist_type)
-
-            # Distance type unsupported in the C bindings,
-            # use the C++ bindings instead.
-            if dist_type != 'max_dist':
-                graphs.NNGraph(Xin, use_flann=True, NNtype='knn',
-                               dist_type=dist_type)
+                # Only p-norms with 1<=p<=infinity permitted.
+                if dist_type != 'minkowski':
+                    graphs.NNGraph(Xin, NNtype='radius', backend=cur_backend, 
+                                   dist_type=dist_type)
+                    graphs.NNGraph(Xin, NNtype='knn', backend=cur_backend, 
+                                   dist_type=dist_type)
+    
+                # Distance type unsupported in the C bindings,
+                # use the C++ bindings instead.
+                if dist_type != 'max_dist':
+                    graphs.NNGraph(Xin, backend=cur_backend, NNtype='knn',
+                                   dist_type=dist_type)
 
     def test_bunny(self):
         graphs.Bunny()

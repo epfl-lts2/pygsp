@@ -92,7 +92,7 @@ class NNGraph(Graph):
     backend : {'scipy-kdtree', 'scipy-pdist', 'flann'}
         Type of the backend for graph construction. 
         - 'scipy-kdtree'(default) will use scipy.spatial.KDTree
-        - 'scipy-pdist' will use scipy.spatial.distance.pdist
+        - 'scipy-pdist' will use scipy.spatial.distance.pdist (slowest but exact)
         - 'flann' use Fast Library for Approximate Nearest Neighbors (FLANN)
     center : bool, optional
         Center the data so that it has zero mean (default is True)
@@ -131,13 +131,9 @@ class NNGraph(Graph):
 
     """
 
-<<<<<<< HEAD
-    def __init__(self, Xin, NNtype='knn', use_flann=False, center=True,
-                 rescale=True, k=10, sigma=None, epsilon=0.01,
-=======
+
     def __init__(self, Xin, NNtype='knn', backend='scipy-kdtree', center=True,
                  rescale=True, k=10, sigma=0.1, epsilon=0.01, gtype=None,
->>>>>>> attempt to refactor nn graph building
                  plotting={}, symmetrize_type='average', dist_type='euclidean',
                  order=0, **kwargs):
 
@@ -149,8 +145,7 @@ class NNGraph(Graph):
         self.k = k
         self.sigma = sigma
         self.epsilon = epsilon
-<<<<<<< HEAD
-=======
+
         _dist_translation['scipy-kdtree']['minkowski'] = order
 
         self._nn_functions = {
@@ -171,7 +166,6 @@ class NNGraph(Graph):
         else:
             gtype = '{}, NNGraph'.format(gtype)
 
->>>>>>> attempt to refactor nn graph building
         self.symmetrize_type = symmetrize_type
         self.dist_type = dist_type
         self.order = order
@@ -201,7 +195,7 @@ class NNGraph(Graph):
             spv = np.zeros((N * k))
 
             NN, D = self._nn_functions[NNtype][backend](Xout, k, 
-                                                      dist_type, order)
+                                                        dist_type, order)
 
             if self.sigma is None:
                 self.sigma = np.mean(D[:, 1:])  # Discard distance to self.
@@ -214,7 +208,7 @@ class NNGraph(Graph):
 
         elif self.NNtype == 'radius':
 
-<<<<<<< HEAD
+
             kdt = spatial.KDTree(Xout)
             D, NN = kdt.query(Xout, k=None, distance_upper_bound=epsilon,
                               p=dist_translation[dist_type])
@@ -225,11 +219,12 @@ class NNGraph(Graph):
             for i in range(N):
                 count = count + len(NN[i])
 
-=======
-            NN, D = self.__nn_functions[NNtype][backend](Xout, epsilon, dist_type, order)
+            NN, D = self.__nn_functions[NNtype][backend](Xout, epsilon, 
+                                                         dist_type, order)
+
             count = sum(map(len, NN))
             
->>>>>>> attempt to refactor nn graph building
+
             spi = np.zeros((count))
             spj = np.zeros((count))
             spv = np.zeros((count))
