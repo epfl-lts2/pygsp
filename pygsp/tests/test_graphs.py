@@ -183,21 +183,30 @@ class TestCase(unittest.TestCase):
         Xin = np.arange(90).reshape(30, 3)
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
         backends = ['scipy-kdtree', 'scipy-pdist', 'flann']
+        order=3 # for minkowski
+        
         for cur_backend in backends:
-            for dist_type in dist_types:
-
-                # Only p-norms with 1<=p<=infinity permitted.
+            for dist_type in dist_types:     
                 if dist_type != 'minkowski':
-                    graphs.NNGraph(Xin, NNtype='radius', backend=cur_backend, 
+                    # curently radius only implemented with scipy kdtree
+                    if cur_backend == 'scipy-kdtree':
+                        graphs.NNGraph(Xin, NNtype='radius', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type)
+                    graphs.NNGraph(Xin, NNtype='knn', 
+                                   backend=cur_backend, 
                                    dist_type=dist_type)
-                    graphs.NNGraph(Xin, NNtype='knn', backend=cur_backend, 
-                                   dist_type=dist_type)
-    
-                # Distance type unsupported in the C bindings,
-                # use the C++ bindings instead.
-                if dist_type != 'max_dist':
-                    graphs.NNGraph(Xin, backend=cur_backend, NNtype='knn',
-                                   dist_type=dist_type)
+                else:
+                    # Only p-norms with 1<=p<=infinity permitted.
+                    # flann only accepts integer orders
+                    if cur_backend == 'scipy-kdtree':
+                        graphs.NNGraph(Xin, NNtype='radius', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order)
+                    graphs.NNGraph(Xin, NNtype='knn', 
+                                   backend=cur_backend, 
+                                   dist_type=dist_type, order=order)
+
 
     def test_bunny(self):
         graphs.Bunny()

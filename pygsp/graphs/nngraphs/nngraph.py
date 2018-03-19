@@ -70,10 +70,10 @@ def _knn_sp_pdist(_X, _num_neighbors, _dist_type, _order):
     pdi = pd.argsort()[:, 0:_num_neighbors+1]
     return pdi, pds
     
-def _radius_sp_pdist():
+def _radius_sp_pdist(_X, _epsilon, _dist_type, order=0):
     raise NotImplementedError()
 
-def _radius_flann():
+def _radius_flann(_X, _epsilon, _dist_type, order=0):
     raise NotImplementedError()
 
 class NNGraph(Graph):
