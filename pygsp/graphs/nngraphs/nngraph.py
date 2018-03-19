@@ -46,6 +46,10 @@ def _knn_sp_kdtree(X, num_neighbors, dist_type, order=0):
 
 def _knn_flann(X, num_neighbors, dist_type, order):
     pfl = _import_pfl()
+    # the combination FLANN + max_dist produces incorrect results
+    # do not allow it
+    if dist_type == 'max_dist':
+        raise ValueError('FLANN and max_dist is not supported')
     pfl.set_distance_type(dist_type, order=order)
     flann = pfl.FLANN()
 
