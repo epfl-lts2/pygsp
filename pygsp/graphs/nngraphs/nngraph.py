@@ -10,6 +10,21 @@ from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
 
 _logger = utils.build_logger(__name__)
 
+# conversion between the FLANN conventions and the various backend functions
+_dist_translation = {
+                        'scipy-kdtree': {
+                                'euclidean': 2,
+                                'manhattan': 1,
+                                'max_dist': np.inf
+                        },
+                        'scipy-pdist' : {
+                                'euclidean': 'euclidean',
+                                'manhattan': 'cityblock',
+                                'max_dist': 'chebyshev',
+                                'minkowski': 'minkowski'
+                        },
+                        
+                    }
 
 def _import_pfl():
     try:
@@ -20,6 +35,46 @@ def _import_pfl():
                           'pip (or conda) install pyflann (or pyflann3).')
     return pfl
 
+    
+    
+def _knn_sp_kdtree(_X, _num_neighbors, _dist_type, _order=0):
+    kdt = spatial.KDTree(_X)
+    D, NN = kdt.query(_X, k=(_num_neighbors + 1), 
+                      p=_dist_translation['scipy-kdtree'][_dist_type])
+    return NN, D
+
+def _knn_flann(_X, _num_neighbors, _dist_type, _order):
+    pfl = _import_pfl()
+    pfl.set_distance_type(_dist_type, order=_order)
+    flann = pfl.FLANN()
+
+    # Default FLANN parameters (I tried changing the algorithm and
+    # testing performance on huge matrices, but the default one
+    # seems to work best).
+    NN, D = flann.nn(_X, _X, num_neighbors=(_num_neighbors + 1), 
+                     algorithm='kdtree')
+    return NN, D
+
+def _radius_sp_kdtree(_X, _epsilon, _dist_type, order=0):
+    kdt = spatial.KDTree(_X)
+    D, NN = kdt.query(_X, k=None, distance_upper_bound=_epsilon,
+                              p=_dist_translation['scipy-kdtree'][_dist_type])
+    return NN, D
+
+def _knn_sp_pdist(_X, _num_neighbors, _dist_type, _order):
+    pd = spatial.distance.squareform(
+            spatial.distance.pdist(_X, 
+                                   _dist_translation['scipy-pdist'][_dist_type], 
+                                   p=_order))
+    pds = np.sort(pd)[:, 0:_num_neighbors+1]
+    pdi = pd.argsort()[:, 0:_num_neighbors+1]
+    return pdi, pds
+    
+def _radius_sp_pdist():
+    raise NotImplementedError()
+
+def _radius_flann():
+    raise NotImplementedError()
 
 class NNGraph(Graph):
     r"""Nearest-neighbor graph from given point cloud.
@@ -33,9 +88,11 @@ class NNGraph(Graph):
         Type of nearest neighbor graph to create. The options are 'knn' for
         k-Nearest Neighbors or 'radius' for epsilon-Nearest Neighbors (default
         is 'knn').
-    use_flann : bool, optional
-        Use Fast Library for Approximate Nearest Neighbors (FLANN) or not.
-        (default is False)
+    backend : {'scipy-kdtree', 'scipy-pdist', 'flann'}
+        Type of the backend for graph construction. 
+        - 'scipy-kdtree'(default) will use scipy.spatial.KDTree
+        - 'scipy-pdist' will use scipy.spatial.distance.pdist
+        - 'flann' use Fast Library for Approximate Nearest Neighbors (FLANN)
     center : bool, optional
         Center the data so that it has zero mean (default is True)
     rescale : bool, optional
@@ -74,20 +131,34 @@ class NNGraph(Graph):
 
     """
 
-    def __init__(self, Xin, NNtype='knn', use_flann=False, center=True,
+    def __init__(self, Xin, NNtype='knn', backend='scipy-kdtree', center=True,
                  rescale=True, k=10, sigma=0.1, epsilon=0.01, gtype=None,
                  plotting={}, symmetrize_type='average', dist_type='euclidean',
                  order=0, **kwargs):
 
         self.Xin = Xin
         self.NNtype = NNtype
-        self.use_flann = use_flann
+        self.backend = backend
         self.center = center
         self.rescale = rescale
         self.k = k
         self.sigma = sigma
         self.epsilon = epsilon
+        _dist_translation['scipy-kdtree']['minkowski'] = order
 
+        self._nn_functions = {
+                'knn': {
+                        'scipy-kdtree':_knn_sp_kdtree,
+                        'scipy-pdist': _knn_sp_pdist,
+                        'flann': _knn_flann
+                        },
+                'radius': {
+                        'scipy-kdtree':_radius_sp_kdtree,
+                        'scipy-pdist': _radius_sp_pdist,
+                        'flann': _radius_flann
+                        },
+                } 
+        
         if gtype is None:
             gtype = 'nearest neighbors'
         else:
@@ -108,33 +179,15 @@ class NNGraph(Graph):
             scale = np.power(N, 1. / float(min(d, 3))) / 10.
             Xout *= scale / bounding_radius
 
-        # Translate distance type string to corresponding Minkowski order.
-        dist_translation = {"euclidean": 2,
-                            "manhattan": 1,
-                            "max_dist": np.inf,
-                            "minkowski": order
-                            }
+       
 
         if self.NNtype == 'knn':
             spi = np.zeros((N * k))
             spj = np.zeros((N * k))
             spv = np.zeros((N * k))
 
-            if self.use_flann:
-                pfl = _import_pfl()
-                pfl.set_distance_type(dist_type, order=order)
-                flann = pfl.FLANN()
-
-                # Default FLANN parameters (I tried changing the algorithm and
-                # testing performance on huge matrices, but the default one
-                # seems to work best).
-                NN, D = flann.nn(Xout, Xout, num_neighbors=(k + 1),
-                                 algorithm='kdtree')
-
-            else:
-                kdt = spatial.KDTree(Xout)
-                D, NN = kdt.query(Xout, k=(k + 1),
-                                  p=dist_translation[dist_type])
+            NN, D = self._nn_functions[NNtype][backend](Xout, k, 
+                                                      dist_type, order)
 
             for i in range(N):
                 spi[i * k:(i + 1) * k] = np.kron(np.ones((k)), i)
@@ -144,13 +197,9 @@ class NNGraph(Graph):
 
         elif self.NNtype == 'radius':
 
-            kdt = spatial.KDTree(Xout)
-            D, NN = kdt.query(Xout, k=None, distance_upper_bound=epsilon,
-                              p=dist_translation[dist_type])
-            count = 0
-            for i in range(N):
-                count = count + len(NN[i])
-
+            NN, D = self.__nn_functions[NNtype][backend](Xout, epsilon, dist_type, order)
+            count = sum(map(len, NN))
+            
             spi = np.zeros((count))
             spj = np.zeros((count))
             spv = np.zeros((count))
