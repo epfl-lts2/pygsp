@@ -208,18 +208,8 @@ class NNGraph(Graph):
 
         elif self.NNtype == 'radius':
 
+            NN, D = self._nn_functions[NNtype][backend](Xout, epsilon, 
 
-            kdt = spatial.KDTree(Xout)
-            D, NN = kdt.query(Xout, k=None, distance_upper_bound=epsilon,
-                              p=dist_translation[dist_type])
-            if self.sigma is None:
-                # Discard distance to self.
-                self.sigma = np.mean([np.mean(d[1:]) for d in D])
-            count = 0
-            for i in range(N):
-                count = count + len(NN[i])
-
-            NN, D = self.__nn_functions[NNtype][backend](Xout, epsilon, 
                                                          dist_type, order)
 
             count = sum(map(len, NN))
