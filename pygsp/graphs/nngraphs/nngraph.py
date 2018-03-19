@@ -91,7 +91,7 @@ class NNGraph(Graph):
     backend : {'scipy-kdtree', 'scipy-pdist', 'flann'}
         Type of the backend for graph construction. 
         - 'scipy-kdtree'(default) will use scipy.spatial.KDTree
-        - 'scipy-pdist' will use scipy.spatial.distance.pdist
+        - 'scipy-pdist' will use scipy.spatial.distance.pdist (slowest but exact)
         - 'flann' use Fast Library for Approximate Nearest Neighbors (FLANN)
     center : bool, optional
         Center the data so that it has zero mean (default is True)
@@ -187,7 +187,7 @@ class NNGraph(Graph):
             spv = np.zeros((N * k))
 
             NN, D = self._nn_functions[NNtype][backend](Xout, k, 
-                                                      dist_type, order)
+                                                        dist_type, order)
 
             for i in range(N):
                 spi[i * k:(i + 1) * k] = np.kron(np.ones((k)), i)
@@ -197,7 +197,8 @@ class NNGraph(Graph):
 
         elif self.NNtype == 'radius':
 
-            NN, D = self.__nn_functions[NNtype][backend](Xout, epsilon, dist_type, order)
+            NN, D = self.__nn_functions[NNtype][backend](Xout, epsilon, 
+                                                         dist_type, order)
             count = sum(map(len, NN))
             
             spi = np.zeros((count))
