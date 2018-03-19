@@ -197,7 +197,7 @@ class NNGraph(Graph):
 
         elif self.NNtype == 'radius':
 
-            NN, D = self.__nn_functions[NNtype][backend](Xout, epsilon, 
+            NN, D = self._nn_functions[NNtype][backend](Xout, epsilon, 
                                                          dist_type, order)
             count = sum(map(len, NN))
             
