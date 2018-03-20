@@ -116,7 +116,7 @@ def _radius_flann(X, epsilon, dist_type, order=0):
         NN.append(nn)
     flann.delete_index()
     if dist_type == 'euclidean': # flann returns squared distances
-        return NN, np.sqrt(D)
+        return NN, list(map(np.sqrt, D))
     return NN, D
 
 def center_input(X, N):
