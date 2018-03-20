@@ -192,7 +192,7 @@ class TestCase(unittest.TestCase):
                                       NNtype='knn', backend=cur_backend, 
                                       dist_type=dist_type)
                 else:
-                    if cur_backend == 'scipy-kdtree':
+                    if cur_backend != 'flann':
                         graphs.NNGraph(Xin, NNtype='radius', 
                                        backend=cur_backend, 
                                        dist_type=dist_type, order=order)
