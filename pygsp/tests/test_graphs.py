@@ -219,26 +219,26 @@ class TestCase(unittest.TestCase):
                            backend='scipy-pdist', k=num_neighbors)
         for cur_backend in backends:
             for dist_type in dist_types:
-                if cur_backend == 'flann' and dist_type == 'max_dist':
+                if cur_backend == 'flann': # skip flann for now
                     continue
                 #print("backend={} dist={}".format(cur_backend, dist_type))
                 Gt = graphs.NNGraph(Xin, NNtype='knn', 
                                     backend=cur_backend, k=num_neighbors)
                 d = scipy.sparse.linalg.norm(G.W - Gt.W)
-                self.assertTrue(d < 0.01, 'Graphs (knn) are not identical error='.format(d))
+                self.assertTrue(d < 0.01, "Graphs (knn) are not identical")
                 
         G = graphs.NNGraph(Xin, NNtype='radius', 
                            backend='scipy-pdist', epsilon=epsilon)
         for cur_backend in backends:
             for dist_type in dist_types:
-                if cur_backend == 'flann' and dist_type == 'max_dist':
+                if cur_backend == 'flann': # skip flann for now
                     continue
                 #print("backend={} dist={}".format(cur_backend, dist_type))
                 Gt = graphs.NNGraph(Xin, NNtype='radius', 
                                     backend=cur_backend, epsilon=epsilon)
                 d = scipy.sparse.linalg.norm(G.W - Gt.W, ord=1)
                 self.assertTrue(d < 0.01, 
-                                'Graphs (radius) are not identical error='.format(d))
+                                "Graphs (radius) are not identical")
         
     def test_bunny(self):
         graphs.Bunny()

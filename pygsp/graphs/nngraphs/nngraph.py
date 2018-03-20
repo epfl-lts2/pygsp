@@ -228,7 +228,12 @@ class NNGraph(Graph):
             Xout = rescale_input(Xout, N, d)
 
        
+        if self._nn_functions.get(NNtype) == None:
+            raise ValueError('Invalid NNtype {}'.format(self.NNtype))
 
+        if self._nn_functions[NNtype].get(backend) == None:
+            raise ValueError('Invalid backend {} for type {}'.format(backend, 
+                             self.NNtype))
         if self.NNtype == 'knn':
             spi = np.zeros((N * k))
             spj = np.zeros((N * k))
@@ -262,8 +267,6 @@ class NNGraph(Graph):
                                                  float(self.sigma))
                 start = start + leng
 
-        else:
-            raise ValueError('Unknown NNtype {}'.format(self.NNtype))
 
         W = sparse.csc_matrix((spv, (spi, spj)), shape=(N, N))
 
