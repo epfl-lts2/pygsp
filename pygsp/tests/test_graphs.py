@@ -19,7 +19,6 @@ import networkx as nx
 import graph_tool as gt
 import graph_tool.generation
 import scipy.sparse.linalg
-
 from skimage import data, img_as_float
 
 from pygsp import graphs
