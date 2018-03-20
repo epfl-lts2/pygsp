@@ -187,6 +187,7 @@ class TestCase(unittest.TestCase):
         
         for cur_backend in backends:
             for dist_type in dist_types:
+                #print("backend={} dist={}".format(cur_backend, dist_type))
                 if cur_backend == 'flann' and dist_type == 'max_dist':
                     self.assertRaises(ValueError, graphs.NNGraph, Xin, 
                                       NNtype='knn', backend=cur_backend, 
@@ -199,6 +200,20 @@ class TestCase(unittest.TestCase):
                                    backend=cur_backend, 
                                    dist_type=dist_type, order=order)
 
+    def test_nngraph_consistency(self):
+        #Xin = np.arange(180).reshape(60, 3)
+        Xin = np.random.uniform(-5, 5, (60, 3))
+        dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
+        backends = ['scipy-kdtree', 'flann']
+        num_neighbors=5
+        
+        G = graphs.NNGraph(Xin, NNtype='knn', 
+                           backend='scipy-pdist', k=num_neighbors)
+         for cur_backend in backends:
+            for dist_type in dist_types:
+                Gt = graphs.NNGraph(Xin, NNtype='knn', 
+                                    backend=cur_backend, k=num_neighbors)
+        
     def test_bunny(self):
         graphs.Bunny()
 
