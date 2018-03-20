@@ -241,7 +241,7 @@ class NNGraph(Graph):
         if self._nn_functions[NNtype].get(backend) == None:
             raise ValueError('Invalid backend {} for type {}'.format(backend, 
                              self.NNtype))
-        
+
         if self.NNtype == 'knn':
             spi = np.zeros((N * k))
             spj = np.zeros((N * k))
