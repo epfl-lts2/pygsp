@@ -531,7 +531,7 @@ class TestCase(unittest.TestCase):
                            backend='scipy-pdist', k=num_neighbors)
         for cur_backend in backends:
             for dist_type in dist_types:
-                if cur_backend == 'flann': # skip flann for now
+                if cur_backend == 'flann' and dist_type == 'max_dist':
                     continue
                 #print("backend={} dist={}".format(cur_backend, dist_type))
                 Gt = graphs.NNGraph(Xin, NNtype='knn', 
