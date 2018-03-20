@@ -30,8 +30,7 @@ setup(
             # Construct patch graphs from images.
             'scikit-image',
             # Approximate nearest neighbors for kNN graphs.
-            'flann',
-	    'cyflann',
+        	   'cyflann',
             # Convex optimization on graph.
             'pyunlocbox',
             # Plot graphs, signals, and filters.
@@ -60,7 +59,7 @@ setup(
         # Dependencies to build and upload packages.
         'pkg': [
             'wheel',
-            'twine',
+            'twine'
         ],
     },
     license="BSD",
