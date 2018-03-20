@@ -3,7 +3,8 @@
 import traceback
 
 import numpy as np
-from scipy import sparse, spatial
+from scipy import sparse
+import scipy.spatial as sps
 
 from pygsp import utils
 from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
@@ -39,17 +40,17 @@ def _import_pfl():
     
     
 def _knn_sp_kdtree(X, num_neighbors, dist_type, order=0):
-    kdt = spatial.KDTree(X)
+    kdt = sps.KDTree(X)
     D, NN = kdt.query(X, k=(num_neighbors + 1), 
                       p=_dist_translation['scipy-kdtree'][dist_type])
     return NN, D
 
 def _knn_flann(X, num_neighbors, dist_type, order):
-    pfl = _import_pfl()
     # the combination FLANN + max_dist produces incorrect results
     # do not allow it
     if dist_type == 'max_dist':
         raise ValueError('FLANN and max_dist is not supported')
+    pfl = _import_pfl()
     pfl.set_distance_type(dist_type, order=order)
     flann = pfl.FLANN()
 
@@ -61,26 +62,26 @@ def _knn_flann(X, num_neighbors, dist_type, order):
     return NN, D
 
 def _radius_sp_kdtree(X, epsilon, dist_type, order=0):
-    kdt = spatial.KDTree(X)
+    kdt = sps.KDTree(X)
     D, NN = kdt.query(X, k=None, distance_upper_bound=epsilon,
                               p=_dist_translation['scipy-kdtree'][dist_type])
     return NN, D
 
 def _knn_sp_pdist(X, num_neighbors, dist_type, order):
-    pd = spatial.distance.squareform(
-            spatial.distance.pdist(X, 
-                                   _dist_translation['scipy-pdist'][dist_type], 
-                                   p=order))
+    pd = sps.distance.squareform(
+            sps.distance.pdist(X, 
+                               metric=_dist_translation['scipy-pdist'][dist_type], 
+                               p=order))
     pds = np.sort(pd)[:, 0:num_neighbors+1]
     pdi = pd.argsort()[:, 0:num_neighbors+1]
     return pdi, pds
     
 def _radius_sp_pdist(X, epsilon, dist_type, order):
     N, dim = np.shape(X)
-    pd = spatial.distance.squareform(
-            spatial.distance.pdist(X, 
-                                   _dist_translation['scipy-pdist'][dist_type], 
-                                   p=order))
+    pd = sps.distance.squareform(
+            sps.distance.pdist(X, 
+                               metric=_dist_translation['scipy-pdist'][dist_type], 
+                               p=order))
     pdf = pd < epsilon
     D = []
     NN = []
@@ -93,16 +94,25 @@ def _radius_sp_pdist(X, epsilon, dist_type, order):
     return NN, D
 
 def _radius_flann(X, epsilon, dist_type, order=0):
-    pfl = _import_pfl()
+    N, dim = np.shape(X)
     # the combination FLANN + max_dist produces incorrect results
     # do not allow it
     if dist_type == 'max_dist':
         raise ValueError('FLANN and max_dist is not supported')
+        
+    pfl = _import_pfl()
     pfl.set_distance_type(dist_type, order=order)
     flann = pfl.FLANN()
     flann.build_index(X)
     
+    D = []
+    NN = []
+    for k in range(N):
+        nn, d = flann.nn_radius(X[k, :], epsilon)
+        D.append(d)
+        NN.append(nn)
     flann.delete_index()
+    return NN, D
 
 class NNGraph(Graph):
     r"""Nearest-neighbor graph from given point cloud.
