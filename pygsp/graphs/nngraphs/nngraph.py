@@ -50,6 +50,7 @@ def _knn_flann(X, num_neighbors, dist_type, order):
     # do not allow it
     if dist_type == 'max_dist':
         raise ValueError('FLANN and max_dist is not supported')
+    
     pfl = _import_pfl()
     pfl.set_distance_type(dist_type, order=order)
     flann = pfl.FLANN()
@@ -59,6 +60,8 @@ def _knn_flann(X, num_neighbors, dist_type, order):
     # seems to work best).
     NN, D = flann.nn(X, X, num_neighbors=(num_neighbors + 1), 
                      algorithm='kdtree')
+    if dist_type == 'euclidean': # flann returns squared distances
+        return NN, np.sqrt(D)
     return NN, D
 
 def _radius_sp_kdtree(X, epsilon, dist_type, order=0):
@@ -87,8 +90,9 @@ def _radius_sp_pdist(X, epsilon, dist_type, order):
     NN = []
     for k in range(N):
         v = pd[k, pdf[k, :]]
+        d = pd[k, :].argsort()
         # use the same conventions as in scipy.distance.kdtree
-        NN.append(v.argsort())
+        NN.append(d[0:len(v)])
         D.append(np.sort(v))
     
     return NN, D
@@ -99,8 +103,8 @@ def _radius_flann(X, epsilon, dist_type, order=0):
     # do not allow it
     if dist_type == 'max_dist':
         raise ValueError('FLANN and max_dist is not supported')
-        
     pfl = _import_pfl()
+    
     pfl.set_distance_type(dist_type, order=order)
     flann = pfl.FLANN()
     flann.build_index(X)
@@ -108,11 +112,22 @@ def _radius_flann(X, epsilon, dist_type, order=0):
     D = []
     NN = []
     for k in range(N):
-        nn, d = flann.nn_radius(X[k, :], epsilon)
+        nn, d = flann.nn_radius(X[k, :], epsilon*epsilon)
         D.append(d)
         NN.append(nn)
     flann.delete_index()
+    if dist_type == 'euclidean': # flann returns squared distances
+        return NN, np.sqrt(D)
     return NN, D
+
+def center_input(X, N):
+    return X - np.kron(np.ones((N, 1)), np.mean(X, axis=0))
+
+def rescale_input(X, N, d):
+     bounding_radius = 0.5 * np.linalg.norm(np.amax(X, axis=0) -
+                                                   np.amin(X, axis=0), 2)
+     scale = np.power(N, 1. / float(min(d, 3))) / 10.
+     return X * scale / bounding_radius
 
 class NNGraph(Graph):
     r"""Nearest-neighbor graph from given point cloud.
@@ -215,14 +230,10 @@ class NNGraph(Graph):
                              'than the number of nodes ({}).'.format(k, N))
 
         if self.center:
-            Xout = self.Xin - np.kron(np.ones((N, 1)),
-                                      np.mean(self.Xin, axis=0))
+            Xout = center_input(Xout, N)
 
         if self.rescale:
-            bounding_radius = 0.5 * np.linalg.norm(np.amax(Xout, axis=0) -
-                                                   np.amin(Xout, axis=0), 2)
-            scale = np.power(N, 1. / float(min(d, 3))) / 10.
-            Xout *= scale / bounding_radius
+            Xout = rescale_input(Xout, N, d)
 
        
 
