@@ -27,15 +27,15 @@ _dist_translation = {
                         
                     }
 
-def _import_pfl():
+def _import_cfl():
     try:
-        import pyflann as pfl
-    except Exception as e:
-        raise ImportError('Cannot import pyflann. Choose another nearest '
+
+        import cyflann as cfl
+    except Exception:
+        raise ImportError('Cannot import cyflann. Choose another nearest '
                           'neighbors method or try to install it with '
-                          'pip (or conda) install pyflann (or pyflann3). '
-                          'Original exception: {}'.format(e))
-    return pfl
+                          'pip (or conda) install cyflann.')
+    return cfl
 
     
     
@@ -51,15 +51,15 @@ def _knn_flann(X, num_neighbors, dist_type, order):
     if dist_type == 'max_dist':
         raise ValueError('FLANN and max_dist is not supported')
     
-    pfl = _import_pfl()
-    pfl.set_distance_type(dist_type, order=order)
-    flann = pfl.FLANN()
-
+    cfl = _import_cfl()
+    cfl.set_distance_type(dist_type, order=order)
+    c = cfl.FLANNIndex(algorithm='kdtree')
+    c.build_index(X)
     # Default FLANN parameters (I tried changing the algorithm and
     # testing performance on huge matrices, but the default one
     # seems to work best).
-    NN, D = flann.nn(X, X, num_neighbors=(num_neighbors + 1), 
-                     algorithm='kdtree')
+    NN, D = c.nn_index(X, num_neighbors + 1)
+    c.free_index()
     if dist_type == 'euclidean': # flann returns squared distances
         return NN, np.sqrt(D)
     return NN, D
@@ -103,19 +103,18 @@ def _radius_flann(X, epsilon, dist_type, order=0):
     # do not allow it
     if dist_type == 'max_dist':
         raise ValueError('FLANN and max_dist is not supported')
-    pfl = _import_pfl()
     
-    pfl.set_distance_type(dist_type, order=order)
-    flann = pfl.FLANN()
-    flann.build_index(X)
-    
+    cfl = _import_cfl()
+    cfl.set_distance_type(dist_type, order=order)
+    c = cfl.FLANNIndex(algorithm='kdtree')
+    c.build_index(X)
     D = []
     NN = []
     for k in range(N):
-        nn, d = flann.nn_radius(X[k, :], epsilon*epsilon)
+        nn, d = c.nn_radius(X[k, :], epsilon*epsilon)
         D.append(d)
         NN.append(nn)
-    flann.delete_index()
+    c.free_index()
     if dist_type == 'euclidean': # flann returns squared distances
         return NN, list(map(np.sqrt, D))
     return NN, D
@@ -236,7 +235,13 @@ class NNGraph(Graph):
             Xout = rescale_input(Xout, N, d)
 
        
+        if self._nn_functions.get(NNtype) == None:
+            raise ValueError('Invalid NNtype {}'.format(self.NNtype))
 
+        if self._nn_functions[NNtype].get(backend) == None:
+            raise ValueError('Invalid backend {} for type {}'.format(backend, 
+                             self.NNtype))
+        
         if self.NNtype == 'knn':
             spi = np.zeros((N * k))
             spj = np.zeros((N * k))
@@ -276,8 +281,6 @@ class NNGraph(Graph):
                                                  float(self.sigma))
                 start = start + leng
 
-        else:
-            raise ValueError('Unknown NNtype {}'.format(self.NNtype))
 
         W = sparse.csc_matrix((spv, (spi, spj)), shape=(N, N))
 
