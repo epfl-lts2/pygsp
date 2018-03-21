@@ -5,6 +5,7 @@ import traceback
 import numpy as np
 from scipy import sparse
 import scipy.spatial as sps
+import scipy.spatial.distance as spsd
 
 from pygsp import utils
 from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
@@ -71,20 +72,24 @@ def _radius_sp_kdtree(X, epsilon, dist_type, order=0):
     return NN, D
 
 def _knn_sp_pdist(X, num_neighbors, dist_type, order):
-    pd = sps.distance.squareform(
-            sps.distance.pdist(X, 
-                               metric=_dist_translation['scipy-pdist'][dist_type], 
-                               p=order))
+    if dist_type == 'minkowski':
+        p = spsd.pdist(X, metric=_dist_translation['scipy-pdist'][dist_type], 
+                        p=order)
+    else:
+        p = spsd.pdist(X, metric=_dist_translation['scipy-pdist'][dist_type])
+    pd = spsd.squareform(p)
     pds = np.sort(pd)[:, 0:num_neighbors+1]
     pdi = pd.argsort()[:, 0:num_neighbors+1]
     return pdi, pds
     
 def _radius_sp_pdist(X, epsilon, dist_type, order):
     N, dim = np.shape(X)
-    pd = sps.distance.squareform(
-            sps.distance.pdist(X, 
-                               metric=_dist_translation['scipy-pdist'][dist_type], 
-                               p=order))
+    if dist_type == 'minkowski':
+        p = spsd.pdist(X, metric=_dist_translation['scipy-pdist'][dist_type], 
+                       p=order)
+    else:
+        p = spsd.pdist(X, metric=_dist_translation['scipy-pdist'][dist_type])
+    pd = spsd.squareform(p)
     pdf = pd < epsilon
     D = []
     NN = []
