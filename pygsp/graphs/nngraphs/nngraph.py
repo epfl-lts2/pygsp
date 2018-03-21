@@ -18,6 +18,11 @@ _dist_translation = {
                                 'manhattan': 1,
                                 'max_dist': np.inf
                         },
+                        'scipy-ckdtree': {
+                                'euclidean': 2,
+                                'manhattan': 1,
+                                'max_dist': np.inf
+                        },
                         'scipy-pdist' : {
                                 'euclidean': 'euclidean',
                                 'manhattan': 'cityblock',
@@ -44,6 +49,13 @@ def _knn_sp_kdtree(X, num_neighbors, dist_type, order=0):
                       p=_dist_translation['scipy-kdtree'][dist_type])
     return NN, D
 
+def _knn_sp_ckdtree(X, num_neighbors, dist_type, order=0):
+    kdt = sps.cKDTree(X)
+    D, NN = kdt.query(X, k=(num_neighbors + 1), 
+                      p=_dist_translation['scipy-ckdtree'][dist_type])
+    return NN, D
+
+
 def _knn_flann(X, num_neighbors, dist_type, order):
     # the combination FLANN + max_dist produces incorrect results
     # do not allow it
@@ -66,8 +78,26 @@ def _knn_flann(X, num_neighbors, dist_type, order):
 def _radius_sp_kdtree(X, epsilon, dist_type, order=0):
     kdt = sps.KDTree(X)
     D, NN = kdt.query(X, k=None, distance_upper_bound=epsilon,
-                              p=_dist_translation['scipy-kdtree'][dist_type])
+                   p=_dist_translation['scipy-kdtree'][dist_type])
     return NN, D
+
+def _radius_sp_ckdtree(X, epsilon, dist_type, order=0):
+    N, dim = np.shape(X)
+    kdt = sps.cKDTree(X)
+    nn = kdt.query_ball_point(X, r=epsilon,
+                              p=_dist_translation['scipy-ckdtree'][dist_type])
+    D = []
+    NN = []
+    for k in range(N):
+        x = np.matlib.repmat(X[k, :], len(nn[k]), 1)
+        d = np.linalg.norm(x - X[nn[k], :], 
+                           ord=_dist_translation['scipy-ckdtree'][dist_type],
+                           axis=1)
+        nidx = d.argsort()
+        NN.append(np.take(nn[k], nidx))
+        D.append(np.sort(d))
+    return NN, D
+
 
 def _knn_sp_pdist(X, num_neighbors, dist_type, order):
     pd = sps.distance.squareform(
@@ -142,7 +172,8 @@ class NNGraph(Graph):
         is 'knn').
     backend : {'scipy-kdtree', 'scipy-pdist', 'flann'}
         Type of the backend for graph construction. 
-        - 'scipy-kdtree'(default) will use scipy.spatial.KDTree
+        - 'scipy-kdtree' will use scipy.spatial.KDTree
+        - 'scipy-ckdtree'(default) will use scipy.spatial.cKDTree
         - 'scipy-pdist' will use scipy.spatial.distance.pdist (slowest but exact)
         - 'flann' use Fast Library for Approximate Nearest Neighbors (FLANN)
     center : bool, optional
@@ -183,7 +214,7 @@ class NNGraph(Graph):
 
     """
 
-    def __init__(self, Xin, NNtype='knn', backend='scipy-kdtree', center=True,
+    def __init__(self, Xin, NNtype='knn', backend='scipy-ckdtree', center=True,
                  rescale=True, k=10, sigma=0.1, epsilon=0.01, gtype=None,
                  plotting={}, symmetrize_type='average', dist_type='euclidean',
                  order=0, **kwargs):
@@ -197,15 +228,18 @@ class NNGraph(Graph):
         self.sigma = sigma
         self.epsilon = epsilon
         _dist_translation['scipy-kdtree']['minkowski'] = order
+        _dist_translation['scipy-ckdtree']['minkowski'] = order
 
         self._nn_functions = {
                 'knn': {
                         'scipy-kdtree': _knn_sp_kdtree,
+                        'scipy-ckdtree': _knn_sp_ckdtree,
                         'scipy-pdist': _knn_sp_pdist,
                         'flann': _knn_flann
                         },
                 'radius': {
                         'scipy-kdtree': _radius_sp_kdtree,
+                        'scipy-ckdtree': _radius_sp_ckdtree,
                         'scipy-pdist': _radius_sp_pdist,
                         'flann': _radius_flann
                         },
