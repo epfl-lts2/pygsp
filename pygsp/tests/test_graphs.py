@@ -495,7 +495,7 @@ class TestCase(unittest.TestCase):
         rs = np.random.RandomState(42)
         Xin = rs.normal(size=(n_vertices, 3))
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-        backends = ['scipy-kdtree', 'scipy-pdist', 'flann'] 
+        backends = ['scipy-kdtree', 'scipy-ckdtree', 'scipy-pdist', 'flann'] 
         order=3 # for minkowski, FLANN only accepts integer orders
         
         for cur_backend in backends:
@@ -506,9 +506,10 @@ class TestCase(unittest.TestCase):
                                       NNtype='knn', backend=cur_backend, 
                                       dist_type=dist_type)
                 else:
-                    graphs.NNGraph(Xin, NNtype='radius', 
-                                   backend=cur_backend, 
-                                   dist_type=dist_type, order=order)
+                    if cur_backend != 'flann': #pyflann fails on radius query
+                        graphs.NNGraph(Xin, NNtype='radius', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order)
                     graphs.NNGraph(Xin, NNtype='knn', 
                                    backend=cur_backend, 
                                    dist_type=dist_type, order=order)
@@ -520,9 +521,9 @@ class TestCase(unittest.TestCase):
                                       dist_type=dist_type)
 
     def test_nngraph_consistency(self):
-        Xin = np.random.uniform(-5, 5, (60, 3))
+        Xin = np.arange(90).reshape(30, 3)
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-        backends = ['scipy-kdtree', 'flann']
+        backends = ['scipy-kdtree', 'scipy-ckdtree', 'flann']
         num_neighbors=4 
         epsilon=0.1
         
