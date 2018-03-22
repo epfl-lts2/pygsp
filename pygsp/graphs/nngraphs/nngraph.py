@@ -5,6 +5,7 @@ import traceback
 import numpy as np
 from scipy import sparse
 import scipy.spatial as sps
+import scipy.spatial.distance as spsd
 
 from pygsp import utils
 from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
@@ -32,14 +33,14 @@ _dist_translation = {
                         
                     }
 
-def _import_pfl():
+def _import_cfl():
     try:
-        import pyflann as pfl
+        import cyflann as cfl
     except Exception:
-        raise ImportError('Cannot import pyflann. Choose another nearest '
+        raise ImportError('Cannot import cyflann. Choose another nearest '
                           'neighbors method or try to install it with '
-                          'pip (or conda) install pyflann (or pyflann3).')
-    return pfl
+                          'pip (or conda) install cyflann.')
+    return cfl
 
     
     
@@ -62,15 +63,15 @@ def _knn_flann(X, num_neighbors, dist_type, order):
     if dist_type == 'max_dist':
         raise ValueError('FLANN and max_dist is not supported')
     
-    pfl = _import_pfl()
-    pfl.set_distance_type(dist_type, order=order)
-    flann = pfl.FLANN()
-
+    cfl = _import_cfl()
+    cfl.set_distance_type(dist_type, order=order)
+    c = cfl.FLANNIndex(algorithm='kdtree')
+    c.build_index(X)
     # Default FLANN parameters (I tried changing the algorithm and
     # testing performance on huge matrices, but the default one
     # seems to work best).
-    NN, D = flann.nn(X, X, num_neighbors=(num_neighbors + 1), 
-                     algorithm='kdtree')
+    NN, D = c.nn_index(X, num_neighbors + 1)
+    c.free_index()
     if dist_type == 'euclidean': # flann returns squared distances
         return NN, np.sqrt(D)
     return NN, D
@@ -100,20 +101,24 @@ def _radius_sp_ckdtree(X, epsilon, dist_type, order=0):
 
 
 def _knn_sp_pdist(X, num_neighbors, dist_type, order):
-    pd = sps.distance.squareform(
-            sps.distance.pdist(X, 
-                               metric=_dist_translation['scipy-pdist'][dist_type], 
-                               p=order))
+    if dist_type == 'minkowski':
+        p = spsd.pdist(X, metric=_dist_translation['scipy-pdist'][dist_type], 
+                        p=order)
+    else:
+        p = spsd.pdist(X, metric=_dist_translation['scipy-pdist'][dist_type])
+    pd = spsd.squareform(p)
     pds = np.sort(pd)[:, 0:num_neighbors+1]
     pdi = pd.argsort()[:, 0:num_neighbors+1]
     return pdi, pds
     
 def _radius_sp_pdist(X, epsilon, dist_type, order):
     N, dim = np.shape(X)
-    pd = sps.distance.squareform(
-            sps.distance.pdist(X, 
-                               metric=_dist_translation['scipy-pdist'][dist_type], 
-                               p=order))
+    if dist_type == 'minkowski':
+        p = spsd.pdist(X, metric=_dist_translation['scipy-pdist'][dist_type], 
+                       p=order)
+    else:
+        p = spsd.pdist(X, metric=_dist_translation['scipy-pdist'][dist_type])
+    pd = spsd.squareform(p)
     pdf = pd < epsilon
     D = []
     NN = []
@@ -132,19 +137,18 @@ def _radius_flann(X, epsilon, dist_type, order=0):
     # do not allow it
     if dist_type == 'max_dist':
         raise ValueError('FLANN and max_dist is not supported')
-    pfl = _import_pfl()
     
-    pfl.set_distance_type(dist_type, order=order)
-    flann = pfl.FLANN()
-    flann.build_index(X)
-    
+    cfl = _import_cfl()
+    cfl.set_distance_type(dist_type, order=order)
+    c = cfl.FLANNIndex(algorithm='kdtree')
+    c.build_index(X)
     D = []
     NN = []
     for k in range(N):
-        nn, d = flann.nn_radius(X[k, :], epsilon*epsilon)
+        nn, d = c.nn_radius(X[k, :], epsilon*epsilon)
         D.append(d)
         NN.append(nn)
-    flann.delete_index()
+    c.free_index()
     if dist_type == 'euclidean': # flann returns squared distances
         return NN, list(map(np.sqrt, D))
     return NN, D
