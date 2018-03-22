@@ -1,0 +1,39 @@
+{
+	"title": "PyGSP: Graph Signal Processing in Python",
+	"description": "The PyGSP facilitates a wide variety of operations on graphs, like computing their Fourier basis, filtering or interpolating signals, plotting graphs, signals, and filters.",
+	"upload_type": "software",
+	"license": "BSD-3-Clause",
+	"access_right": "open",
+	"creators": [
+		{
+			"name": "Micha\u00ebl Defferrard",
+			"affiliation": "EPFL",
+			"orcid": "0000-0002-6028-9024"
+		},
+		{
+			"name": "Lionel Martin",
+			"affiliation": "EPFL"
+		},
+		{
+			"name": "Rodrigo Pena",
+			"affiliation": "EPFL"
+		},
+		{
+			"name": "Nathana\u00ebl Perraudin",
+			"affiliation": "EPFL",
+			"orcid": "0000-0001-8285-1308"
+		}
+	],
+	"related_identifiers": [
+		{
+			"scheme": "url",
+			"identifier": "https://github.com/epfl-lts2/pygsp",
+			"relation": "isSupplementTo"
+		},
+		{
+			"scheme": "doi",
+			"identifier": "10.5281/zenodo.1003157",
+			"relation": "isPartOf"
+		}
+	]
+}

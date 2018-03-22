@@ -31,10 +31,6 @@ class Filter(object):
     G : Graph
         The graph to which the filter bank was tailored. It is a reference to
         the graph passed when instantiating the class.
-    kernels : function or list of functions
-        A (list of) function defining the filter bank. One function per filter.
-        Either passed by the user when instantiating the base class, either
-        constructed by the derived classes.
     Nf : int
         Number of filters in the filter bank.
 
@@ -93,8 +89,8 @@ class Filter(object):
         """
         # Avoid to copy data as with np.array([g(x) for g in self._kernels]).
         y = np.empty((self.Nf, len(x)))
-        for i, g in enumerate(self._kernels):
-            y[i] = g(x)
+        for i, kernel in enumerate(self._kernels):
+            y[i] = kernel(x)
         return y
 
     def filter(self, s, method='chebyshev', order=30):

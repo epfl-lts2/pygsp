@@ -40,7 +40,7 @@ class Abspline(Filter):
 
     """
 
-    def __init__(self, G, Nf=6, lpfactor=20, scales=None, **kwargs):
+    def __init__(self, G, Nf=6, lpfactor=20, scales=None):
 
         def kernel_abspline3(x, alpha, beta, t1, t2):
             M = np.array([[1, t1, t1**2, t1**3],
@@ -98,4 +98,4 @@ class Abspline(Filter):
         lminfac = .6 * G.lmin
         g[0] = lambda x: gamma_l * gl(x / lminfac)
 
-        super(Abspline, self).__init__(G, g, **kwargs)
+        super(Abspline, self).__init__(G, g)

@@ -48,7 +48,7 @@ class Regular(Filter):
     >>> G.plot_signal(s, ax=axes[1])
 
     """
-    def __init__(self, G, d=3, **kwargs):
+    def __init__(self, G, d=3):
 
         g = [lambda x: regular(x * (2./G.lmax), d)]
         g.append(lambda x: np.real(np.sqrt(1 - (regular(x * (2./G.lmax), d))
@@ -65,4 +65,4 @@ class Regular(Filter):
 
                 return np.sin(np.pi / 4.*(1 + output))
 
-        super(Regular, self).__init__(G, g, **kwargs)
+        super(Regular, self).__init__(G, g)

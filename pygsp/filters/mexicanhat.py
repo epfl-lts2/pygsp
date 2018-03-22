@@ -55,8 +55,7 @@ class MexicanHat(Filter):
 
     """
 
-    def __init__(self, G, Nf=6, lpfactor=20, scales=None, normalize=False,
-                 **kwargs):
+    def __init__(self, G, Nf=6, lpfactor=20, scales=None, normalize=False):
 
         lmin = G.lmax / lpfactor
 
@@ -82,4 +81,4 @@ class MexicanHat(Filter):
 
             kernels.append(kernel)
 
-        super(MexicanHat, self).__init__(G, kernels, **kwargs)
+        super(MexicanHat, self).__init__(G, kernels)
