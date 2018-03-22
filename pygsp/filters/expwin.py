@@ -33,7 +33,7 @@ class Expwin(Filter):
 
     """
 
-    def __init__(self, G, bmax=0.2, a=1., **kwargs):
+    def __init__(self, G, bmax=0.2, a=1.):
 
         def fx(x, a):
             y = np.exp(-float(a)/x)
@@ -53,4 +53,4 @@ class Expwin(Filter):
 
         g = [lambda x: ffin(np.float64(x)/bmax/G.lmax, a)]
 
-        super(Expwin, self).__init__(G, g, **kwargs)
+        super(Expwin, self).__init__(G, g)

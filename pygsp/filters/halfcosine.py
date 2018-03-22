@@ -31,7 +31,7 @@ class HalfCosine(Filter):
 
     """
 
-    def __init__(self, G, Nf=6, **kwargs):
+    def __init__(self, G, Nf=6):
 
         if Nf <= 2:
             raise ValueError('The number of filters must be higher than 2.')
@@ -45,4 +45,4 @@ class HalfCosine(Filter):
         for i in range(Nf):
             g.append(lambda x, ind=i: main_window(x - dila_fact/3. * (ind - 2)))
 
-        super(HalfCosine, self).__init__(G, g, **kwargs)
+        super(HalfCosine, self).__init__(G, g)

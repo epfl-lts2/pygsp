@@ -42,7 +42,7 @@ class Meyer(Filter):
 
     """
 
-    def __init__(self, G, Nf=6, scales=None, **kwargs):
+    def __init__(self, G, Nf=6, scales=None):
 
         if scales is None:
             scales = (4./(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
@@ -90,4 +90,4 @@ class Meyer(Filter):
 
             return r
 
-        super(Meyer, self).__init__(G, g, **kwargs)
+        super(Meyer, self).__init__(G, g)

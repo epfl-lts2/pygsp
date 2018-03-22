@@ -41,7 +41,7 @@ class Simoncelli(Filter):
 
     """
 
-    def __init__(self, G, a=2./3, **kwargs):
+    def __init__(self, G, a=2./3):
 
         g = [lambda x: simoncelli(x * (2./G.lmax), a)]
         g.append(lambda x: np.real(np.sqrt(1 -
@@ -63,4 +63,4 @@ class Simoncelli(Filter):
 
             return y
 
-        super(Simoncelli, self).__init__(G, g, **kwargs)
+        super(Simoncelli, self).__init__(G, g)

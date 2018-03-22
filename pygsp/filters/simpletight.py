@@ -42,7 +42,7 @@ class SimpleTight(Filter):
 
     """
 
-    def __init__(self, G, Nf=6, scales=None, **kwargs):
+    def __init__(self, G, Nf=6, scales=None):
 
         def kernel(x, kerneltype):
             r"""
@@ -98,4 +98,4 @@ class SimpleTight(Filter):
         for i in range(Nf - 1):
             g.append(lambda x, i=i: kernel(scales[i] * x, 'wavelet'))
 
-        super(SimpleTight, self).__init__(G, g, **kwargs)
+        super(SimpleTight, self).__init__(G, g)
