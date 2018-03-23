@@ -30,7 +30,12 @@ _dist_translation = {
                                 'max_dist': 'chebyshev',
                                 'minkowski': 'minkowski'
                         },
-                        
+                        'nmslib' : {
+                                'euclidean': 'l2',
+                                'manhattan': 'l1',
+                                'max_dist': 'linf',
+                                'minkowski': 'lp'
+                        }
                     }
 
 def _import_cfl():
@@ -42,7 +47,14 @@ def _import_cfl():
                           'pip (or conda) install cyflann.')
     return cfl
 
-    
+def _import_nmslib():
+    try:
+        import nmslib as nms
+    except Exception:
+        raise ImportError('Cannot import nmslib. Choose another nearest '
+                          'neighbors method or try to install it with '
+                          'pip (or conda) install nmslib.')
+    return nms
     
 def _knn_sp_kdtree(X, num_neighbors, dist_type, order=0):
     kdt = sps.KDTree(X)
@@ -111,6 +123,20 @@ def _knn_sp_pdist(X, num_neighbors, dist_type, order):
     pdi = pd.argsort()[:, 0:num_neighbors+1]
     return pdi, pds
     
+def _knn_nmslib(X, num_neighbors, dist_type, order):
+    N, dim = np.shape(X)
+    if dist_type == 'minkowski':
+        raise ValueError('unsupported distance type (lp) for nmslib')
+    nms = _import_nmslib()
+    nmsidx = nms.init(space=_dist_translation['nmslib'][dist_type])
+    nmsidx.addDataPointBatch(X)
+    nmsidx.createIndex()
+    q = nmsidx.knnQueryBatch(X, k=num_neighbors+1)
+    nn, d = zip(*q)
+    D = np.concatenate(d).reshape(N, num_neighbors+1)
+    NN = np.concatenate(nn).reshape(N, num_neighbors+1)
+    return NN, D
+    
 def _radius_sp_pdist(X, epsilon, dist_type, order):
     N, dim = np.shape(X)
     if dist_type == 'minkowski':
@@ -152,6 +178,9 @@ def _radius_flann(X, epsilon, dist_type, order=0):
     if dist_type == 'euclidean': # flann returns squared distances
         return NN, list(map(np.sqrt, D))
     return NN, D
+
+def _radius_nmslib(X, epsilon, dist_type, order=0):
+    raise ValueError('nmslib does not support (yet?) range queries')
 
 def center_input(X, N):
     return X - np.kron(np.ones((N, 1)), np.mean(X, axis=0))
@@ -239,13 +268,15 @@ class NNGraph(Graph):
                         'scipy-kdtree': _knn_sp_kdtree,
                         'scipy-ckdtree': _knn_sp_ckdtree,
                         'scipy-pdist': _knn_sp_pdist,
-                        'flann': _knn_flann
+                        'flann': _knn_flann,
+                        'nmslib': _knn_nmslib
                         },
                 'radius': {
                         'scipy-kdtree': _radius_sp_kdtree,
                         'scipy-ckdtree': _radius_sp_ckdtree,
                         'scipy-pdist': _radius_sp_pdist,
-                        'flann': _radius_flann
+                        'flann': _radius_flann,
+                        'nmslib': _radius_nmslib
                         },
                 } 
         
