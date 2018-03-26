@@ -6,7 +6,7 @@ Test suite for the graphs module of the pygsp package.
 """
 
 import unittest
-
+import os
 import numpy as np
 import scipy.linalg
 import scipy.sparse.linalg
@@ -183,7 +183,9 @@ class TestCase(unittest.TestCase):
     def test_nngraph(self):
         Xin = np.arange(90).reshape(30, 3)
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-        backends = ['scipy-kdtree', 'scipy-ckdtree', 'scipy-pdist', 'nmslib'] 
+        backends = ['scipy-kdtree', 'scipy-ckdtree', 'scipy-pdist', 'nmslib']
+        if os.name != 'nt':
+            backends.append('flann')
         order=3 # for minkowski, FLANN only accepts integer orders
         
         for cur_backend in backends:
@@ -217,7 +219,9 @@ class TestCase(unittest.TestCase):
     def test_nngraph_consistency(self):
         Xin = np.arange(90).reshape(30, 3)
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-        backends = ['scipy-kdtree', 'scipy-ckdtree', 'nmslib']#, 'flann']
+        backends = ['scipy-kdtree', 'scipy-ckdtree', 'nmslib']
+        if os.name != 'nt':
+            backends.append('flann')
         num_neighbors=4 
         epsilon=0.1
         
