@@ -197,6 +197,9 @@ class TestCase(unittest.TestCase):
                     self.assertRaises(ValueError, graphs.NNGraph, Xin, 
                                       NNtype='knn', backend=cur_backend, 
                                       dist_type=dist_type)
+                    self.assertRaises(ValueError, graphs.NNGraph, Xin, 
+                                      NNtype='radius', backend=cur_backend, 
+                                      dist_type=dist_type)
                 else:
                     if cur_backend == 'nmslib':
                         self.assertRaises(ValueError, graphs.NNGraph, Xin,
@@ -209,6 +212,18 @@ class TestCase(unittest.TestCase):
                         graphs.NNGraph(Xin, NNtype='knn', 
                                        backend=cur_backend, 
                                        dist_type=dist_type, order=order)
+                        graphs.NNGraph(Xin, NNtype='knn', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order, 
+                                       center=False)
+                        graphs.NNGraph(Xin, NNtype='knn', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order, 
+                                       rescale=False)
+                        graphs.NNGraph(Xin, NNtype='knn', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order, 
+                                       rescale=False, center=False)
         self.assertRaises(ValueError, graphs.NNGraph, Xin, 
                                       NNtype='badtype', backend=cur_backend, 
                                       dist_type=dist_type)
