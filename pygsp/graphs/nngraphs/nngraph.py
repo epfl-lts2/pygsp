@@ -210,6 +210,7 @@ class NNGraph(Graph):
         - 'scipy-ckdtree'(default) will use scipy.spatial.cKDTree
         - 'scipy-pdist' will use scipy.spatial.distance.pdist (slowest but exact)
         - 'flann' use Fast Library for Approximate Nearest Neighbors (FLANN)
+        - 'nmslib' use nmslib for approximate nearest neighbors (faster in high-dimensional spaces)
     center : bool, optional
         Center the data so that it has zero mean (default is True)
     rescale : bool, optional
