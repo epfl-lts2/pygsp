@@ -30,7 +30,9 @@ setup(
             # Construct patch graphs from images.
             'scikit-image',
             # Approximate nearest neighbors for kNN graphs.
-        	   'cyflann',
+            'cyflann',
+            'pybind11',
+            'nmslib',
             # Convex optimization on graph.
             'pyunlocbox',
             # Plot graphs, signals, and filters.

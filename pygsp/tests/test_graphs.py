@@ -6,7 +6,7 @@ Test suite for the graphs module of the pygsp package.
 """
 
 import unittest
-
+import os
 import numpy as np
 import scipy.linalg
 import scipy.sparse.linalg
@@ -183,24 +183,47 @@ class TestCase(unittest.TestCase):
     def test_nngraph(self):
         Xin = np.arange(90).reshape(30, 3)
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-        backends = ['scipy-kdtree', 'scipy-ckdtree', 'scipy-pdist', 'flann'] 
+        backends = ['scipy-kdtree', 'scipy-ckdtree', 'scipy-pdist', 'nmslib']
+        if os.name != 'nt':
+            backends.append('flann')
         order=3 # for minkowski, FLANN only accepts integer orders
         
         for cur_backend in backends:
             for dist_type in dist_types:
                 #print("backend={} dist={}".format(cur_backend, dist_type))
-                if cur_backend == 'flann' and dist_type == 'max_dist':
+                if (cur_backend == 'flann' and 
+                    dist_type == 'max_dist') or (cur_backend == 'nmslib' and 
+                                           dist_type == 'minkowski'):
                     self.assertRaises(ValueError, graphs.NNGraph, Xin, 
                                       NNtype='knn', backend=cur_backend, 
                                       dist_type=dist_type)
+                    self.assertRaises(ValueError, graphs.NNGraph, Xin, 
+                                      NNtype='radius', backend=cur_backend, 
+                                      dist_type=dist_type)
                 else:
-                    if cur_backend != 'flann': #pyflann fails on radius query
+                    if cur_backend == 'nmslib':
+                        self.assertRaises(ValueError, graphs.NNGraph, Xin,
+                                          NNtype='radius', backend=cur_backend, 
+                                          dist_type=dist_type, order=order)
+                    else:
                         graphs.NNGraph(Xin, NNtype='radius', 
                                        backend=cur_backend, 
                                        dist_type=dist_type, order=order)
-                    graphs.NNGraph(Xin, NNtype='knn', 
-                                   backend=cur_backend, 
-                                   dist_type=dist_type, order=order)
+                        graphs.NNGraph(Xin, NNtype='knn', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order)
+                        graphs.NNGraph(Xin, NNtype='knn', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order, 
+                                       center=False)
+                        graphs.NNGraph(Xin, NNtype='knn', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order, 
+                                       rescale=False)
+                        graphs.NNGraph(Xin, NNtype='knn', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order, 
+                                       rescale=False, center=False)
         self.assertRaises(ValueError, graphs.NNGraph, Xin, 
                                       NNtype='badtype', backend=cur_backend, 
                                       dist_type=dist_type)
@@ -211,7 +234,9 @@ class TestCase(unittest.TestCase):
     def test_nngraph_consistency(self):
         Xin = np.arange(90).reshape(30, 3)
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-        backends = ['scipy-kdtree', 'scipy-ckdtree', 'flann']
+        backends = ['scipy-kdtree', 'scipy-ckdtree', 'nmslib']
+        if os.name != 'nt':
+            backends.append('flann')
         num_neighbors=4 
         epsilon=0.1
         
@@ -221,6 +246,8 @@ class TestCase(unittest.TestCase):
         for cur_backend in backends:
             for dist_type in dist_types:
                 if cur_backend == 'flann' and dist_type == 'max_dist':
+                    continue
+                if cur_backend == 'nmslib' and dist_type == 'minkowski':
                     continue
                 #print("backend={} dist={}".format(cur_backend, dist_type))
                 Gt = graphs.NNGraph(Xin, NNtype='knn', 
@@ -233,6 +260,8 @@ class TestCase(unittest.TestCase):
         for cur_backend in backends:
             for dist_type in dist_types:
                 if cur_backend == 'flann' and dist_type == 'max_dist':
+                    continue
+                if cur_backend == 'nmslib': #unsupported
                     continue
                 #print("backend={} dist={}".format(cur_backend, dist_type))
                 Gt = graphs.NNGraph(Xin, NNtype='radius', 
