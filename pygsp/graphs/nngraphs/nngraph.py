@@ -312,13 +312,8 @@ class NNGraph(Graph):
                              self.NNtype))
 
         if self.NNtype == 'knn':
-            spi = np.zeros((N * k))
-            spj = np.zeros((N * k))
-            spv = np.zeros((N * k))
-
             NN, D = self._nn_functions[NNtype][backend](Xout, k, 
                                                         dist_type, order)
-
             if self.sigma is None:
                 self.sigma = np.mean(D[:, 1:])  # Discard distance to self.
 
@@ -329,26 +324,23 @@ class NNGraph(Graph):
                                                 float(self.sigma))
 
         elif self.NNtype == 'radius':
-
             NN, D = self._nn_functions[NNtype][backend](Xout, epsilon, 
 
                                                          dist_type, order)
+        countV = list(map(len, NN))
+        count = sum(countV)    
+        spi = np.zeros((count))
+        spj = np.zeros((count))
+        spv = np.zeros((count))
 
-            count = sum(map(len, NN))
-            
-
-            spi = np.zeros((count))
-            spj = np.zeros((count))
-            spv = np.zeros((count))
-
-            start = 0
-            for i in range(N):
-                leng = len(NN[i]) - 1
-                spi[start:start + leng] = np.kron(np.ones((leng)), i)
-                spj[start:start + leng] = NN[i][1:]
-                spv[start:start + leng] = np.exp(-np.power(D[i][1:], 2) /
-                                                 float(self.sigma))
-                start = start + leng
+        start = 0
+        for i in range(N):
+            leng = countV[i] - 1
+            spi[start:start + leng] = np.kron(np.ones((leng)), i)
+            spj[start:start + leng] = NN[i][1:]
+            spv[start:start + leng] = np.exp(-np.power(D[i][1:], 2) /
+                                       float(self.sigma))
+            start = start + leng
 
 
         W = sparse.csc_matrix((spv, (spi, spj)), shape=(N, N))
