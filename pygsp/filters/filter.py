@@ -100,7 +100,7 @@ class Filter(object):
         return y
 
     def approximate(self, method, **kwargs):
-        r"""Returns a filter which approximates this filter.
+        r"""Return a filter which approximates this filter.
 
         While approximations might loose accuracy, they allow for much faster
         computations.
@@ -114,7 +114,33 @@ class Filter(object):
 
         Examples
         --------
-        TODO: approx plot from notebook (needs new plotting)
+
+        Approximate a filter with Chebyshev polynomials of various orders:
+
+        >>> import matplotlib.pyplot as plt
+        >>> fig, ax = plt.subplots(1, 1)
+        >>>
+        >>> G = graphs.Ring()
+        >>> G.compute_fourier_basis()
+        >>> f1 = filters.Heat(G)
+        >>> f1.plot(eigenvalues=True, linewidth=3, label='continuous', ax=ax)
+        >>>
+        >>> for order in range(1, 5):
+        ...     f2 = f1.approximate('Chebyshev', order=order)
+        ...     l = 'Chebyshev order {}'.format(order)
+        ...     f2.plot(eigenvalues=False, label=l, linestyle='dashed', ax=ax)
+        >>>
+        >>> _ = ax.set_title('Approximation for various polynomial orders')
+        >>> _ = ax.legend()
+
+        Approximate a filterbank with Chebyshev polynomials:
+
+        >>> G = graphs.Ring()
+        >>> G.compute_fourier_basis()
+        >>> f1 = filters.Itersine(G)
+        >>> f2 = f1.approximate('Chebyshev', order=20)
+        >>> f1.plot(title='Continuous filterbank')
+        >>> f2.plot(title='Approximated filterbank')
 
         """
         from . import approximations
@@ -173,7 +199,7 @@ class Filter(object):
         s : ndarray
             Graph signals, a tensor of shape ``(N_NODES, N_SIGNALS,
             N_FEATURES)``, where ``N_NODES`` and ``N_SIGNALS`` are the number
-            of nodes and signals of the signal tensor that pas passed in, and
+            of nodes and signals of the signal tensor that was passed in, and
             ``N_FEATURES`` is either 1 (synthesis) or the number of filters in
             the filter bank (analysis).
 

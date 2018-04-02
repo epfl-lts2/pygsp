@@ -20,6 +20,7 @@ The :class:`Filter` base class implements a common interface to all filters:
     Filter.synthesize
     Filter.compute_frame
     Filter.estimate_frame_bounds
+    Filter.approximate
     Filter.plot
     Filter.localize
 

@@ -38,6 +38,41 @@ class Chebyshev(Filter):
     order : int
         Polynomial order.
 
+    Examples
+    --------
+
+    Plot the basis formed by the first K Chebyshev polynomials:
+
+    >>> import matplotlib.pyplot as plt
+    >>> fig, axes = plt.subplots(1, 2)
+    >>>
+    >>> G = graphs.Ring(N=20)
+    >>> G.compute_fourier_basis()  # To be exactly orthogonal in vertex domain.
+    >>> G.set_coordinates('line1D')
+    >>>
+    >>> K = 5  # Polynomials of order up to K.
+    >>>
+    >>> coefficients = np.identity(K)
+    >>> f = filters.Chebyshev(G, coefficients)
+    >>> s = f.localize(G.N // 2)
+    >>> f.plot(sum=False, eigenvalues=False, ax=axes[0])
+    >>> G.plot_signal(s.T, ax=axes[1])
+    >>>
+    >>> _ = axes[0].set_title('Chebysev polynomials in the spectral domain')
+    >>> _ = axes[1].set_title('Chebysev polynomials in the ring graph domain')
+    >>> _ = axes[0].legend(['order {}'.format(order) for order in range(K)])
+    >>> _ = axes[1].legend(['order {}'.format(order) for order in range(K)])
+
+    They are orthogonal in the vertex domain:
+
+    >>> s = s.T.reshape((G.N, -1))
+    >>> print(s.T @ s)
+    [[20.  0.  0.  0.  0.]
+     [ 0. 10.  0.  0.  0.]
+     [ 0.  0. 10.  0.  0.]
+     [ 0.  0.  0. 10.  0.]
+     [ 0.  0.  0.  0. 10.]]
+
     """
 
     def __init__(self, G, coefficients):
@@ -92,12 +127,27 @@ class Chebyshev(Filter):
 
         Examples
         --------
-        >>> G = graphs.Ring(50)
+
+        Chebyshev coefficients which approximate a linear function:
+
+        >>> G = graphs.Ring()
         >>> G.estimate_lmax()
         >>> g = filters.Filter(G, lambda x: 2*x)
         >>> h = filters.Chebyshev.from_filter(g, order=4)
         >>> print(', '.join([str(int(c)) for c in h._coefficients]))
         4, 4, 0, 0, 0
+
+        Coefficients of smooth filters decrease rapidly:
+
+        >>> import matplotlib.pyplot as plt
+        >>> taus = [5, 10, 20, 50]
+        >>> g = filters.Heat(G, tau=taus)
+        >>> h = filters.Chebyshev.from_filter(g, order=10)
+        >>> fig, axes = plt.subplots(1, 2)
+        >>> g.plot(sum=False, ax=axes[0])
+        >>> _ = axes[1].plot(h._coefficients.squeeze())
+        >>> _ = axes[0].legend(['tau = {}'.format(tau) for tau in taus])
+        >>> _ = axes[1].legend(['tau = {}'.format(tau) for tau in taus])
 
         """
         lmax = filters.G.lmax
