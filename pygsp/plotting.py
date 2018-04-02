@@ -4,22 +4,27 @@ r"""
 The :mod:`pygsp.plotting` module implements functionality to plot PyGSP objects
 with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
 <https://matplotlib.org>`_ drawing backend (which can be controlled by the
-:data:`BACKEND` constant or individually for each plotting call):
+:data:`BACKEND` constant or individually for each plotting call).
 
-* graphs from :mod:`pygsp.graphs` with :func:`plot_graph`,
-  :func:`plot_spectrogram`, and :func:`plot_signal`,
-* filters from :mod:`pygsp.filters` with :func:`plot_filter`.
+Most users won't use this module directly.
+Graphs (from :mod:`pygsp.graphs`) are to be plotted with
+:meth:`pygsp.graphs.Graph.plot`, :meth:`pygsp.graphs.Graph.plot_spectrogram`,
+and :meth:`pygsp.graphs.Graph.plot_signal`.
+Filters (from :mod:`pygsp.filters`) are to be plotted with
+:meth:`pygsp.filters.Filter.plot`.
 
 .. data:: BACKEND
 
     Indicates which drawing backend to use if none are provided to the plotting
-    functions. Should be either 'matplotlib' or 'pyqtgraph'. In general
+    functions. Should be either ``'matplotlib'`` or ``'pyqtgraph'``. In general
     pyqtgraph is better for interactive exploration while matplotlib is better
     at generating figures to be included in papers or elsewhere.
 
 """
 
 from __future__ import division
+
+import functools
 
 import numpy as np
 
@@ -60,13 +65,18 @@ def _import_qtg():
 
 
 def _plt_handle_figure(plot):
+    r"""Handle the common work (creating an axis if not given, setting the
+    title, saving the created plot) of all matplotlib plot commands."""
 
-    def inner(obj, *args, **kwargs):
+    # Preserve documentation of plot.
+    @functools.wraps(plot)
+
+    def inner(obj, **kwargs):
 
         plt = _import_plt()
 
         # Create a figure and an axis if none were passed.
-        if 'ax' not in kwargs.keys():
+        if kwargs['ax'] is None:
             fig = plt.figure()
             global _plt_figures
             _plt_figures.append(fig)
@@ -77,19 +87,19 @@ def _plt_handle_figure(plot):
             else:
                 ax = fig.add_subplot(111)
 
-            kwargs.update(ax=ax)
+            kwargs['ax'] = ax
 
-        save_as = kwargs.pop('save_as', None)
-        plot_name = kwargs.pop('plot_name', '')
+        save = kwargs.pop('save')
+        title = kwargs.pop('title')
 
-        plot(obj, *args, **kwargs)
+        plot(obj, **kwargs)
 
-        kwargs['ax'].set_title(plot_name)
+        kwargs['ax'].set_title(title)
 
         try:
-            if save_as is not None:
-                fig.savefig(save_as + '.png')
-                fig.savefig(save_as + '.pdf')
+            if save is not None:
+                fig.savefig(save + '.png')
+                fig.savefig(save + '.pdf')
             else:
                 fig.show(warn=False)
         except NameError:
@@ -100,10 +110,7 @@ def _plt_handle_figure(plot):
 
 
 def close_all():
-    r"""
-    Close all opened windows.
-
-    """
+    r"""Close all opened windows."""
 
     # Windows can be closed by releasing all references to them so they can be
     # garbage collected. May not be necessary to call close().
@@ -125,64 +132,26 @@ def close_all():
 
 
 def show(*args, **kwargs):
-    r"""
-    Show created figures.
+    r"""Show created figures, alias to plt.show().
 
-    Alias to plt.show().
     By default, showing plots does not block the prompt.
-
     """
     plt = _import_plt()
     plt.show(*args, **kwargs)
 
 
 def close(*args, **kwargs):
-    r"""
-    Close created figures.
-
-    Alias to plt.close().
-
-    """
+    r"""Close created figures, alias to plt.close()."""
     plt = _import_plt()
     plt.close(*args, **kwargs)
 
 
-def plot(O, **kwargs):
-    r"""
-    Main plotting function.
-
-    This convenience function either calls :func:`plot_graph` or
-    :func:`plot_filter` given the type of the passed object. Parameters can be
-    passed to those functions.
+def _plot_graph(G, edges, backend, vertex_size, title, save, ax):
+    r"""Plot the graph.
 
     Parameters
     ----------
-    O : Graph, Filter
-        object to plot
-
-    Examples
-    --------
-    >>> from pygsp import plotting
-    >>> G = graphs.Logo()
-    >>> plotting.plot(G)
-
-    """
-
-    try:
-        O.plot(**kwargs)
-    except AttributeError:
-        raise TypeError('Unrecognized object, i.e. not a Graph or Filter.')
-
-
-def plot_graph(G, backend=None, **kwargs):
-    r"""
-    Plot a graph or a list of graphs.
-
-    Parameters
-    ----------
-    G : Graph
-        Graph to plot.
-    show_edges : bool
+    edges : bool
         True to draw edges, false to only draw vertices.
         Default True if less than 10,000 edges to draw.
         Note that drawing a large number of edges might be particularly slow.
@@ -190,20 +159,21 @@ def plot_graph(G, backend=None, **kwargs):
         Defines the drawing backend to use. Defaults to :data:`BACKEND`.
     vertex_size : float
         Size of circle representing each node.
-    plot_name : str
-        name of the plot
-    save_as : str
-        Whether to save the plot as save_as.png and save_as.pdf. Shown in a
+        Defaults to G.plotting['vertex_size'].
+    title : str
+        Title of the figure.
+    save : str
+        Whether to save the plot as save.png and save.pdf. Shown in a
         window if None (default). Only available with the matplotlib backend.
     ax : matplotlib.axes
-        Axes where to draw the graph. Optional, created if not passed. Only
-        available with the matplotlib backend.
+        Axes where to draw the graph. Optional, created if not passed.
+        Only available with the matplotlib backend.
 
     Examples
     --------
-    >>> from pygsp import plotting
+    >>> import matplotlib
     >>> G = graphs.Logo()
-    >>> plotting.plot_graph(G)
+    >>> G.plot()
 
     """
     if not hasattr(G, 'coords'):
@@ -212,34 +182,36 @@ def plot_graph(G, backend=None, **kwargs):
     if (G.coords.ndim != 2) or (G.coords.shape[1] not in [2, 3]):
         raise AttributeError('Coordinates should be in 2D or 3D space.')
 
-    kwargs['show_edges'] = kwargs.pop('show_edges', G.Ne < 10e3)
-
-    default = G.plotting['vertex_size']
-    kwargs['vertex_size'] = kwargs.pop('vertex_size', default)
-
-    plot_name = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
-    kwargs['plot_name'] = kwargs.pop('plot_name', plot_name)
+    if edges is None:
+        edges = G.Ne < 10e3
 
     if backend is None:
         backend = BACKEND
 
+    if vertex_size is None:
+        vertex_size = G.plotting['vertex_size']
+
+    if title is None:
+        title = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
+
     G = _handle_directed(G)
 
     if backend == 'pyqtgraph':
-        _qtg_plot_graph(G, **kwargs)
+        _qtg_plot_graph(G, edges=edges, vertex_size=vertex_size, title=title)
     elif backend == 'matplotlib':
-        _plt_plot_graph(G, **kwargs)
+        _plt_plot_graph(G, edges=edges, vertex_size=vertex_size, title=title,
+                        save=save, ax=ax)
     else:
         raise ValueError('Unknown backend {}.'.format(backend))
 
 
 @_plt_handle_figure
-def _plt_plot_graph(G, show_edges, vertex_size, ax):
+def _plt_plot_graph(G, edges, vertex_size, ax):
 
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
 
-    if show_edges:
+    if edges:
 
         if G.is_directed():
             raise NotImplementedError
@@ -289,7 +261,7 @@ def _plt_plot_graph(G, show_edges, vertex_size, ax):
             pass
 
 
-def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
+def _qtg_plot_graph(G, edges, vertex_size, title):
 
     # TODO handling when G is a list of graphs
 
@@ -303,11 +275,11 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
         if G.coords.shape[1] == 2:
 
             window = qtg.GraphicsWindow()
-            window.setWindowTitle(plot_name)
+            window.setWindowTitle(title)
             view = window.addViewBox()
             view.setAspectLocked()
 
-            if show_edges:
+            if edges:
                 pen = tuple(np.array(G.plotting['edge_color']) * 255)
             else:
                 pen = None
@@ -327,9 +299,9 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
             widget = gl.GLViewWidget()
             widget.opts['distance'] = 10
             widget.show()
-            widget.setWindowTitle(plot_name)
+            widget.setWindowTitle(title)
 
-            if show_edges:
+            if edges:
                 x, y, z = _get_coords(G)
                 pos = np.stack((x, y, z), axis=1)
                 g = gl.GLLinePlotItem(pos=pos, mode='lines',
@@ -345,83 +317,79 @@ def _qtg_plot_graph(G, show_edges, vertex_size, plot_name):
 
 
 @_plt_handle_figure
-def plot_filter(filters, npoints=1000, line_width=4, x_width=3,
-                x_size=10, plot_eigenvalues=None, show_sum=None, ax=None):
-    r"""
-    Plot the spectral response of a filter bank, a set of graph filters.
+def _plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
+    r"""Plot the spectral response of a filter bank, a set of graph filters.
 
     Parameters
     ----------
-    filters : Filter
-        Filter bank to plot.
-    npoints : int
-        Number of point where the filters are evaluated.
-    line_width : int
-        Width of the filters plots.
-    x_width : int
-        Width of the X marks representing the eigenvalues.
-    x_size : int
-        Size of the X marks representing the eigenvalues.
-    plot_eigenvalues : boolean
+    n : int
+        Number of points where the filters are evaluated.
+    eigenvalues : boolean
         To plot black X marks at all eigenvalues of the graph. You need to
         compute the Fourier basis to use this option. By default the
         eigenvalues are plot if they are contained in the Graph.
-    show_sum : boolean
+    sum : boolean
         To plot an extra line showing the sum of the squared magnitudes
         of the filters (default True if there is multiple filters).
-    plot_name : string
-        name of the plot
-    save_as : str
-        Whether to save the plot as save_as.png and save_as.pdf. Shown in a
+    title : str
+        Title of the figure.
+    save : str
+        Whether to save the plot as save.png and save.pdf. Shown in a
         window if None (default). Only available with the matplotlib backend.
     ax : matplotlib.axes
-        Axes where to draw the graph. Optional, created if not passed. Only
-        available with the matplotlib backend.
+        Axes where to draw the graph. Optional, created if not passed.
+        Only available with the matplotlib backend.
+    kwargs : dict
+        Additional parameters passed to the matplotlib plot function.
+        Useful for example to change the linewidth, linestyle, or set a label.
+        Only available with the matplotlib backend.
+
+    Notes
+    -----
+    This function is only implemented for the matplotlib backend at the moment.
 
     Examples
     --------
-    >>> from pygsp import plotting
+    >>> import matplotlib
     >>> G = graphs.Logo()
     >>> mh = filters.MexicanHat(G)
-    >>> plotting.plot_filter(mh)
+    >>> mh.plot()
 
     """
 
     G = filters.G
 
-    if plot_eigenvalues is None:
-        plot_eigenvalues = hasattr(G, '_e')
-    if show_sum is None:
-        show_sum = filters.Nf > 1
+    if eigenvalues is None:
+        eigenvalues = hasattr(G, '_e')
+    if sum is None:
+        sum = filters.Nf > 1
 
-    if plot_eigenvalues:
+    if eigenvalues:
         for e in G.e:
             ax.axvline(x=e, color=[0.9]*3, linewidth=1)
 
-    x = np.linspace(0, G.lmax, npoints)
+    x = np.linspace(0, G.lmax, n)
     y = filters.evaluate(x).T
-    ax.plot(x, y, linewidth=line_width)
+    ax.plot(x, y, **kwargs)
 
     # TODO: plot highlighted eigenvalues
 
-    if show_sum:
-        ax.plot(x, np.sum(y**2, 1), 'k', linewidth=line_width)
+    if sum:
+        ax.plot(x, np.sum(y**2, 1), 'k', **kwargs)
 
     ax.set_xlabel("$\lambda$: laplacian's eigenvalues / graph frequencies")
     ax.set_ylabel('$\hat{g}(\lambda)$: filter response')
 
 
-def plot_signal(G, signal, backend=None, **kwargs):
-    r"""
-    Plot a signal on top of a graph.
+def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
+                 limits, backend, title, save, ax):
+    r"""Plot a signal on the graph.
 
     Parameters
     ----------
-    G : Graph
-        Graph to plot a signal on top.
     signal : array of int
         Signal to plot. Signal length should be equal to the number of nodes.
-    show_edges : bool
+    edges : bool
         True to draw edges, false to only draw vertices.
         Default True if less than 10,000 edges to draw.
         Note that drawing a large number of edges might be particularly slow.
@@ -429,6 +397,7 @@ def plot_signal(G, signal, backend=None, **kwargs):
         NOT IMPLEMENTED. Camera position when plotting a 3D graph.
     vertex_size : float
         Size of circle representing each node.
+        Defaults to G.plotting['vertex_size'].
     highlight : iterable
         List of indices of vertices to be highlighted.
         Useful to e.g. show where a filter was localized.
@@ -447,21 +416,21 @@ def plot_signal(G, signal, backend=None, **kwargs):
         NOT IMPLEMENTED. Width of the bar (default 1).
     backend: {'matplotlib', 'pyqtgraph'}
         Defines the drawing backend to use. Defaults to :data:`BACKEND`.
-    plot_name : string
-        Name of the plot.
-    save_as : str
-        Whether to save the plot as save_as.png and save_as.pdf. Shown in a
+    title : str
+        Title of the figure.
+    save : str
+        Whether to save the plot as save.png and save.pdf. Shown in a
         window if None (default). Only available with the matplotlib backend.
     ax : matplotlib.axes
-        Axes where to draw the graph. Optional, created if not passed. Only
-        available with the matplotlib backend.
+        Axes where to draw the graph. Optional, created if not passed.
+        Only available with the matplotlib backend.
 
     Examples
     --------
-    >>> from pygsp import plotting
-    >>> G = graphs.Grid2d(4)
-    >>> signal = np.sin((np.arange(16) * 2*np.pi/16))
-    >>> plotting.plot_signal(G, signal)
+    >>> import matplotlib
+    >>> G = graphs.Grid2d(8)
+    >>> signal = np.sin((np.arange(8**2) * 2*np.pi/8**2))
+    >>> G.plot_signal(signal)
 
     """
     if not hasattr(G, 'coords'):
@@ -480,18 +449,19 @@ def plot_signal(G, signal, backend=None, **kwargs):
         raise ValueError('Signal length is {}, should be '
                          'G.N = {}.'.format(signal.shape[0], G.N))
     if np.sum(np.abs(signal.imag)) > 1e-10:
-        raise ValueError("Can't display complex signal.")
+        raise ValueError("Can't display complex signals.")
 
-    kwargs['show_edges'] = kwargs.pop('show_edges', G.Ne < 10e3)
+    if edges is None:
+        edges = G.Ne < 10e3
 
-    default = G.plotting['vertex_size']
-    kwargs['vertex_size'] = kwargs.pop('vertex_size', default)
+    if vertex_size is None:
+        vertex_size = G.plotting['vertex_size']
 
-    plot_name = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
-    kwargs['plot_name'] = kwargs.pop('plot_name', plot_name)
+    if title is None:
+        title = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
 
-    limits = [1.05*signal.min(), 1.05*signal.max()]
-    kwargs['limits'] = kwargs.pop('limits', limits)
+    if limits is None:
+        limits = [1.05*signal.min(), 1.05*signal.max()]
 
     if backend is None:
         backend = BACKEND
@@ -499,18 +469,22 @@ def plot_signal(G, signal, backend=None, **kwargs):
     G = _handle_directed(G)
 
     if backend == 'pyqtgraph':
-        _qtg_plot_signal(G, signal, **kwargs)
+        _qtg_plot_signal(G, signal=signal, edges=edges,
+                         vertex_size=vertex_size, limits=limits, title=title)
     elif backend == 'matplotlib':
-        _plt_plot_signal(G, signal, **kwargs)
+        _plt_plot_signal(G, signal=signal, edges=edges,
+                         vertex_size=vertex_size, limits=limits, title=title,
+                         highlight=highlight, colorbar=colorbar,
+                         save=save, ax=ax)
     else:
         raise ValueError('Unknown backend {}.'.format(backend))
 
 
 @_plt_handle_figure
-def _plt_plot_signal(G, signal, show_edges, limits, ax,
-                     vertex_size, highlight=[], colorbar=True):
+def _plt_plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
+                     limits, ax):
 
-    if show_edges:
+    if edges:
 
         if G.is_directed():
             raise NotImplementedError
@@ -576,12 +550,12 @@ def _plt_plot_signal(G, signal, show_edges, limits, ax,
         plt.colorbar(sc, ax=ax)
 
 
-def _qtg_plot_signal(G, signal, show_edges, plot_name, vertex_size, limits):
+def _qtg_plot_signal(G, signal, edges, vertex_size, limits, title):
 
     qtg, gl, QtGui = _import_qtg()
 
     if G.coords.shape[1] == 2:
-        window = qtg.GraphicsWindow(plot_name)
+        window = qtg.GraphicsWindow(title)
         view = window.addViewBox()
 
     elif G.coords.shape[1] == 3:
@@ -590,9 +564,9 @@ def _qtg_plot_signal(G, signal, show_edges, plot_name, vertex_size, limits):
         widget = gl.GLViewWidget()
         widget.opts['distance'] = 10
         widget.show()
-        widget.setWindowTitle(plot_name)
+        widget.setWindowTitle(title)
 
-    if show_edges:
+    if edges:
 
         if G.is_directed():
             raise NotImplementedError
@@ -641,22 +615,23 @@ def _qtg_plot_signal(G, signal, show_edges, plot_name, vertex_size, limits):
         _qtg_widgets.append(widget)
 
 
-def plot_spectrogram(G, node_idx=None):
-    r"""
-    Plot the spectrogram of the given graph.
+def _plot_spectrogram(G, node_idx):
+    r"""Plot the graph's spectrogram.
 
     Parameters
     ----------
-    G : Graph
-        Graph to analyse.
     node_idx : ndarray
-        Order to sort the nodes in the spectrogram
+        Order to sort the nodes in the spectrogram.
+        By default, does not reorder the nodes.
+
+    Notes
+    -----
+    This function is only implemented for the pyqtgraph backend at the moment.
 
     Examples
     --------
-    >>> from pygsp import plotting
     >>> G = graphs.Ring(15)
-    >>> plotting.plot_spectrogram(G)
+    >>> G.plot_spectrogram()
 
     """
     from pygsp import features
