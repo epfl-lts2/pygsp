@@ -658,29 +658,26 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         fm *= np.sqrt(self.N)
         return fm
 
-    def plot(self, **kwargs):
-        r"""Plot the graph.
+    def plot(self, edges=None, backend=None, vertex_size=None, title=None,
+             save=None, ax=None):
+        r"""Docstring overloaded at import time."""
+        from pygsp.plotting import _plot_graph
+        _plot_graph(self, edges=edges, backend=backend,
+                    vertex_size=vertex_size, title=title, save=save, ax=ax)
 
-        See :func:`pygsp.plotting.plot_graph`.
-        """
-        from pygsp import plotting
-        plotting.plot_graph(self, **kwargs)
+    def plot_signal(self, signal, edges=None, vertex_size=None, highlight=[],
+                    colorbar=True, limits=None, backend=None, title=None,
+                    save=None, ax=None):
+        r"""Docstring overloaded at import time."""
+        from pygsp.plotting import _plot_signal
+        _plot_signal(self, signal=signal, edges=edges, vertex_size=vertex_size,
+                     highlight=highlight, colorbar=colorbar, limits=limits,
+                     backend=backend, title=title, save=save, ax=ax)
 
-    def plot_signal(self, signal, **kwargs):
-        r"""Plot a signal on that graph.
-
-        See :func:`pygsp.plotting.plot_signal`.
-        """
-        from pygsp import plotting
-        plotting.plot_signal(self, signal, **kwargs)
-
-    def plot_spectrogram(self, **kwargs):
-        r"""Plot the graph's spectrogram.
-
-        See :func:`pygsp.plotting.plot_spectrogram`.
-        """
-        from pygsp import plotting
-        plotting.plot_spectrogram(self, **kwargs)
+    def plot_spectrogram(self, node_idx=None):
+        r"""Docstring overloaded at import time."""
+        from pygsp.plotting import _plot_spectrogram
+        _plot_spectrogram(self, node_idx=node_idx)
 
     def _fruchterman_reingold_layout(self, dim=2, k=None, pos=None, fixed=[],
                                      iterations=50, scale=1.0, center=None,

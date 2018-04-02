@@ -533,10 +533,9 @@ class Filter(object):
 
         return Filter(self.G, kernels)
 
-    def plot(self, **kwargs):
-        r"""Plot the filter bank's frequency response.
-
-        See :func:`pygsp.plotting.plot_filter`.
-        """
-        from pygsp import plotting
-        plotting.plot_filter(self, **kwargs)
+    def plot(self, n=500, eigenvalues=None, sum=None, title='', save=None,
+             ax=None, **kwargs):
+        r"""Docstring overloaded at import time."""
+        from pygsp.plotting import _plot_filter
+        _plot_filter(self, n=n, eigenvalues=eigenvalues, sum=sum, title=title,
+                     save=save, ax=ax, **kwargs)

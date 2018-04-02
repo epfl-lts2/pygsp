@@ -85,7 +85,7 @@ class TestCase(unittest.TestCase):
     def test_save(self):
         G = graphs.Logo()
         name = 'test_plot'
-        G.plot(backend='matplotlib', save_as=name)
+        G.plot(backend='matplotlib', save=name)
         os.remove(name + '.png')
         os.remove(name + '.pdf')
 
