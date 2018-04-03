@@ -68,7 +68,7 @@ We can retrieve our weight matrix, which is stored in a sparse format.
     >>> (G.W == W).all()
     True
     >>> type(G.W)
-    <class 'scipy.sparse.lil.lil_matrix'>
+    <class 'scipy.sparse.csr.csr_matrix'>
 
 We can access the `graph Laplacian`_
 
