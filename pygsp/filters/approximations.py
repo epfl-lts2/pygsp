@@ -213,6 +213,41 @@ class Chebyshev(Filter):
 
     def _filter(self, s, method, _):
 
+        # TODO: signal normalization will move to Filter.filter()
+
+        # Dimension 3: number of nodes.
+        if s.shape[-1] != self.G.N:
+            raise ValueError('The last dimension should be {}, '
+                             'the number of nodes. '
+                             'Got instead a signal of shape '
+                             '{}.'.format(self.G.N, s.shape))
+
+        # Dimension 2: number of input features.
+        if s.ndim == 1:
+            s = np.expand_dims(s, 0)
+        if s.shape[-2] != self.n_features_in:
+            if self.n_features_in == 1:
+                # Dimension can be omitted if there's 1 input feature.
+                s = np.expand_dims(s, -2)
+            else:
+                raise ValueError('The second to last dimension should be {}, '
+                                 'the number of input features. '
+                                 'Got instead a signal of shape '
+                                 '{}.'.format(self.n_features_in, s.shape))
+
+        # Dimension 1: number of independent signals.
+        if s.ndim < 3:
+            s = np.expand_dims(s, 0)
+
+        if s.ndim > 3:
+            raise ValueError('Signals should have at most 3 dimensions: '
+                             '#signals x #features x #nodes.')
+
+        assert s.ndim == 3
+        assert s.shape[2] == self.G.N  # Number of nodes.
+        assert s.shape[1] == self.n_features_in  # Number of input features.
+        # n_signals = s.shape[0]
+
         L = self.scale_operator(self.G.L, self.G.lmax)
 
         # Recursive and clenshaw are similarly fast.

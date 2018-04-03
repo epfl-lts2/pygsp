@@ -280,7 +280,7 @@ class TestApproximations(unittest.TestCase):
 
     def test_filter_identity(self, M=10, c=2.3):
         r"""Test that filtering with c0 only scales the signal."""
-        x = self._rs.uniform(size=(M, 1, self._G.N))
+        x = self._rs.uniform(size=(M, self._G.N))
         f = filters.Chebyshev(self._G, c)
         y = f.filter(x, method='recursive')
         np.testing.assert_equal(y, c * x)
@@ -331,3 +331,56 @@ class TestApproximations(unittest.TestCase):
         y1 = f1.filter(x.T).T
         y2 = f2.filter(x)
         np.testing.assert_allclose(y2.squeeze(), y1)
+
+    def test_shape_normalization(self):
+        """Test that signal's shapes are properly normalized."""
+        # TODO: should also test filters which are not approximations.
+
+        def test_normalization(M, Fin, Fout, K=7):
+
+            def test_shape(y, M, Fout, N=self._G.N):
+                """Test that filtered signals are squeezed."""
+                if Fout == 1 and M == 1:
+                    self.assertEqual(y.shape, (N,))
+                elif Fout == 1:
+                    self.assertEqual(y.shape, (M, N))
+                elif M == 1:
+                    self.assertEqual(y.shape, (Fout, N))
+                else:
+                    self.assertEqual(y.shape, (M, Fout, N))
+
+            coefficients = self._rs.uniform(size=(K, Fout, Fin))
+            f = filters.Chebyshev(self._G, coefficients)
+            assert f.shape == (Fin, Fout)
+            assert (f.n_features_in, f.n_features_out) == (Fin, Fout)
+
+            x = self._rs.uniform(size=(M, Fin, self._G.N))
+            y = f.filter(x)
+            test_shape(y, M, Fout)
+
+            if Fin == 1 or M == 1:
+                # It only makes sense to squeeze if one dimension is unitary.
+                x = x.squeeze()
+                y = f.filter(x)
+                test_shape(y, M, Fout)
+
+        # Test all possible correct combinations of input and output signals.
+        for M in [1, 9]:
+            for Fin in [1, 3]:
+                for Fout in [1, 5]:
+                    test_normalization(M, Fin, Fout)
+
+        # Test failure cases.
+        M, Fin, Fout, K = 9, 3, 5, 7
+        coefficients = self._rs.uniform(size=(K, Fout, Fin))
+        f = filters.Chebyshev(self._G, coefficients)
+        x = self._rs.uniform(size=(M, Fin, 2))
+        self.assertRaises(ValueError, f.filter, x)
+        x = self._rs.uniform(size=(M, 2, self._G.N))
+        self.assertRaises(ValueError, f.filter, x)
+        x = self._rs.uniform(size=(2, self._G.N))
+        self.assertRaises(ValueError, f.filter, x)
+        x = self._rs.uniform(size=(self._G.N))
+        self.assertRaises(ValueError, f.filter, x)
+        x = self._rs.uniform(size=(2, M, Fin, self._G.N))
+        self.assertRaises(ValueError, f.filter, x)

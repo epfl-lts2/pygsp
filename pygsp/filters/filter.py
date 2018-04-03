@@ -273,7 +273,11 @@ class Filter(object):
         """
         if not sparse.issparse(s):
             s = np.asarray(s)  # For iterables.
-        return self._filter(s, method, order)
+
+        s = self._filter(s, method, order)
+
+        # Return a 1D signal if e.g. a 1D signal was filtered by one filter.
+        return s.squeeze()
 
     def _filter(self, s, method='chebyshev', order=30):
         r"""Default implementation for filters defined as kernel functions."""
@@ -344,8 +348,7 @@ class Filter(object):
         else:
             raise ValueError('Unknown method {}.'.format(method))
 
-        # Return a 1D signal if e.g. a 1D signal was filtered by one filter.
-        return s.squeeze()
+        return s
 
     def analyze(self, s, method='chebyshev', order=30):
         r"""Convenience alias to :meth:`filter`."""
