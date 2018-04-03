@@ -66,7 +66,7 @@ class Chebyshev(Filter):
     They are orthogonal in the vertex domain:
 
     >>> s = s.T.reshape((G.N, -1))
-    >>> print(s.T @ s)
+    >>> print(s.T.dot(s))
     [[20.  0.  0.  0.  0.]
      [ 0. 10.  0.  0.  0.]
      [ 0.  0. 10.  0.  0.]
