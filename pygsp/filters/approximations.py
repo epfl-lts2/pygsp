@@ -83,8 +83,10 @@ class Chebyshev(Filter):
         while coefficients.ndim < 3:
             coefficients = np.expand_dims(coefficients, -1)
 
-        self.Nout, self.Nin = coefficients.shape[1:]
-        self.Nf = self.Nout * self.Nin
+        self.n_features_out, self.n_features_in = coefficients.shape[1:]
+        self.shape = (self.n_features_in, self.n_features_out)  # TODO: useful?
+        self.n_filters = self.n_features_in * self.n_features_out
+        self.Nf = self.n_filters  # TODO: kept for backward compatibility only.
         self._coefficients = coefficients
 
     # That is a factory method.

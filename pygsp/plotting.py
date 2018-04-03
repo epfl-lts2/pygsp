@@ -369,7 +369,9 @@ def _plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
             ax.axvline(x=e, color=[0.9]*3, linewidth=1)
 
     x = np.linspace(0, G.lmax, n)
-    y = filters.evaluate(x).T
+    # Plot all filters on one figure. A user can plot a single filterbank with
+    # filter[1].plot() or a single filter with filter[1, 3].plot().
+    y = filters.evaluate(x).reshape((-1, n)).T
     ax.plot(x, y, **kwargs)
 
     # TODO: plot highlighted eigenvalues

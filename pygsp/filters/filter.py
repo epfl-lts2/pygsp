@@ -59,7 +59,11 @@ class Filter(object):
             kernels = [kernels]
         self._kernels = kernels
 
-        self.Nf = len(kernels)
+        # This constructor is only used by subclasses to instantiate a single filterbank.
+        self.n_features_in, self.n_features_out = (1, len(kernels))
+        self.shape = (self.n_features_in, self.n_features_out)  # TODO: useful?
+        self.n_filters = self.n_features_in * self.n_features_out
+        self.Nf = self.n_filters  # TODO: kept for backward compatibility only.
 
     def evaluate(self, x, method=None):
         r"""Evaluate the kernels at given frequencies.
@@ -398,8 +402,12 @@ class Filter(object):
         >>> G.plot_signal(s, highlight=DELTA)
 
         """
-        s = np.zeros(self.G.N)
-        s[i] = 1
+        # Localize each filter: g[in, out].localize(i) for all (in, out).
+        s = np.zeros((self.n_features_in, self.n_features_in, self.G.N))
+        fin = range(self.n_features_in)
+        s[fin, fin, i] = 1
+        # TODO: remove once all signals have the new shape.
+        s = s.squeeze()
         return np.sqrt(self.G.N) * self.filter(s, **kwargs)
 
     def estimate_frame_bounds(self, min=0, max=None, N=1000,
