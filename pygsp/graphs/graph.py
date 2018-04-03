@@ -71,20 +71,31 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         if len(W.shape) != 2 or W.shape[0] != W.shape[1]:
             raise ValueError('W has incorrect shape {}'.format(W.shape))
 
+        # CSR sparse matrices are the most efficient for matrix multiplication.
+        # They are the sole sparse matrix type to support eliminate_zeros().
+        if sparse.isspmatrix_csr(W):
+            self.W = W
+        else:
+            self.W = sparse.csr_matrix(W)
+
         # Don't keep edges of 0 weight. Otherwise Ne will not correspond to the
         # real number of edges. Problematic when e.g. plotting.
-        W = sparse.csr_matrix(W)
-        W.eliminate_zeros()
+        self.W.eliminate_zeros()
 
         self.N = W.shape[0]
-        self.W = sparse.lil_matrix(W)
+
+        # TODO: why would we ever want this?
+        # For large matrices it slows the graph construction by a factor 100.
+        # self.W = sparse.lil_matrix(self.W)
 
         # Don't count edges two times if undirected.
         # Be consistent with the size of the differential operator.
         if self.is_directed():
             self.Ne = self.W.nnz
         else:
-            self.Ne = sparse.tril(W).nnz
+            diagonal = np.count_nonzero(self.W.diagonal())
+            off_diagonal = self.W.nnz - diagonal
+            self.Ne = off_diagonal // 2 + diagonal
 
         self.check_weights()
 
@@ -628,7 +639,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         else:
             v_in, v_out = sparse.tril(self.W).nonzero()
             weights = self.W[v_in, v_out]
-            weights = weights.toarray().squeeze()
+            weights = np.asarray(weights).squeeze()
 
             # TODO G.ind_edges = sub2ind(size(G.W), G.v_in, G.v_out)
 
