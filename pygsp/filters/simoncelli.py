@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import numpy as np
 
 from . import Filter  # prevent circular import in Python < 3.5
@@ -41,12 +43,13 @@ class Simoncelli(Filter):
 
     """
 
-    def __init__(self, G, a=2./3):
+    def __init__(self, G, a=2/3):
 
-        g = [lambda x: simoncelli(x * (2./G.lmax), a)]
-        g.append(lambda x: np.real(np.sqrt(1 -
-                                           (simoncelli(x*(2./G.lmax), a))
-                                           ** 2)))
+        kernels = [lambda x: simoncelli(x * (2/G.lmax), a)]
+        def dual(x):
+            y = simoncelli(x * (2/G.lmax), a)
+            return np.real(np.sqrt(1 - y**2))
+        kernels.append(dual)
 
         def simoncelli(val, a):
             y = np.empty(np.shape(val))
@@ -58,9 +61,9 @@ class Simoncelli(Filter):
             r3ind = (val >= l2)
 
             y[r1ind] = 1
-            y[r2ind] = np.cos(np.pi/2 * np.log(val[r2ind]/float(a)) / np.log(2))
+            y[r2ind] = np.cos(np.pi/2 * np.log(val[r2ind]/a) / np.log(2))
             y[r3ind] = 0
 
             return y
 
-        super(Simoncelli, self).__init__(G, g)
+        super(Simoncelli, self).__init__(G, kernels)

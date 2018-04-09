@@ -19,7 +19,7 @@ class Held(Filter):
 
     .. math:: \mu(x) = -1+24x-144*x^2+256*x^3
 
-    The high pass filter is adaptated to obtain a tight frame.
+    The high pass filter is adapted to obtain a tight frame.
 
     Parameters
     ----------
@@ -47,9 +47,11 @@ class Held(Filter):
 
     def __init__(self, G, a=2./3):
 
-        g = [lambda x: held(x * (2./G.lmax), a)]
-        g.append(lambda x: np.real(np.sqrt(1 - (held(x * (2./G.lmax), a))
-                                           ** 2)))
+        kernels = [lambda x: held(x * (2./G.lmax), a)]
+        def dual(x):
+            y = held(x * (2./G.lmax), a)
+            return np.real(np.sqrt(1 - y**2))
+        kernels.append(dual)
 
         def held(val, a):
             y = np.empty(np.shape(val))
@@ -67,4 +69,4 @@ class Held(Filter):
 
             return y
 
-        super(Held, self).__init__(G, g)
+        super(Held, self).__init__(G, kernels)

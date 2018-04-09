@@ -40,11 +40,14 @@ class Papadakis(Filter):
     >>> G.plot_signal(s, ax=axes[1])
 
     """
+
     def __init__(self, G, a=0.75):
 
-        g = [lambda x: papadakis(x * (2./G.lmax), a)]
-        g.append(lambda x: np.real(np.sqrt(1 - (papadakis(x*(2./G.lmax), a)) **
-                                   2)))
+        kernels = [lambda x: papadakis(x * (2./G.lmax), a)]
+        def dual(x):
+            y = papadakis(x * (2./G.lmax), a)
+            return np.real(np.sqrt(1 - y**2))
+        kernels.append(dual)
 
         def papadakis(val, a):
             y = np.empty(np.shape(val))
@@ -61,4 +64,4 @@ class Papadakis(Filter):
 
             return y
 
-        super(Papadakis, self).__init__(G, g)
+        super(Papadakis, self).__init__(G, kernels)

@@ -10,14 +10,13 @@ _logger = utils.build_logger(__name__)
 class Gabor(Filter):
     r"""Design a Gabor filter bank.
 
-    Design a filter bank where the kernel *k* is placed at each graph
-    frequency.
+    Design a filter bank where the kernel is centered at each graph frequency.
 
     Parameters
     ----------
     G : graph
-    k : lambda function
-        kernel
+    kernel : function
+        Kernel function to be centered and evaluated.
 
     Examples
     --------
@@ -26,12 +25,13 @@ class Gabor(Filter):
     >>> g = filters.Gabor(G, k);
 
     """
-    def __init__(self, G, k):
+
+    def __init__(self, G, kernel):
 
         Nf = G.e.shape[0]
 
-        g = []
+        kernels = []
         for i in range(Nf):
-            g.append(lambda x, ii=i: k(x - G.e[ii]))
+            kernels.append(lambda x, i=i: kernel(x - G.e[i]))
 
-        super(Gabor, self).__init__(G, g)
+        super(Gabor, self).__init__(G, kernels)

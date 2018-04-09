@@ -29,7 +29,7 @@ class MexicanHat(Filter):
     G : graph
     Nf : int
         Number of filters to cover the interval [0, lmax].
-    lpfactor : int
+    lpfactor : float
         Low-pass factor. lmin=lmax/lpfactor will be used to determine scales.
         The scaling function will be created to fill the low-pass gap.
     scales : array-like

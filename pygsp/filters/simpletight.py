@@ -93,9 +93,9 @@ class SimpleTight(Filter):
         if len(scales) != Nf - 1:
             raise ValueError('len(scales) should be Nf-1.')
 
-        g = [lambda x: kernel(scales[0] * x, 'sf')]
+        kernels = [lambda x: kernel(scales[0] * x, 'sf')]
 
         for i in range(Nf - 1):
-            g.append(lambda x, i=i: kernel(scales[i] * x, 'wavelet'))
+            kernels.append(lambda x, i=i: kernel(scales[i] * x, 'wavelet'))
 
-        super(SimpleTight, self).__init__(G, g)
+        super(SimpleTight, self).__init__(G, kernels)

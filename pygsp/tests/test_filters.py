@@ -175,9 +175,9 @@ class TestCase(unittest.TestCase):
     def test_regular(self):
         f = filters.Regular(self._G)
         self._test_methods(f, tight=True)
-        f = filters.Regular(self._G, d=5)
+        f = filters.Regular(self._G, degree=5)
         self._test_methods(f, tight=True)
-        f = filters.Regular(self._G, d=0)
+        f = filters.Regular(self._G, degree=0)
         self._test_methods(f, tight=True)
 
     def test_held(self):

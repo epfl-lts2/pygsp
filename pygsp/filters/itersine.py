@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import numpy as np
 
 from . import Filter  # prevent circular import in Python < 3.5
@@ -35,15 +37,23 @@ class Itersine(Filter):
     >>> G.plot_signal(s, ax=axes[1])
 
     """
-    def __init__(self, G, Nf=6, overlap=2.):
 
-        def k(x):
-            return np.sin(0.5*np.pi*np.power(np.cos(x*np.pi), 2)) * ((x >= -0.5)*(x <= 0.5))
+    def __init__(self, G, Nf=6, overlap=2):
 
-        scale = G.lmax/(Nf - overlap + 1.)*overlap
-        g = []
+        scales = G.lmax / (Nf - overlap + 1) * overlap
 
+        def kernel(x):
+            y = np.cos(x * np.pi)**2
+            y = np.sin(0.5 * np.pi * y)
+            return y * ((x >= -0.5) * (x <= 0.5))
+
+        kernels = []
         for i in range(1, Nf + 1):
-            g.append(lambda x, ind=i: k(x/scale - (ind - overlap/2.)/overlap) / np.sqrt(overlap)*np.sqrt(2))
 
-        super(Itersine, self).__init__(G, g)
+            def kernel_centered(x, i=i):
+                y = kernel(x / scales - (i - overlap / 2) / overlap)
+                return y * np.sqrt(2 / overlap)
+
+            kernels.append(kernel_centered)
+
+        super(Itersine, self).__init__(G, kernels)
