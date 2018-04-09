@@ -43,6 +43,8 @@ class Papadakis(Filter):
 
     def __init__(self, G, a=0.75):
 
+        self.a = a
+
         kernels = [lambda x: papadakis(x * (2./G.lmax), a)]
         def dual(x):
             y = papadakis(x * (2./G.lmax), a)
@@ -65,3 +67,6 @@ class Papadakis(Filter):
             return y
 
         super(Papadakis, self).__init__(G, kernels)
+
+    def _get_extra_repr(self):
+        return dict(a='{:.2f}'.format(self.a))

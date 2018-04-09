@@ -37,6 +37,9 @@ class Expwin(Filter):
 
     def __init__(self, G, band_max=0.2, slope=1):
 
+        self.band_max = band_max
+        self.slope = slope
+
         def fx(x):
             # Canary to avoid division by zero and overflow.
             y = np.where(x <= 0, -1, x)
@@ -53,3 +56,7 @@ class Expwin(Filter):
         g = [lambda x: ffin(x/band_max/G.lmax)]
 
         super(Expwin, self).__init__(G, g)
+
+    def _get_extra_repr(self):
+        return dict(band_max='{:.2f}'.format(self.band_max),
+                    slope='{:.2f}'.format(self.slope))

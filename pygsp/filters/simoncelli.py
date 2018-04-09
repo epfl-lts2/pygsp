@@ -45,6 +45,8 @@ class Simoncelli(Filter):
 
     def __init__(self, G, a=2/3):
 
+        self.a = a
+
         kernels = [lambda x: simoncelli(x * (2/G.lmax), a)]
         def dual(x):
             y = simoncelli(x * (2/G.lmax), a)
@@ -67,3 +69,6 @@ class Simoncelli(Filter):
             return y
 
         super(Simoncelli, self).__init__(G, kernels)
+
+    def _get_extra_repr(self):
+        return dict(a='{:.2f}'.format(self.a))

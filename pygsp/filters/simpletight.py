@@ -89,6 +89,7 @@ class SimpleTight(Filter):
 
         if not scales:
             scales = (1./(2.*G.lmax) * np.power(2, np.arange(Nf-2, -1, -1)))
+        self.scales = scales
 
         if len(scales) != Nf - 1:
             raise ValueError('len(scales) should be Nf-1.')

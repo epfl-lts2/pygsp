@@ -40,6 +40,8 @@ class Itersine(Filter):
 
     def __init__(self, G, Nf=6, overlap=2):
 
+        self.overlap = overlap
+
         scales = G.lmax / (Nf - overlap + 1) * overlap
 
         def kernel(x):
@@ -57,3 +59,6 @@ class Itersine(Filter):
             kernels.append(kernel_centered)
 
         super(Itersine, self).__init__(G, kernels)
+
+    def _get_extra_repr(self):
+        return dict(overlap='{:.2f}'.format(self.overlap))

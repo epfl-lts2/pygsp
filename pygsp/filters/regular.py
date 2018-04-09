@@ -53,6 +53,8 @@ class Regular(Filter):
 
     def __init__(self, G, degree=3):
 
+        self.degree = degree
+
         kernels = [lambda x: regular(x * (2/G.lmax), degree)]
         def dual(x):
             y = regular(x * (2/G.lmax), degree)

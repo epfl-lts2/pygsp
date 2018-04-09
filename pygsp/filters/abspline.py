@@ -77,6 +77,8 @@ class Abspline(Filter):
 
             return r
 
+        self.lpfactor = lpfactor
+
         lmin = G.lmax / lpfactor
 
         if scales is None:
@@ -100,3 +102,6 @@ class Abspline(Filter):
         g[0] = lambda x: gamma_l * gl(x / lminfac)
 
         super(Abspline, self).__init__(G, g)
+
+    def _get_extra_repr(self):
+        return dict(lpfactor='{:.2f}'.format(self.lpfactor))
