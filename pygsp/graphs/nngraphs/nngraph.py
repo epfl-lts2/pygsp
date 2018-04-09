@@ -6,6 +6,7 @@ import numpy as np
 from scipy import sparse
 import scipy.spatial as sps
 import scipy.spatial.distance as spsd
+import multiprocessing
 
 from pygsp import utils
 from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
@@ -65,7 +66,8 @@ def _knn_sp_kdtree(X, num_neighbors, dist_type, order=0):
 def _knn_sp_ckdtree(X, num_neighbors, dist_type, order=0):
     kdt = sps.cKDTree(X)
     D, NN = kdt.query(X, k=(num_neighbors + 1), 
-                      p=_dist_translation['scipy-ckdtree'][dist_type])
+                      p=_dist_translation['scipy-ckdtree'][dist_type], 
+                      n_jobs=-1)
     return NN, D
 
 
@@ -98,7 +100,8 @@ def _radius_sp_ckdtree(X, epsilon, dist_type, order=0):
     N, dim = np.shape(X)
     kdt = sps.cKDTree(X)
     nn = kdt.query_ball_point(X, r=epsilon,
-                              p=_dist_translation['scipy-ckdtree'][dist_type])
+                              p=_dist_translation['scipy-ckdtree'][dist_type],
+                              n_jobs=-1)
     D = []
     NN = []
     for k in range(N):
@@ -125,13 +128,14 @@ def _knn_sp_pdist(X, num_neighbors, dist_type, order):
     
 def _knn_nmslib(X, num_neighbors, dist_type, order):
     N, dim = np.shape(X)
+    ncpu = multiprocessing.cpu_count()
     if dist_type == 'minkowski':
         raise ValueError('unsupported distance type (lp) for nmslib')
     nms = _import_nmslib()
     nmsidx = nms.init(space=_dist_translation['nmslib'][dist_type])
     nmsidx.addDataPointBatch(X)
     nmsidx.createIndex()
-    q = nmsidx.knnQueryBatch(X, k=num_neighbors+1)
+    q = nmsidx.knnQueryBatch(X, k=num_neighbors+1, num_threads=int(ncpu/2))
     nn, d = zip(*q)
     D = np.concatenate(d).reshape(N, num_neighbors+1)
     NN = np.concatenate(nn).reshape(N, num_neighbors+1)
