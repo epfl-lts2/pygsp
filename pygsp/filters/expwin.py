@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import numpy as np
 
 from . import Filter  # prevent circular import in Python < 3.5
@@ -11,9 +13,9 @@ class Expwin(Filter):
     Parameters
     ----------
     G : graph
-    bmax : float
+    band_max : float
         Maximum relative band (default = 0.2)
-    a : int
+    slope : float
         Slope parameter (default = 1)
 
     Examples
@@ -33,24 +35,21 @@ class Expwin(Filter):
 
     """
 
-    def __init__(self, G, bmax=0.2, a=1.):
+    def __init__(self, G, band_max=0.2, slope=1):
 
-        def fx(x, a):
-            y = np.exp(-float(a)/x)
-            if isinstance(x, np.ndarray):
-                y = np.where(x <= 0, 0., y)
-            else:
-                if x <= 0:
-                    y = 0.
-            return y
+        def fx(x):
+            # Canary to avoid division by zero and overflow.
+            y = np.where(x <= 0, -1, x)
+            y = np.exp(-slope / y)
+            return np.where(x <= 0, 0, y)
 
-        def gx(x, a):
-            y = fx(x, a)
-            return y/(y + fx(1 - x, a))
+        def gx(x):
+            y = fx(x)
+            return y / (y + fx(1 - x))
 
-        def ffin(x, a):
-            return gx(1 - x, a)
+        def ffin(x):
+            return gx(1 - x)
 
-        g = [lambda x: ffin(np.float64(x)/bmax/G.lmax, a)]
+        g = [lambda x: ffin(x/band_max/G.lmax)]
 
         super(Expwin, self).__init__(G, g)
