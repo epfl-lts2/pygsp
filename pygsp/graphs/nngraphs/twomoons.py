@@ -28,8 +28,8 @@ class TwoMoons(NNGraph):
         Variance of the data (do not set it too high or you won't see anything)
         (default = 0.05)
         Only valid for moontype == 'synthesized'.
-    d : float
-        Distance of the two moons (default = 0.5)
+    distance : float
+        Distance between the two moons (default = 0.5)
         Only valid for moontype == 'synthesized'.
     seed : int
         Seed for the random number generator (for reproducible graphs).
@@ -44,7 +44,7 @@ class TwoMoons(NNGraph):
 
     """
 
-    def _create_arc_moon(self, N, sigmad, d, number, seed):
+    def _create_arc_moon(self, N, sigmad, distance, number, seed):
         rs = np.random.RandomState(seed)
         phi = rs.rand(N, 1) * np.pi
         r = 1
@@ -56,30 +56,34 @@ class TwoMoons(NNGraph):
 
         if number == 1:
             moonx = np.cos(phi) * r + bx + 0.5
-            moony = -np.sin(phi) * r + by - (d - 1)/2.
+            moony = -np.sin(phi) * r + by - (distance - 1)/2.
         elif number == 2:
             moonx = np.cos(phi) * r + bx - 0.5
-            moony = np.sin(phi) * r + by + (d - 1)/2.
+            moony = np.sin(phi) * r + by + (distance - 1)/2.
 
         return np.concatenate((moonx, moony), axis=1)
 
     def __init__(self, moontype='standard', dim=2, sigmag=0.05,
-                 N=400, sigmad=0.07, d=0.5, seed=None, **kwargs):
+                 N=400, sigmad=0.07, distance=0.5, seed=None, **kwargs):
+
+        self.moontype = moontype
+        self.dim = dim
+        self.sigmag = sigmag
+        self.sigmad = sigmad
+        self.distance = distance
+        self.seed = seed
 
         if moontype == 'standard':
-            gtype = 'Two Moons standard'
             N1, N2 = 1000, 1000
             data = utils.loadmat('pointclouds/two_moons')
             Xin = data['features'][:dim].T
 
         elif moontype == 'synthesized':
-            gtype = 'Two Moons synthesized'
-
             N1 = N // 2
             N2 = N - N1
 
-            coords1 = self._create_arc_moon(N1, sigmad, d, 1, seed)
-            coords2 = self._create_arc_moon(N2, sigmad, d, 2, seed)
+            coords1 = self._create_arc_moon(N1, sigmad, distance, 1, seed)
+            coords2 = self._create_arc_moon(N2, sigmad, distance, 2, seed)
 
             Xin = np.concatenate((coords1, coords2))
 
@@ -93,5 +97,14 @@ class TwoMoons(NNGraph):
         }
 
         super(TwoMoons, self).__init__(Xin=Xin, sigma=sigmag, k=5,
-                                       plotting=plotting, gtype=gtype,
-                                       **kwargs)
+                                       plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        attrs = {'moontype': self.moontype,
+                 'dim': self.dim,
+                 'sigmag': '{:.2f}'.format(self.sigmag),
+                 'sigmad': '{:.2f}'.format(self.sigmad),
+                 'distance': '{:.2f}'.format(self.distance),
+                 'seed': self.seed}
+        attrs.update(super(TwoMoons, self)._get_extra_repr())
+        return attrs

@@ -30,6 +30,8 @@ class LowStretchTree(Graph):
 
     def __init__(self, k=6, **kwargs):
 
+        self.k = k
+
         XCoords = np.array([1, 2, 1, 2])
         YCoords = np.array([1, 1, 2, 2])
 
@@ -68,5 +70,7 @@ class LowStretchTree(Graph):
         super(LowStretchTree, self).__init__(W=W,
                                              coords=coords,
                                              plotting=plotting,
-                                             gtype="low stretch tree",
                                              **kwargs)
+
+    def _get_extra_repr(self):
+        return dict(k=self.k)

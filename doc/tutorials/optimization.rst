@@ -16,7 +16,7 @@ This tutorial focuses on the problem of recovering a label signal on a graph fro
     >>> from pygsp import graphs, plotting
     >>>
     >>> # Create a random sensor graph
-    >>> G = graphs.Sensor(N=256, distribute=True, seed=42)
+    >>> G = graphs.Sensor(N=256, distributed=True, seed=42)
     >>> G.compute_fourier_basis()
     >>>
     >>> # Create label signal

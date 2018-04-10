@@ -36,7 +36,6 @@ class Path(Graph):
         W = sparse.csc_matrix((weights, (inds_i, inds_j)), shape=(N, N))
         plotting = {"limits": np.array([-1, N, -1, 1])}
 
-        super(Path, self).__init__(W=W, gtype='path',
-                                   plotting=plotting, **kwargs)
+        super(Path, self).__init__(W=W, plotting=plotting, **kwargs)
 
         self.set_coordinates('line2D')

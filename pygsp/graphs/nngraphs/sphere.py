@@ -10,13 +10,13 @@ class Sphere(NNGraph):
 
     Parameters
     ----------
-    radius : flaot
+    radius : float
         Radius of the sphere (default = 1)
     nb_pts : int
         Number of vertices (default = 300)
     nb_dim : int
         Dimension (default = 3)
-    sampling : sting
+    sampling : string
         Variance of the distance kernel (default = 'random')
         (Can now only be 'random')
     seed : int
@@ -46,6 +46,7 @@ class Sphere(NNGraph):
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
         self.sampling = sampling
+        self.seed = seed
 
         if self.sampling == 'random':
 
@@ -57,11 +58,20 @@ class Sphere(NNGraph):
 
         else:
 
-            raise ValueError('Unknown sampling!')
+            raise ValueError('Unknown sampling {}'.format(sampling))
 
         plotting = {
             'vertex_size': 80,
         }
 
-        super(Sphere, self).__init__(Xin=pts, gtype='Sphere', k=10,
+        super(Sphere, self).__init__(Xin=pts, k=10,
                                      plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        attrs = {'radius': '{:.2f}'.format(self.radius),
+                 'nb_pts': self.nb_pts,
+                 'nb_dim': self.nb_dim,
+                 'sampling': self.sampling,
+                 'seed': self.seed}
+        attrs.update(super(Sphere, self)._get_extra_repr())
+        return attrs

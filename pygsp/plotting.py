@@ -192,7 +192,7 @@ def _plot_graph(G, edges, backend, vertex_size, title, save, ax):
         vertex_size = G.plotting['vertex_size']
 
     if title is None:
-        title = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
+        title = G.__repr__(limit=4)
 
     G = _handle_directed(G)
 
@@ -466,7 +466,7 @@ def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
         vertex_size = G.plotting['vertex_size']
 
     if title is None:
-        title = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
+        title = G.__repr__(limit=4)
 
     if limits is None:
         limits = [1.05*signal.min(), 1.05*signal.max()]
@@ -663,7 +663,7 @@ def _plot_spectrogram(G, node_idx):
     spectr = (spectr.astype(float) - min_spec) / (max_spec - min_spec)
 
     w = qtg.GraphicsWindow()
-    w.setWindowTitle("Spectrogram of {}".format(G.gtype))
+    w.setWindowTitle("Spectrogram of {}".format(G.__repr__(limit=4)))
     label = 'frequencies {}:{:.2f}:{:.2f}'.format(0, G.lmax/M, G.lmax)
     v = w.addPlot(labels={'bottom': 'nodes',
                           'left': label})
