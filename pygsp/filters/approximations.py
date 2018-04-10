@@ -226,7 +226,7 @@ class Chebyshev(Filter):
         if s.ndim == 1:
             s = np.expand_dims(s, 0)
         if s.shape[-2] != self.n_features_in:
-            if self.n_features_in == 1:
+            if self.n_features_in == 1 and s.ndim == 2:
                 # Dimension can be omitted if there's 1 input feature.
                 s = np.expand_dims(s, -2)
             else:
