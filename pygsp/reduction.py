@@ -135,7 +135,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
             sparserW = (sparserW + sparserW.T) / 2.
 
         Mnew = graphs.Graph(W=sparserW)
-        #M.copy_graph_attributes(Mnew)
+        M.copy_graph_attributes(Mnew)
     else:
         Mnew = sparse.lil_matrix(sparserL)
 
