@@ -1,90 +1,94 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
-
 import numpy as np
-from math import pi
+
+from pygsp import utils
+from . import Filter  # prevent circular import in Python < 3.5
+
+
+_logger = utils.build_logger(__name__)
 
 
 class Meyer(Filter):
-    r"""
-    Meyer Filterbank
-
-    Inherits its methods from Filters
+    r"""Design a filter bank of Meyer wavelets (tight frame).
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     Nf : int
-        Number of filters from 0 to lmax (default = 6)
+        Number of filters from 0 to lmax (default = 6).
+    scales : ndarray
+        Vector of scales to be used (default: log scale).
 
-    Returns
-    -------
-    out : Meyer
+    References
+    ----------
+    Use of this kernel for SGWT proposed by Nora Leonardi and Dimitri Van De
+    Ville in :cite:`leonardi2011wavelet`.
 
     Examples
     --------
-    >>> from pygsp import graphs, filters
-    >>> G = graphs.Logo()
-    >>> F = filters.Meyer(G)
+
+    Filter bank's representation in Fourier and time (ring graph) domains.
+
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Ring(N=20)
+    >>> G.estimate_lmax()
+    >>> G.set_coordinates('line1D')
+    >>> g = filters.Meyer(G)
+    >>> s = g.localize(G.N // 2)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> g.plot(ax=axes[0])
+    >>> G.plot_signal(s, ax=axes[1])
 
     """
 
-    def __init__(self, G, Nf=6, **kwargs):
-        super(Meyer, self).__init__(G, **kwargs)
+    def __init__(self, G, Nf=6, scales=None):
 
-        if not hasattr(G, 't'):
-            G.t = (4./(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
+        if scales is None:
+            scales = (4./(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
+        self.scales = scales
 
-        if len(G.t) >= Nf - 1:
-            self.logger.warning('You have specified more scales than'
-                                ' the number of scales minus 1')
+        if len(scales) != Nf - 1:
+            raise ValueError('len(scales) should be Nf-1.')
 
-        t = G.t
+        kernels = [lambda x: kernel(scales[0] * x, 'scaling_function')]
 
-        g = [lambda x: kernel_meyer(t[0] * x, 'sf')]
         for i in range(Nf - 1):
-            g.append(lambda x, ind=i: kernel_meyer(t[ind] * x, 'wavelet'))
+            kernels.append(lambda x, i=i: kernel(scales[i] * x, 'wavelet'))
 
-        self.g = g
-
-        def kernel_meyer(x, kerneltype):
+        def kernel(x, kernel_type):
             r"""
             Evaluates Meyer function and scaling function
 
-            Parameters
-            ----------
-            x : ndarray
-                Array of independant variables values
-            kerneltype : str
-                Can be either 'sf' or 'wavelet'
-
-            Returns
-            -------
-            r : ndarray
-
+            * meyer wavelet kernel: supported on [2/3,8/3]
+            * meyer scaling function kernel: supported on [0,4/3]
             """
 
-            x = np.array(x)
+            x = np.asarray(x)
 
             l1 = 2/3.
-            l2 = 4/3.
-            l3 = 8/3.
+            l2 = 4/3.  # 2*l1
+            l3 = 8/3.  # 4*l1
 
-            v = lambda x: x ** 4. * (35 - 84*x + 70*x**2 - 20*x**3)
+            def v(x):
+                return x**4 * (35 - 84*x + 70*x**2 - 20*x**3)
 
             r1ind = (x < l1)
-            r2ind = (x >= l1)*(x < l2)
-            r3ind = (x >= l2)*(x < l3)
+            r2ind = (x >= l1) * (x < l2)
+            r3ind = (x >= l2) * (x < l3)
 
-            r = np.empty(x.shape)
-            if kerneltype is 'sf':
+            # as we initialize r with zero, computed function will implicitly
+            # be zero for all x not in one of the three regions defined above
+            r = np.zeros(x.shape)
+            if kernel_type == 'scaling_function':
                 r[r1ind] = 1
-                r[r2ind] = np.cos((pi/2) * v(np.abs(x[r2ind])/l1 - 1))
-            elif kerneltype is 'wavelet':
-                r[r2ind] = np.sin((pi/2) * v(np.abs(x[r2ind])/l1 - 1))
-                r[r3ind] = np.cos((pi/2) * v(np.abs(x[r3ind])/l2 - 1))
+                r[r2ind] = np.cos((np.pi/2) * v(np.abs(x[r2ind])/l1 - 1))
+            elif kernel_type == 'wavelet':
+                r[r2ind] = np.sin((np.pi/2) * v(np.abs(x[r2ind])/l1 - 1))
+                r[r3ind] = np.cos((np.pi/2) * v(np.abs(x[r3ind])/l2 - 1))
             else:
-                raise TypeError('Unknown kernel type ', kerneltype)
+                raise ValueError('Unknown kernel type {}'.format(kernel_type))
 
             return r
+
+        super(Meyer, self).__init__(G, kernels)

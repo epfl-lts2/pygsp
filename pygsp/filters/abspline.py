@@ -1,45 +1,48 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
+from __future__ import division
 
 import numpy as np
 from scipy import optimize
-from math import exp
+
+from pygsp import utils
+from . import Filter  # prevent circular import in Python < 3.5
 
 
 class Abspline(Filter):
-    r"""
-    Abspline Filterbank
-
-    Inherits its methods from Filters
+    r"""Design an A B cubic spline wavelet filter bank.
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     Nf : int
         Number of filters from 0 to lmax (default = 6)
-    lpfactor : int
+    lpfactor : float
         Low-pass factor lmin=lmax/lpfactor will be used to determine scales,
         the scaling function will be created to fill the lowpass gap.
         (default = 20)
-    t : ndarray
-        Vector of scale to be used (Initialized by default at
-        the value of the log scale)
-
-    Returns
-    -------
-    out : Abspline
+    scales : ndarray
+        Vector of scales to be used.
+        By default, initialized with :func:`pygsp.utils.compute_log_scales`.
 
     Examples
     --------
-    >>> from pygsp import graphs, filters
-    >>> G = graphs.Logo()
-    >>> F = filters.Abspline(G)
+
+    Filter bank's representation in Fourier and time (ring graph) domains.
+
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Ring(N=20)
+    >>> G.estimate_lmax()
+    >>> G.set_coordinates('line1D')
+    >>> g = filters.Abspline(G)
+    >>> s = g.localize(G.N // 2)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> g.plot(ax=axes[0])
+    >>> G.plot_signal(s, ax=axes[1])
 
     """
 
-    def __init__(self, G, Nf=6, lpfactor=20, t=None, **kwargs):
-        super(Abspline, self).__init__(G, **kwargs)
+    def __init__(self, G, Nf=6, lpfactor=20, scales=None):
 
         def kernel_abspline3(x, alpha, beta, t1, t2):
             M = np.array([[1, t1, t1**2, t1**3],
@@ -74,25 +77,31 @@ class Abspline(Filter):
 
             return r
 
-        G.lmin = G.lmax / lpfactor
+        self.lpfactor = lpfactor
 
-        if t is None:
-            self.t = self.wlog_scales(G.lmin, G.lmax, Nf - 1)
-        else:
-            self.t = t
+        lmin = G.lmax / lpfactor
+
+        if scales is None:
+            scales = utils.compute_log_scales(lmin, G.lmax, Nf - 1)
+        self.scales = scales
 
         gb = lambda x: kernel_abspline3(x, 2, 2, 1, 2)
         gl = lambda x: np.exp(-np.power(x, 4))
 
-        lminfac = .4 * G.lmin
+        lminfac = .4 * lmin
 
-        self.g = [lambda x: 1.2 * exp(-1) * gl(x / lminfac)]
+        g = [lambda x: 1.2 * np.exp(-1) * gl(x / lminfac)]
         for i in range(0, Nf - 1):
-            self.g.append(lambda x, ind=i: gb(self.t[ind] * x))
+            g.append(lambda x, i=i: gb(self.scales[i] * x))
 
         f = lambda x: -gb(x)
         xstar = optimize.minimize_scalar(f, bounds=(1, 2),
                                          method='bounded')
         gamma_l = -f(xstar.x)
-        lminfac = .6 * G.lmin
-        self.g[0] = lambda x: gamma_l * gl(x / lminfac)
+        lminfac = .6 * lmin
+        g[0] = lambda x: gamma_l * gl(x / lminfac)
+
+        super(Abspline, self).__init__(G, g)
+
+    def _get_extra_repr(self):
+        return dict(lpfactor='{:.2f}'.format(self.lpfactor))

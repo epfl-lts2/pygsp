@@ -1,67 +1,86 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
+from __future__ import division
 
-from numpy import linalg
 import numpy as np
+
+from . import Filter  # prevent circular import in Python < 3.5
 
 
 class Heat(Filter):
-    r"""
-    Heat Filterbank
+    r"""Design a filter bank of heat kernels.
 
-    Inherits its methods from Filters
+    The filter is defined in the spectral domain as
+
+    .. math::
+        \hat{g}(x) = \exp \left( \frac{-\tau x}{\lambda_{\text{max}}} \right),
+
+    and is as such a low-pass filter. An application of this filter to a signal
+    simulates heat diffusion.
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     tau : int or list of ints
-        Scaling parameter. (default = 10)
+        Scaling parameter. If a list, creates a filter bank with one filter per
+        value of tau.
     normalize : bool
-        Normalize the kernel (works only if the eigenvalues are
-        present in the graph). (default = 0)
-
-    Returns
-    -------
-    out : Heat
+        Normalizes the kernel. Needs the eigenvalues.
 
     Examples
     --------
-    >>> from pygsp import graphs, filters
+
+    Regular heat kernel.
+
     >>> G = graphs.Logo()
-    >>> F = filters.Heat(G)
+    >>> g = filters.Heat(G, tau=[5, 10])
+    >>> print('{} filters'.format(g.Nf))
+    2 filters
+    >>> y = g.evaluate(G.e)
+    >>> print('{:.2f}'.format(np.linalg.norm(y[0])))
+    9.76
+
+    Normalized heat kernel.
+
+    >>> g = filters.Heat(G, tau=[5, 10], normalize=True)
+    >>> y = g.evaluate(G.e)
+    >>> print('{:.2f}'.format(np.linalg.norm(y[0])))
+    1.00
+
+    Filter bank's representation in Fourier and time (ring graph) domains.
+
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Ring(N=20)
+    >>> G.estimate_lmax()
+    >>> G.set_coordinates('line1D')
+    >>> g = filters.Heat(G, tau=[5, 10, 100])
+    >>> s = g.localize(G.N // 2)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> g.plot(ax=axes[0])
+    >>> G.plot_signal(s, ax=axes[1])
 
     """
 
-    def __init__(self, G, tau=10, normalize=False, **kwargs):
-        super(Heat, self).__init__(G, **kwargs)
+    def __init__(self, G, tau=10, normalize=False):
 
-        g = []
+        try:
+            iter(tau)
+        except TypeError:
+            tau = [tau]
 
-        if normalize:
-            if not hasattr(G, 'e'):
-                self.logger.info('Filter Heat will calculate and set'
-                                 ' the eigenvalues to normalize the kernel')
-                G.compute_fourier_basis()
+        self.tau = tau
+        self.normalize = normalize
 
-            if isinstance(tau, list):
-                for t in tau:
-                    def gu(x, taulam=t):
-                        return np.exp(-taulam * x/G.lmax)
-                    ng = linalg.norm(gu(G.e))
-                    g.append(lambda x, taulam=t: np.exp(-taulam *
-                                                        x/G.lmax / ng))
-            else:
-                def gu(x):
-                    return np.exp(-tau * x/G.lmax)
-                ng = linalg.norm(gu(G.e))
-                g.append(lambda x: np.exp(-tau * x/G.lmax / ng))
+        def kernel(x, t):
+            return np.exp(-t * x / G.lmax)
 
-        else:
-            if isinstance(tau, list):
-                for t in tau:
-                    g.append(lambda x, taulam=t: np.exp(-taulam * x/G.lmax))
-            else:
-                g.append(lambda x: np.exp(-tau * x/G.lmax))
+        kernels = []
+        for t in tau:
+            norm = np.linalg.norm(kernel(G.e, t)) if normalize else 1
+            kernels.append(lambda x, t=t, norm=norm: kernel(x, t) / norm)
 
-        self.g = g
+        super(Heat, self).__init__(G, kernels)
+
+    def _get_extra_repr(self):
+        tau = '[' + ', '.join('{:.2f}'.format(t) for t in self.tau) + ']'
+        return dict(tau=tau, normalize=self.normalize)

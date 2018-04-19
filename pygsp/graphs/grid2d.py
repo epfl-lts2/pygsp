@@ -2,71 +2,63 @@
 
 import numpy as np
 from scipy import sparse
-from . import Graph
+
+from pygsp import utils
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Grid2d(Graph):
-    r"""
-    Create a 2 dimensional grid graph.
+    r"""2-dimensional grid graph.
 
     Parameters
     ----------
-    Nv : int
-        Number of vertices along the first dimension (default is 16)
-    Mv : int
-        Number of vertices along the second dimension (default is Nv)
+    N1 : int
+        Number of vertices along the first dimension.
+    N2 : int
+        Number of vertices along the second dimension (default N1).
 
     Examples
     --------
-    >>> from pygsp import graphs
-    >>> G = graphs.Grid2d(Nv=32)
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Grid2d(N1=5, N2=4)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W)
+    >>> G.plot(ax=axes[1])
 
     """
 
-    def __init__(self, Nv=16, Mv=None, **kwargs):
-        if not Mv:
-            Mv = Nv
+    def __init__(self, N1=16, N2=None, **kwargs):
 
-        # Create weighted adjacency matrix
-        K = 2*(Nv - 1)
-        J = 2*(Mv - 1)
+        if N2 is None:
+            N2 = N1
 
-        i_inds = np.zeros((K*Mv + J*Nv), dtype=float)
-        j_inds = np.zeros((K*Mv + J*Nv), dtype=float)
+        self.N1 = N1
+        self.N2 = N2
 
-        tmpK = np.arange(K, dtype=int)
-        tmpNv1 = np.arange(Nv - 1)
-        for i in range(Mv):
-            i_inds[i*K + tmpK] = i*Nv + \
-                np.concatenate((tmpNv1, tmpNv1 + 1))
-            j_inds[i*K + tmpK] = i*Nv + \
-                np.concatenate((tmpNv1 + 1, tmpNv1))
+        N = N1 * N2
 
-        tmp2Nv = np.arange(2*Nv, dtype=int)
-        tmpNv = np.arange(Nv)
-        for i in range(Mv-1):
-            i_inds[(K*Mv) + i*2*Nv + tmp2Nv] = \
-                np.concatenate((i*Nv + tmpNv, (i + 1)*Nv + tmpNv))
+        # Filling up the weight matrix this way is faster than
+        # looping through all the grid points:
+        diag_1 = np.ones(N - 1)
+        diag_1[(N2 - 1)::N2] = 0
+        diag_2 = np.ones(N - N2)
+        W = sparse.diags(diagonals=[diag_1, diag_2],
+                         offsets=[-1, -N2],
+                         shape=(N, N),
+                         format='csr',
+                         dtype='float')
+        W = utils.symmetrize(W, method='tril')
 
-            j_inds[(K*Mv) + i*2*Nv + tmp2Nv] = \
-                np.concatenate(((i + 1)*Nv + tmpNv, i*Nv + tmpNv))
+        x = np.kron(np.ones((N1, 1)), (np.arange(N2)/float(N2)).reshape(N2, 1))
+        y = np.kron(np.ones((N2, 1)), np.arange(N1)/float(N1)).reshape(N, 1)
+        y = np.sort(y, axis=0)[::-1]
+        coords = np.concatenate((x, y), axis=1)
 
-        W = sparse.csc_matrix((np.ones((K*Mv + J*Nv)), (i_inds, j_inds)),
-                              shape=(Mv*Nv, Mv*Nv))
+        plotting = {"limits": np.array([-1. / N2, 1 + 1. / N2,
+                                        1. / N1, 1 + 1. / N1])}
 
-        xtmp = np.kron(np.ones((Mv, 1)), (np.arange(Nv)/float(Nv)).reshape(Nv,
-                                                                           1))
-        ytmp = np.sort(np.kron(np.ones((Nv, 1)),
-                               np.arange(Mv)/float(Mv)).reshape(Mv*Nv, 1),
-                       axis=0)
-
-        coords = np.concatenate((xtmp, ytmp), axis=1)
-
-        self.Nv = Nv
-        self.Mv = Mv
-        plotting = {"vertex_size": 30,
-                    "limits": np.array([-1./self.Nv, 1 + 1./self.Nv,
-                                        1./self.Mv, 1 + 1./self.Mv])}
-
-        super(Grid2d, self).__init__(W=W, gtype='2d-grid', coords=coords,
+        super(Grid2d, self).__init__(W=W, coords=coords,
                                      plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        return dict(N1=self.N1, N2=self.N2)

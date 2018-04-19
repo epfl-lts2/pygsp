@@ -1,103 +1,95 @@
 # -*- coding: utf-8 -*-
-r"""This module implements different feature extraction techniques based on Graphs and Filters of the GSP box."""
+
+r"""
+The :mod:`pygsp.features` module implements different feature extraction
+techniques based on :mod:`pygsp.graphs` and :mod:`pygsp.filters`.
+"""
 
 import numpy as np
-import scipy as sp
-from scipy import sparse
 
-from .graphs import Graph
-from .filters import Filter
-from .utils import filterbank_handler
+from pygsp import filters, utils
 
 
 def compute_avg_adj_deg(G):
     r"""
     Compute the average adjacency degree for each node.
-    Average adjacency degree is the average of the degrees of a node and its neighbors.
+
+    The average adjacency degree is the average of the degrees of a node and
+    its neighbors.
 
     Parameters
     ----------
-    G: Graph object
-        The graph on which the statistic is extracted
-
+    G: Graph
+        Graph on which the statistic is extracted
     """
-    if not isinstance(G, Graph):
-        raise ValueError("Graph object expected as first argument.")
-
     return np.sum(np.dot(G.A, G.A), axis=1) / (np.sum(G.A, axis=1) + 1.)
 
 
-@filterbank_handler
-def compute_tig(filt, method=None, **kwargs):
+@utils.filterbank_handler
+def compute_tig(g, **kwargs):
     r"""
-    Compute the Tig for a given filter or filterbank.
+    Compute the Tig for a given filter or filter bank.
 
     .. math:: T_ig(n) = g(L)_{i, n}
 
     Parameters
     ----------
-    filt: Filter object
-        The filter (or filterbank) to localize
-    method: string (optional)
-        Which method to use. Accept 'cheby', 'exact'.
-        Default : 'exact' if filt.G has U and e defined, otherwise 'cheby'
-    i: int (optional)
-        Index of the filter to analyse (default: 0)
+    g: Filter
+        One of :mod:`pygsp.filters`.
+    kwargs: dict
+        Additional parameters to be passed to the
+        :func:`pygsp.filters.Filter.filter` method.
     """
-    if not isinstance(filt, Filter):
-        raise ValueError("Filter object expected as first argument.")
-
-    signals = np.eye(filt.G.N)
-    return filt.analysis(signals, method=method, **kwargs)
+    return g.compute_frame()
 
 
-@filterbank_handler
-def compute_norm_tig(filt, method=None, *args, **kwargs):
+@utils.filterbank_handler
+def compute_norm_tig(g, **kwargs):
     r"""
     Compute the :math:`\ell_2` norm of the Tig.
-    See `compute_tig`.
+    See :func:`compute_tig`.
 
     Parameters
     ----------
-    filt: Filter object
-        The filter (or filterbank)
-    method: string (optional)
-        Which method to use. Accept 'cheby', 'exact'
-        (default : 'exact' if filt.G has U and e defined, otherwise 'cheby')
+    g: Filter
+        The filter or filter bank.
+    kwargs: dict
+        Additional parameters to be passed to the
+        :func:`pygsp.filters.Filter.filter` method.
     """
-    tig = compute_tig(filt, method=method, *args, **kwargs)
+    tig = compute_tig(g, **kwargs)
     return np.linalg.norm(tig, axis=1, ord=2)
 
 
-def compute_spectrogramm(G, atom=None, M=100, method=None, **kwargs):
+def compute_spectrogram(G, atom=None, M=100, **kwargs):
     r"""
-    Compute the norm of the Tig for all nodes with a kernel shifted along the spectral axis.
+    Compute the norm of the Tig for all nodes with a kernel shifted along the
+    spectral axis.
 
     Parameters
     ----------
-    G : Graph object
-        The graph on which to compute the spectrogramm.
-    atom : Filter kernel (optional)
-        Kernel to use in the spectrogramm (default = exp(-M*(x/lmax)²)).
+    G : Graph
+        Graph on which to compute the spectrogram.
+    atom : func
+        Kernel to use in the spectrogram (default = exp(-M*(x/lmax)²)).
     M : int (optional)
         Number of samples on the spectral scale. (default = 100)
-
+    kwargs: dict
+        Additional parameters to be passed to the
+        :func:`pygsp.filters.Filter.filter` method.
     """
-    from pygsp.filters import Filter
 
-    if not hasattr(G, 'lmax'):
-        G.estimate_lmax()
-
-    if not atom or not hasattr(atom, '__call__'):
+    if not atom:
         def atom(x):
-            return np.exp(-M * (x/G.lmax)**2)
+            return np.exp(-M * (x / G.lmax)**2)
 
     scale = np.linspace(0, G.lmax, M)
-    spectr = np.zeros((G.N, M))
+    spectr = np.empty((G.N, M))
 
     for shift_idx in range(M):
-        shft_filter = Filter(G, filters=[lambda x: atom(x-scale[shift_idx])], **kwargs)
-        spectr[:, shift_idx] = compute_norm_tig(shft_filter, method=method)**2
+        shift_filter = filters.Filter(G, lambda x: atom(x - scale[shift_idx]))
+        tig = compute_norm_tig(shift_filter, **kwargs).squeeze()**2
+        spectr[:, shift_idx] = tig
 
     G.spectr = spectr
     return spectr

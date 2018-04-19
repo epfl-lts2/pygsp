@@ -1,54 +1,61 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-
 import numpy as np
 from scipy import sparse
 
+from . import Graph  # prevent circular import in Python < 3.5
+
 
 class Comet(Graph):
-    r"""
-    Create a Comet graph.
+    r"""Comet graph.
+
+    The comet graph is a path graph with a star of degree *k* at its end.
 
     Parameters
     ----------
-    Nv : int
-        Number of vertices along the first dimension (default is 16)
-    Mv : int
-        Number of vertices along the second dimension (default is Nv)
+    N : int
+        Number of nodes.
+    k : int
+        Degree of center vertex.
 
     Examples
     --------
-    >>> from pygsp import graphs
-    >>> G = graphs.Comet() # (== graphs.Comet(Nv=32, k=12))
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Comet(15, 10)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W)
+    >>> G.plot(ax=axes[1])
 
     """
 
-    def __init__(self, Nv=32, k=12, **kwargs):
+    def __init__(self, N=32, k=12, **kwargs):
 
-        # Create weighted adjancency matrix
+        self.k = k
+
+        # Create weighted adjacency matrix
         i_inds = np.concatenate((np.zeros((k)), np.arange(k) + 1,
-                                 np.arange(k, Nv - 1),
-                                 np.arange(k + 1, Nv)))
+                                 np.arange(k, N - 1),
+                                 np.arange(k + 1, N)))
         j_inds = np.concatenate((np.arange(k) + 1, np.zeros((k)),
-                                 np.arange(k + 1, Nv),
-                                 np.arange(k, Nv - 1)))
+                                 np.arange(k + 1, N),
+                                 np.arange(k, N - 1)))
 
         W = sparse.csc_matrix((np.ones(np.size(i_inds)), (i_inds, j_inds)),
-                              shape=(Nv, Nv))
+                              shape=(N, N))
 
-        tmpcoords = np.zeros((Nv, 2))
+        tmpcoords = np.zeros((N, 2))
         inds = np.arange(k) + 1
         tmpcoords[1:k + 1, 0] = np.cos(inds*2*np.pi/k)
         tmpcoords[1:k + 1, 1] = np.sin(inds*2*np.pi/k)
-        tmpcoords[k + 1:, 0] = np.arange(1, Nv - k) + 1
+        tmpcoords[k + 1:, 0] = np.arange(1, N - k) + 1
 
-        self.Nv = Nv
-        self.k = k
         plotting = {"limits": np.array([-2,
                                         np.max(tmpcoords[:, 0]),
                                         np.min(tmpcoords[:, 1]),
                                         np.max(tmpcoords[:, 1])])}
 
-        super(Comet, self).__init__(W=W, coords=tmpcoords, gtype='Comet',
+        super(Comet, self).__init__(W=W, coords=tmpcoords,
                                     plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        return dict(k=self.k)

@@ -1,67 +1,92 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
+from __future__ import division
 
 import numpy as np
-from math import exp
+
+from pygsp import utils
+from . import Filter  # prevent circular import in Python < 3.5
 
 
 class MexicanHat(Filter):
-    r"""
-    Mexican hat Filterbank
+    r"""Design a filter bank of Mexican hat wavelets.
 
-    Inherits its methods from Filters
+    The Mexican hat wavelet is the second oder derivative of a Gaussian. Since
+    we express the filter in the Fourier domain, we find:
+
+    .. math:: \hat{g}_b(x) = x * \exp(-x)
+
+    for the band-pass filter. Note that in our convention the eigenvalues of
+    the Laplacian are equivalent to the square of graph frequencies,
+    i.e. :math:`x = \lambda^2`.
+
+    The low-pass filter is given by
+
+    .. math: \hat{g}_l(x) = \exp(-x^4).
 
     Parameters
     ----------
-    G : Graph
+    G : graph
     Nf : int
-        Number of filters from 0 to lmax (default = 6)
-    lpfactor : int
-        Low-pass factor lmin=lmax/lpfactor will be used to determine scales,
-        the scaling function will be created to fill the lowpass gap.
-        (default = 20)
-    t : ndarray
-        Vector of scale to be used (Initialized by default at the value of the
-        log scale)
+        Number of filters to cover the interval [0, lmax].
+    lpfactor : float
+        Low-pass factor. lmin=lmax/lpfactor will be used to determine scales.
+        The scaling function will be created to fill the low-pass gap.
+    scales : array-like
+        Scales to be used.
+        By default, initialized with :func:`pygsp.utils.compute_log_scales`.
     normalize : bool
-        Wether to normalize the wavelet by the factor/sqrt(t).
-        (default = False)
-
-    Returns
-    -------
-    out : MexicanHat
+        Whether to normalize the wavelet by the factor ``sqrt(scales)``.
 
     Examples
     --------
-    >>> from pygsp import graphs, filters
-    >>> G = graphs.Logo()
-    >>> F = filters.MexicanHat(G)
+
+    Filter bank's representation in Fourier and time (ring graph) domains.
+
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Ring(N=20)
+    >>> G.estimate_lmax()
+    >>> G.set_coordinates('line1D')
+    >>> g = filters.MexicanHat(G)
+    >>> s = g.localize(G.N // 2)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> g.plot(ax=axes[0])
+    >>> G.plot_signal(s, ax=axes[1])
 
     """
 
-    def __init__(self, G, Nf=6, lpfactor=20, t=None, normalize=False,
-                 **kwargs):
-        super(MexicanHat, self).__init__(G, **kwargs)
+    def __init__(self, G, Nf=6, lpfactor=20, scales=None, normalize=False):
 
-        if t is None:
-            G.lmin = G.lmax / lpfactor
-            self.t = self.wlog_scales(G.lmin, G.lmax, Nf - 1)
-        else:
-            self.t = t
+        self.lpfactor = lpfactor
+        self.normalize = normalize
 
-        gb = lambda x: x * np.exp(-x)
-        gl = lambda x: np.exp(-np.power(x, 4))
+        lmin = G.lmax / lpfactor
 
-        lminfac = .4 * G.lmin
+        if scales is None:
+            scales = utils.compute_log_scales(lmin, G.lmax, Nf-1)
+        self.scales = scales
 
-        g = [lambda x: 1.2 * exp(-1) * gl(x / lminfac)]
+        if len(scales) != Nf - 1:
+            raise ValueError('len(scales) should be Nf-1.')
+
+        def band_pass(x):
+            return x * np.exp(-x)
+
+        def low_pass(x):
+            return np.exp(-x**4)
+
+        kernels = [lambda x: 1.2 * np.exp(-1) * low_pass(x / 0.4 / lmin)]
 
         for i in range(Nf - 1):
-            if normalize:
-                g.append(lambda x, ind=i: np.sqrt(t[ind]) *
-                         gb(self.t[ind] * x))
-            else:
-                g.append(lambda x, ind=i: gb(self.t[ind] * x))
 
-        self.g = g
+            def kernel(x, i=i):
+                norm = np.sqrt(scales[i]) if normalize else 1
+                return norm * band_pass(scales[i] * x)
+
+            kernels.append(kernel)
+
+        super(MexicanHat, self).__init__(G, kernels)
+
+    def _get_extra_repr(self):
+        return dict(lpfactor='{:.2f}'.format(self.lpfactor),
+                    normalize=self.normalize)

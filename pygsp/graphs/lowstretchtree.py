@@ -1,28 +1,36 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-
 import numpy as np
 from scipy import sparse
 
+from . import Graph  # prevent circular import in Python < 3.5
+
 
 class LowStretchTree(Graph):
-    r"""
-    Create a low stretch tree graph.
+    r"""Low stretch tree.
+
+    Build the root of a low stretch tree on a grid of points. There are
+    :math:`2k` points on each side of the grid, and therefore :math:`2^{2k}`
+    vertices in total. The edge weights are all equal to 1.
 
     Parameters
     ----------
     k : int
-        2^k points on each side of the grid of vertices (default 6)
+        :math:`2^k` points on each side of the grid of vertices.
 
     Examples
     --------
-    >>> from pygsp import graphs, plotting
-    >>> G = graphs.LowStretchTree(k=3)
-    >>> G.plot()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.LowStretchTree(k=2)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W)
+    >>> G.plot(ax=axes[1])
+
     """
 
     def __init__(self, k=6, **kwargs):
+
+        self.k = k
 
         XCoords = np.array([1, 2, 1, 2])
         YCoords = np.array([1, 1, 2, 2])
@@ -56,8 +64,13 @@ class LowStretchTree(Graph):
         self.root = 4**(k - 1)
 
         plotting = {"edges_width": 1.25,
-                    "vertex_sizee": 75,
+                    "vertex_size": 75,
                     "limits": np.array([0, 2**k + 1, 0, 2**k + 1])}
 
-        super(LowStretchTree, self).__init__(W=W, coords=coords, plotting=plotting,
-                                             gtype="low strech tree", **kwargs)
+        super(LowStretchTree, self).__init__(W=W,
+                                             coords=coords,
+                                             plotting=plotting,
+                                             **kwargs)
+
+    def _get_extra_repr(self):
+        return dict(k=self.k)

@@ -1,35 +1,42 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 """
 Test suite for the utils module of the pygsp package.
+
 """
 
-import sys
+import unittest
+
 import numpy as np
-import numpy.testing as nptest
 from scipy import sparse
-from pygsp import utils, graphs, operators
 
-# Use the unittest2 backport on Python 2.6 to profit from the new features.
-if sys.version_info < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest
+from pygsp import graphs, utils
 
 
-class FunctionsTestCase(unittest.TestCase):
+class TestCase(unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         pass
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         pass
+
+    def test_symmetrize(self):
+        W = sparse.random(100, 100, random_state=42)
+        for method in ['average', 'maximum', 'fill', 'tril', 'triu']:
+            # Test that the regular and sparse versions give the same result.
+            W1 = utils.symmetrize(W, method=method)
+            W2 = utils.symmetrize(W.toarray(), method=method)
+            np.testing.assert_equal(W1.toarray(), W2)
+        self.assertRaises(ValueError, utils.symmetrize, W, 'sum')
 
     def test_utils(self):
         # Data init
         W1 = np.arange(16).reshape((4, 4))
-        mask1 = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [1, 0, 1, 0], [0, 1, 0, 1]])
+        mask1 = np.array([[1, 0, 1, 0], [0, 1, 0, 1],
+                          [1, 0, 1, 0], [0, 1, 0, 1]])
         W1[mask1 == 1] = 0
         W1 = sparse.lil_matrix(W1)
         G1 = graphs.Graph(W1)
@@ -83,7 +90,7 @@ class FunctionsTestCase(unittest.TestCase):
         test_graphs = [t1, t3, t4]
 
         def test_is_directed(G, is_dir):
-            self.assertEqual(G.directed, is_dir)
+            self.assertEqual(G.is_directed(), is_dir)
 
         def test_laplacian(G, lap):
             self.assertTrue((G.L == lap).all())
@@ -93,7 +100,7 @@ class FunctionsTestCase(unittest.TestCase):
             self.assertTrue(lmax <= G.lmax and G.lmax <= 1.02 * lmax)
 
         def test_check_weights(G, w_c):
-            self.assertEqual(graphs.gutils.check_weights(G.W), w_c)
+            self.assertEqual(G.check_weights(), w_c)
 
         def test_is_connected(G, is_conn, **kwargs):
             self.assertEqual(G.is_connected(), is_conn)
@@ -123,13 +130,5 @@ class FunctionsTestCase(unittest.TestCase):
 
         # test_distanz(x, y)
 
-suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
 
-
-def run():
-    """Run tests."""
-    unittest.TextTestRunner(verbosity=2).run(suite)
-
-
-if __name__ == '__main__':
-    run()
+suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

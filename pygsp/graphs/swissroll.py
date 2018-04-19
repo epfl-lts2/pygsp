@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-from ..utils import distanz
-
 import numpy as np
-from math import sqrt, pi
+
+from pygsp import utils
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class SwissRoll(Graph):
-    r"""
-    Create a swiss roll graph.
+    r"""Sampled Swiss roll manifold.
 
     Parameters
     ----------
@@ -30,79 +28,81 @@ class SwissRoll(Graph):
     srtype : str
         Swiss roll Type, possible arguments are 'uniform' or 'classic'
         (default = 'uniform')
+    seed : int
+        Seed for the random number generator (for reproducible graphs).
 
     Examples
     --------
-    >>> from pygsp import graphs
-    >>> G = graphs.SwissRoll()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.SwissRoll(N=200, seed=42)
+    >>> fig = plt.figure()
+    >>> ax1 = fig.add_subplot(121)
+    >>> ax2 = fig.add_subplot(122, projection='3d')
+    >>> _ = ax1.spy(G.W, markersize=1)
+    >>> G.plot(ax=ax2)
 
     """
 
     def __init__(self, N=400, a=1, b=4, dim=3, thresh=1e-6, s=None,
-                 noise=False, srtype='uniform'):
+                 noise=False, srtype='uniform', seed=None, **kwargs):
 
         if s is None:
-            s = sqrt(2./N)
+            s = np.sqrt(2. / N)
 
-        y1 = np.random.rand(N)
-        y2 = np.random.rand(N)
+        self.a = a
+        self.b = b
+        self.dim = dim
+        self.thresh = thresh
+        self.s = s
+        self.noise = noise
+        self.srtype = srtype
+        self.seed = seed
+
+        rs = np.random.RandomState(seed)
+        y1 = rs.rand(N)
+        y2 = rs.rand(N)
 
         if srtype == 'uniform':
             tt = np.sqrt((b * b - a * a) * y1 + a * a)
         elif srtype == 'classic':
             tt = (b - a) * y1 + a
-        tt *= pi
+        tt *= np.pi
 
         if dim == 2:
-            x = np.array((tt*np.cos(tt), tt * np.sin(tt)))
+            x = np.array((tt * np.cos(tt), tt * np.sin(tt)))
         elif dim == 3:
-            x = np.array((tt*np.cos(tt), 21 * y2, tt * np.sin(tt)))
+            x = np.array((tt * np.cos(tt), 21 * y2, tt * np.sin(tt)))
 
         if noise:
-            x += np.random.randn(*x.shape)
+            x += rs.randn(*x.shape)
 
         self.x = x
         self.dim = dim
 
-        dist = distanz(coords)
+        coords = utils.rescale_center(x)
+        dist = utils.distanz(coords)
         W = np.exp(-np.power(dist, 2) / (2. * s**2))
         W -= np.diag(np.diag(W))
         W[W < thresh] = 0
 
-        coords = self.rescale_center(x)
-        plotting = {'limits': np.array([-1, 1, -1, 1, -1, 1])}
-        gtype = 'swiss roll {}'.format(srtype)
+        plotting = {
+            'vertex_size': 60,
+            'limits': np.array([-1, 1, -1, 1, -1, 1]),
+            'elevation': 15,
+            'azimuth': -90,
+            'distance': 7,
+        }
 
         super(SwissRoll, self).__init__(W=W, coords=coords.T,
-                                        plotting=plotting, gtype=gtype)
+                                        plotting=plotting,
+                                        **kwargs)
 
-    def rescale_center(self, x):
-        r"""
-        Rescaling the dataset.
-
-        Rescaling the dataset, previously and mainly used in the SwissRoll
-        graph.
-
-        Parameters
-        ----------
-        x : ndarray
-            Dataset to be rescaled.
-
-        Returns
-        -------
-        r : ndarray
-            Rescaled dataset.
-
-        Examples
-        --------
-        >>> from pygsp import utils
-        >>> utils.dummy(0, [1, 2, 3], True)
-        array([1, 2, 3])
-
-        """
-        N = x.shape[1]
-        y = x - np.kron(np.ones((1, N)), np.mean(x, axis=1)[:, np.newaxis])
-        c = np.amax(y)
-        r = y / c
-
-        return r
+    def _get_extra_repr(self):
+        return {'a': self.a,
+                'b': self.b,
+                'dim': self.dim,
+                'thresh': '{:.0e}'.format(self.thresh),
+                's': '{:.2f}'.format(self.s),
+                'noise': self.noise,
+                'srtype': self.srtype,
+                'seed': self.seed}

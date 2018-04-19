@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from ..utils import filterbank_handler, build_logger
-
 import numpy as np
-import scipy as sp
+from scipy import sparse
 
-logger = build_logger(__name__)
+from pygsp import utils
 
 
-@filterbank_handler
+_logger = utils.build_logger(__name__)
+
+
+@utils.filterbank_handler
 def compute_cheby_coeff(f, m=30, N=None, *args, **kwargs):
     r"""
     Compute Chebyshev coefficients for a Filterbank.
@@ -39,10 +40,6 @@ def compute_cheby_coeff(f, m=30, N=None, *args, **kwargs):
     if not N:
         N = m + 1
 
-    if not hasattr(G, 'lmax'):
-        logger.info('The variable lmax has not been computed yet, it will be done now.')
-        G.estimate_lmax()
-
     a_arange = [0, G.lmax]
 
     a1 = (a_arange[1] - a_arange[0]) / 2
@@ -52,8 +49,8 @@ def compute_cheby_coeff(f, m=30, N=None, *args, **kwargs):
     tmpN = np.arange(N)
     num = np.cos(np.pi * (tmpN + 0.5) / N)
     for o in range(m + 1):
-        c[o] = 2. / N * np.dot(f.g[i](a1 * num + a2),
-                                  np.cos(np.pi * o * (tmpN + 0.5) / N))
+        c[o] = 2. / N * np.dot(f._kernels[i](a1 * num + a2),
+                               np.cos(np.pi * o * (tmpN + 0.5) / N))
 
     return c
 
@@ -86,10 +83,6 @@ def cheby_op(G, c, signal, **kwargs):
     if M < 2:
         raise TypeError("The coefficients have an invalid shape")
 
-    if not hasattr(G, 'lmax'):
-        logger.info('The variable lmax has not been computed yet, it will be done now.')
-        G.estimate_lmax()
-
     # thanks to that, we can also have 1d signal.
     try:
         Nv = np.shape(signal)[1]
@@ -109,7 +102,7 @@ def cheby_op(G, c, signal, **kwargs):
     for i in range(Nscales):
         r[tmpN + G.N*i] = 0.5 * c[i, 0] * twf_old + c[i, 1] * twf_cur
 
-    factor = 2/a1 * (G.L - a2 * sp.sparse.eye(G.N))
+    factor = 2/a1 * (G.L - a2 * sparse.eye(G.N))
     for k in range(2, M):
         twf_new = factor.dot(twf_cur) - twf_old
         for i in range(Nscales):
@@ -146,10 +139,6 @@ def cheby_rect(G, bounds, signal, **kwargs):
 
     bounds = np.array(bounds)
 
-    if not hasattr(G, 'lmax'):
-        logger.info('The variable lmax has not been computed yet, it will be done now.')
-        G.estimate_lmax()
-
     m = int(kwargs.pop('order', 30) + 1)
 
     try:
@@ -159,7 +148,7 @@ def cheby_rect(G, bounds, signal, **kwargs):
         r = np.zeros((G.N))
 
     b1, b2 = np.arccos(2. * bounds / G.lmax - 1.)
-    factor = 4./G.lmax * G.L - 2.*sp.sparse.eye(G.N)
+    factor = 4./G.lmax * G.L - 2.*sparse.eye(G.N)
 
     T_old = signal
     T_cur = factor.dot(signal) / 2.
@@ -198,10 +187,10 @@ def compute_jackson_cheby_coeff(filter_bounds, delta_lambda, m):
     """
     # Parameters check
     if delta_lambda[0] > filter_bounds[0] or delta_lambda[1] < filter_bounds[1]:
-        logger.error("Bounds of the filter are out of the lambda values")
+        _logger.error("Bounds of the filter are out of the lambda values")
         raise()
     elif delta_lambda[0] > delta_lambda[1]:
-        logger.error("lambda_min is greater than lambda_max")
+        _logger.error("lambda_min is greater than lambda_max")
         raise()
 
     # Scaling and translating to standard cheby interval

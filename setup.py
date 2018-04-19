@@ -1,40 +1,81 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-import sys
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
 
-if sys.argv[-1] == 'publish':
-    os.system('python setup.py sdist upload')
-    sys.exit()
 
 setup(
     name='PyGSP',
-    version='0.4.2',
-    description='The official Graph Signal Processing Toolbox',
+    version='0.5.1',
+    description='Graph Signal Processing in Python',
     long_description=open('README.rst').read(),
-    author='Alexandre Lafaye, Basile Châtillon, Lionel Martin, Nicolas Rod (EPFL LTS2)',
-    author_email='alexandre.lafaye@epfl.ch, basile.chatillon@epfl.ch, lionel.martin@epfl.ch, nicolas.rod@epfl.ch',
-    url='https://github.com/epfl-lts2/',
-    packages=['pygsp', 'pygsp.filters', 'pygsp.graphs', 'pygsp.graphs.nngraphs', 'pygsp.operators',
-              'pygsp.pointclouds', 'pygsp.tests'],
-    package_data={'pygsp.pointclouds': ['misc/*.mat']},
+    author='EPFL LTS2',
+    url='https://github.com/epfl-lts2/pygsp',
+    project_urls={
+        'Documentation': 'https://pygsp.readthedocs.io',
+        'Source Code': 'https://github.com/epfl-lts2/pygsp',
+        'Bug Tracker': 'https://github.com/epfl-lts2/pygsp/issues',
+        'Try It Online': 'https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=playground.ipynb',
+    },
+    packages=[
+        'pygsp',
+        'pygsp.graphs',
+        'pygsp.graphs.nngraphs',
+        'pygsp.filters',
+        'pygsp.tests',
+    ],
+    package_data={'pygsp': ['data/pointclouds/*.mat']},
     test_suite='pygsp.tests.test_all.suite',
-    dependency_links=['https://github.com/pyqtgraph/pyqtgraph@develop#egg=pyqtgraph-0.10.1fork'],
-    install_requires=['numpy', 'scipy', 'pyopengl', 'pyqtgraph<=0.10.1',
-                      'matplotlib==1.4.3' if sys.version_info.major == 3 and sys.version_info.minor < 4 else 'matplotlib',
-                      'PyQt5' if sys.version_info.major == 3 and sys.version_info.minor == 5 else 'PySide'],
+    install_requires=[
+        'numpy',
+        'scipy',
+    ],
+    extras_require={
+        # Optional dependencies for some functionalities.
+        'alldeps': (
+            # Construct patch graphs from images.
+            'scikit-image',
+            # Approximate nearest neighbors for kNN graphs.
+            'pyflann; python_version == "2.*"',
+            'pyflann3; python_version == "3.*"',
+            # Convex optimization on graph.
+            'pyunlocbox',
+            # Plot graphs, signals, and filters.
+            'matplotlib',
+            # Interactive graph visualization.
+            'pyqtgraph',
+            'PyOpenGL',
+            # PyQt5 is only available on PyPI as wheels for Python 3.5 and up.
+            'PyQt5; python_version >= "3.5"',
+            # No source package for PyQt5 on PyPI, fall back to PySide.
+            'PySide; python_version < "3.5"',
+        ),
+        # Testing dependencies.
+        'test': [
+            'flake8',
+            'coverage',
+            'coveralls',
+        ],
+        # Dependencies to build the documentation.
+        'doc': [
+            'sphinx',
+            'numpydoc',
+            'sphinxcontrib-bibtex',
+            'sphinx-rtd-theme',
+        ],
+        # Dependencies to build and upload packages.
+        'pkg': [
+            'wheel',
+            'twine',
+        ],
+    },
     license="BSD",
-    keywords='graph signal processing toolbox filters pointclouds',
+    keywords='graph signal processing',
     platforms='any',
     classifiers=[
         'Topic :: Scientific/Engineering :: Mathematics',
         'Environment :: Console',
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
@@ -44,5 +85,6 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
 )

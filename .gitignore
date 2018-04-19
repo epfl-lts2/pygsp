@@ -1,7 +1,4 @@
-*.py[cod]
-
-# C extensions
-*.so
+__pycache__/
 
 # Packages
 *.egg
@@ -15,39 +12,26 @@ var
 sdist
 develop-eggs
 .installed.cfg
-lib
-lib64
 
 # Installer logs
 pip-log.txt
 
-# Unit test / coverage reports
+# Coverage reports
 .coverage
-.tox
-nosetests.xml
 htmlcov
-
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
 
 # Complexity
 output/*.html
 output/*/index.html
 
-# Sphinx
+# Sphinx documentation
 doc/_build
-doc/tutorials/img/*\.pdf
-doc/tutorials/img/*\.png
+
 # Vim swap files
 .*.swp
-.*.swo
-docs/_build
 
-.ropeproject
+# Mac OS garbage
+.DS_Store
 
-.eggs/*
+# Jupyter notebook
+.ipynb_checkpoints/

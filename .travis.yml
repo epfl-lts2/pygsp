@@ -1,34 +1,27 @@
-# Configuration file for automatic testing at travis-ci.org
-
-language: python
-
+dist: trusty  # need glibc >= 2.17 for pyqt5
 sudo: false
 
+language: python
+cache: pip  # cache wheels for faster tests (PySide build can timeout)
 python:
-  - "2.7"
-  - "3.4"
-  - "3.5"
+  - 2.7
+  - 3.4
+  - 3.5
+  - 3.6
 
 addons:
   apt:
     packages:
-    - python-dev
-    - pkg-config
-    - libfreetype6-dev
-    - libpng-dev
-    - liblapack-dev
-    - libatlas-dev
-    - gfortran
-    - libatlas-base-dev
-    - libx11-xcb1
-    - xvfb
-
-before_install:
-    - pip install -U pip
-    - pip install -U -r requirements.txt
+      - xvfb
 
 install:
-    - python setup.py install
+  - pip install -U pip setuptools
+  - pip install -U .[alldeps,test,doc]
 
 script:
-    - xvfb-run python setup.py test
+# - make lint
+  - make test
+  - make doc
+
+after_success:
+  - coveralls

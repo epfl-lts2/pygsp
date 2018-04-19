@@ -1,18 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
+from __future__ import division
 
 import numpy as np
-from math import pi
+
+from . import Filter  # prevent circular import in Python < 3.5
 
 
 class Regular(Filter):
-    r"""
-    Regular Filterbank
+    r"""Design 2 filters with the regular construction (tight frame).
 
-    Inherits its methods from Filters
-
-    This function creates a parseval filterbank :math:`2` filters.
+    This function creates a Parseval filter bank of 2 filters.
     The low-pass filter is defined by a function :math:`f_l(x)`
     between :math:`0` and :math:`2`. For :math:`d = 0`.
 
@@ -26,44 +24,52 @@ class Regular(Filter):
 
     .. math:: f_{l}= \sin\left( \frac{\pi}{4} \left( 1+ \sin\left(\frac{\pi}{2} \sin\left(\frac{\pi}{2}(x-1)\right)\right) \right) \right)
 
-    And so for other degrees :math:`d`
+    And so forth for other degrees :math:`d`.
 
-    The high pass filter is adaptated to obtain a tight frame.
+    The high pass filter is adapted to obtain a tight frame.
 
     Parameters
     ----------
-    G : Graph
-    d : float
-        See equations above for this parameter
-        Degree (default = 3)
-
-    Returns
-    -------
-    out : Regular
+    G : graph
+    degree : float
+        Degree (default = 3). See above equations.
 
     Examples
     --------
-    >>> from pygsp import graphs, filters
-    >>> G = graphs.Logo()
-    >>> F = filters.Regular(G)
+
+    Filter bank's representation in Fourier and time (ring graph) domains.
+
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Ring(N=20)
+    >>> G.estimate_lmax()
+    >>> G.set_coordinates('line1D')
+    >>> g = filters.Regular(G)
+    >>> s = g.localize(G.N // 2)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> g.plot(ax=axes[0])
+    >>> G.plot_signal(s, ax=axes[1])
 
     """
-    def __init__(self, G, d=3, **kwargs):
-        super(Regular, self).__init__(G, **kwargs)
 
-        g = [lambda x: regular(x * (2./G.lmax), d)]
-        g.append(lambda x: np.real(np.sqrt(1 - (regular(x * (2./G.lmax), d))
-                                           ** 2)))
+    def __init__(self, G, degree=3):
 
-        self.g = g
+        self.degree = degree
 
-        def regular(val, d):
-            if d == 0:
-                return np.sin(pi / 4.*val)
+        kernels = [lambda x: regular(x * (2/G.lmax), degree)]
+        def dual(x):
+            y = regular(x * (2/G.lmax), degree)
+            return np.real(np.sqrt(1 - y**2))
+        kernels.append(dual)
+
+        def regular(val, degree):
+            if degree == 0:
+                return np.sin(np.pi / 4*val)
 
             else:
-                output = np.sin(pi*(val - 1) / 2.)
-                for i in range(2, d):
-                    output = np.sin(pi*output / 2.)
+                output = np.sin(np.pi*(val - 1) / 2)
+                for i in range(2, degree):
+                    output = np.sin(np.pi*output / 2)
 
-                return np.sin(pi / 4.*(1 + output))
+                return np.sin(np.pi / 4*(1 + output))
+
+        super(Regular, self).__init__(G, kernels)

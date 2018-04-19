@@ -1,35 +1,49 @@
 # -*- coding: utf-8 -*-
 
+r"""
+The :mod:`pygsp` package is mainly organized around the following two modules:
+
+* :mod:`.graphs` to create and manipulate various kinds of graphs,
+* :mod:`.filters` to create and manipulate various graph filters.
+
+Moreover, the following modules provide additional functionality:
+
+* :mod:`.plotting` to plot,
+* :mod:`.reduction` to reduce a graph while keeping its structure,
+* :mod:`.features` to compute features on graphs,
+* :mod:`.optimization` to help solving convex optimization problems,
+* :mod:`.utils` for various utilities.
+
 """
-This toolbox is splitted in different modules taking care of the different aspects of Graph Signal Processing.
 
-Those modules are : :ref:`Graphs <graphs-api>`, :ref:`Filters <filters-api>`, :ref:`Operators <operators-api>`, :ref:`PointCloud <pointclouds-api>`, :ref:`Plotting <plotting-api>`, :ref:`Data Handling <data_handling-api>` and :ref:`Utils <utils-api>`.
+from pygsp import utils as _utils
 
-You can find detailed documentation on the use of the functions in the subsequent pages.
-"""
+__all__ = [
+    'graphs',
+    'filters',
+    'plotting',
+    'reduction',
+    'features',
+    'optimization',
+    'utils',
+]
 
-# When importing the toolbox, you surely want these modules.
-from pygsp import graphs
-from pygsp import operators
-from pygsp import utils
-from pygsp import features
-from pygsp import filters
-from pygsp import pointclouds
-from pygsp import data_handling
-from pygsp import optimization
-from pygsp import plotting
+_utils.import_modules(__all__[::-1], 'pygsp', 'pygsp')
 
-# Silence the code checker warning about unused symbols.
-assert data_handling
-assert filters
-assert graphs
-assert operators
-assert optimization
-assert pointclouds
-assert features
-assert plotting
-assert utils
+# Users only call the plot methods from the objects.
+# It's thus more convenient for them to have the doc there.
+# But it's more convenient for developers to have the doc alongside the code.
+try:
+    filters.Filter.plot.__doc__ = plotting._plot_filter.__doc__
+    graphs.Graph.plot.__doc__ = plotting._plot_graph.__doc__
+    graphs.Graph.plot_signal.__doc__ = plotting._plot_signal.__doc__
+    graphs.Graph.plot_spectrogram.__doc__ = plotting._plot_spectrogram.__doc__
+except AttributeError:
+    # For Python 2.7.
+    filters.Filter.plot.__func__.__doc__ = plotting._plot_filter.__doc__
+    graphs.Graph.plot.__func__.__doc__ = plotting._plot_graph.__doc__
+    graphs.Graph.plot_signal.__func__.__doc__ = plotting._plot_signal.__doc__
+    graphs.Graph.plot_spectrogram.__func__.__doc__ = plotting._plot_spectrogram.__doc__
 
-__version__ = '0.4.2'
-__email__ = 'LTS2Graph@groupes.epfl.ch'
-__release_date__ = '2017-04-27'
+__version__ = '0.5.1'
+__release_date__ = '2017-12-15'

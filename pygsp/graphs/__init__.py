@@ -1,23 +1,167 @@
 # -*- coding: utf-8 -*-
 
 r"""
-This module implements graphs and contains predefined graphs for the most famous ones.
+The :mod:`pygsp.graphs` module implements the graph class hierarchy. A graph
+object is either constructed from an adjacency matrix, or by instantiating one
+of the built-in graph models.
 
-A graph is constructed either from its adjacency matrix, its weight matrix or any other parameter
-which depends on the particular graph you are trying to build. For specific information, :ref:`see details here<graphs-api>`.
+Interface
+=========
+
+The :class:`Graph` base class allows to construct a graph object from any
+adjacency matrix and provides a common interface to that object. Derived
+classes then allows to instantiate various standard graph models.
+
+Matrix operators
+----------------
+
+.. autosummary::
+
+    Graph.W
+    Graph.L
+    Graph.U
+    Graph.D
+
+Checks
+------
+
+.. autosummary::
+
+    Graph.check_weights
+    Graph.is_connected
+    Graph.is_directed
+
+Attributes computation
+----------------------
+
+.. autosummary::
+
+    Graph.compute_laplacian
+    Graph.estimate_lmax
+    Graph.compute_fourier_basis
+    Graph.compute_differential_operator
+
+Differential operators
+----------------------
+
+.. autosummary::
+
+    Graph.grad
+    Graph.div
+
+Localization
+------------
+
+.. autosummary::
+
+    Graph.modulate
+    Graph.translate
+
+Transforms (frequency and vertex-frequency)
+-------------------------------------------
+
+.. autosummary::
+
+    Graph.gft
+    Graph.igft
+    Graph.gft_windowed
+    Graph.gft_windowed_gabor
+    Graph.gft_windowed_normalized
+
+Plotting
+--------
+
+.. autosummary::
+
+    Graph.plot
+    Graph.plot_signal
+    Graph.plot_spectrogram
+
+Others
+------
+
+.. autosummary::
+
+    Graph.get_edge_list
+    Graph.set_coordinates
+    Graph.subgraph
+    Graph.extract_components
+
+Graph models
+============
+
+.. autosummary::
+
+    Airfoil
+    BarabasiAlbert
+    Comet
+    Community
+    DavidSensorNet
+    ErdosRenyi
+    FullConnected
+    Grid2d
+    Logo
+    LowStretchTree
+    Minnesota
+    Path
+    RandomRegular
+    RandomRing
+    Ring
+    Sensor
+    StochasticBlockModel
+    SwissRoll
+    Torus
+
+Nearest-neighbors graphs constructed from point clouds
+------------------------------------------------------
+
+.. autosummary::
+
+    NNGraph
+    Bunny
+    Cube
+    ImgPatches
+    Grid2dImgPatches
+    Sphere
+    TwoMoons
+
 """
 
-import importlib
-import sys
+from pygsp import utils as _utils
 
-__all__ = ['Graph', 'Airfoil', 'BarabasiAlbert', 'Comet', 'Community', 'DavidSensorNet', 'ErdosRenyi', 'FullConnected', 'Grid2d', 'Logo',
-           'LowStretchTree', 'Minnesota', 'Path', 'RandomRing', 'RandomRegular', 'Ring', 'Sensor', 'StochasticBlockModel', 'SwissRoll', 'Torus']
+_GRAPHS = [
+    'Graph',
+    'Airfoil',
+    'BarabasiAlbert',
+    'Comet',
+    'Community',
+    'DavidSensorNet',
+    'ErdosRenyi',
+    'FullConnected',
+    'Grid2d',
+    'Logo',
+    'LowStretchTree',
+    'Minnesota',
+    'Path',
+    'RandomRegular',
+    'RandomRing',
+    'Ring',
+    'Sensor',
+    'StochasticBlockModel',
+    'SwissRoll',
+    'Torus'
+]
+_NNGRAPHS = [
+    'NNGraph',
+    'Bunny',
+    'Cube',
+    'ImgPatches',
+    'Grid2dImgPatches',
+    'Sphere',
+    'TwoMoons'
+]
 
+__all__ = _GRAPHS + _NNGRAPHS
 
-
-# Automaticaly import all classes from subfiles defined in __all__
-for class_to_import in __all__:
-    setattr(sys.modules[__name__], class_to_import, getattr(importlib.import_module('.' + class_to_import.lower(), 'pygsp.graphs'), class_to_import))
-
-from .nngraphs import *
-from .gutils import *
+_utils.import_classes(_GRAPHS, 'graphs', 'graphs')
+_utils.import_classes(_NNGRAPHS, 'graphs.nngraphs', 'graphs')

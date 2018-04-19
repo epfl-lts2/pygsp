@@ -2,13 +2,13 @@
 Tutorials
 =========
 
-The following are some tutorials which show and explain how to use the toolbox
-to solve some real problems.
+The following are some tutorials which explain how to use the toolbox and show
+how to use it to solve some problems.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
-    simple
-    demo
-    demo_wavelet
-    demo_graph_tv
+    intro
+    wavelet
+    optimization
+    pyramid

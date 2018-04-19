@@ -1,20 +1,41 @@
 # -*- coding: utf-8 -*-
-r"""This module contains functionalities for the reduction of graphs' vertex set while keeping the graph structure."""
 
-from ..utils import resistance_distance, build_logger, extract_submatrix, splu_inv_dot, approx_resistance_distance
-from ..graphs import Graph
-from ..filters import Filter
+r"""
+The :mod:`pygsp.reduction` module implements functionalities for the reduction
+of graphs' vertex set while keeping the graph structure.
+
+.. autosummary::
+
+    tree_multiresolution
+    graph_multiresolution
+    kron_reduction
+    pyramid_analysis
+    pyramid_synthesis
+    interpolate
+    graph_sparsify
+
+"""
 
 import numpy as np
 from scipy import sparse, stats
-from scipy.sparse.linalg import eigs, spsolve
+from scipy.sparse import linalg
 
-logger = build_logger(__name__)
+from pygsp import graphs, filters, utils
+
+
+logger = utils.build_logger(__name__)
+
+
+def _analysis(g, s, **kwargs):
+    # TODO: that is the legacy analysis method.
+    s = g.filter(s, **kwargs)
+    while s.ndim < 3:
+        s = np.expand_dims(s, 1)
+    return s.swapaxes(1, 2).reshape(-1, s.shape[1], order='F')
 
 
 def graph_sparsify(M, epsilon, maxiter=10, fast=True):
-    r"""
-    Sparsify a graph using Spielman-Srivastava algorithm.
+    r"""Sparsify a graph (with Spielman-Srivastava).
 
     Parameters
     ----------
@@ -48,10 +69,10 @@ def graph_sparsify(M, epsilon, maxiter=10, fast=True):
 
     Examples
     --------
-    >>> from pygsp import graphs, operators
-    >>> G = graphs.Sensor(256, Nc=20, distribute=True)
+    >>> from pygsp import reduction
+    >>> G = graphs.Sensor(256, Nc=20, distributed=True)
     >>> epsilon = 0.4
-    >>> G2 = operators.graph_sparsify(G, epsilon)
+    >>> G2 = reduction.graph_sparsify(G, epsilon)
 
     References
     ----------
@@ -60,7 +81,7 @@ def graph_sparsify(M, epsilon, maxiter=10, fast=True):
 
     """
     # Test the input parameters
-    if isinstance(M, Graph):
+    if isinstance(M, graphs.Graph):
         if not M.lap_type == 'combinatorial':
             raise NotImplementedError
         g = M
@@ -75,9 +96,9 @@ def graph_sparsify(M, epsilon, maxiter=10, fast=True):
         raise ValueError('GRAPH_SPARSIFY: Epsilon out of required range')
 
     if fast:
-        Re = approx_resistance_distance(g, epsilon)
+        Re = utils.approx_resistance_distance(g, epsilon)
     else:
-        Re = resistance_distance(g.L).toarray()
+        Re = utils.resistance_distance(g.L).toarray()
         Re = Re[g.start_nodes, g.end_nodes]
 
     # Calculate the new weights.
@@ -107,20 +128,20 @@ def graph_sparsify(M, epsilon, maxiter=10, fast=True):
         sparserW = sparserW + sparserW.T
         sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
 
-        if Graph(W=sparserW).is_connected():
+        if graphs.Graph(W=sparserW).is_connected():
             break
         elif i == maxiter - 1:
             logger.warning('Despite attempts to reduce epsilon, sparsified graph is disconnected')
         else:
             epsilon -= (epsilon - 1/np.sqrt(N)) / 2.
 
-    if isinstance(M, Graph):
+    if isinstance(M, graphs.Graph):
         sparserW = sparse.diags(sparserL.diagonal(), 0) - sparserL
-        if not M.directed:
+        if not M.is_directed():
             sparserW = (sparserW + sparserW.T) / 2.
 
-        Mnew = Graph(W=sparserW)
-        M.copy_graph_attributes(Mnew)
+        Mnew = graphs.Graph(W=sparserW)
+        #M.copy_graph_attributes(Mnew)
     else:
         Mnew = sparse.lil_matrix(sparserL)
 
@@ -128,8 +149,7 @@ def graph_sparsify(M, epsilon, maxiter=10, fast=True):
 
 
 def interpolate(G, f_subsampled, keep_inds, order=100, reg_eps=0.005, **kwargs):
-    r"""
-    Interpolation of a graph signal.
+    r"""Interpolate a graph signal.
 
     Parameters
     ----------
@@ -158,7 +178,7 @@ def interpolate(G, f_subsampled, keep_inds, order=100, reg_eps=0.005, **kwargs):
     L_reg = G.L + reg_eps * sparse.eye(G.N)
     K_reg = getattr(G.mr, 'K_reg', kron_reduction(L_reg, keep_inds))
     green_kernel = getattr(G.mr, 'green_kernel',
-                           Filter(G, filters=lambda x: 1. / (reg_eps + x)))
+                           filters.Filter(G, lambda x: 1. / (reg_eps + x)))
 
     alpha = K_reg.dot(f_subsampled)
 
@@ -170,12 +190,14 @@ def interpolate(G, f_subsampled, keep_inds, order=100, reg_eps=0.005, **kwargs):
 
     f_interpolated[keep_inds] = alpha
 
-    return green_kernel.analysis(f_interpolated, order=order, **kwargs)
+    return _analysis(green_kernel, f_interpolated, order=order, **kwargs)
 
 
-def graph_multiresolution(G, levels, **kwargs):
-    r"""
-    Compute a pyramid of graphs using the kron reduction.
+def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
+                          downsampling_method='largest_eigenvector',
+                          reduction_method='kron', compute_full_eigen=False,
+                          reg_eps=0.005):
+    r"""Compute a pyramid of graphs (by Kron reduction).
 
     'graph_multiresolution(G,levels)' computes a multiresolution of
     graph by repeatedly downsampling and performing graph reduction. The
@@ -191,68 +213,61 @@ def graph_multiresolution(G, levels, **kwargs):
         The graph to reduce.
     levels : int
         Number of level of decomposition
-    params : dict
-        lambd : float
-            Stability parameter. It adds self loop to the graph to give the
-            algorithm some stability (default = 0.025). [UNUSED?!]
-        sparsify : bool
-            To perform a spectral sparsification step immediately after
-            the graph reduction (default is True).
-        sparsify_eps : float
-            Parameter epsilon used in the spectral sparsification
-            (default is min(10/sqrt(G.N),.3)).
-        downsampling_method: string
-            The graph downsampling method (default is 'largest_eigenvector').
-        reduction_method : string
-            The graph reduction method (default is 'kron')
-        compute_full_eigen : bool
-            To also compute the graph Laplacian eigenvalues and eigenvectors
-            for every graph in the multiresolution sequence (default is False).
-        reg_eps : float
-            The regularized graph Laplacian is $\bar{L}=L+\epsilon I$.
-            A smaller epsilon may lead to better regularization, but will also
-            require a higher order Chebyshev approximation. (default is 0.005)
+    lambd : float
+        Stability parameter. It adds self loop to the graph to give the
+        algorithm some stability (default = 0.025). [UNUSED?!]
+    sparsify : bool
+        To perform a spectral sparsification step immediately after
+        the graph reduction (default is True).
+    sparsify_eps : float
+        Parameter epsilon used in the spectral sparsification
+        (default is min(10/sqrt(G.N),.3)).
+    downsampling_method: string
+        The graph downsampling method (default is 'largest_eigenvector').
+    reduction_method : string
+        The graph reduction method (default is 'kron')
+    compute_full_eigen : bool
+        To also compute the graph Laplacian eigenvalues and eigenvectors
+        for every graph in the multiresolution sequence (default is False).
+    reg_eps : float
+        The regularized graph Laplacian is :math:`\bar{L}=L+\epsilon I`.
+        A smaller epsilon may lead to better regularization, but will also
+        require a higher order Chebyshev approximation. (default is 0.005)
 
     Returns
     -------
-    Gs : ndarray
-        The graph layers.
+    Gs : list
+        A list of graph layers.
 
     Examples
     --------
-    >>> import pygsp
+    >>> from pygsp import reduction
     >>> levels = 5
-    >>> G = pygsp.graphs.Sensor(N=256)
-    >>> Gs = pygsp.operators.graph_multiresolution(G, levels)
+    >>> G = graphs.Sensor(N=512)
+    >>> G.compute_fourier_basis()
+    >>> Gs = reduction.graph_multiresolution(G, levels, sparsify=False)
     >>> for idx in range(levels):
-    ...     Gs[i].plotting['plot_name'] = 'Reduction level: {}'.format(idx)
-    ...     Gs[i].plot()
+    ...     Gs[idx].plotting['plot_name'] = 'Reduction level: {}'.format(idx)
+    ...     Gs[idx].plot()
 
     """
-    # lambd = float(kwargs.pop('lambd', 0.025))
-    sparsify = bool(kwargs.pop('sparsify', True))
-    sparsify_eps = float(kwargs.pop('sparsify_eps', min(10./np.sqrt(G.N), 0.3)))
-    downsampling_method = kwargs.pop('downsampling_method', 'largest_eigenvector')
-    reduction_method = kwargs.pop('downsampling_method', 'kron')
-    compute_full_eigen = bool(kwargs.pop('compute_full_eigen', False))
-    reg_eps = float(kwargs.pop('reg_eps', 0.005))
+    if sparsify_eps is None:
+        sparsify_eps = min(10. / np.sqrt(G.N), 0.3)
 
     if compute_full_eigen:
-        if not hasattr(G, 'e') or not hasattr(G, 'U'):
-            G.compute_fourier_basis()
+        G.compute_fourier_basis()
     else:
-        if not hasattr(G, 'lmax'):
-            G.estimate_lmax()
+        G.estimate_lmax()
 
     Gs = [G]
     Gs[0].mr = {'idx': np.arange(G.N), 'orig_idx': np.arange(G.N)}
 
     for i in range(levels):
         if downsampling_method == 'largest_eigenvector':
-            if hasattr(Gs[i], 'U'):
+            if hasattr(Gs[i], '_U'):
                 V = Gs[i].U[:, -1]
             else:
-                V = eigs(Gs[i].L, 1)[1][:, 0]
+                V = linalg.eigs(Gs[i].L, 1)[1][:, 0]
 
             V *= np.sign(V[0])
             ind = np.nonzero(V >= 0)[0]
@@ -267,7 +282,9 @@ def graph_multiresolution(G, levels, **kwargs):
             raise NotImplementedError('Unknown graph reduction method.')
 
         if sparsify and Gs[i+1].N > 2:
+            coords = Gs[i+1].coords
             Gs[i+1] = graph_sparsify(Gs[i+1], min(max(sparsify_eps, 2. / np.sqrt(Gs[i+1].N)), 1.))
+            Gs[i+1].coords = coords
             # TODO : Make in place modifications instead!
 
         if compute_full_eigen:
@@ -279,14 +296,13 @@ def graph_multiresolution(G, levels, **kwargs):
 
         L_reg = Gs[i].L + reg_eps * sparse.eye(Gs[i].N)
         Gs[i].mr['K_reg'] = kron_reduction(L_reg, ind)
-        Gs[i].mr['green_kernel'] = Filter(Gs[i], filters=lambda x: 1./(reg_eps + x))
+        Gs[i].mr['green_kernel'] = filters.Filter(Gs[i], lambda x: 1./(reg_eps + x))
 
     return Gs
 
 
 def kron_reduction(G, ind, threshold=np.spacing(1)):
-    r"""
-    Compute the kron reduction.
+    r"""Compute the Kron reduction.
 
     This function perform the Kron reduction of the weight matrix in the
     graph *G*, with boundary nodes labeled by *ind*. This function will
@@ -322,21 +338,20 @@ def kron_reduction(G, ind, threshold=np.spacing(1)):
     See :cite:`dorfler2013kron`
 
     """
-    if isinstance(G, Graph):
-        if hasattr(G, 'lap_type'):
-            if not G.lap_type == 'combinatorial':
-                message = 'Unknwon reduction for {} laplacian.'.format(G.lap_type)
-                raise NotImplementedError(message)
+    if isinstance(G, graphs.Graph):
 
-        if G.directed:
-            message = 'This method only work for undirected graphs.'
-            raise NotImplementedError(message)
+        if G.lap_type != 'combinatorial':
+                msg = 'Unknown reduction for {} Laplacian.'.format(G.lap_type)
+                raise NotImplementedError(msg)
 
-        if not hasattr(G, 'L'):
-            G.compute_laplacian()
+        if G.is_directed():
+            msg = 'This method only work for undirected graphs.'
+            raise NotImplementedError(msg)
+
         L = G.L
 
     else:
+
         L = G
 
     N = np.shape(L)[0]
@@ -347,7 +362,7 @@ def kron_reduction(G, ind, threshold=np.spacing(1)):
     L_out_in = L_in_out.transpose().tocsc()
     L_comp = extract_submatrix(L,ind_comp, ind_comp).tocsc()
 
-    Lnew = L_red - L_in_out.dot(splu_inv_dot(L_comp, L_out_in))
+    Lnew = L_red - L_in_out.dot(utils.splu_inv_dot(L_comp, L_out_in))
 
     # Threshold excedingly small values for stability
     Lnew = Lnew.tocoo()
@@ -358,11 +373,11 @@ def kron_reduction(G, ind, threshold=np.spacing(1)):
     # Enforces symmetric Laplacian
     Lnew = (Lnew + Lnew.T) / 2.
 
-    if isinstance(G, Graph):
+    if isinstance(G, graphs.Graph):
         Wnew = sparse.diags(Lnew.diagonal(), 0) - Lnew
         coords = G.coords[ind, :] if len(G.coords.shape) else np.ndarray(None)
-        Gnew = Graph(W=Wnew, coords=coords, lap_type=G.lap_type,
-                     plotting=G.plotting, gtype='Kron reduction')
+        Gnew = graphs.Graph(W=Wnew, coords=coords, lap_type=G.lap_type,
+                            plotting=G.plotting)
     else:
         Gnew = Lnew
 
@@ -370,8 +385,7 @@ def kron_reduction(G, ind, threshold=np.spacing(1)):
 
 
 def pyramid_analysis(Gs, f, **kwargs):
-    r"""
-    Compute the graph pyramid transform coefficients.
+    r"""Compute the graph pyramid transform coefficients.
 
     Parameters
     ----------
@@ -425,7 +439,7 @@ def pyramid_analysis(Gs, f, **kwargs):
 
     for i in range(levels):
         # Low pass the signal
-        s_low = Filter(Gs[i], filters=h_filters[i]).analysis(ca[i], **kwargs)
+        s_low = _analysis(filters.Filter(Gs[i], h_filters[i]), ca[i], **kwargs)
         # Keep only the coefficient on the selected nodes
         ca.append(s_low[Gs[i+1].mr['idx']])
         # Compute prediction
@@ -436,55 +450,8 @@ def pyramid_analysis(Gs, f, **kwargs):
     return ca, pe
 
 
-def pyramid_cell2coeff(ca, pe):
-    r"""
-    Cell array to vector transform for the pyramid.
-    NOT NECESSARY ANYMORE.
-
-    Parameters
-    ----------
-    ca : ndarray
-        Array with the coarse approximation at each level
-    pe : ndarray
-        Array with the prediction errors at each level
-
-    Returns
-    -------
-    coeff : ndarray
-        Array of coefficient
-
-    """
-    Nl = len(ca) - 1
-    N = 0
-
-    for ele in ca:
-        N += np.shape(ele)[0]
-
-    try:
-        Nt, Nv = np.shape(ca[Nl])
-        coeff = np.zeros((N, Nv))
-    except ValueError:
-        Nt = np.shape(ca[Nl])[0]
-        coeff = np.zeros((N))
-
-    coeff[:Nt] = ca[Nl]
-    ind = Nt
-
-    for i in range(Nl):
-        Nt = np.shape(ca[Nl - 1 - i])[0]
-        tmpNt = np.arange(Nt, dtype=int)
-        coeff[ind + tmpNt] = pe[Nl - 1 - i]
-        ind += Nt
-
-    if ind != N:
-        raise ValueError('Something is wrong here: contact the gspbox team.')
-
-    return coeff
-
-
 def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
-    r"""
-    Synthesize a signal from its graph pyramid transform coefficients.
+    r"""Synthesize a signal from its pyramid coefficients.
 
     Parameters
     ----------
@@ -521,7 +488,7 @@ def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
 
     """
     least_squares = bool(kwargs.pop('least_squares', False))
-    def_ul = Gs[0].N > 3000 or not hasattr(Gs[0], 'e') or not hasattr(Gs[0], 'U')
+    def_ul = Gs[0].N > 3000 or not hasattr(Gs[0], '_e') or not hasattr(Gs[0], '_U')
     use_landweber = bool(kwargs.pop('use_landweber', def_ul))
     reg_eps = float(kwargs.get('reg_eps', 0.005))
 
@@ -543,7 +510,7 @@ def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
             ca.append(s_pred + pe[levels - i - 1])
 
         else:
-            ca.append(pyramid_single_interpolation(Gs[levels - i - 1], ca[i],
+            ca.append(_pyramid_single_interpolation(Gs[levels - i - 1], ca[i],
                       pe[levels - i - 1], h_filters[levels - i - 1],
                       use_landweber=use_landweber, **kwargs))
 
@@ -553,9 +520,8 @@ def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
     return reconstruction, ca
 
 
-def pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
-    r"""
-    Sythesize a single level of the graph pyramid transform.
+def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
+    r"""Synthesize a single level of the graph pyramid transform.
 
     Parameters
     ----------
@@ -599,12 +565,12 @@ def pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
     if use_landweber:
         x = np.zeros(N)
         z = np.concatenate((ca, pe), axis=0)
-        green_kernel = Filter(G, filters=lambda x: 1./(x+reg_eps))
-        PhiVlt = green_kernel.analysis(S.T, **kwargs).T
-        filt = Filter(G, filters=h_filter, **kwargs)
+        green_kernel = filters.Filter(G, lambda x: 1./(x+reg_eps))
+        PhiVlt = _analysis(green_kernel, S.T, **kwargs).T
+        filt = filters.Filter(G, h_filter, **kwargs)
 
         for iteration in range(landweber_its):
-            h_filtered_sig = filt.analysis(x, **kwargs)
+            h_filtered_sig = _analysis(filt, x, **kwargs)
             x_bar = h_filtered_sig[keep_inds]
             y_bar = x - interpolate(G, x_bar, keep_inds, **kwargs)
             z_delt = np.concatenate((x_bar, y_bar), axis=0)
@@ -619,26 +585,23 @@ def pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
             L_out_in = reg_L[np.ix_(elim_inds, keep_inds)]
             L_comp = reg_L[np.ix_(elim_inds, elim_inds)]
 
-            next_term = L_red * alpha_new - L_in_out * spsolve(L_comp, L_out_in * alpha_new)
+            next_term = L_red * alpha_new - L_in_out * linalg.spsolve(L_comp, L_out_in * alpha_new)
             next_up = sparse.csr_matrix((next_term, (keep_inds, [1] * nb_ind)), shape=(N, 1))
-            x += landweber_tau * filt.analysis(x_up - next_up, **kwargs) + z_delt[nb_ind:]
+            x += landweber_tau * _analysis(filt, x_up - next_up, **kwargs) + z_delt[nb_ind:]
 
         finer_approx = x
 
     else:
         # When the graph is small enough, we can do a full eigendecomposition
         # and compute the full analysis operator T_a
-        if not hasattr(G, 'e') or not hasattr(G, 'U'):
-            G.compute_fourier_basis()
         H = G.U * sparse.diags(h_filter(G.e), 0) * G.U.T
         Phi = G.U * sparse.diags(1./(reg_eps + G.e), 0) * G.U.T
-        Ta = np.concatenate((S * H, sparse.eye(G.N) - Phi[:, keep_inds] * spsolve(Phi[np.ix_(keep_inds, keep_inds)], S*H)), axis=0)
-        finer_approx = spsolve(Ta.T * Ta, Ta.T * np.concatenate((ca, pe), axis=0))
+        Ta = np.concatenate((S * H, sparse.eye(G.N) - Phi[:, keep_inds] * linalg.spsolve(Phi[np.ix_(keep_inds, keep_inds)], S*H)), axis=0)
+        finer_approx = linalg.spsolve(Ta.T * Ta, Ta.T * np.concatenate((ca, pe), axis=0))
 
 
-def tree_depths(A, root):
-    r"""Empty docstring. TODO."""
-    if not Graph(A=A).is_connected():
+def _tree_depths(A, root):
+    if not graphs.Graph(A=A).is_connected():
         raise ValueError('Graph is not connected')
 
     N = np.shape(A)[0]
@@ -668,8 +631,7 @@ def tree_depths(A, root):
 
 def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
                          compute_full_eigen=False, root=None):
-    r"""
-    Compute a multiresolution of trees
+    r"""Compute a multiresolution of trees
 
     Parameters
     ----------
@@ -691,7 +653,6 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         Indices of the vertices of the previous tree that are kept for the subsequent tree.
 
     """
-    from pygsp.graphs import Graph
 
     if not root:
         if hasattr(G, 'root'):
@@ -705,7 +666,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         Gs[0].compute_fourier_basis()
 
     subsampled_vertex_indices = []
-    depths, parents = tree_depths(G.A, root)
+    depths, parents = _tree_depths(G.A, root)
     old_W = G.W
 
     for lev in range(Nlevel):
@@ -766,8 +727,8 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         depths = depths/2.
 
         # Store new tree
-        Gtemp = Graph(new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, gtype='tree', root=new_root)
-        Gs[lev].copy_graph_attributes(Gtemp, False)
+        Gtemp = graphs.Graph(new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, root=new_root)
+        #Gs[lev].copy_graph_attributes(Gtemp, False)
 
         if compute_full_eigen:
             Gs[lev + 1].compute_fourier_basis()

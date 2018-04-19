@@ -1,145 +1,110 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Test suite for the plotting module of the pygsp package."""
+"""
+Test suite for the plotting module of the pygsp package.
 
-import sys
+"""
+
+import unittest
+import os
+
 import numpy as np
-from pygsp import graphs
+from skimage import data, img_as_float
 
-# Use the unittest2 backport on Python 2.6 to profit from the new features.
-if sys.version_info < (2, 7):
-    import unittest2 as unittest
-else:
-    import unittest
+from pygsp import graphs, plotting
 
 
-class FunctionsTestCase(unittest.TestCase):
+class TestCase(unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
+        cls._img = img_as_float(data.camera()[::16, ::16])
+
+    @classmethod
+    def tearDownClass(cls):
         pass
 
-    def tearDown(self):
-        pass
+    def test_plot_graphs(self):
+        r"""
+        Plot all graphs which have coordinates.
+        With and without signal.
+        With both backends.
+        """
 
-    def test_plotting(self):
+        # Graphs who are not embedded, i.e. have no coordinates.
+        COORDS_NO = {
+            'Graph',
+            'BarabasiAlbert',
+            'ErdosRenyi',
+            'FullConnected',
+            'RandomRegular',
+            'StochasticBlockModel',
+            }
 
-        def needed_attributes_testing(G):
+        # Coordinates are not in 2D or 3D.
+        COORDS_WRONG_DIM = {'ImgPatches'}
+
+        Gs = []
+        for classname in set(graphs.__all__) - COORDS_NO - COORDS_WRONG_DIM:
+            Graph = getattr(graphs, classname)
+
+            # Classes who require parameters.
+            if classname == 'NNGraph':
+                Xin = np.arange(90).reshape(30, 3)
+                Gs.append(Graph(Xin))
+            elif classname in ['ImgPatches', 'Grid2dImgPatches']:
+                Gs.append(Graph(img=self._img, patch_shape=(3, 3)))
+            else:
+                Gs.append(Graph())
+
+            # Add more test cases.
+            if classname == 'TwoMoons':
+                Gs.append(Graph(moontype='standard'))
+                Gs.append(Graph(moontype='synthesized'))
+            elif classname == 'Cube':
+                Gs.append(Graph(nb_dim=2))
+                Gs.append(Graph(nb_dim=3))
+            elif classname == 'DavidSensorNet':
+                Gs.append(Graph(N=64))
+                Gs.append(Graph(N=500))
+                Gs.append(Graph(N=128))
+
+        for G in Gs:
             self.assertTrue(hasattr(G, 'coords'))
             self.assertTrue(hasattr(G, 'A'))
             self.assertEqual(G.N, G.coords.shape[0])
 
-        def test_default_graph():
-            W = np.arange(16).reshape(4, 4)
-            G = graphs.Graph(W)
-            ki, kj = np.nonzero(G.A)
-            self.assertEqual(ki.shape[0], G.Ne)
-            self.assertEqual(kj.shape[0], G.Ne)
-            needed_attributes_testing(G)
+            signal = np.arange(G.N) + 0.3
 
-        def test_NNGraph():
-            Xin = np.arange(90).reshape(30, 3)
-            G = graphs.NNGraph(Xin)
-            needed_attributes_testing(G)
+            G.plot(backend='pyqtgraph')
+            G.plot(backend='matplotlib')
+            G.plot_signal(signal, backend='pyqtgraph')
+            G.plot_signal(signal, backend='matplotlib')
+            plotting.close_all()
 
-        def test_Bunny():
-            G = graphs.Bunny()
-            needed_attributes_testing(G)
+    def test_save(self):
+        G = graphs.Logo()
+        name = 'test_plot'
+        G.plot(backend='matplotlib', save=name)
+        os.remove(name + '.png')
+        os.remove(name + '.pdf')
 
-        def test_Cube():
-            G = graphs.Cube()
-            G2 = graphs.Cube(nb_dim=2)
-            needed_attributes_testing(G)
+    def test_highlight(self):
 
-            needed_attributes_testing(G2)
+        def test(G):
+            s = np.arange(G.N)
+            G.plot_signal(s, backend='matplotlib', highlight=0)
+            G.plot_signal(s, backend='matplotlib', highlight=[0])
+            G.plot_signal(s, backend='matplotlib', highlight=[0, 1])
 
-        def test_Sphere():
-            G = graphs.Sphere()
-            needed_attributes_testing(G)
-
-        def test_TwoMoons():
-            G = graphs.TwoMoons()
-            G2 = graphs.TwoMoons(moontype='synthetised')
-            needed_attributes_testing(G)
-
-            needed_attributes_testing(G2)
-
-        def test_Grid2d():
-            G = graphs.Grid2d()
-            needed_attributes_testing(G)
-
-        def test_Torus():
-            G = graphs.Torus()
-            needed_attributes_testing(G)
-
-        def test_Comet():
-            G = graphs.Comet()
-            needed_attributes_testing(G)
-
-        def test_LowStretchTree():
-            G = graphs.LowStretchTree()
-            needed_attributes_testing(G)
-
-        def test_RandomRegular():
-            G = graphs.RandomRegular()
-            needed_attributes_testing(G)
-
-        def test_Ring():
-            G = graphs.Ring()
-            needed_attributes_testing(G)
-
-        def test_Community():
-            G = graphs.Community()
-            needed_attributes_testing(G)
-
-        def test_Minnesota():
-            G = graphs.Minnesota()
-            needed_attributes_testing(G)
-
-        def test_Sensor():
-            G = graphs.Sensor()
-            needed_attributes_testing(G)
-
-        def test_Airfoil():
-            G = graphs.Airfoil()
-            needed_attributes_testing(G)
-
-        def test_DavidSensorNet():
-            G = graphs.DavidSensorNet()
-            G2 = graphs.DavidSensorNet(N=500)
-            G3 = graphs.DavidSensorNet(N=128)
-
-            needed_attributes_testing(G)
-            needed_attributes_testing(G2)
-            needed_attributes_testing(G3)
-
-        def test_FullConnected():
-            G = graphs.FullConnected()
-            needed_attributes_testing(G)
-
-        def test_Logo():
-            G = graphs.Logo()
-            needed_attributes_testing(G)
-
-        def test_Path():
-            G = graphs.Path()
-            needed_attributes_testing(G)
-
-        def test_RandomRing():
-            G = graphs.RandomRing()
-            needed_attributes_testing(G)
-
-        def test_SwissRoll():
-            G = graphs.SwissRoll()
-            needed_attributes_testing(G)
-
-suite = unittest.TestLoader().loadTestsFromTestCase(FunctionsTestCase)
+        # Test for 1, 2, and 3D graphs.
+        G = graphs.Ring()
+        test(G)
+        G = graphs.Ring()
+        G.set_coordinates('line1D')
+        test(G)
+        G = graphs.Torus(Nv=5)
+        test(G)
 
 
-def run():
-    """Run tests."""
-    unittest.TextTestRunner(verbosity=2).run(suite)
-
-
-if __name__ == '__main__':
-    run()
+suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

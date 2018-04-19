@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-
 import numpy as np
 from scipy import sparse
 
+from . import Graph  # prevent circular import in Python < 3.5
+
 
 class Torus(Graph):
-    r"""
-    Create a Torus graph.
+    r"""Sampled torus manifold.
 
     Parameters
     ----------
@@ -17,22 +16,30 @@ class Torus(Graph):
     Mv : int
         Number of vertices along the second dimension (default is Nv)
 
-    Examples
-    --------
-    >>> from pygsp import graphs
-    >>> Nv = 32
-    >>> G = graphs.Torus(Nv=Nv)
-
     References
     ----------
     See :cite:`strang1999discrete` for more informations.
+
+    Examples
+    --------
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Torus(10)
+    >>> fig = plt.figure()
+    >>> ax1 = fig.add_subplot(121)
+    >>> ax2 = fig.add_subplot(122, projection='3d')
+    >>> _ = ax1.spy(G.W, markersize=1.5)
+    >>> G.plot(ax=ax2)
+    >>> _ = ax2.set_zlim(-1.5, 1.5)
 
     """
 
     def __init__(self, Nv=16, Mv=None, **kwargs):
 
-        if not Mv:
+        if Mv is None:
             Mv = Nv
+
+        self.Nv = Nv
+        self.Mv = Mv
 
         # Create weighted adjancency matrix
         K = 2 * Nv
@@ -79,11 +86,14 @@ class Torus(Graph):
                                  np.reshape(ytmp, (Mv*Nv, 1), order='F'),
                                  np.reshape(ztmp, (Mv*Nv, 1), order='F')),
                                 axis=1)
-        self.Nv = Nv
-        self.Mv = Nv
 
-        plotting = {"vertex_size": 30,
-                    "limits": np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])}
+        plotting = {
+            'vertex_size': 60,
+            'limits': np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])
+        }
 
-        super(Torus, self).__init__(W=W, gtype='Torus', coords=coords,
+        super(Torus, self).__init__(W=W, coords=coords,
                                     plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        return dict(Nv=self.Nv, Mv=self.Mv)

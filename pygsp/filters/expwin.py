@@ -1,53 +1,62 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
+from __future__ import division
 
 import numpy as np
 
+from . import Filter  # prevent circular import in Python < 3.5
+
 
 class Expwin(Filter):
-    r"""
-    Expwin Filterbank
-
-    Inherits its methods from Filters
+    r"""Design an exponential window filter.
 
     Parameters
     ----------
-    G : Graph
-    bmax : float
+    G : graph
+    band_max : float
         Maximum relative band (default = 0.2)
-    a : int
+    slope : float
         Slope parameter (default = 1)
-
-    Returns
-    -------
-    out : Expwin
 
     Examples
     --------
-    >>> from pygsp import graphs, filters
-    >>> G = graphs.Logo()
-    >>> F = filters.Expwin(G)
+
+    Filter bank's representation in Fourier and time (ring graph) domains.
+
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Ring(N=20)
+    >>> G.estimate_lmax()
+    >>> G.set_coordinates('line1D')
+    >>> g = filters.Expwin(G)
+    >>> s = g.localize(G.N // 2)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> g.plot(ax=axes[0])
+    >>> G.plot_signal(s, ax=axes[1])
 
     """
-    def __init__(self, G, bmax=0.2, a=1., **kwargs):
-        super(Expwin, self).__init__(G, **kwargs)
 
-        def fx(x, a):
-            y = np.exp(-float(a)/x)
-            if isinstance(x, np.ndarray):
-                y = np.where(x <= 0, 0., y)
-            else:
-                if x <= 0:
-                    y = 0.
-            return y
+    def __init__(self, G, band_max=0.2, slope=1):
 
-        def gx(x, a):
-            y = fx(x, a)
-            return y/(y + fx(1 - x, a))
+        self.band_max = band_max
+        self.slope = slope
 
-        def ffin(x, a):
-            return gx(1 - x, a)
+        def fx(x):
+            # Canary to avoid division by zero and overflow.
+            y = np.where(x <= 0, -1, x)
+            y = np.exp(-slope / y)
+            return np.where(x <= 0, 0, y)
 
-        g = [lambda x: ffin(np.float64(x)/bmax/G.lmax, a)]
-        self.g = g
+        def gx(x):
+            y = fx(x)
+            return y / (y + fx(1 - x))
+
+        def ffin(x):
+            return gx(1 - x)
+
+        g = [lambda x: ffin(x/band_max/G.lmax)]
+
+        super(Expwin, self).__init__(G, g)
+
+    def _get_extra_repr(self):
+        return dict(band_max='{:.2f}'.format(self.band_max),
+                    slope='{:.2f}'.format(self.slope))

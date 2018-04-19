@@ -1,0 +1,9 @@
+formats:
+  - htmlzip
+
+python:
+  version: 3
+  pip_install: true
+  extra_requirements:
+    - alldeps
+    - doc

@@ -1,28 +1,23 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-from pygsp.utils import build_logger
-
 import numpy as np
 from scipy import sparse
-import random as rd
-from math import floor
+
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class BarabasiAlbert(Graph):
-    r"""
-    Create a graph following the preferential attachment concept like Barabasi-Albert graphs.
+    r"""Barabasi-Albert preferential attachment.
 
     The Barabasi-Albert graph is constructed by connecting nodes in two steps.
     First, m0 nodes are created. Then, nodes are added one by one.
 
     By lack of clarity, we take the liberty to create it as follows:
-        i) the m0 initial nodes are disconnected
-        ii) each node is connected to m of the older nodes with a probability
-        distribution depending of the node-degrees of the other nodes:
-    ::
-        p_n(i) = \frac{1 + k_i}{\sum_j{1 + k_j}}
-    ::
+
+        1. the m0 initial nodes are disconnected,
+        2. each node is connected to m of the older nodes with a probability
+           distribution depending of the node-degrees of the other nodes,
+           :math:`p_n(i) = \frac{1 + k_i}{\sum_j{1 + k_j}}`.
 
     Parameters
     ----------
@@ -33,27 +28,42 @@ class BarabasiAlbert(Graph):
     m : int
         Number of connections at each step (default is 1)
         m can never be larger than m0.
+    seed : int
+        Seed for the random number generator (for reproducible graphs).
 
     Examples
     --------
-    >>> from pygsp import graphs
-    >>> G = graphs.BarabasiAlbert(500)
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.BarabasiAlbert(N=150, seed=42)
+    >>> G.set_coordinates(kind='spring', seed=42)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=2)
+    >>> G.plot(ax=axes[1])
 
     """
-    def __init__(self, N=1000, m0=1, m=1, **kwargs):
+    def __init__(self, N=1000, m0=1, m=1, seed=None, **kwargs):
+
         if m > m0:
-            raise ValueError("GSP_BarabasiAlbert: The parameter m "
-                             "cannot be above m0.")
+            raise ValueError('Parameter m cannot be above parameter m0.')
+
+        self.m0 = m0
+        self.m = m
+        self.seed = seed
 
         W = sparse.lil_matrix((N, N))
+        rs = np.random.RandomState(seed)
 
         for i in range(m0, N):
             distr = W.sum(axis=1)
             distr += np.concatenate((np.ones((i, 1)), np.zeros((N-i, 1))))
 
-            connections = np.random.choice(N, size=m, replace=False, p=np.ravel(distr/distr.sum()))
+            connections = rs.choice(
+                N, size=m, replace=False, p=np.ravel(distr / distr.sum()))
             for elem in connections:
                 W[elem, i] = 1
                 W[i, elem] = 1
 
-        super(BarabasiAlbert, self).__init__(W=W, gtype=u"Barabasi-Albert", **kwargs)
+        super(BarabasiAlbert, self).__init__(W=W, **kwargs)
+
+    def _get_extra_repr(self):
+        return dict(m0=self.m0, m=self.m, seed=self.seed)

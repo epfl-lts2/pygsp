@@ -1,54 +1,37 @@
 # -*- coding: utf-8 -*-
 
-from . import Filter
+from pygsp import utils
+from . import Filter  # prevent circular import in Python < 3.5
 
-import numpy as np
+
+_logger = utils.build_logger(__name__)
 
 
 class Gabor(Filter):
-    """
-    Gabor Filterbank
+    r"""Design a Gabor filter bank.
 
-    Inherits its methods from Filters
+    Design a filter bank where the kernel is centered at each graph frequency.
 
     Parameters
     ----------
-    G : Graph
-        Graph structur
-    k : lambda function
-        kernel
-
-    Returns
-    -------
-    g : Gabor
-
-    Note
-    ----
-    This function create a filterbank with the kernel *k*. Every filter is
-    centered in a different frequency
+    G : graph
+    kernel : function
+        Kernel function to be centered and evaluated.
 
     Examples
     --------
-    >>> from pygsp import grpahs, filters
     >>> G = graphs.Logo()
-    >>> k = lambda x: x/(1.-x)
+    >>> k = lambda x: x / (1. - x)
     >>> g = filters.Gabor(G, k);
 
-    Author: Nathanael Perraudin
-    Date  : 13 June 2014
     """
-    def __init__(self, G, k, **kwargs):
-        super(Gabor, self).__init__(G, **kwargs)
 
-        if not hasattr(G, 'e'):
-            self.logger.info('Filter Gabor will calculate and set'
-                             ' the eigenvalues to normalize the kernel')
-            G.compute_fourier_basis()
+    def __init__(self, G, kernel):
 
-        Nf = np.shape(G.e)[0]
+        Nf = G.e.shape[0]
 
-        g = []
+        kernels = []
         for i in range(Nf):
-            g.append(lambda x, ii=i: k(x - G.e[ii]))
+            kernels.append(lambda x, i=i: kernel(x - G.e[i]))
 
-        return g
+        super(Gabor, self).__init__(G, kernels)

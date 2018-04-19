@@ -1,13 +1,24 @@
 # -*- coding: utf-8 -*-
+
 r"""
-This module provides optimization tools to accelarate graph signal processing as a whole.
+The :mod:`pygsp.optimization` module provides tools to solve convex
+optimization problems on graphs.
 """
 
-from .data_handling import adj2vec
-from .operators import operator
-from .utils import build_logger
+from pygsp import utils
 
-logger = build_logger(__name__)
+
+logger = utils.build_logger(__name__)
+
+
+def _import_pyunlocbox():
+    try:
+        from pyunlocbox import functions, solvers
+    except Exception:
+        raise ImportError('Cannot import pyunlocbox, which is needed to solve '
+                          'this optimization problem. Try to install it with '
+                          'pip (or conda) install pyunlocbox.')
+    return functions, solvers
 
 
 def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix=True):
@@ -16,10 +27,10 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
 
     This function computes the TV proximal operator for graphs. The TV norm
     is the one norm of the gradient. The gradient is defined in the
-    function :func:`~pygsp.operator.grad`.
-    This function require the PyUNLocBoX to be executed.
+    function :meth:`pygsp.graphs.Graph.grad`.
+    This function requires the PyUNLocBoX to be executed.
 
-    pygsp.optimization.prox_tv(y, gamma, param) solves:
+    This function solves:
 
     :math:`sol = \min_{z} \frac{1}{2} \|x - z\|_2^2 + \gamma  \|x\|_{TV}`
 
@@ -42,7 +53,7 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
     tol: float
         Stops criterion for the loop. The algorithm will stop if :
         :math:`\frac{n(t) - n(t - 1)} {n(t)} < tol`
-        where :math: `n(t) = f(x) + 0.5 \|x-y\|_2^2` is the objective function at iteration :math:`t`
+        where :math:`n(t) = f(x) + 0.5 \|x-y\|_2^2` is the objective function at iteration :math:`t`
         (default = :math:`10e-4`)
     maxit: int
         Maximum iteration. (default = 200)
@@ -55,7 +66,6 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
 
     Examples
     --------
-    >>> from pygsp import optimization, graphs
 
     """
     if A is None:
@@ -64,9 +74,6 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
     if At is None:
         def At(x):
             return x
-
-    if not hasattr(G, 'v_in'):
-        adj2vec(G)
 
     tight = 0
     l1_nu = 2 * G.lmax * nu
@@ -79,9 +86,10 @@ def prox_tv(x, gamma, G, A=None, At=None, nu=1, tol=10e-4, maxit=200, use_matrix
             return G.Diff * At(D.T * x)
     else:
         def l1_a(x):
-            return operator.grad(G, A(x))
+            return G.grad(A(x))
 
         def l1_at(x):
-            return operator.div(G, x)
+            return G.div(x)
 
-    pyunlocbox.prox_l1(x, gamma, A=l1_a, At=l1_at, tight=tight, maxit=maxit, verbose=verbose, tol=tol)
+    functions, _ = _import_pyunlocbox()
+    functions.norm_l1(x, gamma, A=l1_a, At=l1_at, tight=tight, maxit=maxit, verbose=verbose, tol=tol)

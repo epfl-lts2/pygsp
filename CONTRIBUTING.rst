@@ -2,114 +2,97 @@
 Contributing
 ============
 
-Contributions are welcome, and they are greatly appreciated! Every
-little bit helps, and credit will always be given. 
+Contributions are welcome, and they are greatly appreciated! The development of
+this package takes place on `GitHub <https://github.com/epfl-lts2/pygsp>`_.
+Issues, bugs, and feature requests should be reported `there
+<https://github.com/epfl-lts2/pygsp/issues>`_.
+Code and documentation can be improved by submitting a `pull request
+<https://github.com/epfl-lts2/pygsp/pulls>`_. Please add documentation and
+tests for any new code.
 
-You can contribute in many ways:
+The package can be set up (ideally in a virtual environment) for local
+development with the following::
 
-Types of Contributions
-----------------------
+    $ git clone https://github.com/epfl-lts2/pygsp.git
+    $ pip install -U -e pygsp[alldeps,test,doc,pkg]
 
-Report Bugs
-~~~~~~~~~~~
+You can improve or add functionality in the ``pygsp`` folder, along with
+corresponding unit tests in ``pygsp/tests/test_*.py`` (with reasonable
+coverage) and documentation in ``doc/reference/*.rst``. If you have a nice
+example to demonstrate the use of the introduced functionality, please consider
+adding a tutorial in ``doc/tutorials``.
 
-Report bugs at https://github.com/epfl-lts2/pygsp/issues.
+Do not forget to update ``README.rst`` and ``doc/history.rst`` with e.g. new
+features. The version number needs to be updated in ``setup.py`` and
+``pyunlocbox/__init__.py``.
 
-If you are reporting a bug, please include:
+After making any change, please check the style, run the tests, and build the
+documentation with the following (enforced by Travis CI)::
 
-* Your operating system name and version.
-* Any details about your local setup that might be helpful in troubleshooting.
-* Detailed steps to reproduce the bug.
+    $ make lint
+    $ make test
+    $ make doc
 
-Fix Bugs
-~~~~~~~~
+Check the generated coverage report at ``htmlcov/index.html`` to make sure the
+tests reasonably cover the changes you've introduced.
 
-Look through the GitHub issues for bugs. Anything tagged with "bug"
-is open to whoever wants to fix it.
+Making a release
+----------------
 
-Implement Features
-~~~~~~~~~~~~~~~~~~
+#. Update the version number and release date in ``setup.py``,
+   ``pygsp/__init__.py`` and ``doc/history.rst``.
+#. Create a git tag with ``git tag -a v0.5.0 -m "PyGSP v0.5.0"``.
+#. Push the tag to GitHub with ``git push github v0.5.0``. The tag should now
+   appear in the releases and tags tab.
+#. `Create a release <https://github.com/epfl-lts2/pygsp/releases/new>`_ on
+   GitHub and select the created tag. A DOI should then be issued by Zenodo.
+#. Go on Zenodo and fix the metadata if necessary.
+#. Build the distribution with ``make dist`` and check that the
+   ``dist/PyGSP-0.5.0.tar.gz`` source archive contains all required files. The
+   binary wheel should be found as ``dist/PyGSP-0.5.0-py2.py3-none-any.whl``.
+#. Test the upload and installation process::
 
-Look through the GitHub issues for features. Anything tagged with "feature"
-is open to whoever wants to implement it.
+    $ twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+    $ pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple pygsp
 
-Write Documentation
-~~~~~~~~~~~~~~~~~~~
+   Log in as the LTS2 user.
+#. Build and upload the distribution to the real PyPI with ``make release``.
+#. Update the conda feedstock (at least the version number and sha256 in
+   ``recipe/meta.yaml``) by sending a PR to
+   `conda-forge <https://github.com/conda-forge/pygsp-feedstock>`_.
 
-PyGSP could always use more documentation, whether as part of the 
-official PyGSP docs, in docstrings, or even on the web in blog posts,
-articles, and such.
-
-Submit Feedback
-~~~~~~~~~~~~~~~
-
-The best way to send feedback is to file an issue at https://github.com/epfl-lts2/pygsp/issues.
-
-If you are proposing a feature:
-
-* Explain in detail how it would work.
-* Keep the scope as narrow as possible, to make it easier to implement.
-* Remember that this is a volunteer-driven project, and that contributions
-  are welcome :)
-
-Get Started!
-------------
-
-Ready to contribute? Here's how to set up `pygsp` for local development.
-
-1. Fork the `pygsp` repo on GitHub.
-2. Clone your fork locally::
-
-    $ git clone git@github.com:your_name_here/pygsp.git
-
-3. Install your local copy into a virtualenv. Assuming you have `virtualenvwrapper <https://virtualenvwrapper.readthedocs.org/en/latest/>`_ installed, this is how you set up your fork for local development::
-
-    $ mkvirtualenv pygsp
-    $ cd pygsp/
-    $ python setup.py develop
-
-Note: alternatively, the third step could be replaced by::
-
-    $ pip install -e .
-
-4. Create a branch for local development::
-
-    $ git checkout -b name-of-your-bugfix-or-feature
-   
-   Now you can make your changes locally.
-
-5. When you're done making changes, check that your changes pass flake8 and the tests, including testing other Python versions with tox::
-
-    $ flake8 pygsp tests
-    $ python setup.py test
-    $ tox
-
-   To get flake8 and tox, just pip install them into your virtualenv. 
-
-6. Commit your changes and push your branch to GitHub::
-
-    $ git add *
-    $ git commit -m "Your detailed description of your changes."
-    $ git push --set-upstream origin name-of-your-branch
-
-7. Submit a pull request through the GitHub website.
-
-Pull Request Guidelines
+Repository organization
 -----------------------
 
-Before you submit a pull request, check that it meets these guidelines:
+::
 
-1. The pull request should include tests.
-2. If the pull request adds functionality, the docs should be updated. Put
-   your new functionality into a function with a docstring, and add the
-   feature to the list in README.rst.
-3. The pull request should work for Python 2.7, 3.2, and 3.4, and for PyPy. Check 
-   https://travis-ci.org/epfl-lts2/pygsp/pull_requests
-   and make sure that the tests pass for all supported Python versions.
+  LICENSE.txt         Project license
+  *.rst               Important documentation
+  Makefile            Targets for make
+  setup.py            Meta information about package (published on PyPI)
+  .gitignore          Files ignored by the git revision control system
+  .travis.yml         Defines testing on Travis continuous integration
 
-Tips
-----
+  pygsp/              Contains the modules (the actual toolbox implementation)
+   __init.py__        Load modules at package import
+   *.py               One file per module
 
-To run a subset of tests::
+  pygsp/tests/        Contains the test suites (will be distributed to end user)
+   __init.py__        Load modules at package import
+   test_*.py          One test suite per module
+   test_docstrings.py Test the examples in the docstrings (reference doc)
+   test_tutorials.py  Test the tutorials in doc/tutorials
+   test_all.py        Launch all the tests (docstrings, tutorials, modules)
 
-	$ python -m unittest tests.test_pygsp
+  doc/                Package documentation
+   conf.py            Sphinx configuration
+   index.rst          Documentation entry page
+   *.rst              Include doc files from root directory
+
+  doc/reference/      Reference documentation
+   index.rst          Reference entry page
+   *.rst              Only directives, the actual doc is alongside the code
+
+  doc/tutorials/
+   index.rst          Tutorials entry page
+   *.rst              One file per tutorial

@@ -1,117 +1,135 @@
-.. _about:
+========================================
+PyGSP: Graph Signal Processing in Python
+========================================
 
-=====
-About
-=====
++-----------------------------------+
+| |doc|  |pypi|  |conda|  |binder|  |
++-----------------------------------+
+| |zenodo|  |license|  |pyversions| |
++-----------------------------------+
+| |travis|  |coveralls|  |github|   |
++-----------------------------------+
 
-PyGSP is a Graph Signal Processing Toolbox implemented in Python. It is a port of the Matlab GSP toolbox.
-
-.. image:: https://img.shields.io/travis/epfl-lts2/pygsp.svg
+.. |doc| image:: https://readthedocs.org/projects/pygsp/badge/?version=latest
+   :target: https://pygsp.readthedocs.io
+.. |pypi| image:: https://img.shields.io/pypi/v/pygsp.svg
+   :target: https://pypi.org/project/PyGSP
+.. |zenodo| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1003157.svg
+   :target: https://doi.org/10.5281/zenodo.1003157
+.. |license| image:: https://img.shields.io/pypi/l/pygsp.svg
+   :target: https://github.com/epfl-lts2/pygsp/blob/master/LICENSE.txt
+.. |pyversions| image:: https://img.shields.io/pypi/pyversions/pygsp.svg
+   :target: https://pypi.python.org/pypi/PyGSP
+.. |travis| image:: https://img.shields.io/travis/epfl-lts2/pygsp.svg
    :target: https://travis-ci.org/epfl-lts2/pygsp
+.. |coveralls| image:: https://img.shields.io/coveralls/epfl-lts2/pygsp.svg
+   :target: https://coveralls.io/github/epfl-lts2/pygsp
+.. |github| image:: https://img.shields.io/github/stars/epfl-lts2/pygsp.svg?style=social
+   :target: https://github.com/epfl-lts2/pygsp
+.. |binder| image:: https://mybinder.org/badge.svg
+   :target: https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=playground.ipynb
+.. |conda| image:: https://anaconda.org/conda-forge/pygsp/badges/installer/conda.svg
+   :target: https://anaconda.org/conda-forge/pygsp
 
-* Development : https://github.com/epfl-lts2/pygsp
-* GSP matlab toolbox : https://github.com/epfl-lts2/gspbox
+The PyGSP is a Python package to ease
+`Signal Processing on Graphs <https://arxiv.org/abs/1211.0053>`_.
+The documentation is available on
+`Read the Docs <https://pygsp.readthedocs.io>`_
+and development takes place on
+`GitHub <https://github.com/epfl-lts2/pygsp>`_.
+A (mostly unmaintained) `Matlab version <https://lts2.epfl.ch/gsp>`_ exists.
 
-Features
---------
-This toolbox facilitate graph constructions and give tools to perform signal processing on them.
+The PyGSP facilitates a wide variety of operations on graphs, like computing
+their Fourier basis, filtering or interpolating signals, plotting graphs,
+signals, and filters. Its core is spectral graph theory, and many of the
+provided operations scale to very large graphs. The package includes a wide
+range of graphs, from point clouds like the Stanford bunny and the Swiss roll;
+to networks like the Minnesota road network; to models for generating random
+graphs like stochastic block models, sensor networks, Erdős–Rényi model,
+Barabási-Albert model; to simple graphs like the path, the ring, and the grid.
+Many filter banks are also provided, e.g. various wavelets like the Mexican
+hat, Meyer, Half Cosine; some low-pass filters like the heat kernel and the
+exponential window; and Gabor filters. Despite all the pre-defined models, you
+can easily use a custom graph by defining its adjacency matrix, and a custom
+filter bank by defining a set of functions in the spectral domain.
 
-A whole list of preconstructed graphs can be used as well as core functions to create any other graph among which::
+The following demonstrates how to instantiate a graph and a filter, the two
+main objects of the package.
 
-  - Neighest Neighbor Graphs
-    - Bunny
-    - Cube
-    - Sphere
-    - TwoMoons
-  - Airfoil
-  - Comet
-  - Community
-  - DavidSensorNet
-  - ErdosRenyi
-  - FullConnected
-  - Grid2d
-  - Logo GSP
-  - LowStretchTree
-  - Minnesota
-  - Path
-  - RandomRegular
-  - RandomRing
-  - Ring
-  - Sensor
-  - StochasticBlockModel
-  - Swiss roll
-  - Torus
+>>> from pygsp import graphs, filters
+>>> G = graphs.Logo()
+>>> G.compute_fourier_basis()  # Fourier to plot the eigenvalues.
+>>> # G.estimate_lmax() is otherwise sufficient.
+>>> g = filters.Heat(G, tau=50)
+>>> g.plot()
 
-On these graphs, filters can be applied to do signal processing. To this end, there is also a list of predefined filters on this toolbox::
+.. image:: ../pygsp/data/readme_example_filter.png
+    :alt:
+.. image:: pygsp/data/readme_example_filter.png
+    :alt:
 
-  - Abspline
-  - Expwin
-  - Gabor
-  - HalfCosine
-  - Heat
-  - Held
-  - Itersine
-  - MexicanHat
-  - Meyer
-  - Papadakis
-  - Regular
-  - Simoncelli
-  - SimpleTf
+Let's now create a graph signal: a set of three Kronecker deltas for that
+example. We can now look at one step of heat diffusion by filtering the deltas
+with the above defined filter. Note how the diffusion follows the local
+structure!
+
+>>> import numpy as np
+>>> DELTAS = [20, 30, 1090]
+>>> s = np.zeros(G.N)
+>>> s[DELTAS] = 1
+>>> s = g.filter(s)
+>>> G.plot_signal(s, highlight=DELTAS)
+
+.. image:: ../pygsp/data/readme_example_graph.png
+    :alt:
+.. image:: pygsp/data/readme_example_graph.png
+    :alt:
+
+You can
+`try it online <https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=playground.ipynb>`_,
+look at the
+`tutorials <https://pygsp.readthedocs.io/en/stable/tutorials/index.html>`_
+to learn how to use it, or look at the
+`reference guide <https://pygsp.readthedocs.io/en/stable/reference/index.html>`_
+for an exhaustive documentation of the API. Enjoy!
 
 Installation
 ------------
 
-Ubuntu
-^^^^^^
-The PyGSP module is available on PyPI, the Python Package Index.
-If you don't have pip, install it.::
-
-    $ sudo apt-get install python-pip
-
-Ideally, you should be able to install the PyGSP on your computer by simply entering the following command::
+The PyGSP is available on PyPI::
 
     $ pip install pygsp
 
-This installation requires numpy and scipy. If you don't have them installed already, pip installing pygsp will try to install them for you. Note that these two mathematical libraries requires additional system packages.
+Note that you will need a recent version of ``pip`` and ``setuptools``. Please
+run ``pip install --upgrade pip setuptools`` if you get any installation error.
 
-For a classic UNIX system, you will need python-dev(el) (or equivalent) installed as a system package as well as the fortran extension for your favorite compiler (gfortran for gcc). You will also need the blas/lapack implementation for your system. If you can't install numpy or scipy, try installing the following and then install numpy and scipy::
+The PyGSP is available on `conda-forge <https://github.com/conda-forge/pygsp-feedstock>`_::
 
-    $ sudo apt-get install python-dev liblapack-dev libatlas-dev gcc gfortran
+    $ conda install -c conda-forge pygsp
 
-Then, try again to install the pygsp::
-    
-    $ pip install pygsp
+Contributing
+------------
 
-Plotting
-^^^^^^^^
-If you want to use the plotting functionalities of the PyGSP, you have to install matplotlib or pygtgraph. For matplotlib, just do::
+See the guidelines for contributing in ``CONTRIBUTING.rst``.
 
-    $ sudo apt-get python-matplotlib
+Acknowledgments
+---------------
 
+The PyGSP was started in 2014 as an academic open-source project for
+research purpose at the `EPFL LTS2 laboratory <https://lts2.epfl.ch>`_.
+This project has been partly funded by the Swiss National Science Foundation
+under grant 200021_154350 "Towards Signal Processing on Graphs".
 
-Another way is to manually download from PyPI, unpack the package and install with::
+The code in this repository is released under the terms of the `BSD 3-Clause license <LICENSE.txt>`_.
 
-    $ python setup.py install
+If you are using the library for your research, for the sake of
+reproducibility, please cite the version you used as indexed by
+`Zenodo <https://doi.org/10.5281/zenodo.1003157>`_.
+Or cite the generic concept as::
 
-Instructions and requirements to install pyqtgraph can be found at http://www.pyqtgraph.org/.
-
-If you plan to use Python 3.5, you will need to install manually PyQt5 because there is no source on PyPI for it and PySide is not ported yet.
-
-Testing
-^^^^^^^
-Execute the project test suite once to make sure you have a working install::
-
-    $ python setup.py test
-
-Authors
--------
-
-* Basile Châtillon <basile.chatillon@epfl.ch>,
-* Alexandre Lafaye <alexandre.lafaye@epfl.ch>,
-* Lionel Martin <lionel.martin@epfl.ch>,
-* Nicolas Rod <nicolas.rod@epfl.ch>
-
-Acknowledgment
---------------
-
-This project has been partly funded by the Swiss National Science Foundation under grant 200021_154350 "Towards Signal Processing on Graphs".
+    @misc{pygsp,
+      title = {PyGSP: Graph Signal Processing in Python},
+      author = {Defferrard, Micha\"el and Martin, Lionel and Pena, Rodrigo and Perraudin, Nathana\"el},
+      doi = {10.5281/zenodo.1003157},
+      url = {https://github.com/epfl-lts2/pygsp/},
+    }

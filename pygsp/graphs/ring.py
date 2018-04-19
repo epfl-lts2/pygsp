@@ -1,38 +1,40 @@
 # -*- coding: utf-8 -*-
 
-from . import Graph
-
 import numpy as np
 from scipy import sparse
-from math import floor
+
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Ring(Graph):
-    r"""
-    Create a ring graph.
+    r"""K-regular ring graph.
 
     Parameters
     ----------
     N : int
-        Number of vertices (default is 64)
+        Number of vertices.
     k : int
-        Number of neighbors in each directions (default is 1)
+        Number of neighbors in each direction.
 
     Examples
     --------
-    >>> from pygsp import graphs
-    >>> G = graphs.Ring()
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Ring(N=10)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W)
+    >>> G.plot(ax=axes[1])
 
     """
 
     def __init__(self, N=64, k=1, **kwargs):
 
+        self.k = k
+
         if 2*k > N:
             raise ValueError('Too many neighbors requested.')
 
-        # Create weighted adjancency matrix
         if 2*k == N:
-            num_edges = N * (k - 1) + N / 2.
+            num_edges = N * (k - 1) + k
         else:
             num_edges = N * k
 
@@ -40,13 +42,13 @@ class Ring(Graph):
         j_inds = np.zeros((2 * num_edges))
 
         tmpN = np.arange(N, dtype=int)
-        for i in range(min(k, floor((N - 1)/2.))):
+        for i in range(min(k, (N - 1) // 2)):
             i_inds[2*i * N + tmpN] = tmpN
             j_inds[2*i * N + tmpN] = np.remainder(tmpN + i + 1, N)
             i_inds[(2*i + 1)*N + tmpN] = np.remainder(tmpN + i + 1, N)
             j_inds[(2*i + 1)*N + tmpN] = tmpN
 
-        if k == N/2.:
+        if 2*k == N:
             i_inds[2*N*(k - 1) + tmpN] = tmpN
             i_inds[2*N*(k - 1) + tmpN] = np.remainder(tmpN + k + 1, N)
 
@@ -55,7 +57,9 @@ class Ring(Graph):
 
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
-        gtype = 'ring' if k == 1 else 'k-ring'
-        self.k = k
+        super(Ring, self).__init__(W=W, plotting=plotting, **kwargs)
 
-        super(Ring, self).__init__(W=W, gtype=gtype, plotting=plotting, **kwargs)
+        self.set_coordinates('ring2D')
+
+    def _get_extra_repr(self):
+        return dict(k=self.k)

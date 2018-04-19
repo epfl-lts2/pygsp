@@ -1,286 +1,273 @@
 # -*- coding: utf-8 -*-
 
-from ..utils import build_logger
-from .gutils import check_weights
-
-import numpy as np
-import scipy as sp
-from scipy import sparse
-
 from collections import Counter
 
+import numpy as np
+from scipy import sparse
 
-class Graph(object):
-    r"""
-    The main graph object.
-
-    It is used to initialize by default every missing field of the subclass graphs.
-    It can also be used alone to initialize customs graphs.
+from pygsp import utils
+from . import fourier, difference  # prevent circular import in Python < 3.5
 
 
-    **Fields**:
+class Graph(fourier.GraphFourier, difference.GraphDifference):
+    r"""Base graph class.
 
-    A graph contains the following fields:
-
-        - N : the number of nodes (also called vertices sometimes) in the graph.
-            They represent the different points between which connections may occur.
-        - Ne : the number of edges (also called links sometimes) in the graph.
-            They represent the actual connections between the nodes.
-        - W : the weight matrix contains the weights of the connections.
-            It is represented as a NxN matrix of floats. W_i,j = 0 means that there is no connection from i to j.
-        - A : the adjacency matrix defines which edges exist on the graph.
-            It is represented as a NxN matrix of booleans. A_i,j is True if W_i,j > 0.
-        - d : the degree vector of the vertices.
-            It is represented as a Nx1 vector counting the number of connections that each node possesses.
-        - gtype : the graph type is a short description of the graph object.
-            It is a string designed to help sorting the graphs
-        - directed : the flag to assess if the graph is directed or not.
-            In this framework, we consider that a graph is directed if and only if its weight matrix is non symmetric.
-        - L : the laplacian matrix.
-            It is represented as a NxN matrix computed from W.
-        - lap_type : the laplacian type determine which kind of laplacian to compute.
-            From a given matrix W, there exist several laplacians that could be computed.
-        - coords : the coordinates of the vertices in the 2D or 3D space for plotting.
-            The default is None
-        - plotting : all the plotting parameters go here.
-            They depend on the library used for plotting.
-
+    * Provide a common interface (and implementation) to graph objects.
+    * Can be instantiated to construct custom graphs from a weight matrix.
+    * Initialize attributes for derived classes.
 
     Parameters
     ----------
-    W : sparse matrix or ndarray (data is float)
-        Weight matrix. Mandatory.
-    gtype : string
-        Graph type (default is "unknown")
-    lap_type : string
-        Laplacian type (default is 'combinatorial')
+    W : sparse matrix or ndarray
+        The weight matrix which encodes the graph.
+    lap_type : 'combinatorial', 'normalized'
+        The type of Laplacian to be computed by :func:`compute_laplacian`
+        (default is 'combinatorial').
     coords : ndarray
-        Coordinates of the vertices (default is None)
+        Vertices coordinates (default is None).
     plotting : dict
-        Dictionnary containing the plotting parameters
+        Plotting parameters.
 
+    Attributes
+    ----------
+    N : int
+        the number of nodes / vertices in the graph.
+    Ne : int
+        the number of edges / links in the graph, i.e. connections between
+        nodes.
+    W : sparse matrix
+        the weight matrix which contains the weights of the connections.
+        It is represented as an N-by-N matrix of floats.
+        :math:`W_{i,j} = 0` means that there is no direct connection from
+        i to j.
+    L : sparse matrix
+        the graph Laplacian, an N-by-N matrix computed from W.
+    lap_type : 'normalized', 'combinatorial'
+        the kind of Laplacian that was computed by :func:`compute_laplacian`.
+    coords : ndarray
+        vertices coordinates in 2D or 3D space. Used for plotting only. Default
+        is None.
+    plotting : dict
+        plotting parameters.
 
     Examples
     --------
-    >>> from pygsp import graphs
-    >>> import numpy as np
     >>> W = np.arange(4).reshape(2, 2)
     >>> G = graphs.Graph(W)
 
     """
-    def __init__(self, W, gtype='unknown', lap_type='combinatorial',
-                 coords=None, plotting={}, **kwargs):
 
-        self.logger = build_logger(__name__, **kwargs)
+    def __init__(self, W, lap_type='combinatorial', coords=None, plotting={}):
 
-        shapes = np.shape(W)
-        if len(shapes) != 2 or shapes[0] != shapes[1]:
-            self.logger.error('W has incorrect shape {}'.format(shapes))
+        self.logger = utils.build_logger(__name__)
 
-        self.N = shapes[0]
-        self.W = sparse.lil_matrix(W)
-        check_weights(self.W)
+        if len(W.shape) != 2 or W.shape[0] != W.shape[1]:
+            raise ValueError('W has incorrect shape {}'.format(W.shape))
 
-        self.A = self.W > 0
-        self.Ne = self.W.nnz
-        self.d = self.A.sum(axis=1)
-        self.gtype = gtype
-        self.lap_type = lap_type
+        # CSR sparse matrices are the most efficient for matrix multiplication.
+        # They are the sole sparse matrix type to support eliminate_zeros().
+        if sparse.isspmatrix_csr(W):
+            self.W = W
+        else:
+            self.W = sparse.csr_matrix(W)
 
-        self.is_connected()
-        if not self.connected:
-            self.logger.warning('Graph is not connected!')
+        # Don't keep edges of 0 weight. Otherwise Ne will not correspond to the
+        # real number of edges. Problematic when e.g. plotting.
+        self.W.eliminate_zeros()
 
-        self.create_laplacian(lap_type)
+        self.n_nodes = W.shape[0]
 
-        if isinstance(coords, np.ndarray) and 2 <= len(np.shape(coords)) <= 3:
+        # TODO: why would we ever want this?
+        # For large matrices it slows the graph construction by a factor 100.
+        # self.W = sparse.lil_matrix(self.W)
+
+        # Don't count edges two times if undirected.
+        # Be consistent with the size of the differential operator.
+        if self.is_directed():
+            self.n_edges = self.W.nnz
+        else:
+            diagonal = np.count_nonzero(self.W.diagonal())
+            off_diagonal = self.W.nnz - diagonal
+            self.n_edges = off_diagonal // 2 + diagonal
+
+        self.check_weights()
+
+        self.compute_laplacian(lap_type)
+
+        if coords is not None:
             self.coords = coords
-        else:
-            self.coords = np.ndarray(None)
 
-        # Plotting default parameters
-        self.plotting = {'vertex_size': 10, 'edge_width': 1,
-                         'edge_style': '-', 'vertex_color': 'b'}
+        self.plotting = {'vertex_size': 100,
+                         'vertex_color': (0.12, 0.47, 0.71, 1),
+                         'edge_color': (0.5, 0.5, 0.5, 1),
+                         'edge_width': 1,
+                         'edge_style': '-'}
+        self.plotting.update(plotting)
 
-        if isinstance(plotting, dict):
-            self.plotting.update(plotting)
+        # TODO: kept for backward compatibility.
+        self.Ne = self.n_edges
+        self.N = self.n_nodes
 
-    def update_graph_attr(self, *args, **kwargs):
-        r"""
-        Recompute some attribute of the graph.
+    def _get_extra_repr(self):
+        return dict()
 
-        Parameters
-        ----------
-        args: list of string
-            the arguments that will be not changed and not re-compute.
-        kwargs: Dictionnary
-            The arguments with their new value.
+    def __repr__(self, limit=None):
+        s = ''
+        for attr in ['n_nodes', 'n_edges']:
+            s += '{}={}, '.format(attr, getattr(self, attr))
+        for i, (key, value) in enumerate(self._get_extra_repr().items()):
+            if (limit is not None) and (i == limit - 2):
+                s += '..., '
+                break
+            s += '{}={}, '.format(key, value)
+        return '{}({})'.format(self.__class__.__name__, s[:-2])
 
-        Returns
-        -------
-        The same Graph with some updated values.
-
-        Notes
-        -----
-        This method is usefull if you want to give a new weight matrix
-        (W) and compute the adjacency matrix (A) and more again.
-        The valid attributes are ['W', 'A', 'N', 'd', 'Ne', 'gtype',
-        'directed', 'coords', 'lap_type', 'L', 'plotting']
-
-        Examples
-        --------
-        >>> from pygsp import graphs
-        >>> G = graphs.Ring(N=10)
-        >>> newW = G.W
-        >>> newW[1] = 1
-        >>> G.update_graph_attr('N', 'd', W=newW)
-
-        Updates all attributes of G excepted 'N' and 'd'
-
-        """
-        graph_attr = {}
-        valid_attributes = ['W', 'A', 'N', 'd', 'Ne', 'gtype', 'directed',
-                            'coords', 'lap_type', 'L', 'plotting']
-
-        for i in args:
-            if i in valid_attributes:
-                graph_attr[i] = getattr(self, i)
-            else:
-                self.logger.warning('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
-
-        for i in kwargs:
-            if i in valid_attributes:
-                if i in graph_attr:
-                    self.logger.info('You already give this attribute in the args. Therefore, it will not be recaculate.')
-                else:
-                    graph_attr[i] = kwargs[i]
-            else:
-                self.logger.warning('Your attribute {} do not figure is the valid_attributes who are {}'.format(i, valid_attributes))
-
-        from nngraphs import NNGraph
-        if isinstance(self, NNGraph):
-            super(NNGraph, self).__init__(**graph_attr)
-
-        else:
-            super(type(self), self).__init__(**graph_attr)
-
-    def copy_graph_attributes(self, Gn, ctype=True):
-        r"""
-        Copy some parameters of the graph into a given one.
-
-        Parameters
-        ----------:
-        G : Graph structure
-        ctype : bool
-            Flag to select what to copy (Default is True)
-        Gn : Graph structure
-            The graph where the parameters will be copied
+    def check_weights(self):
+        r"""Check the characteristics of the weights matrix.
 
         Returns
         -------
-        Gn : Partial graph structure
+        A dict of bools containing informations about the matrix
+
+        has_inf_val : bool
+            True if the matrix has infinite values else false
+        has_nan_value : bool
+            True if the matrix has a "not a number" value else false
+        is_not_square : bool
+            True if the matrix is not square else false
+        diag_is_not_zero : bool
+            True if the matrix diagonal has not only zeros else false
 
         Examples
         --------
-        >>> from pygsp import graphs
-        >>> Torus = graphs.Torus()
-        >>> G = graphs.TwoMoons()
-        >>> G.copy_graph_attributes(ctype=False, Gn=Torus);
+        >>> W = np.arange(4).reshape(2, 2)
+        >>> G = graphs.Graph(W)
+        >>> cw = G.check_weights()
+        >>> cw == {'has_inf_val': False, 'has_nan_value': False,
+        ...        'is_not_square': False, 'diag_is_not_zero': True}
+        True
 
         """
-        if hasattr(self, 'plotting'):
-            Gn.plotting = self.plotting
 
-        if ctype:
-            if hasattr(self, 'coords'):
-                Gn.coords = self.coords
-        else:
-            if hasattr(Gn.plotting, 'limits'):
-                del Gn.plotting['limits']
+        has_inf_val = False
+        diag_is_not_zero = False
+        is_not_square = False
+        has_nan_value = False
 
-        if hasattr(self, 'lap_type'):
-            Gn.lap_type = self.lap_type
-            Gn.create_laplacian()
+        if np.isinf(self.W.sum()):
+            self.logger.warning('There is an infinite '
+                                'value in the weight matrix!')
+            has_inf_val = True
 
-    def set_coords(self, kind='spring', **kwargs):
-        r"""
-        Set coordinates for the vertices.
+        if abs(self.W.diagonal()).sum() != 0:
+            self.logger.warning('The main diagonal of '
+                                'the weight matrix is not 0!')
+            diag_is_not_zero = True
+
+        if self.W.get_shape()[0] != self.W.get_shape()[1]:
+            self.logger.warning('The weight matrix is not square!')
+            is_not_square = True
+
+        if np.isnan(self.W.sum()):
+            self.logger.warning('There is a NaN value in the weight matrix!')
+            has_nan_value = True
+
+        return {'has_inf_val': has_inf_val,
+                'has_nan_value': has_nan_value,
+                'is_not_square': is_not_square,
+                'diag_is_not_zero': diag_is_not_zero}
+
+    def set_coordinates(self, kind='spring', **kwargs):
+        r"""Set node's coordinates (their position when plotting).
 
         Parameters
         ----------
-        kind : string
-            The kind of display. Default is 'spring'.
-            Accepting ['community2D', 'manual', 'random2D', 'random3D', 'ring2D', 'spring'].
-        coords : np.ndarray
-            An array of coordinates in 2D or 3D. Used only if kind is manual.
-            Set the coordinates to this array as is.
+        kind : string or array-like
+            Kind of coordinates to generate. It controls the position of the
+            nodes when plotting the graph. Can either pass an array of size Nx2
+            or Nx3 to set the coordinates manually or the name of a layout
+            algorithm. Available algorithms: community2D, random2D, random3D,
+            ring2D, line1D, spring. Default is 'spring'.
+        kwargs : dict
+            Additional parameters to be passed to the Fruchterman-Reingold
+            force-directed algorithm when kind is spring.
 
         Examples
         --------
-        >>> from pygsp import graphs
         >>> G = graphs.ErdosRenyi()
-        >>> G.set_coords()
+        >>> G.set_coordinates()
         >>> G.plot()
 
         """
-        if kind not in ['community2D', 'manual', 'random2D', 'random3D', 'ring2D', 'spring']:
-            raise ValueError('Unexpected kind argument. Got {}.'.format(kind))
 
-        if kind == 'manual':
-            coords = kwargs.pop('coords', None)
-            if isinstance(coords, list):
-                coords = np.array(coords)
-            if isinstance(coords, np.ndarray) and len(coords.shape) == 2 and \
-                    coords.shape[0] == self.N and 2 <= coords.shape[1] <= 3:
-                self.coords = coords
-            else:
-                raise ValueError('Expecting coords to be a list or ndarray of size Nx2 or Nx3.')
+        if not isinstance(kind, str):
+            coords = np.asarray(kind).squeeze()
+            check_1d = (coords.ndim == 1)
+            check_2d_3d = (coords.ndim == 2) and (2 <= coords.shape[1] <= 3)
+            if coords.shape[0] != self.N or not (check_1d or check_2d_3d):
+                raise ValueError('Expecting coordinates to be of size N, Nx2, '
+                                 'or Nx3.')
+            self.coords = coords
+
+        elif kind == 'line1D':
+            self.coords = np.arange(self.N)
+
+        elif kind == 'line2D':
+            x, y = np.arange(self.N), np.zeros(self.N)
+            self.coords = np.stack([x, y], axis=1)
 
         elif kind == 'ring2D':
-            tmp = np.arange(self.N).reshape(self.N, 1)
-            self.coords = np.concatenate((np.cos(tmp*2*np.pi/self.N),
-                                          np.sin(tmp*2*np.pi/self.N)),
-                                         axis=1)
+            angle = np.arange(self.N) * 2 * np.pi / self.N
+            self.coords = np.stack([np.cos(angle), np.sin(angle)], axis=1)
 
         elif kind == 'random2D':
-            self.coords = np.random.rand(self.N, 2)
+            self.coords = np.random.uniform(size=(self.N, 2))
 
         elif kind == 'random3D':
-            self.coords = np.random.rand(self.N, 3)
+            self.coords = np.random.uniform(size=(self.N, 3))
 
         elif kind == 'spring':
             self.coords = self._fruchterman_reingold_layout(**kwargs)
 
         elif kind == 'community2D':
             if not hasattr(self, 'info') or 'node_com' not in self.info:
-                ValueError('Missing arguments to the graph to be able to compute community coordinates.')
+                ValueError('Missing arguments to the graph to be able to '
+                           'compute community coordinates.')
 
             if 'world_rad' not in self.info:
                 self.info['world_rad'] = np.sqrt(self.N)
 
             if 'comm_sizes' not in self.info:
                 counts = Counter(self.info['node_com'])
-                self.info['comm_sizes'] = np.array([cnt[1] for cnt in sorted(counts.items())])
+                self.info['comm_sizes'] = np.array([cnt[1] for cnt
+                                                    in sorted(counts.items())])
 
             Nc = self.info['comm_sizes'].shape[0]
 
-            self.info['com_coords'] = self.info['world_rad'] * np.array(list(zip(
-                np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
-                np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc))))
+            self.info['com_coords'] = self.info['world_rad'] * \
+                np.array(list(zip(
+                    np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
+                    np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc))))
 
-            coords = np.random.rand(self.N, 2)  # nodes' coordinates inside the community
+            # Coordinates of the nodes inside their communities
+            coords = np.random.rand(self.N, 2)
             self.coords = np.array([[elem[0] * np.cos(2 * np.pi * elem[1]),
-                                elem[0] * np.sin(2 * np.pi * elem[1])] for elem in coords])
+                                     elem[0] * np.sin(2 * np.pi * elem[1])]
+                                    for elem in coords])
 
             for i in range(self.N):
-                # set coordinates as an offset from the center of the community it belongs to
+                # Set coordinates as an offset from the center of the community
+                # it belongs to
                 comm_idx = self.info['node_com'][i]
                 comm_rad = np.sqrt(self.info['comm_sizes'][comm_idx])
-                self.coords[i] = self.info['com_coords'][comm_idx] + comm_rad * self.coords[i]
+                self.coords[i] = self.info['com_coords'][comm_idx] + \
+                    comm_rad * self.coords[i]
+
+        else:
+            raise ValueError('Unexpected argument king={}.'.format(kind))
 
     def subgraph(self, ind):
-        r"""
-        Create a subgraph from G keeping only the given indices.
+        r"""Create a subgraph given indices.
 
         Parameters
         ----------
@@ -294,8 +281,6 @@ class Graph(object):
 
         Examples
         --------
-        >>> from pygsp import graphs
-        >>> import numpy as np
         >>> W = np.arange(16).reshape(4, 4)
         >>> G = graphs.Graph(W)
         >>> ind = [1, 3]
@@ -305,56 +290,49 @@ class Graph(object):
         if not isinstance(ind, list) and not isinstance(ind, np.ndarray):
             raise TypeError('The indices must be a list or a ndarray.')
 
-        N = len(ind)
+        # N = len(ind) # Assigned but never used
 
         sub_W = self.W.tocsr()[ind, :].tocsc()[:, ind]
-        return Graph(sub_W, gtype="sub-{}".format(self.gtype))
+        return Graph(sub_W)
 
-    def is_connected(self, force_recompute=False):
-        r"""
-        Check the strong connectivity of the input graph.
+    def is_connected(self, recompute=False):
+        r"""Check the strong connectivity of the graph (cached).
 
         It uses DFS travelling on graph to ensure that each node is visited.
-        For undirected graphs, starting at any vertex and trying to access all others is enough.
-        For directed graphs, one needs to check that a random vertex is accessible by all others
-        and can access all others. Thus, we can transpose the adjacency matrix and compute again
-        with the same starting point in both phases.
+        For undirected graphs, starting at any vertex and trying to access all
+        others is enough.
+        For directed graphs, one needs to check that a random vertex is
+        accessible by all others
+        and can access all others. Thus, we can transpose the adjacency matrix
+        and compute again with the same starting point in both phases.
 
         Parameters
         ----------
-        force_recompute: bool
+        recompute: bool
             Force to recompute the connectivity if already known.
 
         Returns
         -------
         connected : bool
-            A bool value telling if the graph is connected.
+            True if the graph is connected.
 
         Examples
         --------
         >>> from scipy import sparse
-        >>> from pygsp import graphs
         >>> W = sparse.rand(10, 10, 0.2)
         >>> G = graphs.Graph(W=W)
         >>> connected = G.is_connected()
 
         """
-        if hasattr(self, 'force_recompute'):
-            if force_recompute:
-                self.logger.warning("Connectivity for this graph is already known. Recomputing.")
-            else:
-                self.logger.error("Connectivity for this graph is already known. Stopping.")
-                return self.connected
+        if hasattr(self, '_connected') and not recompute:
+            return self._connected
 
-        if not hasattr(self, 'directed'):
-            self.is_directed()
+        if self.is_directed(recompute=recompute):
+            adj_matrices = [self.A, self.A.T]
+        else:
+            adj_matrices = [self.A]
 
-        if self.A.shape[0] != self.A.shape[1]:
-            self.logger.error('Inconsistant shape to test connectedness. Set to False.')
-            self.connected = False
-            return False
-
-        for adj_matrix in [self.A, self.A.T] if self.directed else [self.A]:
+        for adj_matrix in adj_matrices:
             visited = np.zeros(self.A.shape[0], dtype=bool)
             stack = set([0])
 
@@ -363,24 +341,34 @@ class Graph(object):
                 if not visited[v]:
                     visited[v] = True
 
-                    # Add indices of nodes not visited yet and accessible from v
-                    stack.update(set([idx for idx in adj_matrix[v, :].nonzero()[1] if not visited[idx]]))
+                    # Add indices of nodes not visited yet and accessible from
+                    # v
+                    stack.update(set([idx
+                                      for idx in adj_matrix[v, :].nonzero()[1]
+                                      if not visited[idx]]))
 
             if not visited.all():
-                self.connected = False
-                return False
+                self._connected = False
+                return self._connected
 
-        self.connected = True
-        return True
+        self._connected = True
+        return self._connected
 
-    def is_directed(self, force_recompute=False):
-        r"""
-        Define if the graph has directed edges.
+    def is_directed(self, recompute=False):
+        r"""Check if the graph has directed edges (cached).
+
+        In this framework, we consider that a graph is directed if and
+        only if its weight matrix is non symmetric.
 
         Parameters
         ----------
-        force_recompute: bool
+        recompute : bool
             Force to recompute the directedness if already known.
+
+        Returns
+        -------
+        directed : bool
+            True if the graph is directed.
 
         Notes
         -----
@@ -389,70 +377,57 @@ class Graph(object):
         Examples
         --------
         >>> from scipy import sparse
-        >>> from pygsp import graphs
         >>> W = sparse.rand(10, 10, 0.2)
         >>> G = graphs.Graph(W=W)
         >>> directed = G.is_directed()
 
         """
-        if hasattr(self, 'force_recompute'):
-            if force_recompute:
-                self.logger.warning("Directedness for this graph is already known.\
-                                    Recomputing.")
-            else:
-                self.logger.error("Directedness for this graph is already known.\
-                                  Stopping.")
-                return self.directed
+        if hasattr(self, '_directed') and not recompute:
+            return self._directed
 
-        if np.diff(np.shape(self.W))[0]:
-            raise ValueError("Matrix dimensions mismatch, expecting square matrix.")
-
-        is_dir = np.abs(self.W - self.W.T).sum() != 0
-
-        self.directed = is_dir
-
-        return is_dir
+        self._directed = np.abs(self.W - self.W.T).sum() != 0
+        return self._directed
 
     def extract_components(self):
-        r"""
-        Split the graph into several connected components.
+        r"""Split the graph into connected components.
 
-        See the doc of `is_connected` for the method used to determine connectedness.
+        See :func:`is_connected` for the method used to determine
+        connectedness.
 
         Returns
         -------
         graphs : list
-            A list of graph structures. Each having its own node list and weight matrix.
-            If the graph is directed, add into the info parameter the information about the source nodes and the sink nodes.
+            A list of graph structures. Each having its own node list and
+            weight matrix. If the graph is directed, add into the info
+            parameter the information about the source nodes and the sink
+            nodes.
 
         Examples
         --------
         >>> from scipy import sparse
-        >>> from pygsp import graphs
         >>> W = sparse.rand(10, 10, 0.2)
+        >>> W = utils.symmetrize(W)
         >>> G = graphs.Graph(W=W)
         >>> components = G.extract_components()
         >>> has_sinks = 'sink' in components[0].info
         >>> sinks_0 = components[0].info['sink'] if has_sinks else []
 
         """
-        if not hasattr(self, 'directed'):
-            self.is_directed()
-
         if self.A.shape[0] != self.A.shape[1]:
-            self.logger.error('Inconsistant shape to extract components. Square matrix required.')
+            self.logger.error('Inconsistent shape to extract components. '
+                              'Square matrix required.')
             return None
 
-        if self.directed:
-            raise NotImplementedError('Focusing on non directed graphs first.')
+        if self.is_directed():
+            raise NotImplementedError('Directed graphs not supported yet.')
 
         graphs = []
 
         visited = np.zeros(self.A.shape[0], dtype=bool)
-        indices = []
+        # indices = [] # Assigned but never used
 
         while not visited.all():
-            stack = set([np.nonzero(visited == False)[0][0]])
+            stack = set(np.nonzero(~visited)[0])
             comp = []
 
             while len(stack):
@@ -461,120 +436,129 @@ class Graph(object):
                     comp.append(v)
                     visited[v] = True
 
-                    # Add indices of nodes not visited yet and accessible from v
-                    stack.update(set([idx for idx in self.A[v, :].nonzero()[1] if not visited[idx]]))
+                    # Add indices of nodes not visited yet and accessible from
+                    # v
+                    stack.update(set([idx for idx in self.A[v, :].nonzero()[1]
+                                      if not visited[idx]]))
 
             comp = sorted(comp)
-            self.logger.info('Constructing subgraph for component of size {}.'.format(len(comp)))
+            self.logger.info(('Constructing subgraph for component of '
+                              'size {}.').format(len(comp)))
             G = self.subgraph(comp)
             G.info = {'orig_idx': comp}
             graphs.append(G)
 
         return graphs
 
-    def compute_fourier_basis(self, smallest_first=True, force_recompute=False, **kwargs):
-        r"""
-        Compute the fourier basis of the graph.
+    def compute_laplacian(self, lap_type='combinatorial'):
+        r"""Compute a graph Laplacian.
+
+        The result is accessible by the L attribute.
 
         Parameters
         ----------
-        smallest_first: bool
-            Define the order of the eigenvalues.
-            Default is smallest first (True).
-        force_recompute: bool
-            Force to recompute the Fourier basis if already existing.
+        lap_type : 'combinatorial', 'normalized'
+            The type of Laplacian to compute. Default is combinatorial.
 
         Notes
         -----
-        'G.compute_fourier_basis()' computes a full eigendecomposition of
-        the graph Laplacian G.L:
+        For undirected graphs, the combinatorial Laplacian is defined as
 
-        .. L = U Lambda U*
+        .. math:: L = D - W,
 
-        .. math:: {\cal L} = U \Lambda U^*
+        where :math:`W` is the weight matrix and :math:`D` the degree matrix,
+        and the normalized Laplacian is defined as
 
-        where $\Lambda$ is a diagonal matrix of the Laplacian eigenvalues.
+        .. math:: L = I - D^{-1/2} W D^{-1/2},
 
-        *G.e* is a column vector of length *G.N* containing the Laplacian
-        eigenvalues. The largest eigenvalue is stored in *G.lmax*.
-        The eigenvectors are stored as column vectors of *G.U* in the same
-        order that the eigenvalues. Finally, the coherence of the
-        Fourier basis is in *G.mu*.
+        where :math:`I` is the identity matrix.
 
         Examples
         --------
-        >>> from pygsp import graphs
-        >>> N = 50
-        >>> G = graphs.Sensor(N)
+        >>> G = graphs.Sensor(50)
+        >>> G.L.shape
+        (50, 50)
+        >>>
+        >>> G.compute_laplacian('combinatorial')
         >>> G.compute_fourier_basis()
-
-        References
-        ----------
-        See :cite:`chung1997spectral`
-
-        """
-        if hasattr(self, 'e') or hasattr(self, 'U'):
-            if force_recompute:
-                self.logger.warning("This graph already has a Fourier basis. Recomputing.")
-            else:
-                self.logger.error("This graph already has a Fourier basis. Stopping.")
-                return
-
-        if self.N > 3000:
-            self.logger.warning("Performing full eigendecomposition of a large "
-                           "matrix may take some time.")
-
-        if not hasattr(self, 'L'):
-            raise AttributeError("Graph Laplacian is missing")
-
-        eigenvectors, eigenvalues, _ = sp.linalg.svd(self.L.todense())
-
-        inds = np.argsort(eigenvalues)
-        if not smallest_first:
-            inds = inds[::-1]
-
-        self.e = np.sort(eigenvalues)
-        self.lmax = np.max(self.e)
-        self.U = eigenvectors[:, inds]
-        self.mu = np.max(np.abs(self.U))
-
-    def create_laplacian(self, lap_type='combinatorial'):
-        r"""
-        Create a new graph laplacian.
-
-        Parameters
-        ----------
-        lap_type : string
-            The laplacian type to use. Default is "combinatorial". Other possible value is 'none', 'normalized' is still not yet implemented for directed graphs.
+        >>> -1e-10 < G.e[0] < 1e-10  # Smallest eigenvalue close to 0.
+        True
+        >>>
+        >>> G.compute_laplacian('normalized')
+        >>> G.compute_fourier_basis(recompute=True)
+        >>> -1e-10 < G.e[0] < 1e-10 < G.e[-1] < 2  # Spectrum in [0, 2].
+        True
 
         """
-        if np.shape(self.W) == (1, 1):
-            self.L = sparse.lil_matrix(0)
-            return
 
-        if lap_type in ['combinatorial', 'normalized', 'none']:
-            self.lap_type = lap_type
-        else:
-            raise AttributeError('Unknown laplacian type!')
+        if lap_type not in ['combinatorial', 'normalized']:
+            raise ValueError('Unknown Laplacian type {}'.format(lap_type))
+        self.lap_type = lap_type
 
-        if self.directed:
+        if self.is_directed():
+
             if lap_type == 'combinatorial':
-                L = 0.5*(sparse.diags(np.ravel(self.W.sum(0)), 0) + sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W - self.W.T).tocsc()
+                D1 = sparse.diags(np.ravel(self.W.sum(0)), 0)
+                D2 = sparse.diags(np.ravel(self.W.sum(1)), 0)
+                self.L = 0.5 * (D1 + D2 - self.W - self.W.T).tocsc()
+
             elif lap_type == 'normalized':
-                raise NotImplementedError('Yet. Ask Nathanael.')
-            elif lap_type == 'none':
-                L = sparse.lil_matrix(0)
+                raise NotImplementedError('Directed graphs with normalized '
+                                          'Laplacian not supported yet.')
 
         else:
-            if lap_type == 'combinatorial':
-                L = (sparse.diags(np.ravel(self.W.sum(1)), 0) - self.W).tocsc()
-            elif lap_type == 'normalized':
-                D = sparse.diags(np.ravel(np.power(self.W.sum(1), -0.5)), 0).tocsc()
-                L = sparse.identity(self.N) - D * self.W * D
-            elif lap_type == 'none':
-                L = sparse.lil_matrix(0)
 
-        self.L = L
+            if lap_type == 'combinatorial':
+                D = sparse.diags(np.ravel(self.W.sum(1)), 0)
+                self.L = (D - self.W).tocsc()
+
+            elif lap_type == 'normalized':
+                d = np.power(self.dw, -0.5)
+                D = sparse.diags(np.ravel(d), 0).tocsc()
+                self.L = sparse.identity(self.n_nodes) - D * self.W * D
+
+
+    @property
+    def A(self):
+        r"""Graph adjacency matrix (the binary version of W).
+
+        The adjacency matrix defines which edges exist on the graph.
+        It is represented as an N-by-N matrix of booleans.
+        :math:`A_{i,j}` is True if :math:`W_{i,j} > 0`.
+        """
+        if not hasattr(self, '_A'):
+            self._A = self.W > 0
+        return self._A
+
+    @property
+    def d(self):
+        r"""The degree (the number of neighbors) of each node."""
+        if not hasattr(self, '_d'):
+            self._d = np.asarray(self.A.sum(axis=1)).squeeze()
+        return self._d
+
+    @property
+    def dw(self):
+        r"""The weighted degree (the sum of weighted edges) of each node."""
+        if not hasattr(self, '_dw'):
+            self._dw = np.asarray(self.W.sum(axis=1)).squeeze()
+        return self._dw
+
+    @property
+    def lmax(self):
+        r"""Largest eigenvalue of the graph Laplacian.
+
+        Can be exactly computed by :func:`compute_fourier_basis` or
+        approximated by :func:`estimate_lmax`.
+        """
+        if not hasattr(self, '_lmax'):
+            self.logger.warning('The largest eigenvalue G.lmax is not '
+                                'available, we need to estimate it. '
+                                'Explicitly call G.estimate_lmax() or '
+                                'G.compute_fourier_basis() '
+                                'once beforehand to suppress the warning.')
+            self.estimate_lmax()
+        return self._lmax
 
     def create_incidence_matrix(self):
         r"""
@@ -602,131 +586,203 @@ class Graph(object):
         self.start_nodes = start_nodes
         self.end_nodes = end_nodes
 
-    def estimate_lmax(self, force_recompute=False):
-        r"""
-        Estimate the maximal eigenvalue.
+    def estimate_lmax(self, recompute=False):
+        r"""Estimate the Laplacian's largest eigenvalue (cached).
+        The result is cached and accessible by the :attr:`lmax` property.
+        Exact value given by the eigendecomposition of the Laplacian, see
+        :func:`compute_fourier_basis`. That estimation is much faster than the
+        eigendecomposition.
 
         Parameters
         ----------
-        force_recompute : boolean
-            Force to recompute the maximal eigenvalue. Default is false.
+        recompute : boolean
+            Force to recompute the largest eigenvalue. Default is false.
+
+        Notes
+        -----
+        Runs the implicitly restarted Lanczos method with a large tolerance,
+        then increases the calculated largest eigenvalue by 1 percent. For much
+        of the PyGSP machinery, we need to approximate wavelet kernels on an
+        interval that contains the spectrum of L. The only cost of using a
+        larger interval is that the polynomial approximation over the larger
+        interval may be a slightly worse approximation on the actual spectrum.
+        As this is a very mild effect, it is not necessary to obtain very tight
+        bounds on the spectrum of L.
 
         Examples
         --------
-        Just define a graph and apply the estimation on it.
-
-        >>> from pygsp import graphs
-        >>> import numpy as np
-        >>> W = np.arange(16).reshape(4, 4)
-        >>> G = graphs.Graph(W)
-        >>> G.estimate_lmax()
+        >>> G = graphs.Logo()
+        >>> G.compute_fourier_basis()
+        >>> print('{:.2f}'.format(G.lmax))
+        13.78
+        >>> G = graphs.Logo()
+        >>> G.estimate_lmax(recompute=True)
+        >>> print('{:.2f}'.format(G.lmax))
+        13.92
 
         """
-        if hasattr(self, 'lmax'):
-            if force_recompute:
-                self.logger.error('Already computed lmax. Recomputing.')
-            else:
-                self.logger.error('Already computed lmax. Stopping.')
-                return
+        if hasattr(self, '_lmax') and not recompute:
+            return
 
         try:
-            # On robustness purposes, increasing the error by 1 percent
-            lmax = 1.01 * sparse.linalg.eigs(self.L, k=1, tol=5e-3, ncv=10)[0][0]
+            lmax = sparse.linalg.eigsh(self.L, k=1, tol=5e-3,
+                                       ncv=min(self.N, 10),
+                                       return_eigenvectors=False)
+            lmax = lmax[0]
+            lmax *= 1.01  # Increase by 1 percent to be robust to errors.
 
         except sparse.linalg.ArpackNoConvergence:
-            self.logger.warning('GSP_ESTIMATE_LMAX: Cannot use default method.')
-            lmax = 2. * np.max(self.d)
+            self.logger.warning('Lanczos method did not converge. '
+                                'Using an alternative method.')
+            if self.lap_type == 'normalized':
+                lmax = 2  # Spectrum is bounded by [0, 2].
+            elif self.lap_type == 'combinatorial':
+                lmax = 2 * np.max(self.dw)
+            else:
+                raise ValueError('Unknown Laplacian type '
+                                 '{}'.format(self.lap_type))
 
-        lmax = np.real(lmax)
-        self.lmax = lmax.sum()
+        self._lmax = lmax
 
-    def plot(self, **kwargs):
-        r"""
-        Plot the graph.
+    def get_edge_list(self):
+        r"""Return an edge list, an alternative representation of the graph.
 
-        See plotting doc.
+        The weighted adjacency matrix is the canonical form used in this
+        package to represent a graph as it is the easiest to work with when
+        considering spectral methods.
+
+        Returns
+        -------
+        v_in : vector of int
+        v_out : vector of int
+        weights : vector of float
+
+        Examples
+        --------
+        >>> G = graphs.Logo()
+        >>> v_in, v_out, weights = G.get_edge_list()
+        >>> v_in.shape, v_out.shape, weights.shape
+        ((3131,), (3131,), (3131,))
+
         """
-        from pygsp import plotting
-        plotting.plot_graph(self, show_plot=True, **kwargs)
 
-    def plot_signal(self, signal, **kwargs):
-        r"""
-        Plot the graph signal.
+        if self.is_directed():
+            raise NotImplementedError('Directed graphs not supported yet.')
 
-        See plotting doc.
+        else:
+            v_in, v_out = sparse.tril(self.W).nonzero()
+            weights = self.W[v_in, v_out]
+            weights = np.asarray(weights).squeeze()
+
+            # TODO G.ind_edges = sub2ind(size(G.W), G.v_in, G.v_out)
+
+            assert self.Ne == v_in.size == v_out.size == weights.size
+            return v_in, v_out, weights
+
+    def modulate(self, f, k):
+        r"""Modulate the signal *f* to the frequency *k*.
+
+        Parameters
+        ----------
+        f : ndarray
+            Signal (column)
+        k : int
+            Index of frequencies
+
+        Returns
+        -------
+        fm : ndarray
+            Modulated signal
+
         """
-        from pygsp import plotting
-        plotting.plot_signal(self, signal, show_plot=True, **kwargs)
 
-    def show_spectrogramm(self, **kwargs):
-        r"""
-        Plot the spectrogramm for the graph object.
+        nt = np.shape(f)[1]
+        fm = np.kron(np.ones((1, nt)), self.U[:, k])
+        fm *= np.kron(np.ones((nt, 1)), f)
+        fm *= np.sqrt(self.N)
+        return fm
 
-        See plotting doc on spectrogramm.
-        """
-        from pygsp import plotting
-        plotting.plot_spectrogramm(self, **kwargs)
+    def plot(self, edges=None, backend=None, vertex_size=None, title=None,
+             save=None, ax=None):
+        r"""Docstring overloaded at import time."""
+        from pygsp.plotting import _plot_graph
+        _plot_graph(self, edges=edges, backend=backend,
+                    vertex_size=vertex_size, title=title, save=save, ax=ax)
+
+    def plot_signal(self, signal, edges=None, vertex_size=None, highlight=[],
+                    colorbar=True, limits=None, backend=None, title=None,
+                    save=None, ax=None):
+        r"""Docstring overloaded at import time."""
+        from pygsp.plotting import _plot_signal
+        _plot_signal(self, signal=signal, edges=edges, vertex_size=vertex_size,
+                     highlight=highlight, colorbar=colorbar, limits=limits,
+                     backend=backend, title=title, save=save, ax=ax)
+
+    def plot_spectrogram(self, node_idx=None):
+        r"""Docstring overloaded at import time."""
+        from pygsp.plotting import _plot_spectrogram
+        _plot_spectrogram(self, node_idx=node_idx)
 
     def _fruchterman_reingold_layout(self, dim=2, k=None, pos=None, fixed=[],
-                                     iterations=50, scale=1.0, center=None):
+                                     iterations=50, scale=1.0, center=None,
+                                     seed=None):
         # TODO doc
+        # fixed: list of nodes with fixed coordinates
         # Position nodes using Fruchterman-Reingold force-directed algorithm.
 
         if center is None:
             center = np.zeros((1, dim))
 
         if np.shape(center)[1] != dim:
-            self.logger.error('Spring coordinates : center has wrong size.')
+            self.logger.error('Spring coordinates: center has wrong size.')
             center = np.zeros((1, dim))
 
-        dom_size = 1.
-        if pos is not None:
+        if pos is None:
+            dom_size = 1
+            pos_arr = None
+        else:
             # Determine size of existing domain to adjust initial positions
             dom_size = np.max(pos)
-            shape = (self.N, dim)
-            pos_arr = np.random.random(shape) * dom_size + center
+            pos_arr = np.random.RandomState(seed).uniform(size=(self.N, dim))
+            pos_arr = pos_arr * dom_size + center
             for i in range(self.N):
                 pos_arr[i] = np.asarray(pos[i])
-        else:
-            pos_arr = None
 
-        if k is None and fixed is not None:
+        if k is None and len(fixed) > 0:
             # We must adjust k by domain size for layouts that are not near 1x1
             k = dom_size / np.sqrt(self.N)
-        pos = _sparse_fruchterman_reingold(self.A, dim, k, pos_arr, fixed, iterations)
 
-        if fixed is None:
+        pos = _sparse_fruchterman_reingold(self.A, dim, k, pos_arr,
+                                           fixed, iterations, seed)
+
+        if len(fixed) == 0:
             pos = _rescale_layout(pos, scale=scale) + center
+
         return pos
 
 
-def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
-                                 iterations=50):
+def _sparse_fruchterman_reingold(A, dim, k, pos, fixed, iterations, seed):
     # Position nodes in adjacency matrix A using Fruchterman-Reingold
     nnodes = A.shape[0]
 
     # make sure we have a LIst of Lists representation
     try:
         A = A.tolil()
-    except:
-        A = (coo_matrix(A)).tolil()
+    except Exception:
+        A = (sparse.coo_matrix(A)).tolil()
 
     if pos is None:
         # random initial positions
-        pos = np.random.random((nnodes, dim))
-
-    # no fixed nodes
-    if fixed is None:
-        fixed = []
+        pos = np.random.RandomState(seed).uniform(size=(nnodes, dim))
 
     # optimal distance between nodes
     if k is None:
-        k = np.sqrt(1.0/nnodes)
+        k = np.sqrt(1.0 / nnodes)
 
     # simple cooling scheme.
     # linearly step down by dt on each iteration so last iteration is size dt.
     t = 0.1
-    dt = t/float(iterations+1)
+    dt = t / float(iterations + 1)
 
     displacement = np.zeros((dim, nnodes))
     for iteration in range(iterations):
@@ -736,7 +792,7 @@ def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
             if i in fixed:
                 continue
             # difference between this row's node position and all others
-            delta = (pos[i]-pos).T
+            delta = (pos[i] - pos).T
             # distance between points
             distance = np.sqrt((delta**2).sum(axis=0))
             # enforce minimum distance of 0.01
@@ -745,11 +801,11 @@ def _sparse_fruchterman_reingold(A, dim=2, k=None, pos=None, fixed=None,
             Ai = np.asarray(A[i, :].toarray())
             # displacement "force"
             displacement[:, i] += \
-                (delta*(k*k/distance**2-Ai*distance/k)).sum(axis=1)
+                (delta * (k * k / distance**2 - Ai * distance / k)).sum(axis=1)
         # update positions
         length = np.sqrt((displacement**2).sum(axis=0))
         length = np.where(length < 0.01, 0.1, length)
-        pos += (displacement*t/length).T
+        pos += (displacement * t / length).T
         # cool temperature
         t -= dt
 
@@ -766,5 +822,5 @@ def _rescale_layout(pos, scale=1):
         lim = max(pos[:, i].max(), lim)
     # rescale to (-scale,scale) in all directions, preserves aspect
     for i in range(pos.shape[1]):
-        pos[:, i] *= scale/lim
+        pos[:, i] *= scale / lim
     return pos

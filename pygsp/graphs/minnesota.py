@@ -1,62 +1,60 @@
 # -*- coding: utf-8 -*-
 
-from ..pointclouds import PointCloud
-from . import Graph
-
 import numpy as np
+from scipy import sparse
+
+from pygsp import utils
+from . import Graph  # prevent circular import in Python < 3.5
 
 
 class Minnesota(Graph):
-    r"""
-    Create a community graph.
+    r"""Minnesota road network (from MatlabBGL).
 
     Parameters
     ----------
-    connect : bool
-        Change the graph to be connected. (default = True)
-
-    Examples
-    --------
-    >>> from pygsp import graphs
-    >>> G = graphs.Minnesota()
+    connected : bool
+        If True, the adjacency matrix is adjusted so that all edge weights are
+        equal to 1, and the graph is connected. Set to False to get the
+        original disconnected graph.
 
     References
     ----------
-    See :cite:`gleich`
+    See :cite:`gleich`.
+
+    Examples
+    --------
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Minnesota()
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=0.5)
+    >>> G.plot(ax=axes[1])
 
     """
 
-    def __init__(self, connect=True):
-        minnesota = PointCloud('minnesota')
+    def __init__(self, connected=True, **kwargs):
+
+        self.connected = connected
+
+        data = utils.loadmat('pointclouds/minnesota')
+        self.labels = data['labels']
+        A = data['A']
 
         plotting = {"limits": np.array([-98, -89, 43, 50]),
-                    "vertex_size": 30}
+                    "vertex_size": 40}
 
-        if connect:
-            # Edit adjacency matrix
-            A = (minnesota.A > 0).astype(int)
+        if connected:
 
-            # clean minnesota graph
-            A.setdiag(0)
+            # Missing edges needed to connect the graph.
+            A = sparse.lil_matrix(A)
+            A[348, 354] = 1
+            A[354, 348] = 1
+            A = sparse.csc_matrix(A)
 
-            # missing edge needed to connect graph
-            A[349, 355] = 1
-            A[355, 349] = 1
+            # Binarize: 8 entries are equal to 2 instead of 1.
+            A = (A > 0).astype(bool)
 
-            # change a handful of 2 values back to 1
-            A[86, 88] = 1
-            A[86, 88] = 1
-            A[345, 346] = 1
-            A[346, 345] = 1
-            A[1707, 1709] = 1
-            A[1709, 1707] = 1
-            A[2289, 2290] = 1
-            A[2290, 2289] = 1
+        super(Minnesota, self).__init__(W=A, coords=data['xy'],
+                                        plotting=plotting, **kwargs)
 
-            gtype = 'minnesota'
-
-        else:
-            gtype = 'minnesota-disconnected'
-
-        super(Minnesota, self).__init__(W=A, coords=minnesota.coords,
-                                        gtype=gtype, plotting=plotting)
+    def _get_extra_repr(self):
+        return dict(connected=self.connected)
