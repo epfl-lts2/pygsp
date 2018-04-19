@@ -135,7 +135,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
             sparserW = (sparserW + sparserW.T) / 2.
 
         Mnew = graphs.Graph(W=sparserW)
-        M.copy_graph_attributes(Mnew)
+        #M.copy_graph_attributes(Mnew)
     else:
         Mnew = sparse.lil_matrix(sparserL)
 
@@ -276,7 +276,9 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
             raise NotImplementedError('Unknown graph reduction method.')
 
         if sparsify and Gs[i+1].N > 2:
+            coords = Gs[i+1].coords
             Gs[i+1] = graph_sparsify(Gs[i+1], min(max(sparsify_eps, 2. / np.sqrt(Gs[i+1].N)), 1.))
+            Gs[i+1].coords = coords
             # TODO : Make in place modifications instead!
 
         if compute_full_eigen:
