@@ -568,20 +568,17 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         For convenience, the heads and tails of each edge are saved in two
         additional attributes start_nodes and end_nodes.
         """
-        if not hasattr(self, 'directed'):
-            self.is_directed()
-
-        if self.directed or not self.connected:
+        if self.is_directed() or not self.is_connected():
             raise NotImplementedError('Focusing on connected non directed graphs first.')
 
         start_nodes, end_nodes, weights = sparse.find(sparse.tril(self.W))
 
-        data = np.concatenate([np.ones(self.Ne/2), -np.ones(self.Ne/2)])
-        row = np.concatenate([np.arange(self.Ne/2), np.arange(self.Ne/2)])
+        data = np.concatenate([np.ones_like(start_nodes), -np.ones_like(end_nodes)])
+        row = np.concatenate([np.arange(len(start_nodes)), np.arange(len(end_nodes))])
         col = np.concatenate([start_nodes, end_nodes])
 
         self.B = sparse.coo_matrix((data, (row, col)),
-                                   shape=(self.Ne/2, self.N) ).tocsc()
+                                   shape=(len(start_nodes), self.N) ).tocsc()
         self.Wb = sparse.diags(weights,0)
         self.start_nodes = start_nodes
         self.end_nodes = end_nodes

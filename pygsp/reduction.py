@@ -339,7 +339,6 @@ def kron_reduction(G, ind, threshold=np.spacing(1)):
 
     """
     if isinstance(G, graphs.Graph):
-
         if G.lap_type != 'combinatorial':
                 msg = 'Unknown reduction for {} Laplacian.'.format(G.lap_type)
                 raise NotImplementedError(msg)
@@ -353,14 +352,13 @@ def kron_reduction(G, ind, threshold=np.spacing(1)):
     else:
 
         L = G
-
     N = np.shape(L)[0]
     ind_comp = np.setdiff1d(np.arange(N, dtype=int), ind)
 
-    L_red = extract_submatrix(L,ind, ind)
-    L_in_out = extract_submatrix(L, ind, ind_comp)
+    L_red = utils.extract_submatrix(L,ind, ind)
+    L_in_out = utils.extract_submatrix(L, ind, ind_comp)
     L_out_in = L_in_out.transpose().tocsc()
-    L_comp = extract_submatrix(L,ind_comp, ind_comp).tocsc()
+    L_comp = utils.extract_submatrix(L,ind_comp, ind_comp).tocsc()
 
     Lnew = L_red - L_in_out.dot(utils.splu_inv_dot(L_comp, L_out_in))
 
