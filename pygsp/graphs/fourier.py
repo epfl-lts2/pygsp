@@ -117,6 +117,12 @@ class GraphFourier(object):
                                 'time. Consider computing the partial '
                                 'eigendecomposition with '
                                 'n_eigenvectors=n'.format(self.N))
+        elif self.N * n_eigenvectors > 3000**2:
+            self.logger.warning('Computing the eigendecomposition of a '
+                                'large matrix ({0} x {0}) with {1} '
+                                'eigenvectors may take some time. Consider '
+                                'decreasing n_eigenvectors'.format(
+                                    self.N, n_eigenvectors))
 
         # TODO: handle non-symmetric Laplacians. Test lap_type?
         if n_eigenvectors == self.N:
