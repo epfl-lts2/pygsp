@@ -187,6 +187,8 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('spring')
         G.set_coordinates('spring', dim=3)
         G.set_coordinates('spring', dim=3, pos=G.coords)
+        G.set_coordinates('laplacian_eigenmap2D')
+        G.set_coordinates('laplacian_eigenmap3D')
         self.assertRaises(AttributeError, G.set_coordinates, 'community2D')
         G = graphs.Community()
         G.set_coordinates('community2D')
