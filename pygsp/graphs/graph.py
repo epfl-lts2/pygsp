@@ -187,7 +187,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             nodes when plotting the graph. Can either pass an array of size Nx2
             or Nx3 to set the coordinates manually or the name of a layout
             algorithm. Available algorithms: community2D, random2D, random3D,
-            ring2D, line1D, spring. Default is 'spring'.
+            ring2D, line1D, spring, laplacian_eigenmap2D, laplacian_eigenmap3D.
+            Default is 'spring'.
         kwargs : dict
             Additional parameters to be passed to the Fruchterman-Reingold
             force-directed algorithm when kind is spring.
@@ -262,9 +263,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                 comm_rad = np.sqrt(self.info['comm_sizes'][comm_idx])
                 self.coords[i] = self.info['com_coords'][comm_idx] + \
                     comm_rad * self.coords[i]
-
+        elif kind == 'laplacian_eigenmap2D':
+            self.compute_fourier_basis(n_eigenvectors=2)
+            self.coords = self.U[:, :2]
+        elif kind == 'laplacian_eigenmap3D':
+            self.compute_fourier_basis(n_eigenvectors=3)
+            self.coords = self.U[:, :3]
         else:
-            raise ValueError('Unexpected argument king={}.'.format(kind))
+            raise ValueError('Unexpected argument kind={}.'.format(kind))
 
     def subgraph(self, ind):
         r"""Create a subgraph given indices.
@@ -516,7 +522,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                 d = np.power(self.dw, -0.5)
                 D = sparse.diags(np.ravel(d), 0).tocsc()
                 self.L = sparse.identity(self.n_nodes) - D * self.W * D
-
 
     @property
     def A(self):
