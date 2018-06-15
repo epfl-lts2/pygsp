@@ -88,7 +88,8 @@ class TestCase(unittest.TestCase):
         assert len(G.e) == G.N
         assert G.U.shape[1] == G.N
         assert G.e[-1] < 2
-        assert np.testing.assert_allclose(U, G.U[:, -n:])
+        # eigsh might flip a sign
+        assert np.testing.assert_allclose(np.abs(U), np.abs(G.U[:, -n:]))
         assert np.testing.assert_allclose(e, G.e[-n:])
 
     def test_eigendecompositions(self):
