@@ -75,8 +75,21 @@ class TestCase(unittest.TestCase):
         # assert (self._G.U[0, :] > 0).all()
         # Spectrum bounded by [0, 2] for the normalized Laplacian.
         G = graphs.Logo(lap_type='normalized')
-        G.compute_fourier_basis()
+        n = G.N // 2
+        # check partial eigendecomposition
+        G.compute_fourier_basis(n_eigenvectors=n)
+        assert len(G.e) == n
+        assert G.U.shape[1] == n
         assert G.e[-1] < 2
+        U = G.U
+        e = G.e
+        # check full eigendecomposition
+        G.compute_fourier_basis()
+        assert len(G.e) == G.N
+        assert G.U.shape[1] == G.N
+        assert G.e[-1] < 2
+        assert np.testing.assert_allclose(U, G.U[:, -n:])
+        assert np.testing.assert_allclose(e, G.e[-n:])
 
     def test_eigendecompositions(self):
         G = graphs.Logo()
