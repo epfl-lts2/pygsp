@@ -15,8 +15,8 @@ addons:
       - xvfb
 
 install:
-  - pip install -U pip setuptools
-  - pip install -U .[alldeps,test,doc]
+  - pip install -U --upgrade-strategy eager .[alldeps,test,doc]
+  # Update dependencies (e.g. numpy formatting changed in v1.14).
 
 script:
 # - make lint
