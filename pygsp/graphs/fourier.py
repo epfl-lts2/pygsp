@@ -55,7 +55,6 @@ class GraphFourier(object):
         n_eigenvectors : int or `None`
             Number of eigenvectors to compute. If `None`, all eigenvectors
             are computed. (default: None)
-
         recompute: bool
             Force to recompute the Fourier basis if already existing.
 
@@ -106,23 +105,19 @@ class GraphFourier(object):
         if n_eigenvectors is None:
             n_eigenvectors = self.N
 
-        if hasattr(self, '_e') and hasattr(self, '_U') and not recompute \
-                and n_eigenvectors <= len(self.e):
+        if (hasattr(self, '_e') and hasattr(self, '_U') and not recompute
+                and n_eigenvectors <= len(self.e)):
             return
 
         assert self.L.shape == (self.N, self.N)
-        if self.N > 3000 and n_eigenvectors == self.N:
-            self.logger.warning('Computing the full eigendecomposition of a '
-                                'large matrix ({0} x {0}) may take some '
-                                'time. Consider computing the partial '
-                                'eigendecomposition with '
-                                'n_eigenvectors=n'.format(self.N))
-        elif self.N * n_eigenvectors > 3000**2:
-            self.logger.warning('Computing the eigendecomposition of a '
-                                'large matrix ({0} x {0}) with {1} '
-                                'eigenvectors may take some time. Consider '
-                                'decreasing n_eigenvectors'.format(
-                                    self.N, n_eigenvectors))
+        if self.N**2 * n_eigenvectors > 3000**3:
+            self.logger.warning(
+                'Computing the {0} eigendecomposition of a large matrix ({1} x'
+                ' {1}) is expensive. Consider decreasing n_eigenvectors '
+                'or, if using the Fourier basis as a filter, using a '
+                'polynomial filter instead.'.format(
+                    'full' if n_eigenvectors == self.N else 'partial',
+                    self.N))
 
         # TODO: handle non-symmetric Laplacians. Test lap_type?
         if n_eigenvectors == self.N:
@@ -137,13 +132,6 @@ class GraphFourier(object):
             self._e[0] = 0
         else:
             # fast partial eigendecomposition of hermitian matrices
-            # this will be slow if L is non-symmetric
-            if np.sum(self.L != self.L.T) != 0:
-                self.logger.warning('Computing the partial eigendecomposition '
-                                    'of an asymmetric matrix may give '
-                                    'inaccurate results. Consider computing'
-                                    ' the full eigendecomposition with '
-                                    'n_eigenvectors=None')
             self._e, self._U = sparse.linalg.eigsh(self.L,
                                                    n_eigenvectors)
 
