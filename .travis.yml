@@ -1,4 +1,3 @@
-dist: trusty  # need glibc >= 2.17 for pyqt5
 sudo: false
 
 language: python
