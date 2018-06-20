@@ -363,7 +363,7 @@ class NNGraph(Graph):
 
     def _get_extra_repr(self):
         return {'NNtype': self.NNtype,
-                'use_flann': self.use_flann,
+                'backend': self.backend,
                 'center': self.center,
                 'rescale': self.rescale,
                 'k': self.k,
