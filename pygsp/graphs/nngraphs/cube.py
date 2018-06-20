@@ -46,10 +46,11 @@ class Cube(NNGraph):
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
         self.sampling = sampling
+        self.seed = seed
         rs = np.random.RandomState(seed)
 
         if self.nb_dim > 3:
-            raise NotImplementedError("Dimension > 3 not supported yet !")
+            raise NotImplementedError("Dimension > 3 not supported yet!")
 
         if self.sampling == "random":
             if self.nb_dim == 2:
@@ -88,5 +89,13 @@ class Cube(NNGraph):
             'distance': 7,
         }
 
-        super(Cube, self).__init__(Xin=pts, k=10, gtype="Cube",
-                                   plotting=plotting, **kwargs)
+        super(Cube, self).__init__(Xin=pts, k=10, plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        attrs = {'radius': '{:.2f}'.format(self.radius),
+                 'nb_pts': self.nb_pts,
+                 'nb_dim': self.nb_dim,
+                 'sampling': self.sampling,
+                 'seed': self.seed}
+        attrs.update(super(Cube, self)._get_extra_repr())
+        return attrs

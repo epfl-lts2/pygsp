@@ -68,7 +68,7 @@ We can retrieve our weight matrix, which is stored in a sparse format.
     >>> (G.W == W).all()
     True
     >>> type(G.W)
-    <class 'scipy.sparse.lil.lil_matrix'>
+    <class 'scipy.sparse.csr.csr_matrix'>
 
 We can access the `graph Laplacian`_
 
@@ -193,7 +193,7 @@ let's define and plot that low-pass filter:
     >>> g = filters.Filter(G, g)
     >>>
     >>> fig, ax = plt.subplots()
-    >>> g.plot(plot_eigenvalues=True, ax=ax)
+    >>> g.plot(eigenvalues=True, ax=ax)
     >>> _ = ax.set_title('Filter frequency response')
 
 The filter is plotted along all the spectrum of the graph. The black crosses

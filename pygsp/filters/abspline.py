@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import numpy as np
 from scipy import optimize
 
@@ -15,7 +17,7 @@ class Abspline(Filter):
     G : graph
     Nf : int
         Number of filters from 0 to lmax (default = 6)
-    lpfactor : int
+    lpfactor : float
         Low-pass factor lmin=lmax/lpfactor will be used to determine scales,
         the scaling function will be created to fill the lowpass gap.
         (default = 20)
@@ -75,27 +77,31 @@ class Abspline(Filter):
 
             return r
 
-        G.lmin = G.lmax / lpfactor
+        self.lpfactor = lpfactor
+
+        lmin = G.lmax / lpfactor
 
         if scales is None:
-            self.scales = utils.compute_log_scales(G.lmin, G.lmax, Nf - 1)
-        else:
-            self.scales = scales
+            scales = utils.compute_log_scales(lmin, G.lmax, Nf - 1)
+        self.scales = scales
 
         gb = lambda x: kernel_abspline3(x, 2, 2, 1, 2)
         gl = lambda x: np.exp(-np.power(x, 4))
 
-        lminfac = .4 * G.lmin
+        lminfac = .4 * lmin
 
         g = [lambda x: 1.2 * np.exp(-1) * gl(x / lminfac)]
         for i in range(0, Nf - 1):
-            g.append(lambda x, ind=i: gb(self.scales[ind] * x))
+            g.append(lambda x, i=i: gb(self.scales[i] * x))
 
         f = lambda x: -gb(x)
         xstar = optimize.minimize_scalar(f, bounds=(1, 2),
                                          method='bounded')
         gamma_l = -f(xstar.x)
-        lminfac = .6 * G.lmin
+        lminfac = .6 * lmin
         g[0] = lambda x: gamma_l * gl(x / lminfac)
 
         super(Abspline, self).__init__(G, g)
+
+    def _get_extra_repr(self):
+        return dict(lpfactor='{:.2f}'.format(self.lpfactor))

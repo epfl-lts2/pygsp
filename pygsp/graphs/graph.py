@@ -20,9 +20,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     ----------
     W : sparse matrix or ndarray
         The weight matrix which encodes the graph.
-    gtype : string
-        Graph type, a free-form string to help us recognize the kind of graph
-        we are dealing with (default is 'unknown').
     lap_type : 'combinatorial', 'normalized'
         The type of Laplacian to be computed by :func:`compute_laplacian`
         (default is 'combinatorial').
@@ -43,9 +40,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         It is represented as an N-by-N matrix of floats.
         :math:`W_{i,j} = 0` means that there is no direct connection from
         i to j.
-    gtype : string
-        the graph type is a short description of the graph object designed to
-        help sorting the graphs.
     L : sparse matrix
         the graph Laplacian, an N-by-N matrix computed from W.
     lap_type : 'normalized', 'combinatorial'
@@ -63,32 +57,40 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
     """
 
-    def __init__(self, W, gtype='unknown', lap_type='combinatorial',
-                 coords=None, plotting={}):
+    def __init__(self, W, lap_type='combinatorial', coords=None, plotting={}):
 
         self.logger = utils.build_logger(__name__)
 
         if len(W.shape) != 2 or W.shape[0] != W.shape[1]:
             raise ValueError('W has incorrect shape {}'.format(W.shape))
 
+        # CSR sparse matrices are the most efficient for matrix multiplication.
+        # They are the sole sparse matrix type to support eliminate_zeros().
+        if sparse.isspmatrix_csr(W):
+            self.W = W
+        else:
+            self.W = sparse.csr_matrix(W)
+
         # Don't keep edges of 0 weight. Otherwise Ne will not correspond to the
         # real number of edges. Problematic when e.g. plotting.
-        W = sparse.csr_matrix(W)
-        W.eliminate_zeros()
+        self.W.eliminate_zeros()
 
-        self.N = W.shape[0]
-        self.W = sparse.lil_matrix(W)
+        self.n_nodes = W.shape[0]
+
+        # TODO: why would we ever want this?
+        # For large matrices it slows the graph construction by a factor 100.
+        # self.W = sparse.lil_matrix(self.W)
 
         # Don't count edges two times if undirected.
         # Be consistent with the size of the differential operator.
         if self.is_directed():
-            self.Ne = self.W.nnz
+            self.n_edges = self.W.nnz
         else:
-            self.Ne = sparse.tril(W).nnz
+            diagonal = np.count_nonzero(self.W.diagonal())
+            off_diagonal = self.W.nnz - diagonal
+            self.n_edges = off_diagonal // 2 + diagonal
 
         self.check_weights()
-
-        self.gtype = gtype
 
         self.compute_laplacian(lap_type)
 
@@ -101,6 +103,24 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                          'edge_width': 1,
                          'edge_style': '-'}
         self.plotting.update(plotting)
+
+        # TODO: kept for backward compatibility.
+        self.Ne = self.n_edges
+        self.N = self.n_nodes
+
+    def _get_extra_repr(self):
+        return dict()
+
+    def __repr__(self, limit=None):
+        s = ''
+        for attr in ['n_nodes', 'n_edges']:
+            s += '{}={}, '.format(attr, getattr(self, attr))
+        for i, (key, value) in enumerate(self._get_extra_repr().items()):
+            if (limit is not None) and (i == limit - 2):
+                s += '..., '
+                break
+            s += '{}={}, '.format(key, value)
+        return '{}({})'.format(self.__class__.__name__, s[:-2])
 
     def check_weights(self):
         r"""Check the characteristics of the weights matrix.
@@ -273,7 +293,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         # N = len(ind) # Assigned but never used
 
         sub_W = self.W.tocsr()[ind, :].tocsc()[:, ind]
-        return Graph(sub_W, gtype="sub-{}".format(self.gtype))
+        return Graph(sub_W)
 
     def is_connected(self, recompute=False):
         r"""Check the strong connectivity of the graph (cached).
@@ -495,7 +515,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             elif lap_type == 'normalized':
                 d = np.power(self.dw, -0.5)
                 D = sparse.diags(np.ravel(d), 0).tocsc()
-                self.L = sparse.identity(self.N) - D * self.W * D
+                self.L = sparse.identity(self.n_nodes) - D * self.W * D
 
 
     @property
@@ -628,7 +648,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         else:
             v_in, v_out = sparse.tril(self.W).nonzero()
             weights = self.W[v_in, v_out]
-            weights = weights.toarray().squeeze()
+            weights = np.asarray(weights).squeeze()
 
             # TODO G.ind_edges = sub2ind(size(G.W), G.v_in, G.v_out)
 
@@ -658,29 +678,26 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         fm *= np.sqrt(self.N)
         return fm
 
-    def plot(self, **kwargs):
-        r"""Plot the graph.
+    def plot(self, edges=None, backend=None, vertex_size=None, title=None,
+             save=None, ax=None):
+        r"""Docstring overloaded at import time."""
+        from pygsp.plotting import _plot_graph
+        _plot_graph(self, edges=edges, backend=backend,
+                    vertex_size=vertex_size, title=title, save=save, ax=ax)
 
-        See :func:`pygsp.plotting.plot_graph`.
-        """
-        from pygsp import plotting
-        plotting.plot_graph(self, **kwargs)
+    def plot_signal(self, signal, edges=None, vertex_size=None, highlight=[],
+                    colorbar=True, limits=None, backend=None, title=None,
+                    save=None, ax=None):
+        r"""Docstring overloaded at import time."""
+        from pygsp.plotting import _plot_signal
+        _plot_signal(self, signal=signal, edges=edges, vertex_size=vertex_size,
+                     highlight=highlight, colorbar=colorbar, limits=limits,
+                     backend=backend, title=title, save=save, ax=ax)
 
-    def plot_signal(self, signal, **kwargs):
-        r"""Plot a signal on that graph.
-
-        See :func:`pygsp.plotting.plot_signal`.
-        """
-        from pygsp import plotting
-        plotting.plot_signal(self, signal, **kwargs)
-
-    def plot_spectrogram(self, **kwargs):
-        r"""Plot the graph's spectrogram.
-
-        See :func:`pygsp.plotting.plot_spectrogram`.
-        """
-        from pygsp import plotting
-        plotting.plot_spectrogram(self, **kwargs)
+    def plot_spectrogram(self, node_idx=None):
+        r"""Docstring overloaded at import time."""
+        from pygsp.plotting import _plot_spectrogram
+        _plot_spectrogram(self, node_idx=node_idx)
 
     def _fruchterman_reingold_layout(self, dim=2, k=None, pos=None, fixed=[],
                                      iterations=50, scale=1.0, center=None,

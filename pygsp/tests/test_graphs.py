@@ -315,8 +315,8 @@ class TestCase(unittest.TestCase):
     def test_sensor(self):
         graphs.Sensor(regular=True)
         graphs.Sensor(regular=False)
-        graphs.Sensor(distribute=True)
-        graphs.Sensor(distribute=False)
+        graphs.Sensor(distributed=True)
+        graphs.Sensor(distributed=False)
         graphs.Sensor(connected=True)
         graphs.Sensor(connected=False)
 

@@ -30,5 +30,4 @@ class Logo(Graph):
         plotting = {"limits": np.array([0, 640, -400, 0])}
 
         super(Logo, self).__init__(W=data['W'], coords=data['coords'],
-                                   gtype='LogoGSP', plotting=plotting,
-                                   **kwargs)
+                                   plotting=plotting, **kwargs)

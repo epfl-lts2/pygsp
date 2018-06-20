@@ -42,8 +42,13 @@ class BarabasiAlbert(Graph):
 
     """
     def __init__(self, N=1000, m0=1, m=1, seed=None, **kwargs):
+
         if m > m0:
             raise ValueError('Parameter m cannot be above parameter m0.')
+
+        self.m0 = m0
+        self.m = m
+        self.seed = seed
 
         W = sparse.lil_matrix((N, N))
         rs = np.random.RandomState(seed)
@@ -58,5 +63,7 @@ class BarabasiAlbert(Graph):
                 W[elem, i] = 1
                 W[i, elem] = 1
 
-        super(BarabasiAlbert, self).__init__(
-            W=W, gtype=u"Barabasi-Albert", **kwargs)
+        super(BarabasiAlbert, self).__init__(W=W, **kwargs)
+
+    def _get_extra_repr(self):
+        return dict(m0=self.m0, m=self.m, seed=self.seed)

@@ -58,7 +58,21 @@ class Filter(object):
             kernels = [kernels]
         self._kernels = kernels
 
-        self.Nf = len(kernels)
+        # Only used by subclasses to instantiate a single filterbank.
+        self.n_features_in, self.n_features_out = (1, len(kernels))
+        self.n_filters = self.n_features_in * self.n_features_out
+        self.Nf = self.n_filters  # TODO: kept for backward compatibility only.
+
+    def _get_extra_repr(self):
+        return dict()
+
+    def __repr__(self):
+        attrs = {'in': self.n_features_in, 'out': self.n_features_out}
+        attrs.update(self._get_extra_repr())
+        s = ''
+        for key, value in attrs.items():
+            s += '{}={}, '.format(key, value)
+        return '{}({})'.format(self.__class__.__name__, s[:-2])
 
     def evaluate(self, x):
         r"""Evaluate the kernels at given frequencies.
@@ -497,10 +511,9 @@ class Filter(object):
 
         return Filter(self.G, kernels)
 
-    def plot(self, **kwargs):
-        r"""Plot the filter bank's frequency response.
-
-        See :func:`pygsp.plotting.plot_filter`.
-        """
-        from pygsp import plotting
-        plotting.plot_filter(self, **kwargs)
+    def plot(self, n=500, eigenvalues=None, sum=None, title=None, save=None,
+             ax=None, **kwargs):
+        r"""Docstring overloaded at import time."""
+        from pygsp.plotting import _plot_filter
+        _plot_filter(self, n=n, eigenvalues=eigenvalues, sum=sum, title=title,
+                     save=save, ax=ax, **kwargs)

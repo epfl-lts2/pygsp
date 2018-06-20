@@ -31,5 +31,4 @@ class FullConnected(Graph):
         W = np.ones((N, N)) - np.identity(N)
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
-        super(FullConnected, self).__init__(W=W, gtype='full',
-                                            plotting=plotting, **kwargs)
+        super(FullConnected, self).__init__(W=W, plotting=plotting, **kwargs)

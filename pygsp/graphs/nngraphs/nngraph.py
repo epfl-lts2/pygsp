@@ -224,8 +224,6 @@ class NNGraph(Graph):
         Width parameter of the similarity kernel (default is 0.1)
     epsilon : float, optional
         Radius for the epsilon-neighborhood search (default is 0.01)
-    gtype : string, optional
-        The type of graph (default is 'nearest neighbors')
     plotting : dict, optional
         Dictionary of plotting parameters. See :obj:`pygsp.plotting`.
         (default is {})
@@ -252,8 +250,9 @@ class NNGraph(Graph):
 
     """
 
+
     def __init__(self, Xin, NNtype='knn', backend='scipy-ckdtree', center=True,
-                 rescale=True, k=10, sigma=0.1, epsilon=0.01, gtype=None,
+                 rescale=True, k=10, sigma=0.1, epsilon=0.01,
                  plotting={}, symmetrize_type='average', dist_type='euclidean',
                  order=0, **kwargs):
 
@@ -265,6 +264,7 @@ class NNGraph(Graph):
         self.k = k
         self.sigma = sigma
         self.epsilon = epsilon
+
         _dist_translation['scipy-kdtree']['minkowski'] = order
         _dist_translation['scipy-ckdtree']['minkowski'] = order
 
@@ -285,12 +285,11 @@ class NNGraph(Graph):
                         },
                 } 
         
-        if gtype is None:
-            gtype = 'nearest neighbors'
-        else:
-            gtype = '{}, NNGraph'.format(gtype)
+       
 
         self.symmetrize_type = symmetrize_type
+        self.dist_type = dist_type
+        self.order = order
 
         N, d = np.shape(self.Xin)
         Xout = self.Xin
@@ -341,5 +340,17 @@ class NNGraph(Graph):
         # np.abs(W - W.T).sum() is as costly as the symmetrization itself.
         W = utils.symmetrize(W, method=symmetrize_type)
 
-        super(NNGraph, self).__init__(W=W, gtype=gtype, plotting=plotting,
+        super(NNGraph, self).__init__(W=W, plotting=plotting,
                                       coords=Xout, **kwargs)
+
+    def _get_extra_repr(self):
+        return {'NNtype': self.NNtype,
+                'use_flann': self.use_flann,
+                'center': self.center,
+                'rescale': self.rescale,
+                'k': self.k,
+                'sigma': '{:.2f}'.format(self.sigma),
+                'epsilon': '{:.2f}'.format(self.epsilon),
+                'symmetrize_type': self.symmetrize_type,
+                'dist_type': self.dist_type,
+                'order': self.order}
