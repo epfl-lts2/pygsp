@@ -31,7 +31,7 @@ class Expwin(Filter):
     >>> G = graphs.Ring(N=20)
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
-    >>> g = filters.Expwin(G, band_min=0.1, band_max=0.5)
+    >>> g = filters.Expwin(G, band_min=0.1, band_max=0.7, slope=5)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> g.plot(ax=axes[0])
@@ -71,9 +71,10 @@ class Expwin(Filter):
         super(Expwin, self).__init__(G, g)
 
     def _get_extra_repr(self):
-        attrs = dict(slope='{:.0f}'.format(self.slope))
+        attrs = dict()
         if self.band_min is not None:
             attrs.update(band_min='{:.2f}'.format(self.band_min))
         if self.band_max is not None:
             attrs.update(band_max='{:.2f}'.format(self.band_max))
+        attrs.update(slope='{:.0f}'.format(self.slope))
         return attrs
