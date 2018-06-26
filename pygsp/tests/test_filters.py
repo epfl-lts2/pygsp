@@ -32,7 +32,7 @@ class TestCase(unittest.TestCase):
             S[vertex_delta + i * self._G.N, i] = 1
         return S
 
-    def _test_methods(self, f, tight):
+    def _test_methods(self, f, tight, check=True):
         self.assertIs(f.G, self._G)
 
         f.evaluate(self._G.e)
@@ -51,9 +51,9 @@ class TestCase(unittest.TestCase):
         s4 = f.filter(s2, method='exact')
         s5 = f.filter(s3, method='chebyshev', order=100)
 
-        if f.Nf < 100:
+        if check:
             # Chebyshev should be close to exact.
-            # TODO: does not pass for Gabor.
+            # Does not pass for Gabor and Rectangular (not smooth).
             np.testing.assert_allclose(s2, s3, rtol=0.1, atol=0.01)
             np.testing.assert_allclose(s4, s5, rtol=0.1, atol=0.01)
 
@@ -148,7 +148,7 @@ class TestCase(unittest.TestCase):
 
     def test_gabor(self):
         f = filters.Gabor(self._G, lambda x: x / (1. + x))
-        self._test_methods(f, tight=False)
+        self._test_methods(f, tight=False, check=False)
 
     def test_halfcosine(self):
         f = filters.HalfCosine(self._G, Nf=4)
@@ -214,6 +214,24 @@ class TestCase(unittest.TestCase):
     def test_expwin(self):
         f = filters.Expwin(self._G)
         self._test_methods(f, tight=False)
+
+    def test_rectangular(self):
+        f = filters.Rectangular(self._G)
+        self._test_methods(f, tight=False, check=False)
+        f = filters.Rectangular(self._G, band_min=None, band_max=0.8)
+        self._test_methods(f, tight=False, check=False)
+        f = filters.Rectangular(self._G, band_min=0.1, band_max=None)
+        self._test_methods(f, tight=False, check=False)
+        f = filters.Rectangular(self._G, band_min=0.1, band_max=0.7)
+        self._test_methods(f, tight=False, check=False)
+        f = filters.Rectangular(self._G, band_min=None, band_max=None)
+        self._test_methods(f, tight=True, check=True)
+        self.assertRaises(ValueError, filters.Rectangular, self._G,
+                          band_min=-1)
+        self.assertRaises(ValueError, filters.Rectangular, self._G,
+                          band_max=2)
+        self.assertRaises(ValueError, filters.Rectangular, self._G,
+                          band_min=0.8, band_max=0.5)
 
     def test_approximations(self):
         r"""
