@@ -34,6 +34,8 @@ class Papadakis(Filter):
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
     >>> g = filters.Papadakis(G)
+    >>> print(g)
+    Papadakis(in=1, out=2, a=0.75)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> g.plot(ax=axes[0])

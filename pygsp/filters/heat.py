@@ -34,8 +34,8 @@ class Heat(Filter):
 
     >>> G = graphs.Logo()
     >>> g = filters.Heat(G, tau=[5, 10])
-    >>> print('{} filters'.format(g.Nf))
-    2 filters
+    >>> print(g)
+    Heat(in=1, out=2, tau=[5.00, 10.00], normalize=False)
     >>> y = g.evaluate(G.e)
     >>> print('{:.2f}'.format(np.linalg.norm(y[0])))
     9.76
@@ -54,6 +54,8 @@ class Heat(Filter):
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
     >>> g = filters.Heat(G, tau=[5, 10, 100])
+    >>> print(g)
+    Heat(in=1, out=3, tau=[5.00, 10.00, 100.00], normalize=False)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> g.plot(ax=axes[0])

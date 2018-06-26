@@ -23,6 +23,8 @@ class Gabor(Filter):
     >>> G = graphs.Logo()
     >>> k = lambda x: x / (1. - x)
     >>> g = filters.Gabor(G, k);
+    >>> print(g)
+    Gabor(in=1, out=1130)
 
     """
 

@@ -26,6 +26,8 @@ class HalfCosine(Filter):
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
     >>> g = filters.HalfCosine(G)
+    >>> print(g)
+    HalfCosine(in=1, out=6)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> g.plot(ax=axes[0])
