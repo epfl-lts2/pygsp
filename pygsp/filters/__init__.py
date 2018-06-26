@@ -61,6 +61,7 @@ Then, derived classes implement various common graph filters.
 
 .. autosummary::
 
+    Expwin
     Rectangular
 
 Approximations

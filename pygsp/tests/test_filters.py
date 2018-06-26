@@ -214,6 +214,12 @@ class TestCase(unittest.TestCase):
     def test_expwin(self):
         f = filters.Expwin(self._G)
         self._test_methods(f, tight=False)
+        f = filters.Expwin(self._G, band_min=None, band_max=0.8)
+        self._test_methods(f, tight=False)
+        f = filters.Expwin(self._G, band_min=0.1, band_max=None)
+        self._test_methods(f, tight=False)
+        f = filters.Expwin(self._G, band_min=0.1, band_max=0.7)
+        self._test_methods(f, tight=False)
 
     def test_rectangular(self):
         f = filters.Rectangular(self._G)

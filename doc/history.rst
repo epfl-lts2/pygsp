@@ -22,6 +22,7 @@ Additional features:
 * print(graph) and print(filters) now show valuable information.
 * Building a graph object is much faster.
 * New rectangular filter (low-pass and band-pass).
+* The exponential window has been updated from low-pass only to band-pass.
 
 0.5.1 (2017-12-15)
 ------------------
