@@ -114,7 +114,7 @@ class GraphFourier(object):
             self.logger.warning(
                 'Computing the {0} eigendecomposition of a large matrix ({1} x'
                 ' {1}) is expensive. Consider decreasing n_eigenvectors '
-                'or, if using the Fourier basis as a filter, using a '
+                'or, if using the Fourier basis to filter, using a '
                 'polynomial filter instead.'.format(
                     'full' if n_eigenvectors == self.N else 'partial',
                     self.N))
