@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from scipy import sparse
 
 from pygsp import utils
 
@@ -43,14 +44,17 @@ class GraphFourier(object):
         """
         return self._check_fourier_properties('mu', 'Fourier basis coherence')
 
-    def compute_fourier_basis(self, recompute=False):
-        r"""Compute the Fourier basis of the graph (cached).
+    def compute_fourier_basis(self, n_eigenvectors=None, recompute=False):
+        r"""Compute the (partial) Fourier basis of the graph (cached).
 
         The result is cached and accessible by the :attr:`U`, :attr:`e`,
         :attr:`lmax`, and :attr:`mu` properties.
 
         Parameters
         ----------
+        n_eigenvectors : int or `None`
+            Number of eigenvectors to compute. If `None`, all eigenvectors
+            are computed. (default: None)
         recompute: bool
             Force to recompute the Fourier basis if already existing.
 
@@ -61,13 +65,18 @@ class GraphFourier(object):
 
         .. math:: L = U \Lambda U^*,
 
+        or a partial eigendecomposition of the graph Laplacian :math:`L`
+        such that:
+
+        .. math:: L \approx U \Lambda U^*,
+
         where :math:`\Lambda` is a diagonal matrix of eigenvalues and the
         columns of :math:`U` are the eigenvectors.
 
-        *G.e* is a vector of length *G.N* containing the Laplacian
-        eigenvalues. The largest eigenvalue is stored in *G.lmax*.
-        The eigenvectors are stored as column vectors of *G.U* in the same
-        order that the eigenvalues. Finally, the coherence of the
+        *G.e* is a vector of length `n_eigenvectors` :math:`\le` *G.N*
+        containing the Laplacian eigenvalues. The largest eigenvalue is stored
+        in *G.lmax*. The eigenvectors are stored as column vectors of *G.U* in
+        the same order that the eigenvalues. Finally, the coherence of the
         Fourier basis is found in *G.mu*.
 
         References
@@ -77,6 +86,11 @@ class GraphFourier(object):
         Examples
         --------
         >>> G = graphs.Torus()
+        >>> G.compute_fourier_basis(n_eigenvectors=64)
+        >>> G.U.shape
+        (256, 64)
+        >>> G.e.shape
+        (64,)
         >>> G.compute_fourier_basis()
         >>> G.U.shape
         (256, 256)
@@ -88,24 +102,37 @@ class GraphFourier(object):
         True
 
         """
+        if n_eigenvectors is None:
+            n_eigenvectors = self.N
 
-        if hasattr(self, '_e') and hasattr(self, '_U') and not recompute:
+        if (hasattr(self, '_e') and hasattr(self, '_U') and not recompute
+                and n_eigenvectors <= len(self.e)):
             return
 
         assert self.L.shape == (self.N, self.N)
-        if self.N > 3000:
-            self.logger.warning('Computing the full eigendecomposition of a '
-                                'large matrix ({0} x {0}) may take some '
-                                'time.'.format(self.N))
+        if self.N**2 * n_eigenvectors > 3000**3:
+            self.logger.warning(
+                'Computing the {0} eigendecomposition of a large matrix ({1} x'
+                ' {1}) is expensive. Consider decreasing n_eigenvectors '
+                'or, if using the Fourier basis to filter, using a '
+                'polynomial filter instead.'.format(
+                    'full' if n_eigenvectors == self.N else 'partial',
+                    self.N))
 
-        # TODO: handle non-symmetric Laplatians. Test lap_type?
-
-        self._e, self._U = np.linalg.eigh(self.L.toarray())
+        # TODO: handle non-symmetric Laplacians. Test lap_type?
+        if n_eigenvectors == self.N:
+            self._e, self._U = np.linalg.eigh(self.L.toarray())
+        else:
+            # fast partial eigendecomposition of hermitian matrices
+            self._e, self._U = sparse.linalg.eigsh(self.L,
+                                                   n_eigenvectors,
+                                                   which='SM')
         # Columns are eigenvectors. Sorted in ascending eigenvalue order.
 
         # Smallest eigenvalue should be zero: correct numerical errors.
         # Eigensolver might sometimes return small negative values, which
-        # filter's implementations may not anticipate. Better for plotting too.
+        # filter's implementations may not anticipate. Better for plotting
+        # too.
         assert -1e-12 < self._e[0] < 1e-12
         self._e[0] = 0
 

@@ -75,8 +75,23 @@ class TestCase(unittest.TestCase):
         # assert (self._G.U[0, :] > 0).all()
         # Spectrum bounded by [0, 2] for the normalized Laplacian.
         G = graphs.Logo(lap_type='normalized')
-        G.compute_fourier_basis()
+        n = G.N // 2
+        # check partial eigendecomposition
+        G.compute_fourier_basis(n_eigenvectors=n)
+        assert len(G.e) == n
+        assert G.U.shape[1] == n
         assert G.e[-1] < 2
+        U = G.U
+        e = G.e
+        # check full eigendecomposition
+        G.compute_fourier_basis()
+        assert len(G.e) == G.N
+        assert G.U.shape[1] == G.N
+        assert G.e[-1] < 2
+        # eigsh might flip a sign
+        np.testing.assert_allclose(np.abs(U), np.abs(G.U[:, :n]),
+                                   atol=1e-12)
+        np.testing.assert_allclose(e, G.e[:n])
 
     def test_eigendecompositions(self):
         G = graphs.Logo()
@@ -174,6 +189,8 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('spring')
         G.set_coordinates('spring', dim=3)
         G.set_coordinates('spring', dim=3, pos=G.coords)
+        G.set_coordinates('laplacian_eigenmap2D')
+        G.set_coordinates('laplacian_eigenmap3D')
         self.assertRaises(AttributeError, G.set_coordinates, 'community2D')
         G = graphs.Community()
         G.set_coordinates('community2D')
