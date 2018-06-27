@@ -265,10 +265,10 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                     comm_rad * self.coords[i]
         elif kind == 'laplacian_eigenmap2D':
             self.compute_fourier_basis(n_eigenvectors=2)
-            self.coords = self.U[:, :2]
+            self.coords = self.U[:, 1:3]
         elif kind == 'laplacian_eigenmap3D':
             self.compute_fourier_basis(n_eigenvectors=3)
-            self.coords = self.U[:, :3]
+            self.coords = self.U[:, 1:4]
         else:
             raise ValueError('Unexpected argument kind={}.'.format(kind))
 

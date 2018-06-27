@@ -122,18 +122,19 @@ class GraphFourier(object):
         # TODO: handle non-symmetric Laplacians. Test lap_type?
         if n_eigenvectors == self.N:
             self._e, self._U = np.linalg.eigh(self.L.toarray())
-            # Columns are eigenvectors. Sorted in ascending eigenvalue order.
-
-            # Smallest eigenvalue should be zero: correct numerical errors.
-            # Eigensolver might sometimes return small negative values, which
-            # filter's implementations may not anticipate. Better for plotting
-            # too.
-            assert -1e-12 < self._e[0] < 1e-12
-            self._e[0] = 0
         else:
             # fast partial eigendecomposition of hermitian matrices
             self._e, self._U = sparse.linalg.eigsh(self.L,
-                                                   n_eigenvectors)
+                                                   n_eigenvectors,
+                                                   which='SM')
+        # Columns are eigenvectors. Sorted in ascending eigenvalue order.
+
+        # Smallest eigenvalue should be zero: correct numerical errors.
+        # Eigensolver might sometimes return small negative values, which
+        # filter's implementations may not anticipate. Better for plotting
+        # too.
+        assert -1e-12 < self._e[0] < 1e-12
+        self._e[0] = 0
 
         if self.lap_type == 'normalized':
             # Spectrum bounded by [0, 2].
