@@ -65,16 +65,16 @@ class Filter(object):
         self.n_filters = self.n_features_in * self.n_features_out
         self.Nf = self.n_filters  # TODO: kept for backward compatibility only.
 
-    # def _get_extra_repr(self):
-    #     return dict()
+    def _get_extra_repr(self):
+        return dict()
 
-    # def __repr__(self):
-    #     attrs = {'in': self.n_features_in, 'out': self.n_features_out}
-    #     attrs.update(self._get_extra_repr())
-    #     s = ''
-    #     for key, value in attrs.items():
-    #         s += '{}={}, '.format(key, value)
-    #     return '{}({})'.format(self.__class__.__name__, s[:-2])
+    def __repr__(self):
+        attrs = {'in': self.n_features_in, 'out': self.n_features_out}
+        attrs.update(self._get_extra_repr())
+        s = ''
+        for key, value in attrs.items():
+            s += '{}={}, '.format(key, value)
+        return '{}({})'.format(self.__class__.__name__, s[:-2])
 
     def evaluate(self, x, method=None):
         r"""Evaluate the kernels at given frequencies.
