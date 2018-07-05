@@ -31,12 +31,15 @@ class Grid2dImgPatches(Graph):
 
     def __init__(self, img, aggregate=lambda Wp, Wg: Wp + Wg, **kwargs):
 
-        Gg = Grid2d(img.shape[0], img.shape[1])
-        Gp = ImgPatches(img, **kwargs)
+        self.Gg = Grid2d(img.shape[0], img.shape[1])
+        self.Gp = ImgPatches(img, **kwargs)
 
-        gtype = '{}_{}'.format(Gg.gtype, Gp.gtype)
+        W = aggregate(self.Gp.W, self.Gg.W)
+        super(Grid2dImgPatches, self).__init__(W=W,
+                                               coords=self.Gg.coords,
+                                               plotting=self.Gg.plotting)
 
-        super(Grid2dImgPatches, self).__init__(W=aggregate(Gp.W, Gg.W),
-                                               gtype=gtype,
-                                               coords=Gg.coords,
-                                               plotting=Gg.plotting)
+    def _get_extra_repr(self):
+        attrs = self.Gg._get_extra_repr()
+        attrs.update(self.Gp._get_extra_repr())
+        return attrs

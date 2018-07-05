@@ -20,9 +20,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     ----------
     W : sparse matrix or ndarray
         The weight matrix which encodes the graph.
-    gtype : string
-        Graph type, a free-form string to help us recognize the kind of graph
-        we are dealing with (default is 'unknown').
     lap_type : 'combinatorial', 'normalized'
         The type of Laplacian to be computed by :func:`compute_laplacian`
         (default is 'combinatorial').
@@ -43,9 +40,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         It is represented as an N-by-N matrix of floats.
         :math:`W_{i,j} = 0` means that there is no direct connection from
         i to j.
-    gtype : string
-        the graph type is a short description of the graph object designed to
-        help sorting the graphs.
     L : sparse matrix
         the graph Laplacian, an N-by-N matrix computed from W.
     lap_type : 'normalized', 'combinatorial'
@@ -63,8 +57,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
     """
 
-    def __init__(self, W, gtype='unknown', lap_type='combinatorial',
-                 coords=None, plotting={}):
+    def __init__(self, W, lap_type='combinatorial', coords=None, plotting={}):
 
         self.logger = utils.build_logger(__name__)
 
@@ -82,7 +75,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         # real number of edges. Problematic when e.g. plotting.
         self.W.eliminate_zeros()
 
-        self.N = W.shape[0]
+        self.n_nodes = W.shape[0]
 
         # TODO: why would we ever want this?
         # For large matrices it slows the graph construction by a factor 100.
@@ -91,15 +84,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         # Don't count edges two times if undirected.
         # Be consistent with the size of the differential operator.
         if self.is_directed():
-            self.Ne = self.W.nnz
+            self.n_edges = self.W.nnz
         else:
             diagonal = np.count_nonzero(self.W.diagonal())
             off_diagonal = self.W.nnz - diagonal
-            self.Ne = off_diagonal // 2 + diagonal
+
+        self.n_edges = off_diagonal // 2 + diagonal
 
         self.check_weights()
-
-        self.gtype = gtype
 
         self.compute_laplacian(lap_type)
 
@@ -112,6 +104,24 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                          'edge_width': 1,
                          'edge_style': '-'}
         self.plotting.update(plotting)
+
+        # TODO: kept for backward compatibility.
+        self.Ne = self.n_edges
+        self.N = self.n_nodes
+
+    def _get_extra_repr(self):
+        return dict()
+
+    def __repr__(self, limit=None):
+        s = ''
+        for attr in ['n_nodes', 'n_edges']:
+            s += '{}={}, '.format(attr, getattr(self, attr))
+        for i, (key, value) in enumerate(self._get_extra_repr().items()):
+            if (limit is not None) and (i == limit - 2):
+                s += '..., '
+                break
+            s += '{}={}, '.format(key, value)
+        return '{}({})'.format(self.__class__.__name__, s[:-2])
 
     def check_weights(self):
         r"""Check the characteristics of the weights matrix.
@@ -178,7 +188,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             nodes when plotting the graph. Can either pass an array of size Nx2
             or Nx3 to set the coordinates manually or the name of a layout
             algorithm. Available algorithms: community2D, random2D, random3D,
-            ring2D, line1D, spring. Default is 'spring'.
+            ring2D, line1D, spring, laplacian_eigenmap2D, laplacian_eigenmap3D.
+            Default is 'spring'.
         kwargs : dict
             Additional parameters to be passed to the Fruchterman-Reingold
             force-directed algorithm when kind is spring.
@@ -253,9 +264,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                 comm_rad = np.sqrt(self.info['comm_sizes'][comm_idx])
                 self.coords[i] = self.info['com_coords'][comm_idx] + \
                     comm_rad * self.coords[i]
-
+        elif kind == 'laplacian_eigenmap2D':
+            self.compute_fourier_basis(n_eigenvectors=2)
+            self.coords = self.U[:, 1:3]
+        elif kind == 'laplacian_eigenmap3D':
+            self.compute_fourier_basis(n_eigenvectors=3)
+            self.coords = self.U[:, 1:4]
         else:
-            raise ValueError('Unexpected argument king={}.'.format(kind))
+            raise ValueError('Unexpected argument kind={}.'.format(kind))
 
     def subgraph(self, ind):
         r"""Create a subgraph given indices.
@@ -284,7 +300,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         # N = len(ind) # Assigned but never used
 
         sub_W = self.W.tocsr()[ind, :].tocsc()[:, ind]
-        return Graph(sub_W, gtype="sub-{}".format(self.gtype))
+        return Graph(sub_W)
 
     def is_connected(self, recompute=False):
         r"""Check the strong connectivity of the graph (cached).
@@ -506,8 +522,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             elif lap_type == 'normalized':
                 d = np.power(self.dw, -0.5)
                 D = sparse.diags(np.ravel(d), 0).tocsc()
-                self.L = sparse.identity(self.N) - D * self.W * D
-
+                self.L = sparse.identity(self.n_nodes) - D * self.W * D
 
     @property
     def A(self):

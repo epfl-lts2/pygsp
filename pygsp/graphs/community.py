@@ -62,7 +62,7 @@ class Community(Graph):
                  N=256,
                  Nc=None,
                  min_comm=None,
-                 min_deg=0,
+                 min_deg=None,
                  comm_sizes=None,
                  size_ratio=1,
                  world_density=None,
@@ -76,12 +76,25 @@ class Community(Graph):
             Nc = int(round(np.sqrt(N) / 2))
         if min_comm is None:
             min_comm = int(round(N / (3 * Nc)))
+        if min_deg is not None:
+            raise NotImplementedError
         if world_density is None:
             world_density = 1 / N
         if not 0 <= world_density <= 1:
             raise ValueError('World density should be in [0, 1].')
         if epsilon is None:
             epsilon = np.sqrt(2 * np.sqrt(N)) / 2
+
+        self.Nc = Nc
+        self.min_comm = min_comm
+        self.comm_sizes = comm_sizes
+        self.size_ratio = size_ratio
+        self.world_density = world_density
+        self.comm_density = comm_density
+        self.k_neigh = k_neigh
+        self.epsilon = epsilon
+        self.seed = seed
+
         rs = np.random.RandomState(seed)
 
         self.logger = utils.build_logger(__name__)
@@ -113,8 +126,8 @@ class Community(Graph):
         # Intra-community edges construction #
         if comm_density is not None:
             # random picking edges following the community density (same for all communities)
-            comm_density = float(comm_density)
-            comm_density = comm_density if 0. <= comm_density <= 1. else 0.1
+            if not 0 <= comm_density <= 1:
+                raise ValueError('comm_density should be between 0 and 1.')
             info['comm_density'] = comm_density
             self.logger.info('Constructed using community density = {}'.format(comm_density))
         elif k_neigh is not None:
@@ -223,4 +236,19 @@ class Community(Graph):
         for key, value in {'Nc': Nc, 'info': info}.items():
             setattr(self, key, value)
 
-        super(Community, self).__init__(W=W, gtype='Community', coords=coords, **kwargs)
+        super(Community, self).__init__(W=W, coords=coords, **kwargs)
+
+    def _get_extra_repr(self):
+        attrs = {'Nc': self.Nc,
+                 'min_comm': self.min_comm,
+                 'comm_sizes': self.comm_sizes,
+                 'size_ratio': '{:.2f}'.format(self.size_ratio),
+                 'world_density': '{:.2f}'.format(self.world_density)}
+        if self.comm_density is not None:
+            attrs['comm_density'] = '{:.2f}'.format(self.comm_density)
+        elif self.k_neigh is not None:
+            attrs['k_neigh'] = self.k_neigh
+        else:
+            attrs['epsilon'] = '{:.2f}'.format(self.epsilon)
+        attrs['seed'] = self.seed
+        return attrs

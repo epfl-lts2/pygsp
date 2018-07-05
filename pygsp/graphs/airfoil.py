@@ -35,4 +35,4 @@ class Airfoil(Graph):
                                         -1e-4, 1.01*data['y'].max()])}
 
         super(Airfoil, self).__init__(W=W, coords=coords, plotting=plotting,
-                                      gtype='Airfoil', **kwargs)
+                                      **kwargs)

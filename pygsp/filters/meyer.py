@@ -46,14 +46,15 @@ class Meyer(Filter):
 
         if scales is None:
             scales = (4./(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
+        self.scales = scales
 
         if len(scales) != Nf - 1:
             raise ValueError('len(scales) should be Nf-1.')
 
-        g = [lambda x: kernel(scales[0] * x, 'scaling_function')]
+        kernels = [lambda x: kernel(scales[0] * x, 'scaling_function')]
 
         for i in range(Nf - 1):
-            g.append(lambda x, i=i: kernel(scales[i] * x, 'wavelet'))
+            kernels.append(lambda x, i=i: kernel(scales[i] * x, 'wavelet'))
 
         def kernel(x, kernel_type):
             r"""
@@ -90,4 +91,4 @@ class Meyer(Filter):
 
             return r
 
-        super(Meyer, self).__init__(G, g)
+        super(Meyer, self).__init__(G, kernels)

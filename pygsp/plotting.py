@@ -192,7 +192,7 @@ def _plot_graph(G, edges, backend, vertex_size, title, save, ax):
         vertex_size = G.plotting['vertex_size']
 
     if title is None:
-        title = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
+        title = G.__repr__(limit=4)
 
     G = _handle_directed(G)
 
@@ -316,8 +316,7 @@ def _qtg_plot_graph(G, edges, vertex_size, title):
             _qtg_widgets.append(widget)
 
 
-@_plt_handle_figure
-def _plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
+def _plot_filter(filters, n, eigenvalues, sum, title, save, ax, **kwargs):
     r"""Plot the spectral response of a filter bank, a set of graph filters.
 
     Parameters
@@ -357,18 +356,27 @@ def _plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
 
     """
 
-    G = filters.G
-
     if eigenvalues is None:
-        eigenvalues = hasattr(G, '_e')
+        eigenvalues = hasattr(filters.G, '_e')
+
     if sum is None:
-        sum = filters.Nf > 1
+        sum = filters.n_filters > 1
+
+    if title is None:
+        title = repr(filters)
+
+    _plt_plot_filter(filters, n=n, eigenvalues=eigenvalues, sum=sum,
+                     title=title, save=save, ax=ax, **kwargs)
+
+
+@_plt_handle_figure
+def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
 
     if eigenvalues:
-        for e in G.e:
+        for e in filters.G.e:
             ax.axvline(x=e, color=[0.9]*3, linewidth=1)
 
-    x = np.linspace(0, G.lmax, n)
+    x = np.linspace(0, filters.G.lmax, n)
     # Plot all filters on one figure. A user can plot a single filterbank with
     # filter[1].plot() or a single filter with filter[1, 3].plot().
     y = filters.evaluate(x).reshape((-1, n)).T
@@ -379,8 +387,8 @@ def _plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
     if sum:
         ax.plot(x, np.sum(y**2, 1), 'k', **kwargs)
 
-    ax.set_xlabel("$\lambda$: laplacian's eigenvalues / graph frequencies")
-    ax.set_ylabel('$\hat{g}(\lambda)$: filter response')
+    ax.set_xlabel(r"$\lambda$: laplacian's eigenvalues / graph frequencies")
+    ax.set_ylabel(r'$\hat{g}(\lambda)$: filter response')
 
 
 def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
@@ -460,7 +468,7 @@ def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
         vertex_size = G.plotting['vertex_size']
 
     if title is None:
-        title = u'{}\nG.N={} nodes, G.Ne={} edges'.format(G.gtype, G.N, G.Ne)
+        title = G.__repr__(limit=4)
 
     if limits is None:
         limits = [1.05*signal.min(), 1.05*signal.max()]
@@ -657,7 +665,7 @@ def _plot_spectrogram(G, node_idx):
     spectr = (spectr.astype(float) - min_spec) / (max_spec - min_spec)
 
     w = qtg.GraphicsWindow()
-    w.setWindowTitle("Spectrogram of {}".format(G.gtype))
+    w.setWindowTitle("Spectrogram of {}".format(G.__repr__(limit=4)))
     label = 'frequencies {}:{:.2f}:{:.2f}'.format(0, G.lmax/M, G.lmax)
     v = w.addPlot(labels={'bottom': 'nodes',
                           'left': label})

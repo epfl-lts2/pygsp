@@ -49,6 +49,15 @@ class SwissRoll(Graph):
         if s is None:
             s = np.sqrt(2. / N)
 
+        self.a = a
+        self.b = b
+        self.dim = dim
+        self.thresh = thresh
+        self.s = s
+        self.noise = noise
+        self.srtype = srtype
+        self.seed = seed
+
         rs = np.random.RandomState(seed)
         y1 = rs.rand(N)
         y2 = rs.rand(N)
@@ -83,8 +92,17 @@ class SwissRoll(Graph):
             'azimuth': -90,
             'distance': 7,
         }
-        gtype = 'swiss roll {}'.format(srtype)
 
         super(SwissRoll, self).__init__(W=W, coords=coords.T,
-                                        plotting=plotting, gtype=gtype,
+                                        plotting=plotting,
                                         **kwargs)
+
+    def _get_extra_repr(self):
+        return {'a': self.a,
+                'b': self.b,
+                'dim': self.dim,
+                'thresh': '{:.0e}'.format(self.thresh),
+                's': '{:.2f}'.format(self.s),
+                'noise': self.noise,
+                'srtype': self.srtype,
+                'seed': self.seed}

@@ -30,6 +30,8 @@ class Comet(Graph):
 
     def __init__(self, N=32, k=12, **kwargs):
 
+        self.k = k
+
         # Create weighted adjacency matrix
         i_inds = np.concatenate((np.zeros((k)), np.arange(k) + 1,
                                  np.arange(k, N - 1),
@@ -47,12 +49,13 @@ class Comet(Graph):
         tmpcoords[1:k + 1, 1] = np.sin(inds*2*np.pi/k)
         tmpcoords[k + 1:, 0] = np.arange(1, N - k) + 1
 
-        self.N = N
-        self.k = k
         plotting = {"limits": np.array([-2,
                                         np.max(tmpcoords[:, 0]),
                                         np.min(tmpcoords[:, 1]),
                                         np.max(tmpcoords[:, 1])])}
 
-        super(Comet, self).__init__(W=W, coords=tmpcoords, gtype='Comet',
+        super(Comet, self).__init__(W=W, coords=tmpcoords,
                                     plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        return dict(k=self.k)

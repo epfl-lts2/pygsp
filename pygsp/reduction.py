@@ -56,7 +56,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
     Examples
     --------
     >>> from pygsp import reduction
-    >>> G = graphs.Sensor(256, Nc=20, distribute=True)
+    >>> G = graphs.Sensor(256, Nc=20, distributed=True)
     >>> epsilon = 0.4
     >>> G2 = reduction.graph_sparsify(G, epsilon)
 
@@ -362,7 +362,7 @@ def kron_reduction(G, ind):
 
         coords = G.coords[ind, :] if len(G.coords.shape) else np.ndarray(None)
         Gnew = graphs.Graph(W=Wnew, coords=coords, lap_type=G.lap_type,
-                            plotting=G.plotting, gtype='Kron reduction')
+                            plotting=G.plotting)
     else:
         Gnew = Lnew
 
@@ -712,7 +712,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         depths = depths/2.
 
         # Store new tree
-        Gtemp = graphs.Graph(new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, gtype='tree', root=new_root)
+        Gtemp = graphs.Graph(new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, root=new_root)
         #Gs[lev].copy_graph_attributes(Gtemp, False)
 
         if compute_full_eigen:

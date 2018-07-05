@@ -56,6 +56,14 @@ Then, derived classes implement various common graph filters.
 
     Heat
     Expwin
+    Rectangular
+
+**Band pass filters**
+
+.. autosummary::
+
+    Expwin
+    Rectangular
 
 Approximations
 --------------
@@ -102,6 +110,7 @@ _FILTERS = [
     'MexicanHat',
     'Meyer',
     'Papadakis',
+    'Rectangular',
     'Regular',
     'Simoncelli',
     'SimpleTight',

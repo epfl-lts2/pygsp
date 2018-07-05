@@ -38,6 +38,9 @@ class Torus(Graph):
         if Mv is None:
             Mv = Nv
 
+        self.Nv = Nv
+        self.Mv = Mv
+
         # Create weighted adjancency matrix
         K = 2 * Nv
         J = 2 * Mv
@@ -83,13 +86,14 @@ class Torus(Graph):
                                  np.reshape(ytmp, (Mv*Nv, 1), order='F'),
                                  np.reshape(ztmp, (Mv*Nv, 1), order='F')),
                                 axis=1)
-        self.Nv = Nv
-        self.Mv = Nv
 
         plotting = {
             'vertex_size': 60,
             'limits': np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])
         }
 
-        super(Torus, self).__init__(W=W, gtype='Torus', coords=coords,
+        super(Torus, self).__init__(W=W, coords=coords,
                                     plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        return dict(Nv=self.Nv, Mv=self.Mv)

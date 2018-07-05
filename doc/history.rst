@@ -26,12 +26,20 @@ The plotting interface was updated to be more user-friendly. First, the
 documentation is now shown for filters.plot(), G.plot(), and co. Second, the
 API in the plotting library has been deprecated. That module is now mostly for
 implementation only. Finally, the following parameter names were changed:
+
 * plot_name => title
 * plot_eigenvalues => eigenvalues
 * show_sum => sum
 * show_edges => edges
 * npoints => n
 * save_as => save
+
+Additional features:
+
+* print(graph) and print(filters) now show valuable information.
+* Building a graph object is much faster.
+* New rectangular filter (low-pass and band-pass).
+* The exponential window has been updated from low-pass only to band-pass.
 
 0.5.1 (2017-12-15)
 ------------------

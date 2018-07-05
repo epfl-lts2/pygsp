@@ -29,7 +29,7 @@ class MexicanHat(Filter):
     G : graph
     Nf : int
         Number of filters to cover the interval [0, lmax].
-    lpfactor : int
+    lpfactor : float
         Low-pass factor. lmin=lmax/lpfactor will be used to determine scales.
         The scaling function will be created to fill the low-pass gap.
     scales : array-like
@@ -57,10 +57,14 @@ class MexicanHat(Filter):
 
     def __init__(self, G, Nf=6, lpfactor=20, scales=None, normalize=False):
 
+        self.lpfactor = lpfactor
+        self.normalize = normalize
+
         lmin = G.lmax / lpfactor
 
         if scales is None:
             scales = utils.compute_log_scales(lmin, G.lmax, Nf-1)
+        self.scales = scales
 
         if len(scales) != Nf - 1:
             raise ValueError('len(scales) should be Nf-1.')
@@ -82,3 +86,7 @@ class MexicanHat(Filter):
             kernels.append(kernel)
 
         super(MexicanHat, self).__init__(G, kernels)
+
+    def _get_extra_repr(self):
+        return dict(lpfactor='{:.2f}'.format(self.lpfactor),
+                    normalize=self.normalize)

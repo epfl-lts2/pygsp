@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import numpy as np
 
 from . import Filter  # prevent circular import in Python < 3.5
@@ -29,7 +31,7 @@ class Regular(Filter):
     Parameters
     ----------
     G : graph
-    d : float
+    degree : float
         Degree (default = 3). See above equations.
 
     Examples
@@ -48,21 +50,26 @@ class Regular(Filter):
     >>> G.plot_signal(s, ax=axes[1])
 
     """
-    def __init__(self, G, d=3):
 
-        g = [lambda x: regular(x * (2./G.lmax), d)]
-        g.append(lambda x: np.real(np.sqrt(1 - (regular(x * (2./G.lmax), d))
-                                           ** 2)))
+    def __init__(self, G, degree=3):
 
-        def regular(val, d):
-            if d == 0:
-                return np.sin(np.pi / 4.*val)
+        self.degree = degree
+
+        kernels = [lambda x: regular(x * (2/G.lmax), degree)]
+        def dual(x):
+            y = regular(x * (2/G.lmax), degree)
+            return np.real(np.sqrt(1 - y**2))
+        kernels.append(dual)
+
+        def regular(val, degree):
+            if degree == 0:
+                return np.sin(np.pi / 4*val)
 
             else:
-                output = np.sin(np.pi*(val - 1) / 2.)
-                for i in range(2, d):
-                    output = np.sin(np.pi*output / 2.)
+                output = np.sin(np.pi*(val - 1) / 2)
+                for i in range(2, degree):
+                    output = np.sin(np.pi*output / 2)
 
-                return np.sin(np.pi / 4.*(1 + output))
+                return np.sin(np.pi / 4*(1 + output))
 
-        super(Regular, self).__init__(G, g)
+        super(Regular, self).__init__(G, kernels)
