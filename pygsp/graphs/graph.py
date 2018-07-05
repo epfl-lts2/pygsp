@@ -88,8 +88,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         else:
             diagonal = np.count_nonzero(self.W.diagonal())
             off_diagonal = self.W.nnz - diagonal
-
-        self.n_edges = off_diagonal // 2 + diagonal
+            self.n_edges = off_diagonal // 2 + diagonal
 
         self.check_weights()
 
