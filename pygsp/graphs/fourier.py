@@ -141,8 +141,9 @@ class GraphFourier(object):
             assert self._e[-1] <= 2
 
         assert np.max(self._e) == self._e[-1]
-        self._lmax = self._e[-1]
-        self._mu = np.max(np.abs(self._U))
+        if n_eigenvectors == self.N:
+            self._lmax = self._e[-1]
+            self._mu = np.max(np.abs(self._U))
 
     def gft(self, s):
         r"""Compute the graph Fourier transform.
