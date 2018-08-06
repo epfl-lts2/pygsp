@@ -477,7 +477,7 @@ class Filter(object):
         >>> s1 = s1.reshape(G.N, -1)
         >>>
         >>> s2 = f.filter(s)
-        >>> np.all((s1 - s2) < 1e-10)
+        >>> np.all(np.abs(s1 - s2) < 1e-10)
         True
 
         """
