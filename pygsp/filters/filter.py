@@ -574,6 +574,7 @@ class Filter(object):
         >>> s1 = gL.dot(s)
         >>> s1 = s1.reshape(G.N, -1, order='F')
         >>>
+<<<<<<< HEAD
         >>> s2 = g.filter(s)
         >>> np.all(np.abs(s1 - s2) < 1e-10)
         True
@@ -589,6 +590,10 @@ class Filter(object):
         >>> gL.shape
         (600, 100)
         >>> np.all(gL.T.dot(gL) - np.identity(G.N) < 1e-10)
+=======
+        >>> s2 = f.filter(s)
+        >>> np.all(np.abs(s1 - s2) < 1e-10)
+>>>>>>> checking for small difference between matrix require an absolute value
         True
 
         """
