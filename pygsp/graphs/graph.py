@@ -122,6 +122,23 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             s += '{}={}, '.format(key, value)
         return '{}({})'.format(self.__class__.__name__, s[:-2])
 
+    def to_networkx(self):
+        r"""Doc TODO"""
+        import networkx as nx
+        return nx.from_scipy_sparse_matrix(self.W)
+
+    def to_graphtool(self, directed=False):
+        r"""Doc TODO"""
+        ##from graph_tool.all import *
+        import graph_tool
+        g = graph_tool.Graph(directed=directed)
+        nonzero = self.W.nonzero()
+        g.add_edge_list(np.transpose(nonzero))
+        edge_weight = g.new_edge_property("double")
+        edge_weight.a = np.squeeze(np.array(self.W[nonzero]))
+        g.edge_properties["weight"] = edge_weight
+        return g
+
     def check_weights(self):
         r"""Check the characteristics of the weights matrix.
 
