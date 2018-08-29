@@ -190,6 +190,47 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             s += '{}={}, '.format(key, value)
         return '{}({})'.format(self.__class__.__name__, s[:-2])
 
+    def to_networkx(self):
+        r"""Doc TODO"""
+        import networkx as nx
+        return nx.from_scipy_sparse_matrix(self.W)
+
+    def to_graphtool(self, directed=False):
+        r"""Doc TODO"""
+        ##from graph_tool.all import *
+        import graph_tool
+        g = graph_tool.Graph(directed=directed) #TODO check for undirected graph
+        nonzero = self.W.nonzero()
+        g.add_edge_list(np.transpose(nonzero))
+        edge_weight = g.new_edge_property("double")
+        edge_weight.a = np.squeeze(np.array(self.W[nonzero]))
+        g.edge_properties["weight"] = edge_weight
+        return g
+
+    @classmethod
+    def from_networkx(cls, graph_nx):
+        r"""Doc TODO"""
+        import networkx as nx
+        A = nx.to_scipy_sparse_matrix(graph_nx)
+        G = cls(A)
+        return G
+
+    @classmethod
+    def from_graphtool(cls, graph_gt):
+        r"""Doc TODO"""
+        nb_vertex = len(graph_gt.get_vertices())
+        edge_weight = np.ones(nb_vertex)
+        W = np.zeros(shape=(nb_vertex, nb_vertex))
+
+        props_names = graph_gt.edge_properties.keys()
+        if "weight" in props_names:
+            prop = graph_gt.edge_properties["weight"]
+            edge_weight = prop.get_array()
+        
+        for e in graph_gt.get_edges():
+            W[e[0], e[1]] = edge_weight[e[2]]
+        return cls(W)        
+
 
     def check_weights(self):
         r"""Check the characteristics of the weights matrix.
