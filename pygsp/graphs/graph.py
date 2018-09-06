@@ -123,33 +123,80 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return '{}({})'.format(self.__class__.__name__, s[:-2])
 
     def to_networkx(self):
-        r"""Doc TODO"""
+        r"""Export the graph to an `Networkx <https://networkx.github.io>`_ object 
+
+        Returns
+        -------
+        g_nx : `Graph <https://networkx.github.io/documentation/stable/reference/classes/graph.html>`_
+        """
         import networkx as nx
         return nx.from_scipy_sparse_matrix(self.W)
 
-    def to_graphtool(self, directed=False):
-        r"""Doc TODO"""
+    def to_graphtool(self, edge_prop_name='weight', directed=True):
+        r"""Export the graph to an `Graph tool <https://graph-tool.skewed.de/>`_ object
+        The weights of the graph are stored in a `property maps <https://graph-tool.skewed.de/static/doc/quickstart.html#internal-property-maps>`_ 
+        of type double
+
+        
+        Parameters
+        ----------
+        edge_prop_name : string 
+            Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_.
+            By default it is set to `weight`
+        directed : bool
+            Indicate if the graph is `directed <https://en.wikipedia.org/wiki/Directed_graph>`_
+
+        Returns
+        -------
+        g_gt : `Graph <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph>`_
+        """
         ##from graph_tool.all import *
         import graph_tool
-        g = graph_tool.Graph(directed=directed) #TODO check for undirected graph
+        g_gt = graph_tool.Graph(directed=directed) #TODO check for undirected graph
         nonzero = self.W.nonzero()
-        g.add_edge_list(np.transpose(nonzero))
-        edge_weight = g.new_edge_property("double")
+        g_gt.add_edge_list(np.transpose(nonzero))
+        edge_weight = g_gt.new_edge_property('double')
         edge_weight.a = np.squeeze(np.array(self.W[nonzero]))
-        g.edge_properties["weight"] = edge_weight
-        return g
+        g_gt.edge_properties[edge_prop_name] = edge_weight
+        return g_gt
 
     @classmethod
     def from_networkx(cls, graph_nx):
-        r"""Doc TODO"""
+        r"""Build a graph from a Networkx object
+                
+        Parameters
+        ----------
+        graph_nx : Graph
+            A netowrkx instance of a graph
+        
+        Returns
+        -------
+        g : :class:`~pygsp.graphs.Graph`
+        """
+
         import networkx as nx
         A = nx.to_scipy_sparse_matrix(graph_nx)
         G = cls(A)
         return G
 
     @classmethod
-    def from_graphtool(cls, graph_gt):
-        r"""Doc TODO"""
+    def from_graphtool(cls, graph_gt, edge_prop_name='weight'):
+        r"""Build a graph from a graph tool object.
+        
+        Parameters
+        ----------
+        graph_gt : Graph
+            Graph tool object
+        edge_prop_name : string
+            Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_ 
+            to be loaded as weight for the graph
+        
+        Returns
+        -------
+        g : :class:`~pygsp.graphs.Graph`
+            The weight of the graph are loaded from the edge property named ``edge_prop_name``
+        
+        """
         nb_vertex = len(graph_gt.get_vertices())
         edge_weight = np.ones(nb_vertex)
         W = np.zeros(shape=(nb_vertex, nb_vertex))
