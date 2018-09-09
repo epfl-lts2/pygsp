@@ -208,7 +208,89 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         
         for e in graph_gt.get_edges():
             W[e[0], e[1]] = edge_weight[e[2]]
-        return cls(W)        
+        return cls(W)
+
+    @classmethod
+    def load(cls, path, fmt='auto', lib='networkx'):
+        r"""Load a graph from a file using networkx for import. 
+        The format is guessed from path, or can be specified by fmt
+
+        Parameters
+        ----------
+            path : String
+                Where the file is located on the disk.
+            fmt : String
+                Format in which the graph is encoded. Currently supported format are:
+                    GML, gpickle.
+            lib : String
+                Python library used in background to load the graph.
+                Supported library are networkx and graph_tool 
+        
+        Returns
+        -------
+            g : :class:`~pygsp.graphs.Graph`
+
+        """
+        if fmt == 'auto':
+            fmt = path.split('.')[-1]
+
+        exec('import ' + lib)
+
+        err = NotImplementedError('{} can not be load with {}. \
+        Try another background library'.format(fmt, lib))
+
+        if fmt == 'gml':
+            if lib == 'networkx':
+                g = networkx.read_gml(path)
+                return from_networkx(g)
+            if lib == 'graph_tool':
+                g = graph_tool.load_graph(path, fmt=fmt)
+                return from_graphtool(g)
+            raise err
+
+        if fmt in ['gpickle', 'p', 'pkl', 'pickle']:
+            if lib == 'networkx':
+                g = networkx.read_gpickle(path)
+                return from_networkx(g)
+            raise err
+        
+        raise NotImplementedError('the format {} is not suported'.format(fmt))
+
+    def save(self, path, fmt='auto', lib='networkx'):
+        r"""Save the graph into a file
+        
+        Parameters
+        ----------
+            path : String
+                Where to save file on the disk.
+            fmt : String
+                Format in which the graph will be encoded. The format is guessed from
+                the `path` extention when fmt is set to 'auto'
+                Currently supported format are:
+                    GML, gpickle.
+            lib : String
+                Python library used in background to save the graph.
+                Supported library are networkx and graph_tool 
+
+
+        """
+        if fmt == 'auto':
+           fmt = path.split('.')[-1]
+
+        exec('import ' + lib)
+
+        if fmt == 'gml':
+            if lib == 'networkx':
+                g = to_networkx()
+                networkx.write_gml(g, path)
+                return
+            if lib == 'graph_tool':
+                g = to_graphtool()
+                g.save(path, fmt=fmt)
+            raise err
+            
+        raise NotImplementedError('the format {} is not suported'.format(fmt))
+
 
 
     def check_weights(self):
