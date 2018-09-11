@@ -9,6 +9,7 @@ import unittest
 
 import numpy as np
 import scipy.linalg
+import random
 from skimage import data, img_as_float
 
 from pygsp import graphs
@@ -341,15 +342,22 @@ class TestCase(unittest.TestCase):
         new_bunny = graphs.Graph.from_graphtool(gt_bunny)
         np.testing.assert_array_equal(bunny.W.todense(),new_bunny.W.todense())
 
+        #create a random graphTool graph
         g = gt.Graph()
         g.add_vertex(100)
         # insert some random links
-        for s,t in zip(np.random.randint(0, 100, 100),
-            np.random.randint(0, 100, 100)):
+        eprop_double = g.new_edge_property("double")
+        for s, t in zip(np.random.randint(0, 100, 100),
+                        np.random.randint(0, 100, 100)):
             g.add_edge(g.vertex(s), g.vertex(t))
-        # this assigns random values to the vertex properties
-        vprop_double = g.new_vertex_property("double") 
+
+        for e in g.edges():
+            eprop_double[e] = random.random()
+        g.edge_properties["weight"] = eprop_double
+        # this assigns random values to the vertex properties (this is a signal)
+        vprop_double = g.new_vertex_property("double")
         vprop_double.get_array()[:] = np.random.random(g.num_vertices())
+        g.vertex_properties["signal"] = vprop_double
 
         new_g = graphs.Graph.from_graphtool(g).to_graphtool()
         key = lambda e: str(e.source()) + ":" + str(e.target())
