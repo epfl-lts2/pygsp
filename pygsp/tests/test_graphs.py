@@ -731,210 +731,38 @@ class TestImportExport(unittest.TestCase):
 
     @unittest.skipIf(sys.version_info < (3,), 'old graph-tool')
     def test_graphtool_import_export(self):
-        # Import to PyGSP and export again to graph tool directly
-        # create a random graphTool graph that does not contain multiple edges and no signal
-        graph_gt = gt.generation.random_graph(100, lambda : (np.random.poisson(4), np.random.poisson(4)))
+        import graph_tool as gt
+        bunny = graphs.Bunny()
+        gt_bunny = bunny.to_graphtool()
+        new_bunny = graphs.Graph.from_graphtool(gt_bunny)
+        np.testing.assert_array_equal(bunny.W.todense(),new_bunny.W.todense())
 
-        eprop_double = graph_gt.new_edge_property("double")
-        for e in graph_gt.edges():
+        #create a random graphTool graph
+        g = gt.Graph()
+        g.add_vertex(100)
+        # insert some random links
+        eprop_double = g.new_edge_property("double")
+        for s, t in zip(np.random.randint(0, 100, 100),
+                        np.random.randint(0, 100, 100)):
+            g.add_edge(g.vertex(s), g.vertex(t))
+
+        for e in g.edges():
             eprop_double[e] = random.random()
-        graph_gt.edge_properties["weight"] = eprop_double
+        g.edge_properties["weight"] = eprop_double
+        # this assigns random values to the vertex properties (this is a signal)
+        vprop_double = g.new_vertex_property("double")
+        vprop_double.get_array()[:] = np.random.random(g.num_vertices())
+        g.vertex_properties["signal"] = vprop_double
 
-        graph2_gt = graphs.Graph.from_graphtool(graph_gt).to_graphtool()
+        new_g = graphs.Graph.from_graphtool(g).to_graphtool()
+        key = lambda e: str(e.source()) + ":" + str(e.target())
+        assert len([e for e in g.edges()]) == len([e for e in new_g.edges()]),\
+            "the number of edge does not correspond"
+        #TODO check if in graph tool its normal to have multiple edges between two vertex
+        for e1,e2 in zip(sorted(g.edges(), key= key), sorted(new_g.edges(), key=key)):
+            assert e1.source() == e2.source()
+            assert e1.target() == e2.target()
+        for v1, v2 in zip(g.vertices(), new_g.vertices()):
+            assert v1 == v2
 
-        self.assertEqual(graph_gt.num_edges(), graph2_gt.num_edges(),
-                         "the number of edges does not correspond")
-
-        def key(edge): return str(edge.source()) + ":" + str(edge.target())
-
-        for e1, e2 in zip(sorted(graph_gt.edges(), key=key), sorted(graph2_gt.edges(), key=key)):
-            self.assertEqual(e1.source(), e2.source())
-            self.assertEqual(e1.target(), e2.target())
-        for v1, v2 in zip(graph_gt.vertices(), graph2_gt.vertices()):
-            self.assertEqual(v1, v2)
-
-    def test_networkx_signal_export(self):
-        graph = graphs.BarabasiAlbert(N=100, seed=42)
-        rs = np.random.RandomState(42)
-        signal1 = rs.normal(size=graph.N)
-        signal2 = rs.normal(size=graph.N)
-        graph.set_signal(signal1, "signal1")
-        graph.set_signal(signal2, "signal2")
-        graph_nx = graph.to_networkx()
-        for i in range(graph.N):
-            self.assertEqual(graph_nx.node[i]["signal1"], signal1[i])
-            self.assertEqual(graph_nx.node[i]["signal2"], signal2[i])
-        # invalid signal type
-        graph = graphs.Path(3)
-        graph.set_signal(np.array(['a', 'b', 'c']), 'sig')
-        self.assertRaises(ValueError, graph.to_networkx)
-
-    def test_graphtool_signal_export(self):
-        g = graphs.Logo()
-        rs = np.random.RandomState(42)
-        s = rs.normal(size=g.N)
-        s2 = rs.normal(size=g.N)
-        g.set_signal(s, "signal1")
-        g.set_signal(s2, "signal2")
-        g_gt = g.to_graphtool()
-        # Check the signals on all nodes
-        for i, v in enumerate(g_gt.vertices()):
-            self.assertEqual(g_gt.vertex_properties["signal1"][v], s[i])
-            self.assertEqual(g_gt.vertex_properties["signal2"][v], s2[i])
-        # invalid signal type
-        graph = graphs.Path(3)
-        graph.set_signal(np.array(['a', 'b', 'c']), 'sig')
-        self.assertRaises(TypeError, graph.to_graphtool)
-
-    @unittest.skipIf(sys.version_info < (3,), 'old graph-tool')
-    def test_graphtool_signal_import(self):
-        g_gt = gt.Graph()
-        g_gt.add_vertex(10)
-
-        g_gt.add_edge(g_gt.vertex(3), g_gt.vertex(6))
-        g_gt.add_edge(g_gt.vertex(4), g_gt.vertex(6))
-        g_gt.add_edge(g_gt.vertex(7), g_gt.vertex(2))
-
-        vprop_double = g_gt.new_vertex_property("double")
-
-        vprop_double[g_gt.vertex(0)] = 5
-        vprop_double[g_gt.vertex(1)] = -3
-        vprop_double[g_gt.vertex(2)] = 2.4
-
-        g_gt.vertex_properties["signal"] = vprop_double
-        g = graphs.Graph.from_graphtool(g_gt)
-        self.assertEqual(g.signals["signal"][0], 5.0)
-        self.assertEqual(g.signals["signal"][1], -3.0)
-        self.assertEqual(g.signals["signal"][2], 2.4)
-
-    def test_networkx_signal_import(self):
-        graph_nx = nx.Graph()
-        graph_nx.add_nodes_from(range(2, 5))
-        graph_nx.add_edges_from([(3, 4), (2, 4), (3, 5)])
-        nx.set_node_attributes(graph_nx, {2: 4, 3: 5, 5: 2.3}, "s")
-        graph_pg = graphs.Graph.from_networkx(graph_nx)
-        np.testing.assert_allclose(graph_pg.signals["s"], [4, 5, np.nan, 2.3])
-
-    def test_no_weights(self):
-
-        adjacency = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
-
-        # NetworkX no weights.
-        graph_nx = nx.Graph()
-        graph_nx.add_edge(0, 1)
-        graph_nx.add_edge(1, 2)
-        graph_pg = graphs.Graph.from_networkx(graph_nx)
-        np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
-
-        # NetworkX non-existent weight name.
-        graph_nx.edges[(0, 1)]['weight'] = 2
-        graph_nx.edges[(1, 2)]['weight'] = 2
-        graph_pg = graphs.Graph.from_networkx(graph_nx)
-        np.testing.assert_allclose(graph_pg.W.toarray(), 2*adjacency)
-        graph_pg = graphs.Graph.from_networkx(graph_nx, weight='unknown')
-        np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
-
-        # Graph-tool no weights.
-        graph_gt = gt.Graph(directed=False)
-        graph_gt.add_edge(0, 1)
-        graph_gt.add_edge(1, 2)
-        graph_pg = graphs.Graph.from_graphtool(graph_gt)
-        np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
-
-        # Graph-tool non-existent weight name.
-        prop = graph_gt.new_edge_property("double")
-        prop[(0, 1)] = 2
-        prop[(1, 2)] = 2
-        graph_gt.edge_properties["weight"] = prop
-        graph_pg = graphs.Graph.from_graphtool(graph_gt)
-        np.testing.assert_allclose(graph_pg.W.toarray(), 2*adjacency)
-        graph_pg = graphs.Graph.from_graphtool(graph_gt, weight='unknown')
-        np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
-
-    def test_break_join_signals(self):
-        """Multi-dim signals are broken on export and joined on import."""
-        graph1 = graphs.Sensor(20, seed=42)
-        graph1.set_signal(graph1.coords, 'coords')
-        # networkx
-        graph2 = graph1.to_networkx()
-        graph2 = graphs.Graph.from_networkx(graph2)
-        np.testing.assert_allclose(graph2.signals['coords'], graph1.coords)
-        # graph-tool
-        graph2 = graph1.to_graphtool()
-        graph2 = graphs.Graph.from_graphtool(graph2)
-        np.testing.assert_allclose(graph2.signals['coords'], graph1.coords)
-        # save and load (need ordered dicts)
-        if sys.version_info >= (3, 6):
-            filename = 'graph.graphml'
-            graph1.save(filename)
-            graph2 = graphs.Graph.load(filename)
-            np.testing.assert_allclose(graph2.signals['coords'], graph1.coords)
-            os.remove(filename)
-
-    @unittest.skipIf(sys.version_info < (3, 6), 'need ordered dicts')
-    def test_save_load(self):
-
-        # TODO: test with multiple graphs and signals
-        # * dtypes (float, int, bool) of adjacency and signals
-        # * empty graph / isolated nodes
-
-        G1 = graphs.Sensor(seed=42)
-        W = G1.W.toarray()
-        sig = np.random.RandomState(42).normal(size=G1.N)
-        G1.set_signal(sig, 's')
-
-        for fmt in ['graphml', 'gml', 'gexf']:
-            for backend in ['networkx', 'graph-tool']:
-
-                if fmt == 'gexf' and backend == 'graph-tool':
-                    self.assertRaises(ValueError, G1.save, 'g', fmt, backend)
-                    self.assertRaises(ValueError, graphs.Graph.load, 'g', fmt,
-                                      backend)
-                    os.remove('g')
-                    continue
-
-                atol = 1e-5 if fmt == 'gml' and backend == 'graph-tool' else 0
-
-                for filename, fmt in [('graph.' + fmt, None), ('graph', fmt)]:
-                    G1.save(filename, fmt, backend)
-                    G2 = graphs.Graph.load(filename, fmt, backend)
-                    np.testing.assert_allclose(G2.W.toarray(), W, atol=atol)
-                    np.testing.assert_allclose(G2.signals['s'], sig, atol=atol)
-                    os.remove(filename)
-
-        self.assertRaises(ValueError, graphs.Graph.load, 'g.gml', fmt='?')
-        self.assertRaises(ValueError, graphs.Graph.load, 'g.gml', backend='?')
-        self.assertRaises(ValueError, G1.save, 'g.gml', fmt='?')
-        self.assertRaises(ValueError, G1.save, 'g.gml', backend='?')
-
-    @unittest.skipIf(sys.version_info < (3, 3), 'need unittest.mock')
-    def test_import_errors(self):
-        from unittest.mock import patch
-        graph = graphs.Sensor()
-        filename = 'graph.gml'
-        with patch.dict(sys.modules, {'networkx': None}):
-            self.assertRaises(ImportError, graph.to_networkx)
-            self.assertRaises(ImportError, graphs.Graph.from_networkx, None)
-            self.assertRaises(ImportError, graph.save, filename,
-                              backend='networkx')
-            self.assertRaises(ImportError, graphs.Graph.load, filename,
-                              backend='networkx')
-            graph.save(filename)
-            graphs.Graph.load(filename)
-        with patch.dict(sys.modules, {'graph_tool': None}):
-            self.assertRaises(ImportError, graph.to_graphtool)
-            self.assertRaises(ImportError, graphs.Graph.from_graphtool, None)
-            self.assertRaises(ImportError, graph.save, filename,
-                              backend='graph-tool')
-            self.assertRaises(ImportError, graphs.Graph.load, filename,
-                              backend='graph-tool')
-            graph.save(filename)
-            graphs.Graph.load(filename)
-        with patch.dict(sys.modules, {'networkx': None, 'graph_tool': None}):
-            self.assertRaises(ImportError, graph.save, filename)
-            self.assertRaises(ImportError, graphs.Graph.load, filename)
-        os.remove(filename)
-
-
-suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestImportExport)
-suite = unittest.TestSuite([suite_graphs, suite_import_export])
+suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
