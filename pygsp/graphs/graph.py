@@ -7,7 +7,8 @@ from collections import Counter
 
 import numpy as np
 from scipy import sparse
-
+from itertools import groupby
+import warnings
 from pygsp import utils
 from .fourier import FourierMixIn
 from .difference import DifferenceMixIn
@@ -270,12 +271,20 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         W = np.zeros(shape=(nb_vertex, nb_vertex))
 
         props_names = graph_gt.edge_properties.keys()
-        if "weight" in props_names:
-            prop = graph_gt.edge_properties["weight"]
+
+        if edge_prop_name in props_names:
+            prop = graph_gt.edge_properties[edge_prop_name]
             edge_weight = prop.get_array()
-        
-        for e in graph_gt.get_edges():
-            W[e[0], e[1]] = edge_weight[e[2]]
+        else:
+            warnings.warn("""{} property not found in the graph, \
+        weights of 1 for the edges are set""".format(edge_prop_name))
+            edge_weight = np.ones(len(g.edges))
+        # merging multi-edge
+        merged_edge_weight = []
+        for k, grp in groupby(graph_gt.get_edges(), key=lambda e: (e[0], e[1])):
+            merged_edge_weight.append((k[0], k[1], sum([edge_weight[e[2]] for e in grp])))
+        for e in merged_edge_weight:
+            W[e[0], e[1]] = e[2]
         return cls(W)
 
     @classmethod
