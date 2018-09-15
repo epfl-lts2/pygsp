@@ -172,13 +172,15 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return g_gt
 
     @classmethod
-    def from_networkx(cls, graph_nx):
+    def from_networkx(cls, graph_nx, singals_names = []):
         r"""Build a graph from a Networkx object
                 
         Parameters
         ----------
         graph_nx : Graph
             A netowrkx instance of a graph
+        singals_names : list[String]
+            List of signal names to import from
         
         Returns
         -------
@@ -186,8 +188,15 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         """
 
         import networkx as nx
-        A = nx.to_scipy_sparse_matrix(graph_nx)
+        nodelist = graph_nx.nodes()
+        A = nx.to_scipy_sparse_matrix(graph_nx, nodelist)
         G = cls(A)
+        for s_name in singals_names:
+            s_dict = nx.get_node_attributes(graph_nx, s_name)
+            if len(s_dict.keys()) == 0:
+                raise ValueError("Signal {} is not present in the networkx graph".format(s_name))
+            s_value = np.array([s_dict[n] for n in nodelist]) #force the order to be same as for the agency matrix
+            G.set_signal(s_value, s_name)
         return G
 
     @classmethod
