@@ -180,7 +180,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         graph_nx : Graph
             A netowrkx instance of a graph
         singals_names : list[String]
-            List of signal names to import from
+            List of signals names to import from the networkx graph
         
         Returns
         -------
@@ -200,7 +200,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return G
 
     @classmethod
-    def from_graphtool(cls, graph_gt, edge_prop_name='weight', aggr_fun=sum):
+    def from_graphtool(cls, graph_gt, edge_prop_name='weight', aggr_fun=sum, singals_names = []):
         r"""Build a graph from a graph tool object.
         
         Parameters
@@ -213,7 +213,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         aggr_fun : function
             When the graph as multiple edge connecting the same two nodes the aggragate function is called to merge the
             edges. By default the sum is taken.
-        
+        singals_names : list[String] or 'all'
+            List of signals names to import from the graph_tool graph or if set to 'all' import all signal present
+            in the graph
         Returns
         -------
         g : :class:`~pygsp.graphs.Graph`
@@ -239,7 +241,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             merged_edge_weight.append((k[0], k[1], aggr_fun([edge_weight[e[2]] for e in grp])))
         for e in merged_edge_weight:
             W[e[0], e[1]] = e[2]
-        return cls(W)
+        g = cls(W)
+        #Adding signals
+        if singals_names == 'all':
+            singals_names == graph_gt.vertex_properties.keys()
+        for s_name in singals_names:
+            s = np.array([graph_gt.vertex_properties[v] for v in graph_gt.vertices()])
+            g.set_signal(s, s_name)
+        return g
 
     @classmethod
     def load(cls, path, fmt='auto', lib='networkx'):
