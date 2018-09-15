@@ -232,7 +232,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         else:
             warnings.warn("""{} property not found in the graph, \
         weights of 1 for the edges are set""".format(edge_prop_name))
-            edge_weight = np.ones(len(g.edges))
+            edge_weight = np.ones(len(graph_gt.edges()))
         # merging multi-edge
         merged_edge_weight = []
         for k, grp in groupby(graph_gt.get_edges(), key=lambda e: (e[0], e[1])):
