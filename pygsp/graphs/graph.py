@@ -50,6 +50,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         is None.
     plotting : dict
         plotting parameters.
+    signals : dict (String -> numpy.array)
+        Signals attached to the graph.
 
     Examples
     --------
@@ -108,6 +110,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         # TODO: kept for backward compatibility.
         self.Ne = self.n_edges
         self.N = self.n_nodes
+        self.signals = dict()
 
     def _get_extra_repr(self):
         return dict()
@@ -131,14 +134,18 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         g_nx : `Graph <https://networkx.github.io/documentation/stable/reference/classes/graph.html>`_
         """
         import networkx as nx
-        return nx.from_scipy_sparse_matrix(self.W)
+        g = nx.from_scipy_sparse_matrix(self.W)
+        for key in self.signals:
+            dic_signal = { i : self.signals[key][i] for i in range(0, len(self.signals[key]) ) }
+            nx.set_node_attributes(g, dic_signal, key)
+        return g
 
     def to_graphtool(self, edge_prop_name='weight', directed=True):
         r"""Export the graph to an `Graph tool <https://graph-tool.skewed.de/>`_ object
         The weights of the graph are stored in a `property maps <https://graph-tool.skewed.de/static/doc/quickstart.html#internal-property-maps>`_ 
         of type double
+        WARNING: The edges and vertex property will be converted into double type
 
-        
         Parameters
         ----------
         edge_prop_name : string 
@@ -159,6 +166,10 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         edge_weight = g_gt.new_edge_property('double')
         edge_weight.a = np.squeeze(np.array(self.W[nonzero]))
         g_gt.edge_properties[edge_prop_name] = edge_weight
+        for key in self.signals:
+            vprop_double = g_gt.new_vertex_property("double")
+            vprop_double.get_array()[:] = self.signals[key]
+            g_gt.vertex_properties[key] = vprop_double
         return g_gt
 
     @classmethod
@@ -303,7 +314,19 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             
         raise NotImplementedError('the format {} is not suported'.format(fmt))
 
+    def set_signal(self, signal, signal_name):
+        r"""
+        Add or modify a signal to the graph
 
+        Parameters
+        ----------
+            signal : numpy.array
+                An array maping from node to his value. For example the value of the singal at node i is signal[i]
+            signal_name : String
+                Name associated to the signal.
+        """
+        assert len(signal) == self.N, "A value must be attached to every vertex in the graph"
+        self.signals[signal_name] = np.array(signal)
 
     def check_weights(self):
         r"""Check the characteristics of the weights matrix.
