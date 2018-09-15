@@ -181,7 +181,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return G
 
     @classmethod
-    def from_graphtool(cls, graph_gt, edge_prop_name='weight'):
+    def from_graphtool(cls, graph_gt, edge_prop_name='weight', aggr_fun=sum):
         r"""Build a graph from a graph tool object.
         
         Parameters
@@ -191,6 +191,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         edge_prop_name : string
             Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_ 
             to be loaded as weight for the graph
+        aggr_fun : function
+            When the graph as multiple edge connecting the same two nodes the aggragate function is called to merge the
+            edges. By default the sum is taken.
         
         Returns
         -------
@@ -214,7 +217,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         # merging multi-edge
         merged_edge_weight = []
         for k, grp in groupby(graph_gt.get_edges(), key=lambda e: (e[0], e[1])):
-            merged_edge_weight.append((k[0], k[1], sum([edge_weight[e[2]] for e in grp])))
+            merged_edge_weight.append((k[0], k[1], aggr_fun([edge_weight[e[2]] for e in grp])))
         for e in merged_edge_weight:
             W[e[0], e[1]] = e[2]
         return cls(W)
