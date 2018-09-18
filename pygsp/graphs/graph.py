@@ -240,6 +240,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
     @classmethod
     def from_networkx(cls, graph_nx, singals_names = []):
         r"""Build a graph from a Networkx object
+        The nodes are ordered according to methode `nodes()` from networkx
                 
         Parameters
         ----------
@@ -275,7 +276,11 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             Graph tool object
         edge_prop_name : string
             Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_ 
-            to be loaded as weight for the graph
+            to be loaded as weight for the graph. If the property is not found a graph with default weight set to 1 is created.
+            On the other hand if the property is found but not set for a specific edge the weight of zero will be set
+            therefore for single edge this will result in a none existing edge. If you want to set to a default value please
+            use `set_value<https://graph-tool.skewed.de/static/doc/graph_tool.html?highlight=propertyarray#graph_tool.PropertyMap.set_value>`_
+            from the graph_tool object.
         aggr_fun : function
             When the graph as multiple edge connecting the same two nodes the aggragate function is called to merge the
             edges. By default the sum is taken.
@@ -300,7 +305,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         else:
             warnings.warn("""{} property not found in the graph, \
         weights of 1 for the edges are set""".format(edge_prop_name))
-            edge_weight = np.ones(len(graph_gt.edges()))
+            edge_weight = np.ones(graph_gt.edge_index_range)
         # merging multi-edge
         merged_edge_weight = []
         for k, grp in groupby(graph_gt.get_edges(), key=lambda e: (e[0], e[1])):
@@ -310,10 +315,13 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         g = cls(W)
         #Adding signals
         if singals_names == 'all':
-            singals_names == graph_gt.vertex_properties.keys()
+            singals_names = graph_gt.vertex_properties.keys()
         for s_name in singals_names:
-            s = np.array([graph_gt.vertex_properties[v] for v in graph_gt.vertices()])
-            g.set_signal(s, s_name)
+            if s_name in graph_gt.vertex_properties.keys():
+                s = np.array([graph_gt.vertex_properties[s_name][v] for v in graph_gt.vertices()])
+                g.set_signal(s, s_name)
+            else:
+                warnings.warn("{} was not found in the graph_tool graph".format(s_name))
         return g
 
     @classmethod
@@ -340,7 +348,10 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         if fmt == 'auto':
             fmt = path.split('.')[-1]
 
-        exec('import ' + lib)
+        if lib == 'networkx':
+            import networkx
+        if lib == 'graph_tool':
+            import graph_tool
 
         err = NotImplementedError('{} can not be load with {}. \
         Try another background library'.format(fmt, lib))
@@ -348,16 +359,16 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         if fmt == 'gml':
             if lib == 'networkx':
                 g = networkx.read_gml(path)
-                return from_networkx(g)
+                return cls.from_networkx(g)
             if lib == 'graph_tool':
                 g = graph_tool.load_graph(path, fmt=fmt)
-                return from_graphtool(g)
+                return cls.from_graphtool(g)
             raise err
 
         if fmt in ['gpickle', 'p', 'pkl', 'pickle']:
             if lib == 'networkx':
                 g = networkx.read_gpickle(path)
-                return from_networkx(g)
+                return cls.from_networkx(g)
             raise err
         
         raise NotImplementedError('the format {} is not suported'.format(fmt))
@@ -383,15 +394,20 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         if fmt == 'auto':
            fmt = path.split('.')[-1]
 
-        exec('import ' + lib)
+        if lib == 'networkx':
+            import networkx
+        if lib == 'graph_tool':
+            import graph_tool
 
+        err = NotImplementedError('{} can not be save with {}. \
+                Try another background library'.format(fmt, lib))
         if fmt == 'gml':
             if lib == 'networkx':
-                g = to_networkx()
+                g = self.to_networkx()
                 networkx.write_gml(g, path)
                 return
             if lib == 'graph_tool':
-                g = to_graphtool()
+                g = self.to_graphtool()
                 g.save(path, fmt=fmt)
             raise err
             
