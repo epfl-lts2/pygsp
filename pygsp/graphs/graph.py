@@ -225,7 +225,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         """
         ##from graph_tool.all import *
         import graph_tool
-        g_gt = graph_tool.Graph(directed=directed) #TODO check for undirected graph
+        g_gt = graph_tool.Graph(directed=directed)
         nonzero = self.W.nonzero()
         g_gt.add_edge_list(np.transpose(nonzero))
         edge_weight = g_gt.new_edge_property('double')
@@ -253,16 +253,18 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         -------
         g : :class:`~pygsp.graphs.Graph`
         """
-
         import networkx as nx
+        #keep a consistent order of nodes for the agency matrix and the signal array
         nodelist = graph_nx.nodes()
         A = nx.to_scipy_sparse_matrix(graph_nx, nodelist)
         G = cls(A)
+        #Adding the signals
         for s_name in singals_names:
             s_dict = nx.get_node_attributes(graph_nx, s_name)
             if len(s_dict.keys()) == 0:
                 raise ValueError("Signal {} is not present in the networkx graph".format(s_name))
-            s_value = np.array([s_dict[n] for n in nodelist]) #force the order to be same as for the agency matrix
+            #The signal is set to zero for node not present in the networkx signal
+            s_value = np.array([s_dict[n] if n in s_dict else 0 for n in nodelist])
             G.set_signal(s_value, s_name)
         return G
 
@@ -279,7 +281,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             to be loaded as weight for the graph. If the property is not found a graph with default weight set to 1 is created.
             On the other hand if the property is found but not set for a specific edge the weight of zero will be set
             therefore for single edge this will result in a none existing edge. If you want to set to a default value please
-            use `set_value<https://graph-tool.skewed.de/static/doc/graph_tool.html?highlight=propertyarray#graph_tool.PropertyMap.set_value>`_
+            use `set_value <https://graph-tool.skewed.de/static/doc/graph_tool.html?highlight=propertyarray#graph_tool.PropertyMap.set_value>`_
             from the graph_tool object.
         aggr_fun : function
             When the graph as multiple edge connecting the same two nodes the aggragate function is called to merge the
@@ -287,6 +289,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         singals_names : list[String] or 'all'
             List of signals names to import from the graph_tool graph or if set to 'all' import all signal present
             in the graph
+
         Returns
         -------
         g : :class:`~pygsp.graphs.Graph`
@@ -294,7 +297,6 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         
         """
         nb_vertex = len(graph_gt.get_vertices())
-        edge_weight = np.ones(nb_vertex)
         W = np.zeros(shape=(nb_vertex, nb_vertex))
 
         props_names = graph_gt.edge_properties.keys()
@@ -305,7 +307,8 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         else:
             warnings.warn("""{} property not found in the graph, \
         weights of 1 for the edges are set""".format(edge_prop_name))
-            edge_weight = np.ones(graph_gt.edge_index_range)
+            edge_weight = np.ones(nb_vertex)
+
         # merging multi-edge
         merged_edge_weight = []
         for k, grp in groupby(graph_gt.get_edges(), key=lambda e: (e[0], e[1])):
@@ -313,6 +316,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         for e in merged_edge_weight:
             W[e[0], e[1]] = e[2]
         g = cls(W)
+
         #Adding signals
         if singals_names == 'all':
             singals_names = graph_gt.vertex_properties.keys()
@@ -331,14 +335,14 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         Parameters
         ----------
-            path : String
-                Where the file is located on the disk.
-            fmt : String
-                Format in which the graph is encoded. Currently supported format are:
-                    GML, gpickle.
-            lib : String
-                Python library used in background to load the graph.
-                Supported library are networkx and graph_tool 
+        path : String
+            Where the file is located on the disk.
+        fmt : String
+            Format in which the graph is encoded. Currently supported format are:
+            GML and gpickle.
+        lib : String
+            Python library used in background to load the graph.
+            Supported library are networkx and graph_tool
         
         Returns
         -------
@@ -348,29 +352,23 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         if fmt == 'auto':
             fmt = path.split('.')[-1]
 
+        err = NotImplementedError('{} can not be load with {}. \
+               Try another background library'.format(fmt, lib))
+
         if lib == 'networkx':
             import networkx
-        if lib == 'graph_tool':
-            import graph_tool
-
-        err = NotImplementedError('{} can not be load with {}. \
-        Try another background library'.format(fmt, lib))
-
-        if fmt == 'gml':
-            if lib == 'networkx':
+            if fmt == 'gml':
                 g = networkx.read_gml(path)
                 return cls.from_networkx(g)
-            if lib == 'graph_tool':
-                g = graph_tool.load_graph(path, fmt=fmt)
-                return cls.from_graphtool(g)
-            raise err
-
-        if fmt in ['gpickle', 'p', 'pkl', 'pickle']:
-            if lib == 'networkx':
+            if fmt in ['gpickle', 'p', 'pkl', 'pickle']:
                 g = networkx.read_gpickle(path)
                 return cls.from_networkx(g)
             raise err
-        
+        if lib == 'graph_tool':
+            import graph_tool
+            g = graph_tool.load_graph(path, fmt=fmt)
+            return cls.from_graphtool(g)
+
         raise NotImplementedError('the format {} is not suported'.format(fmt))
 
     def save(self, path, fmt='auto', lib='networkx'):
@@ -378,39 +376,37 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         
         Parameters
         ----------
-            path : String
-                Where to save file on the disk.
-            fmt : String
-                Format in which the graph will be encoded. The format is guessed from
-                the `path` extention when fmt is set to 'auto'
-                Currently supported format are:
-                    GML, gpickle.
-            lib : String
-                Python library used in background to save the graph.
-                Supported library are networkx and graph_tool 
-
-
+        path : String
+            Where to save file on the disk.
+        fmt : String
+            Format in which the graph will be encoded. The format is guessed from
+            the `path` extention when fmt is set to 'auto'
+            Currently supported format are:
+            GML and gpickle.
+        lib : String
+            Python library used in background to save the graph.
+            Supported library are networkx and graph_tool
         """
         if fmt == 'auto':
            fmt = path.split('.')[-1]
 
-        if lib == 'networkx':
-            import networkx
-        if lib == 'graph_tool':
-            import graph_tool
-
         err = NotImplementedError('{} can not be save with {}. \
                 Try another background library'.format(fmt, lib))
-        if fmt == 'gml':
-            if lib == 'networkx':
+
+        if lib == 'networkx':
+            import networkx
+            if fmt == 'gml':
                 g = self.to_networkx()
                 networkx.write_gml(g, path)
                 return
-            if lib == 'graph_tool':
-                g = self.to_graphtool()
-                g.save(path, fmt=fmt)
             raise err
-            
+
+        if lib == 'graph_tool':
+            import graph_tool
+            g = self.to_graphtool()
+            g.save(path, fmt=fmt)
+            return
+
         raise NotImplementedError('the format {} is not suported'.format(fmt))
 
     def set_signal(self, signal, signal_name):
@@ -419,10 +415,10 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         Parameters
         ----------
-            signal : numpy.array
-                An array maping from node to his value. For example the value of the singal at node i is signal[i]
-            signal_name : String
-                Name associated to the signal.
+        signal : numpy.array
+            An array maping from node to his value. For example the value of the singal at node i is signal[i]
+        signal_name : String
+            Name associated to the signal.
         """
         assert len(signal) == self.N, "A value must be attached to every vertex in the graph"
         self.signals[signal_name] = np.array(signal)
