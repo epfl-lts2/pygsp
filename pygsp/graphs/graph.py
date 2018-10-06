@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import division
-
-import os
+import warnings
+from itertools import groupby
 from collections import Counter
 
 import numpy as np
 from scipy import sparse
-from itertools import groupby
-import warnings
+
 from pygsp import utils
 from .fourier import FourierMixIn
 from .difference import DifferenceMixIn
@@ -157,22 +155,6 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         self.plotting.update(plotting)
         self.signals = dict()
 
-        # Attributes that are lazily computed.
-        self._A = None
-        self._d = None
-        self._dw = None
-        self._lmax = None
-        self._lmax_method = None
-        self._U = None
-        self._e = None
-        self._coherence = None
-        self._D = None
-        # self._L = None
-
-        # TODO: what about Laplacian? Lazy as Fourier, or disallow change?
-        self.lap_type = lap_type
-        self.compute_laplacian(lap_type)
-
         # TODO: kept for backward compatibility.
         self.Ne = self.n_edges
         self.N = self.n_vertices
@@ -199,13 +181,14 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         g_nx : :py:class:`networkx.Graph`
         """
         import networkx as nx
-        g = nx.from_scipy_sparse_matrix(self.W)
-        for key in self.signals:
-            dic_signal = { i : self.signals[key][i] for i in range(0, len(self.signals[key]) ) }
-            nx.set_node_attributes(g, dic_signal, key)
+        g = nx.from_scipy_sparse_matrix(self.W,
+            create_using=nx.DiGraph if self.is_directed() else nx.Graph)
+        for name, signal in self.signals.items():
+            signal_dict = {i: signal[i] for i in range(self.n_nodes)}
+            nx.set_node_attributes(g, signal_dict, name)
         return g
 
-    def to_graphtool(self, edge_prop_name='weight', directed=True):
+    def to_graphtool(self, edge_prop_name='weight'):
         r"""Export the graph to an `Graph tool <https://graph-tool.skewed.de/>`_ object
         The weights of the graph are stored in a `property maps <https://graph-tool.skewed.de/static/doc/quickstart.html#internal-property-maps>`_ 
         of type double
@@ -216,15 +199,13 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         edge_prop_name : string 
             Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_.
             By default it is set to `weight`
-        directed : bool
-            Indicate if the graph is `directed <https://en.wikipedia.org/wiki/Directed_graph>`_
 
         Returns
         -------
         g_gt : :py:class:`graph_tool.Graph`
         """
         import graph_tool
-        g_gt = graph_tool.Graph(directed=directed)
+        g_gt = graph_tool.Graph(directed=self.is_directed())
         nonzero = self.W.nonzero()
         g_gt.add_edge_list(np.transpose(nonzero))
         edge_weight = g_gt.new_edge_property('double')
