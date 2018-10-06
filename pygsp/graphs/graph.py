@@ -165,16 +165,16 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         edge_weight = g_gt.new_edge_property('double')
         edge_weight.a = self.get_edge_list()[2]
         g_gt.edge_properties[edge_prop_name] = edge_weight
-        for key in self.signals:
+        for name in self.signals:
             vprop_double = g_gt.new_vertex_property("double")
-            vprop_double.get_array()[:] = self.signals[key]
-            g_gt.vertex_properties[key] = vprop_double
+            vprop_double.get_array()[:] = self.signals[name]
+            g_gt.vertex_properties[name] = vprop_double
         return g_gt
 
     @classmethod
     def from_networkx(cls, graph_nx, signals_names = []):
         r"""Build a graph from a Networkx object
-        The nodes are ordered according to methode `nodes()` from networkx
+        The nodes are ordered according to method `nodes()` from networkx
 
         Parameters
         ----------
@@ -275,9 +275,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         ----------
         path : String
             Where the file is located on the disk.
-        fmt : String
-            Format in which the graph is encoded. Currently supported format are:
-            GML and gpickle.
+        fmt : {'graphml', 'gml', 'gexf', 'dot', 'auto'}
+            Format in which the graph is encoded.
         lib : String
             Python library used in background to load the graph.
             Supported library are networkx and graph_tool
@@ -289,6 +288,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         """
         if fmt == 'auto':
             fmt = path.split('.')[-1]
+
+        if format not in ['graphml', 'gml', 'gexf', 'dot']:
+            raise ValueError('Unsupported format {}.'.format(fmt))
 
         err = NotImplementedError('{} can not be load with {}. \
                Try another background library'.format(fmt, lib))
