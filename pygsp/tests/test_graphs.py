@@ -6,10 +6,10 @@ Test suite for the graphs module of the pygsp package.
 """
 
 import unittest
+import random
 
 import numpy as np
 import scipy.linalg
-import random
 import networkx as nx
 import graph_tool as gt
 from skimage import data, img_as_float
