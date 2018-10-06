@@ -174,15 +174,17 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         return '{}({})'.format(self.__class__.__name__, s[:-2])
 
     def to_networkx(self):
-        r"""Export the graph to an `Networkx <https://networkx.github.io>`_ object 
+        r"""Export the graph to an `Networkx <https://networkx.github.io>`_ object
 
         Returns
         -------
         g_nx : :py:class:`networkx.Graph`
         """
         import networkx as nx
-        g = nx.from_scipy_sparse_matrix(self.W,
-            create_using=nx.DiGraph() if self.is_directed() else nx.Graph())
+        g = nx.from_scipy_sparse_matrix(
+            self.W, create_using=nx.DiGraph()
+            if self.is_directed() else nx.Graph())
+
         for name, signal in self.signals.items():
             signal_dict = {i: signal[i] for i in range(self.n_nodes)}
             nx.set_node_attributes(g, signal_dict, name)
@@ -190,14 +192,14 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
     def to_graphtool(self, edge_prop_name='weight'):
         r"""Export the graph to an `Graph tool <https://graph-tool.skewed.de/>`_ object
-        The weights of the graph are stored in a `property maps <https://graph-tool.skewed.de/static/doc/quickstart.html#internal-property-maps>`_ 
-        of type double
+        The weights of the graph are stored in a `property maps <https://graph-tool.skewed.de/static/doc/
+        quickstart.html#internal-property-maps>`_ of type double
         WARNING: The edges and vertex property will be converted into double type
 
         Parameters
         ----------
-        edge_prop_name : string 
-            Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_.
+        edge_prop_name : string
+            Name of the property in :py:attr:`graph_tool.Graph.edge_properties`.
             By default it is set to `weight`
 
         Returns
@@ -217,7 +219,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         return g_gt
 
     @classmethod
-    def from_networkx(cls, graph_nx, signals_names = []):
+    def from_networkx(cls, graph_nx, signals_names=[]):
         r"""Build a graph from a Networkx object
         The nodes are ordered according to method `nodes()` from networkx
 
@@ -227,36 +229,36 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             A networkx instance of a graph
         signals_names : list[String]
             List of signals names to import from the networkx graph
-        
+
         Returns
         -------
         g : :class:`~pygsp.graphs.Graph`
         """
         import networkx as nx
-        #keep a consistent order of nodes for the agency matrix and the signal array
+        # keep a consistent order of nodes for the agency matrix and the signal array
         nodelist = graph_nx.nodes()
         A = nx.to_scipy_sparse_matrix(graph_nx, nodelist)
         G = cls(A)
-        #Adding the signals
+        # Adding the signals
         for s_name in signals_names:
             s_dict = nx.get_node_attributes(graph_nx, s_name)
             if len(s_dict.keys()) == 0:
                 raise ValueError("Signal {} is not present in the networkx graph".format(s_name))
-            #The signal is set to zero for node not present in the networkx signal
+            # The signal is set to zero for node not present in the networkx signal
             s_value = np.array([s_dict[n] if n in s_dict else 0 for n in nodelist])
             G.set_signal(s_value, s_name)
         return G
 
     @classmethod
-    def from_graphtool(cls, graph_gt, edge_prop_name='weight', aggr_fun=sum, signals_names = []):
+    def from_graphtool(cls, graph_gt, edge_prop_name='weight', aggr_fun=sum, signals_names=[]):
         r"""Build a graph from a graph tool object.
-        
+
         Parameters
         ----------
         graph_gt : :py:class:`graph_tool.Graph`
             Graph tool object
         edge_prop_name : string
-            Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_ 
+            Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_
             to be loaded as weight for the graph. If the property is not found a graph with default weight set to 1 is created.
             On the other hand if the property is found but not set for a specific edge the weight of zero will be set
             therefore for single edge this will result in a none existing edge. If you want to set to a default value please
@@ -273,7 +275,6 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         -------
         g : :class:`~pygsp.graphs.Graph`
             The weight of the graph are loaded from the edge property named ``edge_prop_name``
-        
         """
         nb_vertex = len(graph_gt.get_vertices())
         W = np.zeros(shape=(nb_vertex, nb_vertex))
@@ -300,7 +301,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
                 W[e[1], e[0]] = e[2]
         g = cls(W)
 
-        #Adding signals
+        # Adding signals
         if signals_names == 'all':
             signals_names = graph_gt.vertex_properties.keys()
         for s_name in signals_names:
@@ -313,7 +314,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
     @classmethod
     def load(cls, path, fmt='auto', lib='networkx'):
-        r"""Load a graph from a file using networkx for import. 
+        r"""Load a graph from a file using networkx for import.
         The format is guessed from path, or can be specified by fmt
 
         Parameters
@@ -325,11 +326,10 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         lib : String
             Python library used in background to load the graph.
             Supported library are networkx and graph_tool
-        
+
         Returns
         -------
             g : :class:`~pygsp.graphs.Graph`
-
         """
         if fmt == 'auto':
             fmt = path.split('.')[-1]
@@ -358,7 +358,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
     def save(self, path, fmt='auto', lib='networkx'):
         r"""Save the graph into a file
-        
+
         Parameters
         ----------
         path : String
@@ -373,7 +373,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             Supported library are networkx and graph_tool
         """
         if fmt == 'auto':
-           fmt = path.split('.')[-1]
+            fmt = path.split('.')[-1]
 
         err = NotImplementedError('{} can not be save with {}. \
                 Try another background library'.format(fmt, lib))
@@ -387,7 +387,6 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             raise err
 
         if lib == 'graph_tool':
-            import graph_tool
             g = self.to_graphtool()
             g.save(path, fmt=fmt)
             return
