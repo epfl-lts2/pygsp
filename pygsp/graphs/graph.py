@@ -343,19 +343,20 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         raise NotImplementedError('the format {} is not suported'.format(fmt))
 
-    def set_signal(self, signal, signal_name):
+    def set_signal(self, signal, name):
         r"""
         Add or modify a signal to the graph
 
         Parameters
         ----------
         signal : numpy.array
-            An array maping from node to his value. For example the value of the singal at node i is signal[i]
+            An array mapping from node to his value. For example the value of the signal at node i is signal[i]
         signal_name : String
             Name associated to the signal.
         """
-        assert len(signal) == self.N, "A value must be attached to every vertex in the graph"
-        self.signals[signal_name] = np.array(signal)
+        if len(signal) == self.N:
+            raise ValueError("A value must be attached to every vertex in the graph")
+        self.signals[name] = np.asarray(signal)
 
     def check_weights(self):
         r"""Check the characteristics of the weights matrix.
