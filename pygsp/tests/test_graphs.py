@@ -668,20 +668,21 @@ class TestCase(unittest.TestCase):
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
 
+
 class TestCaseImportExport(unittest.TestCase):
 
     def test_networkx_export_import(self):
-        #Export to networkx and reimport to PyGSP
+        # Export to networkx and reimport to PyGSP
 
-        #Exporting the Bunny graph
+        # Exporting the Bunny graph
         g = graphs.Bunny()
         g_nx = g.to_networkx()
         g2 = graphs.Graph.from_networkx(g_nx)
         np.testing.assert_array_equal(g.W.todense(), g2.W.todense())
 
     def test_networkx_import_export(self):
-        #Import from networkx then export to networkx again
-        g_nx = nx.gnm_random_graph(100, 50) #Generate a random graph
+        # Import from networkx then export to networkx again
+        g_nx = nx.gnm_random_graph(100, 50)  # Generate a random graph
         g = graphs.Graph.from_networkx(g_nx).to_networkx()
 
         assert nx.is_isomorphic(g_nx, g)
@@ -689,38 +690,37 @@ class TestCaseImportExport(unittest.TestCase):
                                       nx.adjacency_matrix(g).todense())
 
     def test_graphtool_export_import(self):
-        #Export to graph tool and reimport to PyGSP directly
-        #The exported graph is a simple one without an associated Signal
+        # Export to graph tool and reimport to PyGSP directly
+        # The exported graph is a simple one without an associated Signal
         g = graphs.Bunny()
         g_gt = g.to_graphtool()
         g2 = graphs.Graph.from_graphtool(g_gt)
         np.testing.assert_array_equal(g.W.todense(), g2.W.todense())
 
-
     def test_graphtool_multiedge_import(self):
-        #Manualy create a graph with multiple edges
+        # Manualy create a graph with multiple edges
         g_gt = gt.Graph()
         g_gt.add_vertex(10)
-        #connect edge (3,6) three times
+        # connect edge (3,6) three times
         for i in range(3):
             g_gt.add_edge(g_gt.vertex(3), g_gt.vertex(6))
         g = graphs.Graph.from_graphtool(g_gt)
-        assert g.W[3,6] == 3.0
+        assert g.W[3, 6] == 3.0
 
-        #test custom aggregator function
+        # test custom aggregator function
         g2 = graphs.Graph.from_graphtool(g_gt, aggr_fun=np.mean)
-        assert g2.W[3,6] == 1.0
+        assert g2.W[3, 6] == 1.0
 
         eprop_double = g_gt.new_edge_property("double")
 
-        #Set the weight of 2 out of the 3 edges. The last one has a default weight of 0
-        e = g_gt.edge(3,6, all_edges=True)
+        # Set the weight of 2 out of the 3 edges. The last one has a default weight of 0
+        e = g_gt.edge(3, 6, all_edges=True)
         eprop_double[e[0]] = 8.0
         eprop_double[e[1]] = 1.0
 
         g_gt.edge_properties["weight"] = eprop_double
         g3 = graphs.Graph.from_graphtool(g_gt, aggr_fun=np.mean)
-        assert g3.W[3,6] == 3.0
+        assert g3.W[3, 6] == 3.0
 
     def test_graphtool_import_export(self):
         # Import to PyGSP and export again to graph tool directly
@@ -743,7 +743,8 @@ class TestCaseImportExport(unittest.TestCase):
         assert len([e for e in g_gt.edges()]) == len([e for e in g2_gt.edges()]), \
             "the number of edge does not correspond"
 
-        key = lambda e: str(e.source()) + ":" + str(e.target())
+        def key(edge): return str(edge.source()) + ":" + str(edge.target())
+
         for e1, e2 in zip(sorted(g_gt.edges(), key=key), sorted(g2_gt.edges(), key=key)):
             assert e1.source() == e2.source()
             assert e1.target() == e2.target()
@@ -770,10 +771,11 @@ class TestCaseImportExport(unittest.TestCase):
         g.set_signal(s, "signal1")
         g.set_signal(s2, "signal2")
         g_gt = g.to_graphtool()
-        #Check the signals on all nodes
+        # Check the signals on all nodes
         for i, v in enumerate(g_gt.vertices()):
             assert g_gt.vertex_properties["signal1"][v] == s[i]
             assert g_gt.vertex_properties["signal2"][v] == s2[i]
+
     def test_graphtool_signal_import(self):
         g_gt = gt.Graph()
         g_gt.add_vertex(10)
@@ -796,15 +798,15 @@ class TestCaseImportExport(unittest.TestCase):
 
     def test_networkx_signal_import(self):
         g_nx = nx.Graph()
-        g_nx.add_edge(3,4)
-        g_nx.add_edge(2,4)
-        g_nx.add_edge(3,5)
+        g_nx.add_edge(3, 4)
+        g_nx.add_edge(2, 4)
+        g_nx.add_edge(3, 5)
         print(list(g_nx.node)[0])
         dic_signal = {
-            2 : 4.0,
-            3 : 5.0,
-            4 : 3.3,
-            5 : 2.3
+            2: 4.0,
+            3: 5.0,
+            4: 3.3,
+            5: 2.3
         }
 
         nx.set_node_attributes(g_nx, dic_signal, "signal1")
@@ -814,11 +816,11 @@ class TestCaseImportExport(unittest.TestCase):
         for i in range(len(nodes_mapping)):
             assert g.signals["signal1"][i] == nx.get_node_attributes(g_nx, "signal1")[nodes_mapping[i]]
 
-
     def test_save_load(self):
         g = graphs.Bunny()
         g.save("bunny.gml")
         g2 = graphs.Graph.load("bunny.gml")
         np.testing.assert_array_equal(g.W.todense(), g2.W.todense())
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCaseImportExport)
