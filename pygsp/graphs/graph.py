@@ -305,8 +305,8 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             prop = graph_gt.edge_properties[edge_prop_name]
             edge_weight = prop.get_array()
         else:
-            warnings.warn("""{} property not found in the graph, \
-        weights of 1 for the edges are set""".format(edge_prop_name))
+            warnings.warn("""As the property {} is not found in the graph, a weight of 1.0 is given to each edge"""
+                          .format(edge_prop_name))
             edge_weight = np.ones(nb_vertex)
 
         # merging multi-edge
@@ -420,7 +420,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         signal_name : String
             Name associated to the signal.
         """
-        if len(signal) == self.N:
+        if len(signal) != self.N:
             raise ValueError("A value must be attached to every vertex in the graph")
         self.signals[name] = np.asarray(signal)
 
