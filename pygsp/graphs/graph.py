@@ -130,7 +130,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Returns
         -------
-        g_nx : `Graph <https://networkx.github.io/documentation/stable/reference/classes/graph.html>`_
+        g_nx : :py:class:`networkx.Graph`
         """
         import networkx as nx
         g = nx.from_scipy_sparse_matrix(self.W)
@@ -155,9 +155,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Returns
         -------
-        g_gt : `Graph <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph>`_
+        g_gt : :py:class:`graph_tool.Graph`
         """
-        ##from graph_tool.all import *
         import graph_tool
         g_gt = graph_tool.Graph(directed=directed)
         nonzero = self.W.nonzero()
@@ -175,11 +174,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     def from_networkx(cls, graph_nx, signals_names = []):
         r"""Build a graph from a Networkx object
         The nodes are ordered according to methode `nodes()` from networkx
-                
+
         Parameters
         ----------
-        graph_nx : Graph
-            A netowrkx instance of a graph
+        graph_nx : :py:class:`networkx.Graph`
+            A networkx instance of a graph
         signals_names : list[String]
             List of signals names to import from the networkx graph
         
@@ -208,7 +207,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         
         Parameters
         ----------
-        graph_gt : Graph
+        graph_gt : :py:class:`graph_tool.Graph`
             Graph tool object
         edge_prop_name : string
             Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_ 
