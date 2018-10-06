@@ -9,6 +9,7 @@ from __future__ import division
 
 import sys
 import unittest
+import random
 
 import numpy as np
 import scipy.linalg
