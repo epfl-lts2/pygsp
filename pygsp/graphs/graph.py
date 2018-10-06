@@ -160,10 +160,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         """
         import graph_tool
         g_gt = graph_tool.Graph(directed=self.is_directed())
-        nonzero = self.W.nonzero()
-        g_gt.add_edge_list(np.transpose(nonzero))
+        g_gt.add_edge_list(np.asarray(self.get_edge_list()[0:2]).T)
         edge_weight = g_gt.new_edge_property('double')
-        edge_weight.a = np.squeeze(np.array(self.W[nonzero]))
+        edge_weight.a = self.get_edge_list()[2]
         g_gt.edge_properties[edge_prop_name] = edge_weight
         for key in self.signals:
             vprop_double = g_gt.new_vertex_property("double")
@@ -249,6 +248,10 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             merged_edge_weight.append((k[0], k[1], aggr_fun([edge_weight[e[2]] for e in grp])))
         for e in merged_edge_weight:
             W[e[0], e[1]] = e[2]
+        # When the graph is not directed the opposit edge as to be added too.
+        if not graph_gt.is_directed():
+            for e in merged_edge_weight:
+                W[e[1], e[0]] = e[2]
         g = cls(W)
 
         #Adding signals
