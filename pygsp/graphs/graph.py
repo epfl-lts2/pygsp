@@ -136,7 +136,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         """
         import networkx as nx
         g = nx.from_scipy_sparse_matrix(self.W,
-            create_using=nx.DiGraph if self.is_directed() else nx.Graph)
+            create_using=nx.DiGraph() if self.is_directed() else nx.Graph())
         for name, signal in self.signals.items():
             signal_dict = {i: signal[i] for i in range(self.n_nodes)}
             nx.set_node_attributes(g, signal_dict, name)
