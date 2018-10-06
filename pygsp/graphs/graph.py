@@ -173,7 +173,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return g_gt
 
     @classmethod
-    def from_networkx(cls, graph_nx, singals_names = []):
+    def from_networkx(cls, graph_nx, signals_names = []):
         r"""Build a graph from a Networkx object
         The nodes are ordered according to methode `nodes()` from networkx
                 
@@ -181,7 +181,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         ----------
         graph_nx : Graph
             A netowrkx instance of a graph
-        singals_names : list[String]
+        signals_names : list[String]
             List of signals names to import from the networkx graph
         
         Returns
@@ -194,7 +194,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         A = nx.to_scipy_sparse_matrix(graph_nx, nodelist)
         G = cls(A)
         #Adding the signals
-        for s_name in singals_names:
+        for s_name in signals_names:
             s_dict = nx.get_node_attributes(graph_nx, s_name)
             if len(s_dict.keys()) == 0:
                 raise ValueError("Signal {} is not present in the networkx graph".format(s_name))
@@ -204,7 +204,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return G
 
     @classmethod
-    def from_graphtool(cls, graph_gt, edge_prop_name='weight', aggr_fun=sum, singals_names = []):
+    def from_graphtool(cls, graph_gt, edge_prop_name='weight', aggr_fun=sum, signals_names = []):
         r"""Build a graph from a graph tool object.
         
         Parameters
@@ -221,7 +221,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         aggr_fun : function
             When the graph as multiple edge connecting the same two nodes the aggragate function is called to merge the
             edges. By default the sum is taken.
-        singals_names : list[String] or 'all'
+        signals_names : list[String] or 'all'
             List of signals names to import from the graph_tool graph or if set to 'all' import all signal present
             in the graph
 
@@ -253,9 +253,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         g = cls(W)
 
         #Adding signals
-        if singals_names == 'all':
-            singals_names = graph_gt.vertex_properties.keys()
-        for s_name in singals_names:
+        if signals_names == 'all':
+            signals_names = graph_gt.vertex_properties.keys()
+        for s_name in signals_names:
             if s_name in graph_gt.vertex_properties.keys():
                 s = np.array([graph_gt.vertex_properties[s_name][v] for v in graph_gt.vertices()])
                 g.set_signal(s, s_name)
