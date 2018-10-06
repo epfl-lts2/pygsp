@@ -334,7 +334,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         if fmt == 'auto':
             fmt = path.split('.')[-1]
 
-        if format not in ['graphml', 'gml', 'gexf', 'dot']:
+        if fmt not in ['graphml', 'gml', 'gexf', 'dot']:
             raise ValueError('Unsupported format {}.'.format(fmt))
 
         err = NotImplementedError('{} can not be load with {}. \
