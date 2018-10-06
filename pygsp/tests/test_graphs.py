@@ -750,7 +750,7 @@ class TestCaseImportExport(unittest.TestCase):
         for v1, v2 in zip(g_gt.vertices(), g2_gt.vertices()):
             assert v1 == v2
 
-    def test_networkx_singal_export(self):
+    def test_networkx_signal_export(self):
         logo = graphs.Logo()
         s = np.random.random(logo.N)
         s2 = np.random.random(logo.N)
@@ -789,12 +789,12 @@ class TestCaseImportExport(unittest.TestCase):
         vprop_double[g_gt.vertex(2)] = 2.4
 
         g_gt.vertex_properties["signal"] = vprop_double
-        g = graphs.Graph.from_graphtool(g_gt, singals_names=["signal"])
+        g = graphs.Graph.from_graphtool(g_gt, signals_names=["signal"])
         assert g.signals["signal"][0] == 5.0
         assert g.signals["signal"][1] == -3.0
         assert g.signals["signal"][2] == 2.4
 
-    def test_networkx_singal_import(self):
+    def test_networkx_signal_import(self):
         g_nx = nx.Graph()
         g_nx.add_edge(3,4)
         g_nx.add_edge(2,4)
@@ -808,7 +808,7 @@ class TestCaseImportExport(unittest.TestCase):
         }
 
         nx.set_node_attributes(g_nx, dic_signal, "signal1")
-        g = graphs.Graph.from_networkx(g_nx, singals_names=["signal1"])
+        g = graphs.Graph.from_networkx(g_nx, signals_names=["signal1"])
 
         nodes_mapping = list(g_nx.node)
         for i in range(len(nodes_mapping)):
