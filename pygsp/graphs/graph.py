@@ -206,10 +206,9 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         """
         import graph_tool
         g_gt = graph_tool.Graph(directed=self.is_directed())
-        nonzero = self.W.nonzero()
-        g_gt.add_edge_list(np.transpose(nonzero))
+        g_gt.add_edge_list(np.asarray(self.get_edge_list()[0:2]).T)
         edge_weight = g_gt.new_edge_property('double')
-        edge_weight.a = np.squeeze(np.array(self.W[nonzero]))
+        edge_weight.a = self.get_edge_list()[2]
         g_gt.edge_properties[edge_prop_name] = edge_weight
         for key in self.signals:
             vprop_double = g_gt.new_vertex_property("double")
@@ -295,6 +294,10 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             merged_edge_weight.append((k[0], k[1], aggr_fun([edge_weight[e[2]] for e in grp])))
         for e in merged_edge_weight:
             W[e[0], e[1]] = e[2]
+        # When the graph is not directed the opposit edge as to be added too.
+        if not graph_gt.is_directed():
+            for e in merged_edge_weight:
+                W[e[1], e[0]] = e[2]
         g = cls(W)
 
         #Adding signals
@@ -1211,6 +1214,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         """
 
         if self.is_directed():
+<<<<<<< HEAD
             W = self.W.tocoo()
         else:
             W = sparse.triu(self.W, format='coo')
@@ -1218,6 +1222,19 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         sources = W.row
         targets = W.col
         weights = W.data
+=======
+            v_in, v_out = self.W.nonzero()
+            weights = self.W[v_in, v_out]
+            weights = np.asarray(weights).squeeze()
+        else:
+            v_in, v_out = sparse.triu(self.W).nonzero()
+            weights = self.W[v_in, v_out]
+            weights = np.asarray(weights).squeeze()
+
+            # TODO G.ind_edges = sub2ind(size(G.W), G.v_in, G.v_out)
+            assert self.Ne == v_in.size == v_out.size == weights.size
+        return v_in, v_out, weights
+>>>>>>> Use self.get_edge_list
 
         assert self.n_edges == sources.size == targets.size == weights.size
         return sources, targets, weights
