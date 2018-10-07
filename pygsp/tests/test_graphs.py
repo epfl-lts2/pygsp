@@ -621,30 +621,30 @@ class TestCaseImportExport(unittest.TestCase):
     def test_graphtool_import_export(self):
         # Import to PyGSP and export again to graph tool directly
         # create a random graphTool graph that does not contain multiple edges and no signal
-        g_gt = gt.Graph()
-        g_gt.add_vertex(100)
+        graph_gt = gt.Graph()
+        graph_gt.add_vertex(100)
 
         # insert single random links
-        eprop_double = g_gt.new_edge_property("double")
+        eprop_double = graph_gt.new_edge_property("double")
         for s, t in set(zip(np.random.randint(0, 100, 100),
                         np.random.randint(0, 100, 100))):
-            g_gt.add_edge(g_gt.vertex(s), g_gt.vertex(t))
+            graph_gt.add_edge(graph_gt.vertex(s), graph_gt.vertex(t))
 
-        for e in g_gt.edges():
+        for e in graph_gt.edges():
             eprop_double[e] = random.random()
-        g_gt.edge_properties["weight"] = eprop_double
+        graph_gt.edge_properties["weight"] = eprop_double
 
-        g2_gt = graphs.Graph.from_graphtool(g_gt).to_graphtool()
+        graph2_gt = graphs.Graph.from_graphtool(graph_gt).to_graphtool()
 
-        assert len([e for e in g_gt.edges()]) == len([e for e in g2_gt.edges()]), \
-            "the number of edge does not correspond"
+        self.assertEqual(graph_gt.num_edges(), graph2_gt.num_edges(),
+                         "the number of edges does not correspond")
 
         def key(edge): return str(edge.source()) + ":" + str(edge.target())
 
-        for e1, e2 in zip(sorted(g_gt.edges(), key=key), sorted(g2_gt.edges(), key=key)):
+        for e1, e2 in zip(sorted(graph_gt.edges(), key=key), sorted(graph2_gt.edges(), key=key)):
             self.assertEqual(e1.source(), e2.source())
             self.assertEqual(e1.target(), e2.target())
-        for v1, v2 in zip(g_gt.vertices(), g2_gt.vertices()):
+        for v1, v2 in zip(graph_gt.vertices(), graph2_gt.vertices()):
             self.assertEqual(v1, v2)
 
     def test_networkx_signal_export(self):
