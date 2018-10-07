@@ -685,7 +685,7 @@ class TestCaseImportExport(unittest.TestCase):
         g_nx = nx.gnm_random_graph(100, 50)  # Generate a random graph
         g = graphs.Graph.from_networkx(g_nx).to_networkx()
 
-        assert nx.is_isomorphic(g_nx, g)
+        self.assertTrue(nx.is_isomorphic(g_nx, g))
         np.testing.assert_array_equal(nx.adjacency_matrix(g_nx).todense(),
                                       nx.adjacency_matrix(g).todense())
 
@@ -705,11 +705,11 @@ class TestCaseImportExport(unittest.TestCase):
         for i in range(3):
             g_gt.add_edge(g_gt.vertex(3), g_gt.vertex(6))
         g = graphs.Graph.from_graphtool(g_gt)
-        assert g.W[3, 6] == 3.0
+        self.assertEqual(g.W[3, 6], 3.0)
 
         # test custom aggregator function
         g2 = graphs.Graph.from_graphtool(g_gt, aggr_fun=np.mean)
-        assert g2.W[3, 6] == 1.0
+        self.assertEqual(g2.W[3, 6], 1.0)
 
         eprop_double = g_gt.new_edge_property("double")
 
@@ -720,7 +720,7 @@ class TestCaseImportExport(unittest.TestCase):
 
         g_gt.edge_properties["weight"] = eprop_double
         g3 = graphs.Graph.from_graphtool(g_gt, aggr_fun=np.mean)
-        assert g3.W[3, 6] == 3.0
+        self.assertEqual(g3.W[3, 6], 3.0)
 
     def test_graphtool_import_export(self):
         # Import to PyGSP and export again to graph tool directly
@@ -746,10 +746,10 @@ class TestCaseImportExport(unittest.TestCase):
         def key(edge): return str(edge.source()) + ":" + str(edge.target())
 
         for e1, e2 in zip(sorted(g_gt.edges(), key=key), sorted(g2_gt.edges(), key=key)):
-            assert e1.source() == e2.source()
-            assert e1.target() == e2.target()
+            self.assertEqual(e1.source(), e2.source())
+            self.assertEqual(e1.target(), e2.target())
         for v1, v2 in zip(g_gt.vertices(), g2_gt.vertices()):
-            assert v1 == v2
+            self.assertEqual(v1, v2)
 
     def test_networkx_signal_export(self):
         logo = graphs.Logo()
@@ -761,8 +761,8 @@ class TestCaseImportExport(unittest.TestCase):
         for i in range(50):
             # Randomly check the signal of 50 nodes to see if they are the same
             rd_node = np.random.randint(logo.N)
-            assert logo_nx.node[rd_node]["signal1"] == s[rd_node]
-            assert logo_nx.node[rd_node]["signal2"] == s2[rd_node]
+            self.assertEqual(logo_nx.node[rd_node]["signal1"], s[rd_node])
+            self.assertEqual(logo_nx.node[rd_node]["signal2"], s2[rd_node])
 
     def test_graphtool_signal_export(self):
         g = graphs.Logo()
@@ -773,8 +773,8 @@ class TestCaseImportExport(unittest.TestCase):
         g_gt = g.to_graphtool()
         # Check the signals on all nodes
         for i, v in enumerate(g_gt.vertices()):
-            assert g_gt.vertex_properties["signal1"][v] == s[i]
-            assert g_gt.vertex_properties["signal2"][v] == s2[i]
+            self.assertEqual(g_gt.vertex_properties["signal1"][v], s[i])
+            self.assertEqual(g_gt.vertex_properties["signal2"][v], s2[i])
 
     def test_graphtool_signal_import(self):
         g_gt = gt.Graph()
@@ -792,9 +792,9 @@ class TestCaseImportExport(unittest.TestCase):
 
         g_gt.vertex_properties["signal"] = vprop_double
         g = graphs.Graph.from_graphtool(g_gt, signals_names=["signal"])
-        assert g.signals["signal"][0] == 5.0
-        assert g.signals["signal"][1] == -3.0
-        assert g.signals["signal"][2] == 2.4
+        self.assertEqual(g.signals["signal"][0], 5.0)
+        self.assertEqual(g.signals["signal"][1], -3.0)
+        self.assertEqual(g.signals["signal"][2], 2.4)
 
     def test_networkx_signal_import(self):
         g_nx = nx.Graph()
@@ -812,9 +812,9 @@ class TestCaseImportExport(unittest.TestCase):
         nx.set_node_attributes(g_nx, dic_signal, "signal1")
         g = graphs.Graph.from_networkx(g_nx, signals_name=["signal1"])
 
-        nodes_mapping = list(g_nx.node)
-        for i in range(len(nodes_mapping)):
-            assert g.signals["signal1"][i] == nx.get_node_attributes(g_nx, "signal1")[nodes_mapping[i]]
+        for i, node in enumerate(g_nx.node):
+            self.assertEqual(g.signals["signal1"][i],
+                             nx.get_node_attributes(g_nx, "signal1")[node])
 
     def test_save_load(self):
         g = graphs.Bunny()
