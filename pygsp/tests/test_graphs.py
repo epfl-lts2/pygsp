@@ -648,20 +648,20 @@ class TestCaseImportExport(unittest.TestCase):
             self.assertEqual(v1, v2)
 
     def test_networkx_signal_export(self):
-        logo = graphs.Logo()
-        s = np.random.random(logo.N)
-        s2 = np.random.random(logo.N)
-        logo.set_signal(s, "signal1")
-        logo.set_signal(s2, "signal2")
-        logo_nx = logo.to_networkx()
-        for i in range(50):
-            # Randomly check the signal of 50 nodes to see if they are the same
-            rd_node = np.random.randint(logo.N)
-            self.assertEqual(logo_nx.node[rd_node]["signal1"], s[rd_node])
-            self.assertEqual(logo_nx.node[rd_node]["signal2"], s2[rd_node])
+        graph = graphs.BarabasiAlbert(N=100, seed=42)
+        np.random.seed(42)
+        signal1 = np.random.random(graph.N)
+        signal2 = np.random.random(graph.N)
+        graph.set_signal(signal1, "signal1")
+        graph.set_signal(signal2, "signal2")
+        graph_nx = graph.to_networkx()
+        for i in range(graph.n_nodes):
+            self.assertEqual(graph_nx.node[i]["signal1"], signal1[i])
+            self.assertEqual(graph_nx.node[i]["signal2"], signal2[i])
 
     def test_graphtool_signal_export(self):
         g = graphs.Logo()
+        np.random.seed(42)
         s = np.random.random(g.N)
         s2 = np.random.random(g.N)
         g.set_signal(s, "signal1")
