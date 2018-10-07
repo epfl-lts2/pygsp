@@ -133,20 +133,21 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Returns
         -------
-        g_nx : :py:class:`networkx.Graph`
+        graph_nx : :py:class:`networkx.Graph`
         """
         import networkx as nx
-        g = nx.from_scipy_sparse_matrix(
+        graph_nx = nx.from_scipy_sparse_matrix(
             self.W, create_using=nx.DiGraph()
             if self.is_directed() else nx.Graph())
 
         for name, signal in self.signals.items():
             signal_dict = {i: signal[i] for i in range(self.n_nodes)}
-            nx.set_node_attributes(g, signal_dict, name)
-        return g
+            nx.set_node_attributes(graph_nx, signal_dict, name)
+        return graph_nx
 
     def to_graphtool(self, edge_prop_name='weight'):
         r"""Export the graph to an `Graph tool <https://graph-tool.skewed.de/>`_ object
+
         The weights of the graph are stored in a `property maps <https://graph-tool.skewed.de/static/doc/
         quickstart.html#internal-property-maps>`_ of type double
         WARNING: The edges and vertex property will be converted into double type
@@ -159,50 +160,54 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Returns
         -------
-        g_gt : :py:class:`graph_tool.Graph`
+        graph_gt : :py:class:`graph_tool.Graph`
         """
         import graph_tool
-        g_gt = graph_tool.Graph(directed=self.is_directed())
-        g_gt.add_edge_list(np.asarray(self.get_edge_list()[0:2]).T)
-        edge_weight = g_gt.new_edge_property('double')
+        graph_gt = graph_tool.Graph(directed=self.is_directed())
+        graph_gt.add_edge_list(np.asarray(self.get_edge_list()[0:2]).T)
+        edge_weight = graph_gt.new_edge_property('double')
         edge_weight.a = self.get_edge_list()[2]
-        g_gt.edge_properties[edge_prop_name] = edge_weight
+        graph_gt.edge_properties[edge_prop_name] = edge_weight
         for name in self.signals:
-            vprop_double = g_gt.new_vertex_property("double")
+            vprop_double = graph_gt.new_vertex_property("double")
             vprop_double.get_array()[:] = self.signals[name]
-            g_gt.vertex_properties[name] = vprop_double
-        return g_gt
+            graph_gt.vertex_properties[name] = vprop_double
+        return graph_gt
 
     @classmethod
-    def from_networkx(cls, graph_nx, signals_names=[]):
+    def from_networkx(cls, graph_nx, signals_name=[], weight='weight'):
         r"""Build a graph from a Networkx object
+
         The nodes are ordered according to method `nodes()` from networkx
 
         Parameters
         ----------
         graph_nx : :py:class:`networkx.Graph`
             A networkx instance of a graph
-        signals_names : list[String]
+        signals_name : list[String]
             List of signals names to import from the networkx graph
+        weight : (string or None optional (default=’weight’))
+            The edge attribute that holds the numerical value used for the edge weight.
+            If None then all edge weights are 1.
 
         Returns
         -------
-        g : :class:`~pygsp.graphs.Graph`
+        graph : :class:`~pygsp.graphs.Graph`
         """
         import networkx as nx
         # keep a consistent order of nodes for the agency matrix and the signal array
         nodelist = graph_nx.nodes()
-        A = nx.to_scipy_sparse_matrix(graph_nx, nodelist)
-        G = cls(A)
+        adjacency = nx.to_scipy_sparse_matrix(graph_nx, nodelist, weight=weight)
+        graph = cls(adjacency)
         # Adding the signals
-        for s_name in signals_names:
+        for s_name in signals_name:
             s_dict = nx.get_node_attributes(graph_nx, s_name)
             if len(s_dict.keys()) == 0:
                 raise ValueError("Signal {} is not present in the networkx graph".format(s_name))
             # The signal is set to zero for node not present in the networkx signal
             s_value = np.array([s_dict[n] if n in s_dict else 0 for n in nodelist])
-            G.set_signal(s_value, s_name)
-        return G
+            graph.set_signal(s_value, s_name)
+        return graph
 
     @classmethod
     def from_graphtool(cls, graph_gt, edge_prop_name='weight', aggr_fun=sum, signals_names=[]):
@@ -228,11 +233,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Returns
         -------
-        g : :class:`~pygsp.graphs.Graph`
+        graph : :class:`~pygsp.graphs.Graph`
             The weight of the graph are loaded from the edge property named ``edge_prop_name``
         """
         nb_vertex = len(graph_gt.get_vertices())
-        W = np.zeros(shape=(nb_vertex, nb_vertex))
+        weights = np.zeros(shape=(nb_vertex, nb_vertex))
 
         props_names = graph_gt.edge_properties.keys()
 
@@ -249,23 +254,23 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         for k, grp in groupby(graph_gt.get_edges(), key=lambda e: (e[0], e[1])):
             merged_edge_weight.append((k[0], k[1], aggr_fun([edge_weight[e[2]] for e in grp])))
         for e in merged_edge_weight:
-            W[e[0], e[1]] = e[2]
+            weights[e[0], e[1]] = e[2]
         # When the graph is not directed the opposit edge as to be added too.
         if not graph_gt.is_directed():
             for e in merged_edge_weight:
-                W[e[1], e[0]] = e[2]
-        g = cls(W)
+                weights[e[1], e[0]] = e[2]
+        graph = cls(weights)
 
         # Adding signals
         if signals_names == 'all':
             signals_names = graph_gt.vertex_properties.keys()
         for s_name in signals_names:
             if s_name in graph_gt.vertex_properties.keys():
-                s = np.array([graph_gt.vertex_properties[s_name][v] for v in graph_gt.vertices()])
-                g.set_signal(s, s_name)
+                signal = np.array([graph_gt.vertex_properties[s_name][v] for v in graph_gt.vertices()])
+                graph.set_signal(signal, s_name)
             else:
                 warnings.warn("{} was not found in the graph_tool graph".format(s_name))
-        return g
+        return graph
 
     @classmethod
     def load(cls, path, fmt='auto', lib='networkx'):
@@ -284,7 +289,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Returns
         -------
-            g : :class:`~pygsp.graphs.Graph`
+            graph : :class:`~pygsp.graphs.Graph`
         """
         if fmt == 'auto':
             fmt = path.split('.')[-1]
@@ -356,7 +361,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         ----------
         signal : numpy.array
             An array mapping from node to his value. For example the value of the signal at node i is signal[i]
-        signal_name : String
+        name : String
             Name associated to the signal.
         """
         if len(signal) != self.N:

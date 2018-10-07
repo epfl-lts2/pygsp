@@ -467,7 +467,7 @@ class TestCaseImportExport(unittest.TestCase):
         }
 
         nx.set_node_attributes(g_nx, dic_signal, "signal1")
-        g = graphs.Graph.from_networkx(g_nx, signals_names=["signal1"])
+        g = graphs.Graph.from_networkx(g_nx, signals_name=["signal1"])
 
         nodes_mapping = list(g_nx.node)
         for i in range(len(nodes_mapping)):
