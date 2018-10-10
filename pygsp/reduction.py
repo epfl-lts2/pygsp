@@ -241,8 +241,7 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
     >>> G.compute_fourier_basis()
     >>> Gs = reduction.graph_multiresolution(G, levels, sparsify=False)
     >>> for idx in range(levels):
-    ...     Gs[idx].plotting['plot_name'] = 'Reduction level: {}'.format(idx)
-    ...     Gs[idx].plot()
+    ...     fig, ax = Gs[idx].plot(title='Reduction level: {}'.format(idx))
 
     """
     if sparsify_eps is None:

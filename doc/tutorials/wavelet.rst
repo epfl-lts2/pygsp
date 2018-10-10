@@ -75,9 +75,8 @@ scales.
     >>> fig = plt.figure(figsize=(10, 3))
     >>> for i in range(g.Nf):
     ...     ax = fig.add_subplot(1, g.Nf, i+1, projection='3d')
-    ...     G.plot_signal(s[:, i], colorbar=False, ax=ax)
     ...     title = r'Heat diffusion, $\tau={}$'.format(taus[i])
-    ...     _ = ax.set_title(title)
+    ...     _ = G.plot_signal(s[:, i], colorbar=False, title=title, ax=ax)
     ...     ax.set_axis_off()
     >>> fig.tight_layout()
 
@@ -106,8 +105,7 @@ Then plot the frequency response of those filters.
     :context: close-figs
 
     >>> fig, ax = plt.subplots(figsize=(10, 5))
-    >>> g.plot(ax=ax)
-    >>> _ = ax.set_title('Filter bank of mexican hat wavelets')
+    >>> _ = g.plot(title='Filter bank of mexican hat wavelets', ax=ax)
 
 .. note::
     We can see that the wavelet atoms are stacked on the low frequency part of
@@ -126,8 +124,7 @@ a Kronecker delta placed at one specific vertex.
     >>> fig = plt.figure(figsize=(10, 2.5))
     >>> for i in range(3):
     ...     ax = fig.add_subplot(1, 3, i+1, projection='3d')
-    ...     G.plot_signal(s[:, i], ax=ax)
-    ...     _ = ax.set_title('Wavelet {}'.format(i+1))
+    ...     _ = G.plot_signal(s[:, i], title='Wavelet {}'.format(i+1), ax=ax)
     ...     ax.set_axis_off()
     >>> fig.tight_layout()
 
@@ -167,8 +164,7 @@ curvature at different scales.
     >>> fig = plt.figure(figsize=(10, 7))
     >>> for i in range(4):
     ...     ax = fig.add_subplot(2, 2, i+1, projection='3d')
-    ...     G.plot_signal(s[:, i], ax=ax)
     ...     title = 'Curvature estimation (scale {})'.format(i+1)
-    ...     _ = ax.set_title(title)
+    ...     _ = G.plot_signal(s[:, i], title=title, ax=ax)
     ...     ax.set_axis_off()
     >>> fig.tight_layout()

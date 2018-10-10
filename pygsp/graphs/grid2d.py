@@ -23,7 +23,7 @@ class Grid2d(Graph):
     >>> G = graphs.Grid2d(N1=5, N2=4)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 

@@ -2,7 +2,7 @@
 History
 =======
 
-0.6.0 (2018-03-xx)
+0.6.0 (xxxx-xx-xx)
 ------------------
 
 The plotting interface was updated to be more user-friendly. First, the
@@ -23,6 +23,7 @@ Additional features:
 * Building a graph object is much faster.
 * New rectangular filter (low-pass and band-pass).
 * The exponential window has been updated from low-pass only to band-pass.
+* Plotting functions return matplotlib figures and axes.
 
 0.5.1 (2017-12-15)
 ------------------
