@@ -236,7 +236,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         graph : :class:`~pygsp.graphs.Graph`
             The weight of the graph are loaded from the edge property named ``edge_prop_name``
         """
-        nb_vertex = len(graph_gt.get_vertices())
+        nb_vertex = graph_gt.num_vertices()
+        nb_edges = graph_gt.num_edges()
         weights = np.zeros(shape=(nb_vertex, nb_vertex))
 
         props_names = graph_gt.edge_properties.keys()
@@ -244,10 +245,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         if edge_prop_name in props_names:
             prop = graph_gt.edge_properties[edge_prop_name]
             edge_weight = prop.get_array()
+            if edge_weight is None:
+                warnings.warn("edge_prop_name refered to a non scalar property, a weight of 1.0 is given to each edge")
+                edge_weight = np.ones(nb_edges)
+
         else:
             warnings.warn("""As the property {} is not found in the graph, a weight of 1.0 is given to each edge"""
                           .format(edge_prop_name))
-            edge_weight = np.ones(nb_vertex)
+            edge_weight = np.ones(nb_edges)
 
         # merging multi-edge
         merged_edge_weight = []
