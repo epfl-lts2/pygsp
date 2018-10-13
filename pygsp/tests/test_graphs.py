@@ -698,7 +698,6 @@ class TestCaseImportExport(unittest.TestCase):
         g_nx.add_edge(3, 4)
         g_nx.add_edge(2, 4)
         g_nx.add_edge(3, 5)
-        print(list(g_nx.node)[0])
         dic_signal = {
             2: 4.0,
             3: 5.0,
