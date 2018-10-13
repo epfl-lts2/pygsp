@@ -220,9 +220,10 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         """
         import graph_tool
         graph_gt = graph_tool.Graph(directed=self.is_directed())
-        graph_gt.add_edge_list(np.asarray(self.get_edge_list()[0:2]).T)
+        v_in, v_out, weights = self.get_edge_list()
+        graph_gt.add_edge_list(np.asarray((v_in, v_out)).T)
         edge_weight = graph_gt.new_edge_property('double')
-        edge_weight.a = self.get_edge_list()[2]
+        edge_weight.a = weights
         graph_gt.edge_properties[edge_prop_name] = edge_weight
         for name in self.signals:
             vprop_double = graph_gt.new_vertex_property("double")
@@ -1254,7 +1255,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             weights = np.asarray(weights).squeeze()
 
             # TODO G.ind_edges = sub2ind(size(G.W), G.v_in, G.v_out)
-            assert self.Ne == v_in.size == v_out.size == weights.size
+        assert self.Ne == v_in.size == v_out.size == weights.size
         return v_in, v_out, weights
 >>>>>>> Use self.get_edge_list
 
