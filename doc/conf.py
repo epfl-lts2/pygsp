@@ -23,8 +23,13 @@ intersphinx_mapping = {
     'matplotlib': ('https://matplotlib.org', None),
 =======
     'networkx': ('https://networkx.github.io/documentation/stable', None),
+<<<<<<< HEAD
     'graph_tool': ('https://graph-tool.skewed.de/static/doc', None)
 >>>>>>> Make use of intersphinx
+=======
+    'graph_tool': ('https://graph-tool.skewed.de/static/doc', None),
+    'numpy': ('https://www.numpy.org/devdocs', None)
+>>>>>>> Move the dict for type conversion into utils.
 }
 
 extensions.append('numpydoc')
