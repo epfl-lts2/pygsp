@@ -174,35 +174,20 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         graph_gt : :py:class:`graph_tool.Graph`
         """
 
-        # Encode the numpy types with its correspondence in graph_tool
-        numpy2gt_type = {
-            np.bool_: 'bool',
-            np.int_: 'int',
-            np.int16: 'int16_t',
-            np.int32: 'int32_t',
-            np.int64: 'int64_t',
-            np.float_: 'long double',
-            np.float16: 'double',
-            np.float32: 'double',
-            np.float64: 'long double'
-        }
-
         import graph_tool
         graph_gt = graph_tool.Graph(directed=self.is_directed())
         v_in, v_out, weights = self.get_edge_list()
         graph_gt.add_edge_list(np.asarray((v_in, v_out)).T)
-        try:
-            weight_type_str = numpy2gt_type[weights.dtype.type]
-        except KeyError:
+        weight_type_str = utils.numpy2graph_tool_type(weights.dtype)
+        if weight_type_str is None:
             raise ValueError("Type {} for the weights is not supported"
                              .format(str(weights.dtype)))
         edge_weight = graph_gt.new_edge_property(weight_type_str)
         edge_weight.a = weights
         graph_gt.edge_properties[edge_prop_name] = edge_weight
         for name in self.signals:
-            try:
-                edge_type_str = numpy2gt_type[weights.dtype.type]
-            except KeyError:
+            edge_type_str = utils.numpy2graph_tool_type(weights.dtype)
+            if edge_type_str is None:
                 raise ValueError("Type {} from signal {} is not supported"
                                  .format(str(self.signals[name].dtype), name))
             vprop_double = graph_gt.new_vertex_property(edge_type_str)
@@ -212,7 +197,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
     @classmethod
     def from_networkx(cls, graph_nx, signals_name=[], weight='weight'):
-        r"""Build a graph from a Networkx object
+        r"""Build a graph from a Networkx object.
 
         The nodes are ordered according to method `nodes()` from networkx
 

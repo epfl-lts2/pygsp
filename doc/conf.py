@@ -16,7 +16,8 @@ extensions.append('sphinx.ext.intersphinx')
 intersphinx_mapping = {
     'pyunlocbox': ('https://pyunlocbox.readthedocs.io/en/stable', None),
     'networkx': ('https://networkx.github.io/documentation/stable', None),
-    'graph_tool': ('https://graph-tool.skewed.de/static/doc', None)
+    'graph_tool': ('https://graph-tool.skewed.de/static/doc', None),
+    'numpy': ('https://www.numpy.org/devdocs', None)
 }
 
 extensions.append('numpydoc')
