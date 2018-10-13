@@ -666,7 +666,7 @@ class TestCase(unittest.TestCase):
         graphs.Grid2dImgPatches(img=self._img, patch_shape=(3, 3))
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
+suite_graphs = unittest.TestLoader().loadTestsFromTestCase(TestCase)
 
 
 class TestCaseImportExport(unittest.TestCase):
@@ -823,4 +823,5 @@ class TestCaseImportExport(unittest.TestCase):
         np.testing.assert_array_equal(g.W.todense(), g2.W.todense())
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(TestCaseImportExport)
+suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestCaseImportExport)
+suite = unittest.TestSuite([suite_graphs, suite_import_export])
