@@ -296,24 +296,21 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         if fmt not in ['graphml', 'gml', 'gexf', 'dot']:
             raise ValueError('Unsupported format {}.'.format(fmt))
 
-        err = NotImplementedError('{} can not be load with {}. \
-               Try another background library'.format(fmt, lib))
-
-        if lib == 'networkx':
-            import networkx
-            if fmt == 'gml':
-                g = networkx.read_gml(path)
-                return cls.from_networkx(g)
-            if fmt in ['gpickle', 'p', 'pkl', 'pickle']:
-                g = networkx.read_gpickle(path)
-                return cls.from_networkx(g)
-            raise err
-        if lib == 'graph_tool':
-            import graph_tool
-            g = graph_tool.load_graph(path, fmt=fmt)
-            return cls.from_graphtool(g)
-
-        raise NotImplementedError('the format {} is not suported'.format(fmt))
+        if fmt in ['graphml', 'gml', 'gexf']:
+            try:
+                import networkx as nx
+                load = getattr(nx, 'read_' + fmt)
+                return cls.from_networkx(load(path))
+            except ModuleNotFoundError:
+                pass
+        if fmt in ['graphml', 'gml', 'dot']:
+            try:
+                import graph_tool as gt
+                graph_gt = gt.load_graph(path, fmt=fmt)
+                return cls.from_graphtool(graph_gt)
+            except ModuleNotFoundError:
+                pass
+        raise ModuleNotFoundError("Please install either networkx or graph_tool")
 
     def save(self, path, fmt='auto', lib='networkx'):
         r"""Save the graph into a file
@@ -334,23 +331,26 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         if fmt == 'auto':
             fmt = path.split('.')[-1]
 
-        err = NotImplementedError('{} can not be save with {}. \
-                Try another background library'.format(fmt, lib))
+        if fmt not in ['graphml', 'gml', 'gexf', 'dot']:
+            raise ValueError('Unsupported format {}.'.format(fmt))
 
-        if lib == 'networkx':
-            import networkx
-            if fmt == 'gml':
-                g = self.to_networkx()
-                networkx.write_gml(g, path)
-                return
-            raise err
-
-        if lib == 'graph_tool':
-            g = self.to_graphtool()
-            g.save(path, fmt=fmt)
-            return
-
-        raise NotImplementedError('the format {} is not suported'.format(fmt))
+        if fmt in ['graphml', 'gml', 'gexf']:
+            try:
+                import networkx as nx
+                graph_nx = self.to_networkx()
+                save = getattr(nx, 'write_' + fmt)
+                save(graph_nx, path)
+                return None
+            except ModuleNotFoundError:
+                pass
+        if fmt in ['graphml', 'gml', 'dot']:
+            try:
+                graph_gt = self.to_graphtool()
+                graph_gt.save(path, fmt=fmt)
+                return None
+            except ModuleNotFoundError:
+                pass
+        raise ModuleNotFoundError("Please install either networkx or graph_tool")
 
     def set_signal(self, signal, name):
         r"""
