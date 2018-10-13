@@ -128,8 +128,18 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             s += '{}={}, '.format(key, value)
         return '{}({})'.format(self.__class__.__name__, s[:-2])
 
-    def to_networkx(self):
+    def to_networkx(self, edge_prop_name='weight'):
         r"""Export the graph to an `Networkx <https://networkx.github.io>`_ object
+
+        The weight are stored as an edge attribute under named `edge_prop_name`
+        The signals are stored as node attributes under the same name as define in PyGSP
+        :func:`~pygsp.graphs.Graph.set_signal`.
+
+        Parameters
+        ----------
+        edge_prop_name : string
+            Name of edge attribute to store matrix numeric value.
+            As the attibute edge_attribute in :py:func:`networkx.convert_matrix.from_scipy_sparse_matrix`.
 
         Returns
         -------
@@ -138,7 +148,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         import networkx as nx
         graph_nx = nx.from_scipy_sparse_matrix(
             self.W, create_using=nx.DiGraph()
-            if self.is_directed() else nx.Graph())
+            if self.is_directed() else nx.Graph(),
+            edge_attribute=edge_prop_name)
 
         for name, signal in self.signals.items():
             signal_dict = {i: signal[i] for i in range(self.n_nodes)}
