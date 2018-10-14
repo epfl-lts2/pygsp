@@ -227,17 +227,21 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         return graph_gt
 
     @classmethod
-    def from_networkx(cls, graph_nx, signals_name=[], weight='weight'):
+    def from_networkx(cls, graph_nx, weight='weight'):
         r"""Build a graph from a Networkx object.
 
         The nodes are ordered according to method `nodes()` from networkx
+
+        When a node attribute is not present for node a value of zero is assign
+        to the corresponding signal on that node.
+
+        When the networkx graph is an instance of :py:class:`networkx.MultiGraph`,
+        multiple edge are aggregated by summation.
 
         Parameters
         ----------
         graph_nx : :py:class:`networkx.Graph`
             A networkx instance of a graph
-        signals_name : list[String]
-            List of signals names to import from the networkx graph
         weight : (string or None optional (default=’weight’))
             The edge attribute that holds the numerical value used for the edge weight.
             If None then all edge weights are 1.
@@ -252,17 +256,25 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         adjacency = nx.to_scipy_sparse_matrix(graph_nx, nodelist, weight=weight)
         graph = cls(adjacency)
         # Adding the signals
-        for s_name in signals_name:
-            s_dict = nx.get_node_attributes(graph_nx, s_name)
-            if len(s_dict.keys()) == 0:
-                raise ValueError("Signal {} is not present in the networkx graph".format(s_name))
-            # The signal is set to zero for node not present in the networkx signal
-            s_value = np.array([s_dict[n] if n in s_dict else 0 for n in nodelist])
-            graph.set_signal(s_value, s_name)
+        signals = dict()
+        for i, node in enumerate(nodelist):
+            signals_name = graph_nx.nodes[node].keys()
+
+            # Add signal previously not present in the dict of signal
+            # Set to zero the value of the signal when not present for a node
+            # in Networkx
+            for signal in  set(signals_name) - set(signals.keys()):
+                signals[signal] = np.zeros(len(nodelist))
+
+            # Set the value of the signal
+            for signal in signals_name:
+                signals[signal][i] = graph_nx.nodes[node][signal]
+
+        graph.signals = signals
         return graph
 
     @classmethod
-    def from_graphtool(cls, graph_gt, edge_prop_name='weight', aggr_fun=sum, signals_names=[]):
+    def from_graphtool(cls, graph_gt, edge_prop_name='weight', aggr_fun=sum):
         r"""Build a graph from a graph tool object.
 
         Parameters
@@ -319,9 +331,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         graph = cls(weights)
 
         # Adding signals
-        if signals_names == 'all':
-            signals_names = graph_gt.vertex_properties.keys()
-        for s_name in signals_names:
+        for s_name in graph_gt.vertex_properties.keys():
             if s_name in graph_gt.vertex_properties.keys():
                 signal = np.array([graph_gt.vertex_properties[s_name][v] for v in graph_gt.vertices()])
                 graph.set_signal(signal, s_name)
@@ -1232,7 +1242,6 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         """
 
         if self.is_directed():
-<<<<<<< HEAD
             W = self.W.tocoo()
         else:
             W = sparse.triu(self.W, format='coo')
@@ -1240,19 +1249,6 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         sources = W.row
         targets = W.col
         weights = W.data
-=======
-            v_in, v_out = self.W.nonzero()
-            weights = self.W[v_in, v_out]
-            weights = np.asarray(weights).squeeze()
-        else:
-            v_in, v_out = sparse.triu(self.W).nonzero()
-            weights = self.W[v_in, v_out]
-            weights = np.asarray(weights).squeeze()
-
-            # TODO G.ind_edges = sub2ind(size(G.W), G.v_in, G.v_out)
-        assert self.Ne == v_in.size == v_out.size == weights.size
-        return v_in, v_out, weights
->>>>>>> Use self.get_edge_list
 
         assert self.n_edges == sources.size == targets.size == weights.size
         return sources, targets, weights
