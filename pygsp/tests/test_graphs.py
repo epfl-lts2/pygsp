@@ -449,7 +449,7 @@ class TestCaseImportExport(unittest.TestCase):
         vprop_double[g_gt.vertex(2)] = 2.4
 
         g_gt.vertex_properties["signal"] = vprop_double
-        g = graphs.Graph.from_graphtool(g_gt, signals_names=["signal"])
+        g = graphs.Graph.from_graphtool(g_gt)
         self.assertEqual(g.signals["signal"][0], 5.0)
         self.assertEqual(g.signals["signal"][1], -3.0)
         self.assertEqual(g.signals["signal"][2], 2.4)
@@ -467,7 +467,7 @@ class TestCaseImportExport(unittest.TestCase):
         }
 
         nx.set_node_attributes(g_nx, dic_signal, "signal1")
-        g = graphs.Graph.from_networkx(g_nx, signals_name=["signal1"])
+        g = graphs.Graph.from_networkx(g_nx)
 
         for i, node in enumerate(g_nx.node):
             self.assertEqual(g.signals["signal1"][i],
@@ -483,7 +483,6 @@ class TestCaseImportExport(unittest.TestCase):
             graph_loaded = graphs.Graph.load("bunny." + fmt)
             np.testing.assert_array_equal(g.W.todense(), graph_loaded.W.todense())
             os.remove("bunny." + fmt)
-
 
 
 suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestCaseImportExport)
