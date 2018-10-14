@@ -128,18 +128,12 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             s += '{}={}, '.format(key, value)
         return '{}({})'.format(self.__class__.__name__, s[:-2])
 
-    def to_networkx(self, edge_prop_name='weight'):
+    def to_networkx(self):
         r"""Export the graph to an `Networkx <https://networkx.github.io>`_ object
 
-        The weight are stored as an edge attribute under named `edge_prop_name`
+        The weight are stored as an edge attribute under named `weight`
         The signals are stored as node attributes under the same name as define in PyGSP
         :func:`~pygsp.graphs.Graph.set_signal`.
-
-        Parameters
-        ----------
-        edge_prop_name : string
-            Name of edge attribute to store matrix numeric value.
-            As the attibute edge_attribute in :py:func:`networkx.convert_matrix.from_scipy_sparse_matrix`.
 
         Returns
         -------
@@ -149,31 +143,23 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         graph_nx = nx.from_scipy_sparse_matrix(
             self.W, create_using=nx.DiGraph()
             if self.is_directed() else nx.Graph(),
-            edge_attribute=edge_prop_name)
+            edge_attribute='weight')
 
         for name, signal in self.signals.items():
             signal_dict = {i: signal[i] for i in range(self.n_nodes)}
             nx.set_node_attributes(graph_nx, signal_dict, name)
         return graph_nx
 
-    def to_graphtool(self, edge_prop_name='weight'):
+    def to_graphtool(self):
         r"""Export the graph to an `Graph tool <https://graph-tool.skewed.de/>`_ object
 
         The weights of the graph are stored in a `property maps <https://graph-tool.skewed.de/static/doc/
-        quickstart.html#internal-property-maps>`_ of type double
-        WARNING: The edges and vertex property will be converted into double type
-
-        Parameters
-        ----------
-        edge_prop_name : string
-            Name of the property in :py:attr:`graph_tool.Graph.edge_properties`.
-            By default it is set to `weight`
+        quickstart.html#internal-property-maps>`_ under the name `weight`
 
         Returns
         -------
         graph_gt : :py:class:`graph_tool.Graph`
         """
-
         import graph_tool
         graph_gt = graph_tool.Graph(directed=self.is_directed())
         v_in, v_out, weights = self.get_edge_list()
@@ -184,7 +170,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                              .format(str(weights.dtype)))
         edge_weight = graph_gt.new_edge_property(weight_type_str)
         edge_weight.a = weights
-        graph_gt.edge_properties[edge_prop_name] = edge_weight
+        graph_gt.edge_properties['weight'] = edge_weight
         for name in self.signals:
             edge_type_str = utils.numpy2graph_tool_type(weights.dtype)
             if edge_type_str is None:
