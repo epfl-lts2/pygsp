@@ -262,14 +262,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         props_names = graph_gt.edge_properties.keys()
 
-        if edge_prop_name in props_names:
+        try:
             prop = graph_gt.edge_properties[edge_prop_name]
             edge_weight = prop.get_array()
             if edge_weight is None:
                 warnings.warn("edge_prop_name refered to a non scalar property, a weight of 1.0 is given to each edge")
                 edge_weight = np.ones(nb_edges)
 
-        else:
+        except KeyError:
             warnings.warn("""As the property {} is not found in the graph, a weight of 1.0 is given to each edge"""
                           .format(edge_prop_name))
             edge_weight = np.ones(nb_edges)
