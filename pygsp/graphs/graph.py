@@ -457,7 +457,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         --------
         >>> G = graphs.ErdosRenyi()
         >>> G.set_coordinates()
-        >>> G.plot()
+        >>> fig, ax = G.plot()
 
         """
 
@@ -944,20 +944,21 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return fm
 
     def plot(self, edges=None, backend=None, vertex_size=None, title=None,
-             save=None, ax=None):
+             ax=None):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_graph
-        _plot_graph(self, edges=edges, backend=backend,
-                    vertex_size=vertex_size, title=title, save=save, ax=ax)
+        return _plot_graph(self, edges=edges, backend=backend,
+                           vertex_size=vertex_size, title=title, ax=ax)
 
     def plot_signal(self, signal, edges=None, vertex_size=None, highlight=[],
                     colorbar=True, limits=None, backend=None, title=None,
-                    save=None, ax=None):
+                    ax=None):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_signal
-        _plot_signal(self, signal=signal, edges=edges, vertex_size=vertex_size,
-                     highlight=highlight, colorbar=colorbar, limits=limits,
-                     backend=backend, title=title, save=save, ax=ax)
+        return _plot_signal(self, signal=signal, edges=edges,
+                            vertex_size=vertex_size, highlight=highlight,
+                            colorbar=colorbar, limits=limits,
+                            backend=backend, title=title, ax=ax)
 
     def plot_spectrogram(self, node_idx=None):
         r"""Docstring overloaded at import time."""

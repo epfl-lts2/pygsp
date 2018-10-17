@@ -20,7 +20,7 @@ class Path(Graph):
     >>> G = graphs.Path(N=10)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     References
     ----------

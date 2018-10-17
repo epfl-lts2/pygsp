@@ -24,7 +24,7 @@ class DavidSensorNet(Graph):
     >>> G = graphs.DavidSensorNet()
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 

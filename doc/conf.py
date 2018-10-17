@@ -17,7 +17,8 @@ intersphinx_mapping = {
     'pyunlocbox': ('https://pyunlocbox.readthedocs.io/en/stable', None),
     'networkx': ('https://networkx.github.io/documentation/stable', None),
     'graph_tool': ('https://graph-tool.skewed.de/static/doc', None),
-    'numpy': ('https://www.numpy.org/devdocs', None)
+    'numpy': ('https://www.numpy.org/devdocs', None),
+    'matplotlib': ('https://matplotlib.org', None)
 }
 
 extensions.append('numpydoc')

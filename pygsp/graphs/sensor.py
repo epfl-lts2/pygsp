@@ -33,7 +33,7 @@ class Sensor(Graph):
     >>> G = graphs.Sensor(N=64, seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 

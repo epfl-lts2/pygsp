@@ -30,7 +30,7 @@ class Cube(NNGraph):
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')
     >>> _ = ax1.spy(G.W, markersize=0.5)
-    >>> G.plot(ax=ax2)
+    >>> _ = G.plot(ax=ax2)
 
     """
 

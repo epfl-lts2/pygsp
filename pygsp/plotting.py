@@ -66,30 +66,26 @@ def _import_qtg():
 
 def _plt_handle_figure(plot):
     r"""Handle the common work (creating an axis if not given, setting the
-    title, saving the created plot) of all matplotlib plot commands."""
+    title) of all matplotlib plot commands."""
 
     # Preserve documentation of plot.
     @functools.wraps(plot)
 
     def inner(obj, **kwargs):
 
-        plt = _import_plt()
-
         # Create a figure and an axis if none were passed.
         if kwargs['ax'] is None:
+            plt = _import_plt()
             fig = plt.figure()
             global _plt_figures
             _plt_figures.append(fig)
 
             if (hasattr(obj, 'coords') and obj.coords.ndim == 2 and
                     obj.coords.shape[1] == 3):
-                ax = fig.add_subplot(111, projection='3d')
+                kwargs['ax'] = fig.add_subplot(111, projection='3d')
             else:
-                ax = fig.add_subplot(111)
+                kwargs['ax'] = fig.add_subplot(111)
 
-            kwargs['ax'] = ax
-
-        save = kwargs.pop('save')
         title = kwargs.pop('title')
 
         plot(obj, **kwargs)
@@ -97,14 +93,12 @@ def _plt_handle_figure(plot):
         kwargs['ax'].set_title(title)
 
         try:
-            if save is not None:
-                fig.savefig(save + '.png')
-                fig.savefig(save + '.pdf')
-            else:
-                fig.show(warn=False)
+            fig.show(warn=False)
         except NameError:
             # No figure created, an axis was passed.
             pass
+
+        return kwargs['ax'].figure, kwargs['ax']
 
     return inner
 
@@ -146,7 +140,7 @@ def close(*args, **kwargs):
     plt.close(*args, **kwargs)
 
 
-def _plot_graph(G, edges, backend, vertex_size, title, save, ax):
+def _plot_graph(G, edges, backend, vertex_size, title, ax):
     r"""Plot the graph.
 
     Parameters
@@ -162,18 +156,22 @@ def _plot_graph(G, edges, backend, vertex_size, title, save, ax):
         Defaults to G.plotting['vertex_size'].
     title : str
         Title of the figure.
-    save : str
-        Whether to save the plot as save.png and save.pdf. Shown in a
-        window if None (default). Only available with the matplotlib backend.
-    ax : matplotlib.axes
+    ax : :class:`matplotlib.axes.Axes`
         Axes where to draw the graph. Optional, created if not passed.
         Only available with the matplotlib backend.
+
+    Returns
+    -------
+    fig : :class:`matplotlib.figure.Figure`
+        The figure the plot belongs to. Only with the matplotlib backend.
+    ax : :class:`matplotlib.axes.Axes`
+        The axes the plot belongs to. Only with the matplotlib backend.
 
     Examples
     --------
     >>> import matplotlib
     >>> G = graphs.Logo()
-    >>> G.plot()
+    >>> fig, ax = G.plot()
 
     """
     if not hasattr(G, 'coords'):
@@ -199,8 +197,8 @@ def _plot_graph(G, edges, backend, vertex_size, title, save, ax):
     if backend == 'pyqtgraph':
         _qtg_plot_graph(G, edges=edges, vertex_size=vertex_size, title=title)
     elif backend == 'matplotlib':
-        _plt_plot_graph(G, edges=edges, vertex_size=vertex_size, title=title,
-                        save=save, ax=ax)
+        return _plt_plot_graph(G, edges=edges, vertex_size=vertex_size,
+                               title=title, ax=ax)
     else:
         raise ValueError('Unknown backend {}.'.format(backend))
 
@@ -316,7 +314,7 @@ def _qtg_plot_graph(G, edges, vertex_size, title):
             _qtg_widgets.append(widget)
 
 
-def _plot_filter(filters, n, eigenvalues, sum, title, save, ax, **kwargs):
+def _plot_filter(filters, n, eigenvalues, sum, title, ax, **kwargs):
     r"""Plot the spectral response of a filter bank, a set of graph filters.
 
     Parameters
@@ -332,16 +330,20 @@ def _plot_filter(filters, n, eigenvalues, sum, title, save, ax, **kwargs):
         of the filters (default True if there is multiple filters).
     title : str
         Title of the figure.
-    save : str
-        Whether to save the plot as save.png and save.pdf. Shown in a
-        window if None (default). Only available with the matplotlib backend.
-    ax : matplotlib.axes
+    ax : :class:`matplotlib.axes.Axes`
         Axes where to draw the graph. Optional, created if not passed.
         Only available with the matplotlib backend.
     kwargs : dict
         Additional parameters passed to the matplotlib plot function.
         Useful for example to change the linewidth, linestyle, or set a label.
         Only available with the matplotlib backend.
+
+    Returns
+    -------
+    fig : :class:`matplotlib.figure.Figure`
+        The figure the plot belongs to. Only with the matplotlib backend.
+    ax : :class:`matplotlib.axes.Axes`
+        The axes the plot belongs to. Only with the matplotlib backend.
 
     Notes
     -----
@@ -352,7 +354,7 @@ def _plot_filter(filters, n, eigenvalues, sum, title, save, ax, **kwargs):
     >>> import matplotlib
     >>> G = graphs.Logo()
     >>> mh = filters.MexicanHat(G)
-    >>> mh.plot()
+    >>> fig, ax = mh.plot()
 
     """
 
@@ -365,8 +367,8 @@ def _plot_filter(filters, n, eigenvalues, sum, title, save, ax, **kwargs):
     if title is None:
         title = repr(filters)
 
-    _plt_plot_filter(filters, n=n, eigenvalues=eigenvalues, sum=sum,
-                     title=title, save=save, ax=ax, **kwargs)
+    return _plt_plot_filter(filters, n=n, eigenvalues=eigenvalues, sum=sum,
+                            title=title, ax=ax, **kwargs)
 
 
 @_plt_handle_figure
@@ -390,7 +392,7 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
 
 
 def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
-                 limits, backend, title, save, ax):
+                 limits, backend, title, ax):
     r"""Plot a signal on the graph.
 
     Parameters
@@ -426,19 +428,23 @@ def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
         Defines the drawing backend to use. Defaults to :data:`BACKEND`.
     title : str
         Title of the figure.
-    save : str
-        Whether to save the plot as save.png and save.pdf. Shown in a
-        window if None (default). Only available with the matplotlib backend.
-    ax : matplotlib.axes
+    ax : :class:`matplotlib.axes.Axes`
         Axes where to draw the graph. Optional, created if not passed.
         Only available with the matplotlib backend.
+
+    Returns
+    -------
+    fig : :class:`matplotlib.figure.Figure`
+        The figure the plot belongs to. Only with the matplotlib backend.
+    ax : :class:`matplotlib.axes.Axes`
+        The axes the plot belongs to. Only with the matplotlib backend.
 
     Examples
     --------
     >>> import matplotlib
     >>> G = graphs.Grid2d(8)
     >>> signal = np.sin((np.arange(8**2) * 2*np.pi/8**2))
-    >>> G.plot_signal(signal)
+    >>> fig, ax = G.plot_signal(signal)
 
     """
     if not hasattr(G, 'coords'):
@@ -480,10 +486,10 @@ def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
         _qtg_plot_signal(G, signal=signal, edges=edges,
                          vertex_size=vertex_size, limits=limits, title=title)
     elif backend == 'matplotlib':
-        _plt_plot_signal(G, signal=signal, edges=edges,
-                         vertex_size=vertex_size, limits=limits, title=title,
-                         highlight=highlight, colorbar=colorbar,
-                         save=save, ax=ax)
+        return _plt_plot_signal(G, signal=signal, edges=edges,
+                                vertex_size=vertex_size, limits=limits,
+                                title=title, highlight=highlight,
+                                colorbar=colorbar, ax=ax)
     else:
         raise ValueError('Unknown backend {}.'.format(backend))
 

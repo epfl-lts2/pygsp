@@ -30,8 +30,8 @@ class Rectangular(Filter):
     >>> g = filters.Rectangular(G, band_min=0.1, band_max=0.5)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
-    >>> g.plot(ax=axes[0])
-    >>> G.plot_signal(s, ax=axes[1])
+    >>> _ = g.plot(ax=axes[0])
+    >>> _ = G.plot_signal(s, ax=axes[1])
 
     """
 

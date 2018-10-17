@@ -37,8 +37,8 @@ class Meyer(Filter):
     >>> g = filters.Meyer(G)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
-    >>> g.plot(ax=axes[0])
-    >>> G.plot_signal(s, ax=axes[1])
+    >>> _ = g.plot(ax=axes[0])
+    >>> _ = G.plot_signal(s, ax=axes[1])
 
     """
 

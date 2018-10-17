@@ -186,7 +186,7 @@ class Filter(object):
 
         >>> fig, ax = plt.subplots()
         >>> G.set_coordinates('line1D')  # To visualize multiple signals in 1D.
-        >>> G.plot_signal(s[:, 9, :], ax=ax)
+        >>> _ = G.plot_signal(s[:, 9, :], ax=ax)
         >>> legend = [r'$\tau={}$'.format(t) for t in taus]
         >>> ax.legend(legend)  # doctest: +ELLIPSIS
         <matplotlib.legend.Legend object at ...>
@@ -214,8 +214,8 @@ class Filter(object):
         Look how well we were able to reconstruct:
 
         >>> fig, axes = plt.subplots(1, 2)
-        >>> G.plot_signal(s1, ax=axes[0])
-        >>> G.plot_signal(s2, ax=axes[1])
+        >>> _ = G.plot_signal(s1, ax=axes[0])
+        >>> _ = G.plot_signal(s2, ax=axes[1])
         >>> print('{:.5f}'.format(np.linalg.norm(s1 - s2)))
         0.29620
 
@@ -347,7 +347,7 @@ class Filter(object):
         >>> G.estimate_lmax()
         >>> g = filters.Heat(G, 100)
         >>> s = g.localize(DELTA)
-        >>> G.plot_signal(s, highlight=DELTA)
+        >>> _ = G.plot_signal(s, highlight=DELTA)
 
         """
         s = np.zeros(self.G.N)
@@ -511,9 +511,9 @@ class Filter(object):
 
         return Filter(self.G, kernels)
 
-    def plot(self, n=500, eigenvalues=None, sum=None, title=None, save=None,
+    def plot(self, n=500, eigenvalues=None, sum=None, title=None,
              ax=None, **kwargs):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_filter
-        _plot_filter(self, n=n, eigenvalues=eigenvalues, sum=sum, title=title,
-                     save=save, ax=ax, **kwargs)
+        return _plot_filter(self, n=n, eigenvalues=eigenvalues, sum=sum,
+                            title=title, ax=ax, **kwargs)
