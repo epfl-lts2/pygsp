@@ -604,10 +604,6 @@ class TestCaseImportExport(unittest.TestCase):
         g = graphs.Graph.from_graphtool(g_gt)
         self.assertEqual(g.W[3, 6], 3.0)
 
-        # test custom aggregator function
-        g2 = graphs.Graph.from_graphtool(g_gt, aggr_fun=np.mean)
-        self.assertEqual(g2.W[3, 6], 1.0)
-
         eprop_double = g_gt.new_edge_property("double")
 
         # Set the weight of 2 out of the 3 edges. The last one has a default weight of 0
@@ -616,8 +612,8 @@ class TestCaseImportExport(unittest.TestCase):
         eprop_double[e[1]] = 1.0
 
         g_gt.edge_properties["weight"] = eprop_double
-        g3 = graphs.Graph.from_graphtool(g_gt, aggr_fun=np.mean)
-        self.assertEqual(g3.W[3, 6], 3.0)
+        g3 = graphs.Graph.from_graphtool(g_gt)
+        self.assertEqual(g3.W[3, 6], 9.0)
 
     def test_graphtool_import_export(self):
         # Import to PyGSP and export again to graph tool directly
