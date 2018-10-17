@@ -274,26 +274,22 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         return graph
 
     @classmethod
-    def from_graphtool(cls, graph_gt, edge_prop_name='weight', aggr_fun=sum):
+    def from_graphtool(cls, graph_gt, weight='weight'):
         r"""Build a graph from a graph tool object.
+
+        When the graph as multiple edge connecting the same two nodes a sum over the edges is taken to merge them.
 
         Parameters
         ----------
         graph_gt : :py:class:`graph_tool.Graph`
             Graph tool object
-        edge_prop_name : string
+        weight : string
             Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_
             to be loaded as weight for the graph. If the property is not found a graph with default weight set to 1 is created.
             On the other hand if the property is found but not set for a specific edge the weight of zero will be set
             therefore for single edge this will result in a none existing edge. If you want to set to a default value please
             use `set_value <https://graph-tool.skewed.de/static/doc/graph_tool.html?highlight=propertyarray#graph_tool.PropertyMap.set_value>`_
             from the graph_tool object.
-        aggr_fun : function
-            When the graph as multiple edge connecting the same two nodes the aggragate function is called to merge the
-            edges. By default the sum is taken.
-        signals_names : list[String] or 'all'
-            List of signals names to import from the graph_tool graph or if set to 'all' import all signal present
-            in the graph
 
         Returns
         -------
@@ -307,7 +303,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         props_names = graph_gt.edge_properties.keys()
 
         try:
-            prop = graph_gt.edge_properties[edge_prop_name]
+            prop = graph_gt.edge_properties[weight]
             edge_weight = prop.get_array()
             if edge_weight is None:
                 warnings.warn("edge_prop_name refered to a non scalar property, a weight of 1.0 is given to each edge")
@@ -315,13 +311,13 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         except KeyError:
             warnings.warn("""As the property {} is not found in the graph, a weight of 1.0 is given to each edge"""
-                          .format(edge_prop_name))
+                          .format(weight))
             edge_weight = np.ones(nb_edges)
 
         # merging multi-edge
         merged_edge_weight = []
         for k, grp in groupby(graph_gt.get_edges(), key=lambda e: (e[0], e[1])):
-            merged_edge_weight.append((k[0], k[1], aggr_fun([edge_weight[e[2]] for e in grp])))
+            merged_edge_weight.append((k[0], k[1], sum([edge_weight[e[2]] for e in grp])))
         for e in merged_edge_weight:
             weights[e[0], e[1]] = e[2]
         # When the graph is not directed the opposit edge as to be added too.
