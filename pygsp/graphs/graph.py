@@ -327,12 +327,9 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         graph = cls(weights)
 
         # Adding signals
-        for s_name in graph_gt.vertex_properties.keys():
-            if s_name in graph_gt.vertex_properties.keys():
-                signal = np.array([graph_gt.vertex_properties[s_name][v] for v in graph_gt.vertices()])
-                graph.set_signal(signal, s_name)
-            else:
-                warnings.warn("{} was not found in the graph_tool graph".format(s_name))
+        for signal_name, signal_gt in graph_gt.vertex_properties.items():
+            signal = np.array([signal_gt[vertex] for vertex in graph_gt.vertices()])
+            graph.set_signal(signal, signal_name)
         return graph
 
     @classmethod
