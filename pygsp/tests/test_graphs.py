@@ -147,10 +147,6 @@ class TestCase(unittest.TestCase):
         self.assertRaises(NotImplementedError, self._G.gft_windowed_normalized,
                           None, self._signal)
 
-    def test_translate(self):
-        self.assertRaises(NotImplementedError, self._G.translate,
-                          self._signal, 42)
-
     def test_modulate(self):
         # FIXME: don't work
         # self._G.modulate(self._signal, 3)
