@@ -683,11 +683,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         fm *= np.sqrt(self.N)
         return fm
 
-    def plot(self, edges=None, backend=None, vertex_size=None, title=None,
-             ax=None):
+    def plot(self, edges=None, index=False, backend=None, vertex_size=None,
+             title=None, ax=None):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_graph
-        return _plot_graph(self, edges=edges, backend=backend,
+        return _plot_graph(self, edges=edges, index=index, backend=backend,
                            vertex_size=vertex_size, title=title, ax=ax)
 
     def plot_signal(self, signal, edges=None, vertex_size=None, highlight=[],

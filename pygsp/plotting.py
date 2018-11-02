@@ -140,7 +140,7 @@ def close(*args, **kwargs):
     plt.close(*args, **kwargs)
 
 
-def _plot_graph(G, edges, backend, vertex_size, title, ax):
+def _plot_graph(G, edges, index, backend, vertex_size, title, ax):
     r"""Plot the graph.
 
     Parameters
@@ -149,6 +149,8 @@ def _plot_graph(G, edges, backend, vertex_size, title, ax):
         True to draw edges, false to only draw vertices.
         Default True if less than 10,000 edges to draw.
         Note that drawing a large number of edges might be particularly slow.
+    node_ids : bool
+        True to print node ids. Intended to identify nodes of interest.
     backend: {'matplotlib', 'pyqtgraph'}
         Defines the drawing backend to use. Defaults to :data:`BACKEND`.
     vertex_size : float
@@ -197,14 +199,14 @@ def _plot_graph(G, edges, backend, vertex_size, title, ax):
     if backend == 'pyqtgraph':
         _qtg_plot_graph(G, edges=edges, vertex_size=vertex_size, title=title)
     elif backend == 'matplotlib':
-        return _plt_plot_graph(G, edges=edges, vertex_size=vertex_size,
-                               title=title, ax=ax)
+        return _plt_plot_graph(G, edges=edges, index=index,
+                               vertex_size=vertex_size, title=title, ax=ax)
     else:
         raise ValueError('Unknown backend {}.'.format(backend))
 
 
 @_plt_handle_figure
-def _plt_plot_graph(G, edges, vertex_size, ax):
+def _plt_plot_graph(G, edges, index, vertex_size, ax):
 
     # TODO handling when G is a list of graphs
     # TODO integrate param when G is a clustered graph
@@ -257,6 +259,14 @@ def _plt_plot_graph(G, edges, vertex_size, ax):
             ax.dist = G.plotting['distance']
         except KeyError:
             pass
+
+    if index:
+        for node in range(G.N):
+            ax.text(*tuple(G.coords[node]),  # accomodate 2D and 3D
+                    s=node,
+                    color='white',
+                    horizontalalignment='center',
+                    verticalalignment='center')
 
 
 def _qtg_plot_graph(G, edges, vertex_size, title):

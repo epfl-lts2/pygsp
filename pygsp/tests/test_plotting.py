@@ -31,7 +31,7 @@ class TestCase(unittest.TestCase):
         With both backends.
         """
 
-        # Graphs who are not embedded, i.e. have no coordinates.
+        # Graphs who are not embedded, i.e., have no coordinates.
         COORDS_NO = {
             'Graph',
             'BarabasiAlbert',
@@ -91,10 +91,21 @@ class TestCase(unittest.TestCase):
             G.plot_signal(s, backend='matplotlib', highlight=[0, 1])
 
         # Test for 1, 2, and 3D graphs.
-        G = graphs.Ring()
+        G = graphs.Ring(10)
         test(G)
-        G = graphs.Ring()
         G.set_coordinates('line1D')
+        test(G)
+        G = graphs.Torus(Nv=5)
+        test(G)
+
+    def test_index(self):
+
+        def test(G):
+            G.plot(backend='matplotlib', index=False)
+            G.plot(backend='matplotlib', index=True)
+
+        # Test for 2D and 3D graphs.
+        G = graphs.Ring(10)
         test(G)
         G = graphs.Torus(Nv=5)
         test(G)
