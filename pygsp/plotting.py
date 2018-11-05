@@ -148,7 +148,7 @@ def _plot_graph(G, edges, index, backend, vertex_size, title, ax):
     edges : bool
         True to draw edges, false to only draw vertices.
         Default True if less than 10,000 edges to draw.
-        Note that drawing a large number of edges might be particularly slow.
+        Note that drawing many edges can be slow.
     node_ids : bool
         True to print node ids. Intended to identify nodes of interest.
     backend: {'matplotlib', 'pyqtgraph'}
@@ -412,7 +412,7 @@ def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
     edges : bool
         True to draw edges, false to only draw vertices.
         Default True if less than 10,000 edges to draw.
-        Note that drawing a large number of edges might be particularly slow.
+        Note that drawing many edges can be slow.
     cp : list of int
         NOT IMPLEMENTED. Camera position when plotting a 3D graph.
     vertex_size : float
