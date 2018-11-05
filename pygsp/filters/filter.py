@@ -31,12 +31,15 @@ class Filter(object):
     G : Graph
         The graph to which the filter bank was tailored. It is a reference to
         the graph passed when instantiating the class.
-    Nf : int
+    n_features_in : int
+        Number of signals or features the filter bank takes in.
+    n_features_out : int
+        Number of signals or features the filter bank gives out.
+    n_filters : int
         Number of filters in the filter bank.
 
     Examples
     --------
-    >>>
     >>> G = graphs.Logo()
     >>> my_filter = filters.Filter(G, lambda x: x / (1. + x))
     >>>
@@ -64,6 +67,7 @@ class Filter(object):
         self.Nf = self.n_filters  # TODO: kept for backward compatibility only.
 
     def _get_extra_repr(self):
+        """To be overloaded by children."""
         return dict()
 
     def __repr__(self):
