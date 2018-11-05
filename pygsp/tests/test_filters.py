@@ -232,12 +232,6 @@ class TestCase(unittest.TestCase):
         self._test_methods(f, tight=False, check=False)
         f = filters.Rectangular(self._G, band_min=None, band_max=None)
         self._test_methods(f, tight=True, check=True)
-        self.assertRaises(ValueError, filters.Rectangular, self._G,
-                          band_min=-1)
-        self.assertRaises(ValueError, filters.Rectangular, self._G,
-                          band_max=2)
-        self.assertRaises(ValueError, filters.Rectangular, self._G,
-                          band_min=0.8, band_max=0.5)
 
     def test_approximations(self):
         r"""

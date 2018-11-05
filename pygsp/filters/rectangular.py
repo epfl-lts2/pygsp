@@ -2,6 +2,8 @@
 
 from __future__ import division
 
+import numpy as np
+
 from . import Filter  # prevent circular import in Python < 3.5
 
 
@@ -15,11 +17,13 @@ class Rectangular(Filter):
     ----------
     G : graph
     band_min : float
-        Minimum relative band, a number in [0, 1]. Zero corresponds to the
-        smallest eigenvalue (which is itself equal to zero), one corresponds to
-        the largest eigenvalue.
+        Minimum relative band. The filter evaluates at 1 at this frequency.
+        Zero corresponds to the smallest eigenvalue (which is itself equal to
+        zero), one corresponds to the largest eigenvalue.
+        If None, the filter is high-pass.
     band_max : float
-        Maximum relative band, a number in [0, 1].
+        Maximum relative band. The filter evaluates at 1 at this frequency.
+        If None, the filter is low-pass.
 
     Examples
     --------
@@ -38,24 +42,34 @@ class Rectangular(Filter):
 
     """
 
-    def __init__(self, G, band_min=0, band_max=0.2):
-
-        if not 0 <= band_min <= 1:
-            raise ValueError('band_min should be in [0, 1]')
-        if not 0 <= band_max <= 1:
-            raise ValueError('band_max should be in [0, 1]')
-        if not band_max >= band_min:
-            raise ValueError('band_max should be greater than band_min')
+    def __init__(self, G, band_min=None, band_max=0.2):
 
         self.band_min = band_min
         self.band_max = band_max
 
-        def kernel(x):
+        def kernel_lowpass(x):
             x = x / G.lmax
-            return (x >= band_min) & (x <= band_max)
+            return x <= band_max
 
-        super(Rectangular, self).__init__(G, [kernel])
+        def kernel_highpass(x):
+            x = x / G.lmax
+            return x >= band_min
+
+        if (band_min is None) and (band_max is None):
+            kernel = lambda x: np.ones_like(x)
+        elif band_min is None:
+            kernel = kernel_lowpass
+        elif band_max is None:
+            kernel = kernel_highpass
+        else:
+            kernel = lambda x: kernel_lowpass(x) * kernel_highpass(x)
+
+        super(Rectangular, self).__init__(G, kernel)
 
     def _get_extra_repr(self):
-        return dict(band_min='{:.2f}'.format(self.band_min),
-                    band_max='{:.2f}'.format(self.band_max))
+        attrs = dict()
+        if self.band_min is not None:
+            attrs.update(band_min='{:.2f}'.format(self.band_min))
+        if self.band_max is not None:
+            attrs.update(band_max='{:.2f}'.format(self.band_max))
+        return attrs
