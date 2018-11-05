@@ -8,30 +8,51 @@ _logger = utils.build_logger(__name__)
 
 
 class Gabor(Filter):
-    r"""Design a Gabor filter bank.
+    r"""Design a filter bank where a kernel is centered at each frequency.
 
-    Design a filter bank where the kernel is centered at each graph frequency.
+    In classical image processing, a Gabor filter is a sinusoidal wave
+    multiplied by a Gaussian function (the kernel). It analyzes whether there
+    are any specific frequency content in the image in specific directions in a
+    localized region around the point of analysis. This implementation for
+    graph signals allows arbitrary (but isotropic) kernels.
+
+    This filter bank is used to compute the frequency content at each vertex, a
+    kind of vertex-frequency analysis, or windowed graph Fourier transform.
+    See :meth:`pygsp.graphs.Graph.gft_windowed_gabor`.
 
     Parameters
     ----------
-    G : graph
+    graph : :class:`pygsp.graphs.Graph`
     kernel : function
-        Kernel function to be centered and evaluated.
+        Kernel function to be centered at each graph frequency (eigenvalue of
+        the graph Laplacian).
+
+    Notes
+    -----
+    The eigenvalues of the graph Laplacian (i.e., the Fourier basis) are needed
+    to center the kernels.
 
     Examples
     --------
-    >>> G = graphs.Logo()
-    >>> k = lambda x: x / (1. - x)
-    >>> g = filters.Gabor(G, k);
+
+    Filter bank's representation in Fourier and time (path graph) domains.
+
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.Path(N=7)
+    >>> G.compute_fourier_basis()
+    >>> G.set_coordinates('line1D')
+    >>> g = filters.Gabor(G, lambda x: np.exp(-20 * np.abs(x)))
+    >>> s = g.localize(G.N // 2, method='exact')
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = g.plot(ax=axes[0], sum=False)
+    >>> _ = G.plot_signal(s, ax=axes[1])
 
     """
 
-    def __init__(self, G, kernel):
-
-        Nf = G.e.shape[0]
+    def __init__(self, graph, kernel):
 
         kernels = []
-        for i in range(Nf):
-            kernels.append(lambda x, i=i: kernel(x - G.e[i]))
+        for i in range(graph.n_nodes):
+            kernels.append(lambda x, i=i: kernel(x - graph.e[i]))
 
-        super(Gabor, self).__init__(G, kernels)
+        super(Gabor, self).__init__(graph, kernels)

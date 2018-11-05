@@ -218,32 +218,57 @@ class GraphFourier(object):
                              'G.N = {}, got {}.'.format(self.N, s_hat.shape))
         return np.tensordot(self.U, s_hat, ([1], [0]))
 
-    def gft_windowed_gabor(self, s, k):
+    def gft_windowed_gabor(self, signal, kernel):
         r"""Gabor windowed graph Fourier transform.
+
+        Compute a vertex-frequency representation of a signal by filtering it
+        with a set of kernels simultaneously localized in the spectral and
+        vertex domains.
 
         Parameters
         ----------
-        s : ndarray
-            Graph signal in the vertex domain.
-        k : function
-            Gabor kernel. See :class:`pygsp.filters.Gabor`.
+        signal : ndarray
+            Graph signals in the vertex domain.
+        kernel : function
+            Kernel of the Gabor filter bank. See :class:`pygsp.filters.Gabor`.
 
         Returns
         -------
-        s : ndarray
+        signal : ndarray
             Vertex-frequency representation of the signals.
 
         Examples
         --------
-        >>> G = graphs.Logo()
-        >>> s = np.random.normal(size=(G.N, 2))
-        >>> s = G.gft_windowed_gabor(s, lambda x: x/(1.-x))
-        >>> s.shape
-        (1130, 2, 1130)
+        >>> import matplotlib.pyplot as plt
+        >>> G = graphs.Ring(100)
+        >>> G.compute_fourier_basis()
+        >>>
+        >>> # Two signal, each composed of a delta.
+        >>> s = np.zeros((G.n_nodes, 2))
+        >>> s[0, 0] = 1
+        >>> s[G.N // 2, 1] = 1
+        >>>
+        >>> # Define a filter bank composed of rectangular kernels localized
+        >>> # at each graph frequency.
+        >>> def kernel_rectangular(x, width):
+        ...     y = np.zeros_like(x)
+        ...     y[np.abs(x) < width] = 1
+        ...     return y
+        >>> g = filters.Gabor(G, lambda x: kernel_rectangular(x, width=0.01))
+        >>>
+        >>> # Filter with the exact method as we did compute the Fourier basis.
+        >>> s = g.filter(s, method='exact')
+        >>> print(s.shape)
+        (100, 2, 100)
+        >>>
+        >>> # Visualize the vertex-frequency representation of both signals.
+        >>> fig, axes = plt.subplots(1, 2)
+        >>> _ = axes[0].imshow(s[:, 0, :])
+        >>> _ = axes[1].imshow(s[:, 1, :])
 
         """
         from pygsp import filters
-        return filters.Gabor(self, k).filter(s)
+        return filters.Gabor(self, kernel).filter(signal)
 
     def gft_windowed(self, g, f, lowmemory=True):
         r"""Windowed graph Fourier transform.
