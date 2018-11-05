@@ -229,7 +229,7 @@ class GraphFourier(object):
         ----------
         signal : ndarray
             Graph signals in the vertex domain.
-        kernel : function
+        kernel : callable, can be a :class:`pygsp.filters.Filter`
             Kernel of the Gabor filter bank. See :class:`pygsp.filters.Gabor`.
 
         Returns
@@ -240,31 +240,25 @@ class GraphFourier(object):
         Examples
         --------
         >>> import matplotlib.pyplot as plt
-        >>> G = graphs.Ring(100)
+        >>> G = graphs.Ring(20)
         >>> G.compute_fourier_basis()
         >>>
-        >>> # Two signal, each composed of a delta.
-        >>> s = np.zeros((G.n_nodes, 2))
-        >>> s[0, 0] = 1
-        >>> s[G.N // 2, 1] = 1
+        >>> # Signal is a delta.
+        >>> s = np.zeros(G.n_nodes)
+        >>> s[G.N // 2] = 1
         >>>
-        >>> # Define a filter bank composed of rectangular kernels localized
-        >>> # at each graph frequency.
-        >>> def kernel_rectangular(x, width):
-        ...     y = np.zeros_like(x)
-        ...     y[np.abs(x) < width] = 1
-        ...     return y
-        >>> g = filters.Gabor(G, lambda x: kernel_rectangular(x, width=0.01))
+        >>> # Define a filter bank composed of rectangular kernels, each
+        >>> # capturing low frequencies up to an increasing graph frequency.
+        >>> g = filters.Rectangular(G, band_min=None, band_max=0.01)
+        >>> g = filters.Gabor(G, g)
         >>>
         >>> # Filter with the exact method as we did compute the Fourier basis.
         >>> s = g.filter(s, method='exact')
-        >>> print(s.shape)
-        (100, 2, 100)
         >>>
-        >>> # Visualize the vertex-frequency representation of both signals.
+        >>> # Visualize the vertex-frequency representation of the signal.
         >>> fig, axes = plt.subplots(1, 2)
-        >>> _ = axes[0].imshow(s[:, 0, :])
-        >>> _ = axes[1].imshow(s[:, 1, :])
+        >>> _ = g.plot(sum=False, ax=axes[0])
+        >>> _ = axes[1].imshow(s)
 
         """
         from pygsp import filters

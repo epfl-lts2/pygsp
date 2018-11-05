@@ -35,7 +35,9 @@ class TestCase(unittest.TestCase):
     def _test_methods(self, f, tight, check=True):
         self.assertIs(f.G, self._G)
 
-        f.evaluate(self._G.e)
+        s1 = f.evaluate(self._G.e)
+        s2 = f(self._G.e)
+        np.testing.assert_equal(s1, s2)
 
         A, B = f.estimate_frame_bounds(use_eigenvalues=True)
         if tight:

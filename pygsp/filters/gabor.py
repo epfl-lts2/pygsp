@@ -23,7 +23,7 @@ class Gabor(Filter):
     Parameters
     ----------
     graph : :class:`pygsp.graphs.Graph`
-    kernel : function
+    kernel : callable, can be a :class:`pygsp.filters.Filter`
         Kernel function to be centered at each graph frequency (eigenvalue of
         the graph Laplacian).
 
@@ -41,7 +41,8 @@ class Gabor(Filter):
     >>> G = graphs.Path(N=7)
     >>> G.compute_fourier_basis()
     >>> G.set_coordinates('line1D')
-    >>> g = filters.Gabor(G, lambda x: np.exp(-20 * np.abs(x)))
+    >>> g = filters.Expwin(G, band_min=0, band_max=0, slope=10)
+    >>> g = filters.Gabor(G, g)
     >>> s = g.localize(G.N // 2, method='exact')
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = g.plot(ax=axes[0], sum=False)

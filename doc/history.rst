@@ -23,6 +23,7 @@ Additional features:
 * Building a graph object is much faster.
 * New rectangular filter (low-pass and band-pass).
 * The exponential window has been updated from low-pass only to band-pass.
+* Calling a filter as f(values) calls f.evaluate(values).
 * Plotting functions return matplotlib figures and axes.
 
 0.5.1 (2017-12-15)
