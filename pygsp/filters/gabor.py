@@ -4,9 +4,6 @@ from pygsp import utils
 from . import Filter  # prevent circular import in Python < 3.5
 
 
-_logger = utils.build_logger(__name__)
-
-
 class Gabor(Filter):
     r"""Design a filter bank where a kernel is centered at each frequency.
 
