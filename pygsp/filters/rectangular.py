@@ -8,15 +8,18 @@ from . import Filter  # prevent circular import in Python < 3.5
 class Rectangular(Filter):
     r"""Design a rectangular filter.
 
+    The filter evaluates at one in the interval [band_min, band_max] and zero
+    everywhere else.
+
     Parameters
     ----------
     G : graph
     band_min : float
-        Minimum relative band. The filter take the value 0.5 at this relative
-        frequency (default = None).
+        Minimum relative band, a number in [0, 1]. Zero corresponds to the
+        smallest eigenvalue (which is itself equal to zero), one corresponds to
+        the largest eigenvalue.
     band_max : float
-        Maximum relative band. The filter take the value 0.5 at this relative
-        frequency (default = 0.2).
+        Maximum relative band, a number in [0, 1].
 
     Examples
     --------
@@ -35,12 +38,7 @@ class Rectangular(Filter):
 
     """
 
-    def __init__(self, G, band_min=None, band_max=0.2):
-
-        if band_min is None:
-            band_min = 0
-        if band_max is None:
-            band_max = 1
+    def __init__(self, G, band_min=0, band_max=0.2):
 
         if not 0 <= band_min <= 1:
             raise ValueError('band_min should be in [0, 1]')

@@ -14,13 +14,15 @@ class Expwin(Filter):
     ----------
     G : graph
     band_min : float
-        Minimum relative band. The filter take the value 0.5 at this relative
-        frequency (default = None).
+        Minimum relative band. The filter take the value 0.5 at this frequency.
+        Zero corresponds to the smallest eigenvalue (which is itself equal to
+        zero), one corresponds to the largest eigenvalue.
+        If None, the filter is high-pass.
     band_max : float
-        Maximum relative band. The filter take the value 0.5 at this relative
-        frequency (default = 0.2).
+        Maximum relative band. The filter take the value 0.5 at this frequency.
+        If None, the filter is low-pass.
     slope : float
-        The slope at cut-off (default = 1).
+        The slope at cut-off.
 
     Examples
     --------
