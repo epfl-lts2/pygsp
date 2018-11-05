@@ -384,11 +384,15 @@ def _plot_filter(filters, n, eigenvalues, sum, title, ax, **kwargs):
 @_plt_handle_figure
 def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
 
+    x = np.linspace(0, filters.G.lmax, n)
+
     if eigenvalues:
         for e in filters.G.e:
             ax.axvline(x=e, color=[0.9]*3, linewidth=1)
+        # Evaluate the filter bank at the eigenvalues to avoid plotting
+        # artifacts, for example when deltas are centered on the eigenvalues.
+        x = np.sort(np.concatenate([x, filters.G.e]))
 
-    x = np.linspace(0, filters.G.lmax, n)
     y = filters.evaluate(x).T
     ax.plot(x, y, **kwargs)
 
