@@ -34,15 +34,24 @@ def _analysis(g, s, **kwargs):
     return s.swapaxes(1, 2).reshape(-1, s.shape[1], order='F')
 
 
-def graph_sparsify(M, epsilon, maxiter=10):
+def graph_sparsify(M, epsilon, maxiter=10, fast=True):
     r"""Sparsify a graph (with Spielman-Srivastava).
 
     Parameters
     ----------
     M : Graph or sparse matrix
         Graph structure or a Laplacian matrix
-    epsilon : int
+
+    epsilon : float
         Sparsification parameter
+
+    maxiter : int (optional)
+        Number of iterations in successive attempts at reducing the sparsification
+        parameter to preserve connectivity. (default: 10)
+
+    fast : bool
+        Whether to use the fast resistance distance from :cite:`spielman2011graph`
+        or exact value. (default: True)
 
     Returns
     -------
@@ -52,6 +61,11 @@ def graph_sparsify(M, epsilon, maxiter=10):
     Notes
     -----
     Epsilon should be between 1/sqrt(N) and 1
+
+    The resistance distances computed by the `fast` option are approximate but
+    that approximation is included in the graph sparsification bounds of the
+    Spielman-Srivastava algorithm. Without this option, distances are computed
+    by blunt matrix inversion which does not scale for large graphs.
 
     Examples
     --------
@@ -70,34 +84,26 @@ def graph_sparsify(M, epsilon, maxiter=10):
     if isinstance(M, graphs.Graph):
         if not M.lap_type == 'combinatorial':
             raise NotImplementedError
-        L = M.L
+        g = M
+        g.create_incidence_matrix()
     else:
-        L = M
+        g = Graph(W=sparse.diags(M.diagonal()) - M, lap_type='combinatorial')
+        g.create_incidence_matrix()
 
-    N = np.shape(L)[0]
+    N = g.N
 
     if not 1./np.sqrt(N) <= epsilon < 1:
         raise ValueError('GRAPH_SPARSIFY: Epsilon out of required range')
 
-    # Not sparse
-    resistance_distances = utils.resistance_distance(L).toarray()
-    # Get the Weight matrix
-    if isinstance(M, graphs.Graph):
-        W = M.W
+    if fast:
+        Re = utils.approx_resistance_distance(g, epsilon)
     else:
-        W = np.diag(L.diagonal()) - L.toarray()
-        W[W < 1e-10] = 0
-
-    W = sparse.coo_matrix(W)
-    W.data[W.data < 1e-10] = 0
-    W = W.tocsc()
-    W.eliminate_zeros()
-
-    start_nodes, end_nodes, weights = sparse.find(sparse.tril(W))
+        Re = utils.resistance_distance(g.L).toarray()
+        Re = Re[g.start_nodes, g.end_nodes]
 
     # Calculate the new weights.
-    weights = np.maximum(0, weights)
-    Re = np.maximum(0, resistance_distances[start_nodes, end_nodes])
+    weights = np.maximum(0, g.Wb.diagonal())
+    Re = np.maximum(0, Re)
     Pe = weights * Re
     Pe = Pe / np.sum(Pe)
 
@@ -117,7 +123,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
         counts[spin_counts[:, 0]] = spin_counts[:, 1]
         new_weights = counts * per_spin_weights
 
-        sparserW = sparse.csc_matrix((new_weights, (start_nodes, end_nodes)),
+        sparserW = sparse.csc_matrix((new_weights, (g.start_nodes, g.end_nodes)),
                                      shape=(N, N))
         sparserW = sparserW + sparserW.T
         sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
@@ -275,7 +281,9 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
             raise NotImplementedError('Unknown graph reduction method.')
 
         if sparsify and Gs[i+1].N > 2:
+            coords = Gs[i+1].coords
             Gs[i+1] = graph_sparsify(Gs[i+1], min(max(sparsify_eps, 2. / np.sqrt(Gs[i+1].N)), 1.))
+            Gs[i+1].coords = coords
             # TODO : Make in place modifications instead!
 
         if compute_full_eigen:
@@ -292,7 +300,7 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
     return Gs
 
 
-def kron_reduction(G, ind):
+def kron_reduction(G, ind, threshold=np.spacing(1)):
     r"""Compute the Kron reduction.
 
     This function perform the Kron reduction of the weight matrix in the
@@ -307,12 +315,22 @@ def kron_reduction(G, ind):
         Graph structure or weight matrix
     ind : list
         indices of the nodes to keep
+    threshold: float
+        Threshold applied to the reduced Laplacian matrix to remove numerical
+        noise. (default: marchine precision)
 
     Returns
     -------
     Gnew : Graph or sparse matrix
         New graph structure or weight matrix
 
+    Notes
+    -----
+    For large graphs, with default thresholding value, the kron reduction can
+    lead to an extremely large number of edges, most of which have very small
+    weight. In this situation, a larger thresholding can remove most of these
+    unnecessary edges, an approximation that also makes subsequent spasrsification
+    much faster.
 
     References
     ----------
@@ -320,7 +338,6 @@ def kron_reduction(G, ind):
 
     """
     if isinstance(G, graphs.Graph):
-
         if G.lap_type != 'combinatorial':
                 msg = 'Unknown reduction for {} Laplacian.'.format(G.lap_type)
                 raise NotImplementedError(msg)
@@ -334,31 +351,27 @@ def kron_reduction(G, ind):
     else:
 
         L = G
-
     N = np.shape(L)[0]
     ind_comp = np.setdiff1d(np.arange(N, dtype=int), ind)
 
-    L_red = L[np.ix_(ind, ind)]
-    L_in_out = L[np.ix_(ind, ind_comp)]
-    L_out_in = L[np.ix_(ind_comp, ind)].tocsc()
-    L_comp = L[np.ix_(ind_comp, ind_comp)].tocsc()
+    L_red = utils.extract_submatrix(L,ind, ind)
+    L_in_out = utils.extract_submatrix(L, ind, ind_comp)
+    L_out_in = L_in_out.transpose().tocsc()
+    L_comp = utils.extract_submatrix(L,ind_comp, ind_comp).tocsc()
 
-    Lnew = L_red - L_in_out.dot(linalg.spsolve(L_comp, L_out_in))
+    Lnew = L_red - L_in_out.dot(utils.splu_inv_dot(L_comp, L_out_in))
 
-    # Make the laplacian symmetric if it is almost symmetric!
-    if np.abs(Lnew - Lnew.T).sum() < np.spacing(1) * np.abs(Lnew).sum():
-        Lnew = (Lnew + Lnew.T) / 2.
+    # Threshold excedingly small values for stability
+    Lnew = Lnew.tocoo()
+    Lnew.data[abs(Lnew.data) < threshold] = 0
+    Lnew = Lnew.tocsc()
+    Lnew.eliminate_zeros()
+
+    # Enforces symmetric Laplacian
+    Lnew = (Lnew + Lnew.T) / 2.
 
     if isinstance(G, graphs.Graph):
-        # Suppress the diagonal ? This is a good question?
         Wnew = sparse.diags(Lnew.diagonal(), 0) - Lnew
-        Snew = Lnew.diagonal() - np.ravel(Wnew.sum(0))
-        if np.linalg.norm(Snew, 2) >= np.spacing(1000):
-            Wnew = Wnew + sparse.diags(Snew, 0)
-
-        # Removing diagonal for stability
-        Wnew = Wnew - Wnew.diagonal()
-
         coords = G.coords[ind, :] if len(G.coords.shape) else np.ndarray(None)
         Gnew = graphs.Graph(W=Wnew, coords=coords, lap_type=G.lap_type,
                             plotting=G.plotting)

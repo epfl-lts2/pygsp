@@ -565,11 +565,32 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             self.estimate_lmax()
         return self._lmax
 
+    def create_incidence_matrix(self):
+        r"""
+        Compute a new incidence matrix B and associated edge weight matrix Wb.
+
+        The combinatorial graph laplacian can be recovered with L = B.T Wb B
+        For convenience, the heads and tails of each edge are saved in two
+        additional attributes start_nodes and end_nodes.
+        """
+        if self.is_directed() or not self.is_connected():
+            raise NotImplementedError('Focusing on connected non directed graphs first.')
+
+        start_nodes, end_nodes, weights = sparse.find(sparse.tril(self.W))
+
+        data = np.concatenate([np.ones_like(start_nodes), -np.ones_like(end_nodes)])
+        row = np.concatenate([np.arange(len(start_nodes)), np.arange(len(end_nodes))])
+        col = np.concatenate([start_nodes, end_nodes])
+
+        self.B = sparse.coo_matrix((data, (row, col)),
+                                   shape=(len(start_nodes), self.N) ).tocsc()
+        self.Wb = sparse.diags(weights,0)
+        self.start_nodes = start_nodes
+        self.end_nodes = end_nodes
+
     def estimate_lmax(self, recompute=False):
         r"""Estimate the Laplacian's largest eigenvalue (cached).
-
         The result is cached and accessible by the :attr:`lmax` property.
-
         Exact value given by the eigendecomposition of the Laplacian, see
         :func:`compute_fourier_basis`. That estimation is much faster than the
         eigendecomposition.

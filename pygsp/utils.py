@@ -211,6 +211,145 @@ def resistance_distance(G):
 
     return rd
 
+def approx_resistance_distance(g, epsilon):
+    r"""
+    Compute the resistance distances of each edge of a graph using the
+    Spielman-Srivastava algorithm.
+
+    Parameters
+    ----------
+    g : Graph
+        Graph structure
+
+    epsilon: float
+        Sparsification parameter
+
+    Returns
+    -------
+    rd : ndarray
+        distance for every edge in the graph
+
+    Examples
+    --------
+    >>>
+    >>>
+    >>>
+
+    Notes
+    -----
+    This implementation avoids the blunt matrix inversion of the exact distance
+    distance and can scale to very large graphs. The approximation error is
+    included in the budget of Spielman-Srivastava sparsification algorithm.
+
+    References
+    ----------
+    :cite:`klein1993resistance` :cite:`spielman2011graph`
+
+    """
+    g.create_incidence_matrix()
+    n = g.N
+    k = 24 * np.log( n / epsilon)
+    Q = ((np.random.rand(int(k),g.Wb.shape[0]) > 0.5)*2. -1)/np.sqrt(k)
+    Y = sparse.csc_matrix(Q).dot(np.sqrt(g.Wb).dot(g.B))
+
+    r = splu_inv_dot(g.L, Y.T)
+
+    return ((r[g.start_nodes] - r[g.end_nodes]).toarray()**2).sum(axis=1)
+
+def extract_submatrix(M, ind_rows, ind_cols):
+    r"""
+    Extract a bloc of specific rows and columns from a sparse matrix.
+
+    Parameters
+    ----------
+
+    M : sparse matrix
+        Input matrix
+
+    ind_rows: ndarray
+        Indices of rows to extract
+
+    ind_cols: ndarray
+        Indices of columns to extract
+
+    Returns
+    -------
+
+    sub_M: sparse matrix
+        Submatrix obtained from M keeping only the requested rows and columns
+
+    Examples
+    --------
+    >>> import scipy.sparse as sparse
+    >>> from pygsp import utils
+    >>> # Extracting first diagonal block from a sparse matrix
+    >>> M = sparse.csc_matrix((16, 16))
+    >>> ind_row = range(8); ind_col = range(8)
+    >>> block = utils.extract_submatrix(M, ind_row, ind_col)
+    >>> block.shape
+    (8, 8)
+
+    """
+    M = M.tocoo()
+
+    # Finding elements of the sub-matrix
+    m = np.in1d(M.row, ind_rows) & np.in1d(M.col, ind_cols)
+    n_elem = m.sum()
+
+    # Finding new rows and column indices
+    # The concatenation with ind and ind_comp is there to account for the fact that some rows
+    # or columns may not have elements in them, which foils this np.unique trick
+    _, row = np.unique(np.concatenate([M.row[m], ind_rows]), return_inverse=True)
+    _, col = np.unique(np.concatenate([M.col[m], ind_cols]), return_inverse=True)
+
+    return sparse.coo_matrix((M.data[m], (row[:n_elem],col[:n_elem])),
+                         shape=(len(ind_rows),len(ind_cols)),copy=True)
+
+
+def splu_inv_dot(A, B, threshold=np.spacing(1)):
+    """
+    Compute A^{-1}B for sparse matrix A assuming A is Symmetric Diagonally
+    Dominant (SDD).
+
+    Parameters
+    ----------
+    A : sparse matrix
+        Input SDD matrix to invert, in CSC or CSR form.
+
+    B : sparse matrix
+        Matrix or vector of the right hand side
+
+    threshold: float, optional
+        Threshold to apply to result as to remove numerical noise before
+        conversion to sparse format. (default: machine precision)
+
+    Returns
+    -------
+    res: sparse matrix
+        Result of A^{-1}B
+
+    Notes
+    -----
+    This inversion by sparse linear system solving is optimized for SDD matrices
+    such as Graph Laplacians. Note that B is converted to a dense matrix before
+    being sent to splu, which is more computationally efficient but can lead to
+    very large memory usage if B is large.
+    """
+    # Compute the LU decomposition of A
+    lu = sparse.linalg.splu(A,
+                        diag_pivot_thresh=A.diagonal().min()*0.5,
+                        permc_spec='MMD_AT_PLUS_A',
+                        options={'SymmetricMode':True})
+
+    res = lu.solve(B.toarray())
+
+    # Threshold the result to remove numerical noise
+    res[abs(res) < threshold] = 0
+
+    # Convert to sparse matrix
+    res = sparse.csc_matrix(res)
+
+    return res
 
 def symmetrize(W, method='average'):
     r"""
