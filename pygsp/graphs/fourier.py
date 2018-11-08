@@ -24,7 +24,7 @@ class GraphFourier(object):
     def U(self):
         r"""Fourier basis (eigenvectors of the Laplacian).
 
-        Is computed by :func:`compute_fourier_basis`.
+        Is computed by :meth:`compute_fourier_basis`.
         """
         return self._check_fourier_properties('U', 'Fourier basis')
 
@@ -32,23 +32,68 @@ class GraphFourier(object):
     def e(self):
         r"""Eigenvalues of the Laplacian (square of graph frequencies).
 
-        Is computed by :func:`compute_fourier_basis`.
+        Is computed by :meth:`compute_fourier_basis`.
         """
         return self._check_fourier_properties('e', 'eigenvalues vector')
 
     @property
-    def mu(self):
+    def coherence(self):
         r"""Coherence of the Fourier basis.
 
-        Is computed by :func:`compute_fourier_basis`.
+        The mutual coherence between the basis of Kronecker deltas on the graph
+        and the basis of graph Laplacian eigenvectors is defined as
+
+        .. math:: \mu = \max_{\ell,i} | \langle U_\ell, \delta_i \rangle |
+                      = \max_{\ell,i} | U_{\ell, i} |
+                      \in \left[ \frac{1}{\sqrt{N}}, 1 \right].
+
+        It is a measure of the localization of the Fourier modes (Laplacian
+        eigenvectors). The smaller the value, the more localized the
+        eigenvectors can be. The extreme is a node that is disconnected from
+        the rest of the graph: an eigenvector will be localized as a Kronecker
+        delta there. In the classical setting, Fourier modes (which are complex
+        exponentials) are completely delocalized, and the coherence equals one.
+
+        The value is computed by :meth:`compute_fourier_basis`.
+
+        Examples
+        --------
+
+        Delocalized eigenvectors.
+
+        >>> graph = graphs.Path(100)
+        >>> graph.compute_fourier_basis()
+        >>> minimum = 1 / np.sqrt(graph.n_nodes)
+        >>> print('{:.2f} in [{:.2f}, 1]'.format(graph.coherence, minimum))
+        0.14 in [0.10, 1]
+        >>>
+        >>> # Plot some delocalized eigenvectors.
+        >>> import matplotlib.pyplot as plt
+        >>> graph.set_coordinates('line1D')
+        >>> _ = graph.plot_signal(graph.U[:, :5])
+
+        Localized eigenvectors.
+
+        >>> graph = graphs.Sensor(64, seed=20)
+        >>> graph.compute_fourier_basis()
+        >>> minimum = 1 / np.sqrt(graph.n_nodes)
+        >>> print('{:.2f} in [{:.2f}, 1]'.format(graph.coherence, minimum))
+        0.97 in [0.12, 1]
+        >>>
+        >>> # Plot the most localized eigenvector.
+        >>> import matplotlib.pyplot as plt
+        >>> idx = np.argmax(np.max(graph.U, axis=0))
+        >>> _ = graph.plot_signal(graph.U[:, idx])
+
         """
-        return self._check_fourier_properties('mu', 'Fourier basis coherence')
+        return self._check_fourier_properties('coherence',
+                                              'Fourier basis coherence')
 
     def compute_fourier_basis(self, n_eigenvectors=None, recompute=False):
         r"""Compute the (partial) Fourier basis of the graph (cached).
 
         The result is cached and accessible by the :attr:`U`, :attr:`e`,
-        :attr:`lmax`, and :attr:`mu` properties.
+        :attr:`lmax`, and :attr:`coherence` properties.
 
         Parameters
         ----------
@@ -77,7 +122,7 @@ class GraphFourier(object):
         containing the Laplacian eigenvalues. The largest eigenvalue is stored
         in *G.lmax*. The eigenvectors are stored as column vectors of *G.U* in
         the same order that the eigenvalues. Finally, the coherence of the
-        Fourier basis is found in *G.mu*.
+        Fourier basis is found in *G.coherence*.
 
         References
         ----------
@@ -98,7 +143,7 @@ class GraphFourier(object):
         (256,)
         >>> G.lmax == G.e[-1]
         True
-        >>> G.mu < 1
+        >>> G.coherence < 1
         True
 
         """
@@ -143,7 +188,7 @@ class GraphFourier(object):
         assert np.max(self._e) == self._e[-1]
         if n_eigenvectors == self.N:
             self._lmax = self._e[-1]
-            self._mu = np.max(np.abs(self._U))
+            self._coherence = np.max(np.abs(self._U))
 
     def gft(self, s):
         r"""Compute the graph Fourier transform.
