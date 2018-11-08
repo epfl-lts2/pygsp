@@ -145,53 +145,48 @@ def _qtg_plot_graph(G, edges, vertex_size, title):
 
     qtg, gl, QtGui = _import_qtg()
 
-    if G.is_directed():
-        raise NotImplementedError
+    if G.coords.shape[1] == 2:
 
-    else:
+        window = qtg.GraphicsWindow()
+        window.setWindowTitle(title)
+        view = window.addViewBox()
+        view.setAspectLocked()
 
-        if G.coords.shape[1] == 2:
+        if edges:
+            pen = tuple(np.array(G.plotting['edge_color']) * 255)
+        else:
+            pen = None
 
-            window = qtg.GraphicsWindow()
-            window.setWindowTitle(title)
-            view = window.addViewBox()
-            view.setAspectLocked()
+        adj = _get_coords(G, edge_list=True)
 
-            if edges:
-                pen = tuple(np.array(G.plotting['edge_color']) * 255)
-            else:
-                pen = None
+        g = qtg.GraphItem(pos=G.coords, adj=adj, pen=pen,
+                          size=vertex_size/10)
+        view.addItem(g)
 
-            adj = _get_coords(G, edge_list=True)
+        global _qtg_windows
+        _qtg_windows.append(window)
 
-            g = qtg.GraphItem(pos=G.coords, adj=adj, pen=pen,
-                              size=vertex_size/10)
-            view.addItem(g)
+    elif G.coords.shape[1] == 3:
+        if not QtGui.QApplication.instance():
+            QtGui.QApplication([])  # We want only one application.
+        widget = gl.GLViewWidget()
+        widget.opts['distance'] = 10
+        widget.show()
+        widget.setWindowTitle(title)
 
-            global _qtg_windows
-            _qtg_windows.append(window)
+        if edges:
+            x, y, z = _get_coords(G)
+            pos = np.stack((x, y, z), axis=1)
+            g = gl.GLLinePlotItem(pos=pos, mode='lines',
+                                  color=G.plotting['edge_color'])
+            widget.addItem(g)
 
-        elif G.coords.shape[1] == 3:
-            if not QtGui.QApplication.instance():
-                QtGui.QApplication([])  # We want only one application.
-            widget = gl.GLViewWidget()
-            widget.opts['distance'] = 10
-            widget.show()
-            widget.setWindowTitle(title)
+        gp = gl.GLScatterPlotItem(pos=G.coords, size=vertex_size/3,
+                                  color=G.plotting['vertex_color'])
+        widget.addItem(gp)
 
-            if edges:
-                x, y, z = _get_coords(G)
-                pos = np.stack((x, y, z), axis=1)
-                g = gl.GLLinePlotItem(pos=pos, mode='lines',
-                                      color=G.plotting['edge_color'])
-                widget.addItem(g)
-
-            gp = gl.GLScatterPlotItem(pos=G.coords, size=vertex_size/3,
-                                      color=G.plotting['vertex_color'])
-            widget.addItem(gp)
-
-            global _qtg_widgets
-            _qtg_widgets.append(widget)
+        global _qtg_widgets
+        _qtg_widgets.append(widget)
 
 
 def _plot_filter(filters, n, eigenvalues, sum, title, ax, **kwargs):
@@ -411,9 +406,6 @@ def _plt_plot_graph(G, color, size, highlight, edges, index, colorbar,
 
     if edges:
 
-        if G.is_directed():
-            raise NotImplementedError
-
         if G.coords.ndim == 1:
             pass
 
@@ -503,24 +495,19 @@ def _qtg_plot_signal(G, signal, edges, vertex_size, limits, title):
 
     if edges:
 
-        if G.is_directed():
-            raise NotImplementedError
+        if G.coords.shape[1] == 2:
+            adj = _get_coords(G, edge_list=True)
+            pen = tuple(np.array(G.plotting['edge_color']) * 255)
+            g = qtg.GraphItem(pos=G.coords, adj=adj, symbolBrush=None,
+                              symbolPen=None, pen=pen)
+            view.addItem(g)
 
-        else:
-
-            if G.coords.shape[1] == 2:
-                adj = _get_coords(G, edge_list=True)
-                pen = tuple(np.array(G.plotting['edge_color']) * 255)
-                g = qtg.GraphItem(pos=G.coords, adj=adj, symbolBrush=None,
-                                  symbolPen=None, pen=pen)
-                view.addItem(g)
-
-            elif G.coords.shape[1] == 3:
-                x, y, z = _get_coords(G)
-                pos = np.stack((x, y, z), axis=1)
-                g = gl.GLLinePlotItem(pos=pos, mode='lines',
-                                      color=G.plotting['edge_color'])
-                widget.addItem(g)
+        elif G.coords.shape[1] == 3:
+            x, y, z = _get_coords(G)
+            pos = np.stack((x, y, z), axis=1)
+            g = gl.GLLinePlotItem(pos=pos, mode='lines',
+                                  color=G.plotting['edge_color'])
+            widget.addItem(g)
 
     pos = [1, 8, 24, 40, 56, 64]
     color = np.array([[0, 0, 143, 255], [0, 0, 255, 255], [0, 255, 255, 255],
