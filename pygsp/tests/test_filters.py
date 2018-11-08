@@ -63,8 +63,6 @@ class TestCase(unittest.TestCase):
             np.testing.assert_allclose(s4, A * self._signal)
             assert np.linalg.norm(s5 - A * self._signal) < 0.1
 
-        self.assertRaises(ValueError, f.filter, s2, method='lanczos')
-
         if f.Nf < 10:
             # Computing the frame is an alternative way to filter.
             # Though it is memory intensive.
@@ -148,8 +146,32 @@ class TestCase(unittest.TestCase):
         self._test_methods(f, tight=False)
 
     def test_gabor(self):
-        f = filters.Gabor(self._G, filters.Rectangular(self._G))
+        f = filters.Rectangular(self._G, None, 0.1)
+        f = filters.Gabor(self._G, f)
         self._test_methods(f, tight=False, check=False)
+        self.assertRaises(ValueError, filters.Gabor, graphs.Sensor(), f)
+        f = filters.Regular(self._G)
+        self.assertRaises(ValueError, filters.Gabor, self._G, f)
+
+    def test_modulation(self):
+        f = filters.Rectangular(self._G, None, 0.1)
+        # TODO: synthesis doesn't work yet.
+        # f = filters.Modulation(self._G, f, modulation_first=False)
+        # self._test_methods(f, tight=False, check=False)
+        f = filters.Modulation(self._G, f, modulation_first=True)
+        self._test_methods(f, tight=False, check=False)
+        self.assertRaises(ValueError, filters.Modulation, graphs.Sensor(), f)
+        f = filters.Regular(self._G)
+        self.assertRaises(ValueError, filters.Modulation, self._G, f)
+
+    def test_modulation_gabor(self):
+        """Both should be equivalent for deltas centered at the eigenvalues."""
+        f = filters.Rectangular(self._G, 0, 0)
+        f1 = filters.Modulation(self._G, f, modulation_first=True)
+        f2 = filters.Gabor(self._G, f)
+        s1 = f1.filter(self._signal)
+        s2 = f2.filter(self._signal)
+        np.testing.assert_allclose(s1, s2, atol=1e-5)
 
     def test_halfcosine(self):
         f = filters.HalfCosine(self._G, Nf=4)

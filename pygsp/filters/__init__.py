@@ -28,19 +28,28 @@ Filters
 
 Then, derived classes implement various common graph filters.
 
-**Filter banks of N filters**
+**Filter banks composed of multiple filters**
 
 .. autosummary::
 
     Abspline
-    Gabor
     HalfCosine
     Itersine
     MexicanHat
     Meyer
     SimpleTight
 
-**Filter banks of 2 filters: a low pass and a high pass**
+**Filter banks for vertex-frequency analyzes**
+
+Those filter banks are composed of shifted versions of a mother filter, one per
+graph frequency (Laplacian eigenvalue).
+
+.. autosummary::
+
+    Gabor
+    Modulation
+
+**Filter banks of two filters: a low-pass and a high-pass**
 
 .. autosummary::
 
@@ -49,7 +58,7 @@ Then, derived classes implement various common graph filters.
     Simoncelli
     Papadakis
 
-**Low pass filters**
+**Low-pass filters**
 
 .. autosummary::
 
@@ -57,7 +66,7 @@ Then, derived classes implement various common graph filters.
     Expwin
     Rectangular
 
-**Band pass filters**
+**Band-pass filters**
 
 .. autosummary::
 
@@ -104,6 +113,7 @@ _FILTERS = [
     'Itersine',
     'MexicanHat',
     'Meyer',
+    'Modulation',
     'Papadakis',
     'Rectangular',
     'Regular',

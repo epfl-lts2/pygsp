@@ -660,29 +660,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             assert self.Ne == v_in.size == v_out.size == weights.size
             return v_in, v_out, weights
 
-    def modulate(self, f, k):
-        r"""Modulate the signal *f* to the frequency *k*.
-
-        Parameters
-        ----------
-        f : ndarray
-            Signal (column)
-        k : int
-            Index of frequencies
-
-        Returns
-        -------
-        fm : ndarray
-            Modulated signal
-
-        """
-
-        nt = np.shape(f)[1]
-        fm = np.kron(np.ones((1, nt)), self.U[:, k])
-        fm *= np.kron(np.ones((nt, 1)), f)
-        fm *= np.sqrt(self.N)
-        return fm
-
     def plot(self, color=None, size=None, highlight=[], edges=None,
              index=False, colorbar=True, limits=None, ax=None,
              title=None, backend=None):
