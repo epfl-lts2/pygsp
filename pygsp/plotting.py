@@ -224,8 +224,8 @@ def _plt_plot_graph(G, edges, index, vertex_size, ax):
                         color=G.plotting['edge_color'],
                         linestyle=G.plotting['edge_style'],
                         marker='o', markersize=vertex_size/10,
-                        markerfacecolor=G.plotting['vertex_color'],
-                        markeredgecolor=G.plotting['vertex_color'])
+                        markeredgewidth=0,
+                        markerfacecolor=G.plotting['vertex_color'])
 
             if G.coords.shape[1] == 3:
                 # TODO: very dirty. Cannot we prepare a set of lines?
@@ -236,21 +236,21 @@ def _plt_plot_graph(G, edges, index, vertex_size, ax):
                             color=G.plotting['edge_color'],
                             linestyle=G.plotting['edge_style'],
                             marker='o', markersize=vertex_size/10,
-                            markerfacecolor=G.plotting['vertex_color'],
-                            markeredgecolor=G.plotting['vertex_color'])
+                            markeredgewidth=0,
+                            markerfacecolor=G.plotting['vertex_color'])
 
     else:
 
         # TODO: is ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo') faster?
         if G.coords.shape[1] == 2:
-            ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
-                       s=vertex_size,
-                       c=G.plotting['vertex_color'])
+            ax.scatter(G.coords[:, 0], G.coords[:, 1],
+                       marker='o', linewidths=0, s=vertex_size,
+                       c=G.plotting['vertex_color'], alpha=0.5)
 
         if G.coords.shape[1] == 3:
             ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
-                       marker='o', s=vertex_size,
-                       c=G.plotting['vertex_color'])
+                       marker='o', linewidths=0, s=vertex_size,
+                       c=G.plotting['vertex_color'], alpha=0.5)
 
     if G.coords.shape[1] == 3:
         try:
@@ -386,15 +386,24 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
 
     x = np.linspace(0, filters.G.lmax, n)
 
+    params = dict(alpha=0.5)
+    params.update(kwargs)
+
     if eigenvalues:
+
         for e in filters.G.e:
             ax.axvline(x=e, color=[0.9]*3, linewidth=1)
+
+        # Plot dots where the evaluation matters.
+        y = filters.evaluate(filters.G.e).T
+        ax.plot(filters.G.e, y, '.', **params)
+
         # Evaluate the filter bank at the eigenvalues to avoid plotting
         # artifacts, for example when deltas are centered on the eigenvalues.
         x = np.sort(np.concatenate([x, filters.G.e]))
 
     y = filters.evaluate(x).T
-    ax.plot(x, y, **kwargs)
+    ax.plot(x, y, **params)
 
     # TODO: plot highlighted eigenvalues
 
@@ -546,23 +555,23 @@ def _plt_plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
     coords_hl = G.coords[highlight]
 
     if G.coords.ndim == 1:
-        ax.plot(G.coords, signal)
+        ax.plot(G.coords, signal, alpha=0.5)
         ax.set_ylim(limits)
         for coord_hl in coords_hl:
             ax.axvline(x=coord_hl, color='C1', linewidth=2)
 
     elif G.coords.shape[1] == 2:
         sc = ax.scatter(G.coords[:, 0], G.coords[:, 1],
-                        s=vertex_size, c=signal, zorder=2,
-                        vmin=limits[0], vmax=limits[1])
+                        s=vertex_size, c=signal, alpha=0.5, zorder=2,
+                        linewidths=0, vmin=limits[0], vmax=limits[1])
         ax.scatter(coords_hl[:, 0], coords_hl[:, 1],
                    s=2*vertex_size, zorder=3,
                    marker='o', c='None', edgecolors='C1', linewidths=2)
 
     elif G.coords.shape[1] == 3:
         sc = ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
-                        s=vertex_size, c=signal, zorder=2,
-                        vmin=limits[0], vmax=limits[1])
+                        s=vertex_size, c=signal, alpha=0.5, zorder=2,
+                        linewidths=0, vmin=limits[0], vmax=limits[1])
         ax.scatter(coords_hl[:, 0], coords_hl[:, 1], coords_hl[:, 2],
                    s=2*vertex_size, zorder=3,
                    marker='o', c='None', edgecolors='C1', linewidths=2)
