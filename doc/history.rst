@@ -6,16 +6,19 @@ History
 ------------------
 
 The plotting interface was updated to be more user-friendly. First, the
-documentation is now shown for filters.plot(), G.plot(), and co. Second, the
+documentation is now shown for filter.plot(), graph.plot(), and co. Second, the
 API in the plotting library has been deprecated. That module is now mostly for
-implementation only. Finally, the following parameter names were changed:
+implementation only. Third, graph.plot() and graph.plot_signal() have been
+merged. As such, plot_signal() is deprecated. Finally, the following parameter
+names were changed:
 
 * plot_name => title
 * plot_eigenvalues => eigenvalues
 * show_sum => sum
 * show_edges => edges
+* vertex_size => size
 * npoints => n
-* save_as => save
+* save_as was removed
 
 Additional features:
 
@@ -24,6 +27,15 @@ Additional features:
 * New rectangular filter (low-pass and band-pass).
 * The exponential window has been updated from low-pass only to band-pass.
 * Plotting functions return matplotlib figures and axes.
+* Nodes, edges, and filters are plotted in transparency to avoid occlusion.
+* The node index can be printed on top of nodes to identify them easily.
+* Two signals can now be plotted together via vertex color and size.
+* Much better documentation for the coherence of the Fourier basis.
+* Removed translate and modulate (they were not working and have no real use).
+* Fixed and documented vertex-frequency transforms.
+  They are now implemented as filter banks.
+
+There are many other small changes, look at the git history for the details.
 
 0.5.1 (2017-12-15)
 ------------------
