@@ -149,8 +149,11 @@ def _plot_graph(G, edges, index, backend, vertex_size, title, ax):
         True to draw edges, false to only draw vertices.
         Default True if less than 10,000 edges to draw.
         Note that drawing many edges can be slow.
-    node_ids : bool
-        True to print node ids. Intended to identify nodes of interest.
+    index : bool
+        Whether to print the node index (in the adjacency / Laplacian matrix
+        and signal vectors) on top of each node.
+        Useful to locate a node of interest.
+        Only available with the matplotlib backend.
     backend: {'matplotlib', 'pyqtgraph'}
         Defines the drawing backend to use. Defaults to :data:`BACKEND`.
     vertex_size : float
@@ -199,79 +202,15 @@ def _plot_graph(G, edges, index, backend, vertex_size, title, ax):
     if backend == 'pyqtgraph':
         _qtg_plot_graph(G, edges=edges, vertex_size=vertex_size, title=title)
     elif backend == 'matplotlib':
-        return _plt_plot_graph(G, edges=edges, index=index,
-                               vertex_size=vertex_size, title=title, ax=ax)
+        return _plt_plot_signal(G, signal=None, edges=edges,
+                                vertex_size=vertex_size, highlight=[],
+                                index=index, colorbar=False, limits=[0, 0],
+                                title=title, ax=ax)
     else:
         raise ValueError('Unknown backend {}.'.format(backend))
 
 
-@_plt_handle_figure
-def _plt_plot_graph(G, edges, index, vertex_size, ax):
-
-    # TODO handling when G is a list of graphs
-    # TODO integrate param when G is a clustered graph
-
-    if edges:
-
-        if G.is_directed():
-            raise NotImplementedError
-
-        else:
-
-            if G.coords.shape[1] == 2:
-                x, y = _get_coords(G)
-                ax.plot(x, y, linewidth=G.plotting['edge_width'],
-                        color=G.plotting['edge_color'],
-                        linestyle=G.plotting['edge_style'],
-                        marker='o', markersize=vertex_size/10,
-                        markeredgewidth=0,
-                        markerfacecolor=G.plotting['vertex_color'])
-
-            if G.coords.shape[1] == 3:
-                # TODO: very dirty. Cannot we prepare a set of lines?
-                x, y, z = _get_coords(G)
-                for i in range(0, x.size, 2):
-                    x2, y2, z2 = x[i:i+2], y[i:i+2], z[i:i+2]
-                    ax.plot(x2, y2, z2, linewidth=G.plotting['edge_width'],
-                            color=G.plotting['edge_color'],
-                            linestyle=G.plotting['edge_style'],
-                            marker='o', markersize=vertex_size/10,
-                            markeredgewidth=0,
-                            markerfacecolor=G.plotting['vertex_color'])
-
-    else:
-
-        # TODO: is ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo') faster?
-        if G.coords.shape[1] == 2:
-            ax.scatter(G.coords[:, 0], G.coords[:, 1],
-                       marker='o', linewidths=0, s=vertex_size,
-                       c=G.plotting['vertex_color'], alpha=0.5)
-
-        if G.coords.shape[1] == 3:
-            ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
-                       marker='o', linewidths=0, s=vertex_size,
-                       c=G.plotting['vertex_color'], alpha=0.5)
-
-    if G.coords.shape[1] == 3:
-        try:
-            ax.view_init(elev=G.plotting['elevation'],
-                         azim=G.plotting['azimuth'])
-            ax.dist = G.plotting['distance']
-        except KeyError:
-            pass
-
-    if index:
-        for node in range(G.N):
-            ax.text(*tuple(G.coords[node]),  # accomodate 2D and 3D
-                    s=node,
-                    color='white',
-                    horizontalalignment='center',
-                    verticalalignment='center')
-
-
 def _qtg_plot_graph(G, edges, vertex_size, title):
-
-    # TODO handling when G is a list of graphs
 
     qtg, gl, QtGui = _import_qtg()
 
@@ -414,7 +353,7 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
     ax.set_ylabel(r'$\hat{g}(\lambda)$: filter response')
 
 
-def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
+def _plot_signal(G, signal, edges, vertex_size, highlight, index, colorbar,
                  limits, backend, title, ax):
     r"""Plot a signal on the graph.
 
@@ -434,6 +373,11 @@ def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
     highlight : iterable
         List of indices of vertices to be highlighted.
         Useful to e.g. show where a filter was localized.
+        Only available with the matplotlib backend.
+    index : bool
+        Whether to print the node index (in the adjacency / Laplacian matrix
+        and signal vectors) on top of each node.
+        Useful to locate a node of interest.
         Only available with the matplotlib backend.
     colorbar : bool
         Whether to plot a colorbar indicating the signal's amplitude.
@@ -477,16 +421,20 @@ def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
     if G.coords.ndim != 1 and check_2d_3d:
         raise AttributeError('Coordinates should be in 1D, 2D or 3D space.')
 
-    signal = signal.squeeze()
-    if G.coords.ndim == 2 and signal.ndim != 1:
-        raise ValueError('Can plot only one signal (not {}) with {}D '
-                         'coordinates.'.format(signal.shape[1],
-                                               G.coords.shape[1]))
-    if signal.shape[0] != G.N:
-        raise ValueError('Signal length is {}, should be '
-                         'G.N = {}.'.format(signal.shape[0], G.N))
-    if np.sum(np.abs(signal.imag)) > 1e-10:
-        raise ValueError("Can't display complex signals.")
+    if signal is None:
+        limits = [0, 0]
+        colorbar = False
+    else:
+        signal = signal.squeeze()
+        if G.coords.ndim == 2 and signal.ndim != 1:
+            raise ValueError('Can plot only one signal (not {}) with {}D '
+                             'coordinates.'.format(signal.shape[1],
+                                                   G.coords.shape[1]))
+        if signal.shape[0] != G.N:
+            raise ValueError('Signal length is {}, should be '
+                             'G.N = {}.'.format(signal.shape[0], G.N))
+        if np.any(np.iscomplex(signal)):
+            raise ValueError("Can't display complex signals.")
 
     if edges is None:
         edges = G.Ne < 10e3
@@ -512,13 +460,13 @@ def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
         return _plt_plot_signal(G, signal=signal, edges=edges,
                                 vertex_size=vertex_size, limits=limits,
                                 title=title, highlight=highlight,
-                                colorbar=colorbar, ax=ax)
+                                index=index, colorbar=colorbar, ax=ax)
     else:
         raise ValueError('Unknown backend {}.'.format(backend))
 
 
 @_plt_handle_figure
-def _plt_plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
+def _plt_plot_signal(G, signal, edges, vertex_size, highlight, index, colorbar,
                      limits, ax):
 
     if edges:
@@ -526,27 +474,27 @@ def _plt_plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
         if G.is_directed():
             raise NotImplementedError
 
-        else:
+        if G.coords.ndim == 1:
+            pass
 
-            if G.coords.ndim == 1:
-                pass
+        elif G.coords.shape[1] == 2:
+            x, y = _get_coords(G)
+            ax.plot(x, y,
+                    linewidth=G.plotting['edge_width'],
+                    color=G.plotting['edge_color'],
+                    linestyle=G.plotting['edge_style'],
+                    zorder=1)
 
-            elif G.coords.shape[1] == 2:
-                x, y = _get_coords(G)
-                ax.plot(x, y, linewidth=G.plotting['edge_width'],
+        elif G.coords.shape[1] == 3:
+            # TODO: very dirty. Cannot we prepare a set of lines?
+            x, y, z = _get_coords(G)
+            for i in range(0, x.size, 2):
+                x2, y2, z2 = x[i:i+2], y[i:i+2], z[i:i+2]
+                ax.plot(x2, y2, z2,
+                        linewidth=G.plotting['edge_width'],
                         color=G.plotting['edge_color'],
                         linestyle=G.plotting['edge_style'],
                         zorder=1)
-
-            elif G.coords.shape[1] == 3:
-                # TODO: very dirty. Cannot we prepare a set of lines?
-                x, y, z = _get_coords(G)
-                for i in range(0, x.size, 2):
-                    x2, y2, z2 = x[i:i+2], y[i:i+2], z[i:i+2]
-                    ax.plot(x2, y2, z2, linewidth=G.plotting['edge_width'],
-                            color=G.plotting['edge_color'],
-                            linestyle=G.plotting['edge_style'],
-                            zorder=1)
 
     try:
         iter(highlight)
@@ -562,16 +510,18 @@ def _plt_plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
 
     elif G.coords.shape[1] == 2:
         sc = ax.scatter(G.coords[:, 0], G.coords[:, 1],
-                        s=vertex_size, c=signal, alpha=0.5, zorder=2,
-                        linewidths=0, vmin=limits[0], vmax=limits[1])
+                        c=signal, s=vertex_size,
+                        marker='o', linewidths=0, alpha=0.5, zorder=2,
+                        vmin=limits[0], vmax=limits[1])
         ax.scatter(coords_hl[:, 0], coords_hl[:, 1],
                    s=2*vertex_size, zorder=3,
                    marker='o', c='None', edgecolors='C1', linewidths=2)
 
     elif G.coords.shape[1] == 3:
         sc = ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
-                        s=vertex_size, c=signal, alpha=0.5, zorder=2,
-                        linewidths=0, vmin=limits[0], vmax=limits[1])
+                        c=signal, s=vertex_size,
+                        marker='o', linewidths=0, alpha=0.5, zorder=2,
+                        vmin=limits[0], vmax=limits[1])
         ax.scatter(coords_hl[:, 0], coords_hl[:, 1], coords_hl[:, 2],
                    s=2*vertex_size, zorder=3,
                    marker='o', c='None', edgecolors='C1', linewidths=2)
@@ -585,6 +535,14 @@ def _plt_plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
     if G.coords.ndim != 1 and colorbar:
         plt = _import_plt()
         plt.colorbar(sc, ax=ax)
+
+    if index:
+        for node in range(G.N):
+            ax.text(*tuple(G.coords[node]),  # accomodate 2D and 3D
+                    s=node,
+                    color='white',
+                    horizontalalignment='center',
+                    verticalalignment='center')
 
 
 def _qtg_plot_signal(G, signal, edges, vertex_size, limits, title):

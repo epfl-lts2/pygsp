@@ -690,14 +690,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return _plot_graph(self, edges=edges, index=index, backend=backend,
                            vertex_size=vertex_size, title=title, ax=ax)
 
-    def plot_signal(self, signal, edges=None, vertex_size=None, highlight=[],
-                    colorbar=True, limits=None, backend=None, title=None,
-                    ax=None):
+    def plot_signal(self, signal=None, edges=None, vertex_size=None, highlight=[],
+                    index=False, colorbar=True, limits=None, backend=None,
+                    title=None, ax=None):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_signal
         return _plot_signal(self, signal=signal, edges=edges,
                             vertex_size=vertex_size, highlight=highlight,
-                            colorbar=colorbar, limits=limits,
+                            index=index, colorbar=colorbar, limits=limits,
                             backend=backend, title=title, ax=ax)
 
     def plot_spectrogram(self, node_idx=None):
