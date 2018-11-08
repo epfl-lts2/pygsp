@@ -39,23 +39,6 @@ def build_logger(name):
 logger = build_logger(__name__)
 
 
-def graph_array_handler(func):
-
-    def inner(G, *args, **kwargs):
-
-        if type(G) is list:
-            output = []
-            for g in G:
-                output.append(func(g, *args, **kwargs))
-
-            return output
-
-        else:
-            return func(G, *args, **kwargs)
-
-    return inner
-
-
 def filterbank_handler(func):
 
     # Preserve documentation of func.
@@ -74,14 +57,6 @@ def filterbank_handler(func):
             for i in range(f.Nf):
                 output.append(func(f, *args, i=i, **kwargs))
             return output
-
-    return inner
-
-
-def sparsifier(func):
-
-    def inner(*args, **kwargs):
-        return sparse.lil_matrix(func(*args, **kwargs))
 
     return inner
 
