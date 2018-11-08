@@ -84,7 +84,6 @@ Plotting
 .. autosummary::
 
     Graph.plot
-    Graph.plot_signal
     Graph.plot_spectrogram
 
 Others

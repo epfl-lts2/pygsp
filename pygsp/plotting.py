@@ -8,8 +8,8 @@ with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
 
 Most users won't use this module directly.
 Graphs (from :mod:`pygsp.graphs`) are to be plotted with
-:meth:`pygsp.graphs.Graph.plot`, :meth:`pygsp.graphs.Graph.plot_spectrogram`,
-and :meth:`pygsp.graphs.Graph.plot_signal`.
+:meth:`pygsp.graphs.Graph.plot` and
+:meth:`pygsp.graphs.Graph.plot_spectrogram`.
 Filters (from :mod:`pygsp.filters`) are to be plotted with
 :meth:`pygsp.filters.Filter.plot`.
 
@@ -139,76 +139,6 @@ def close(*args, **kwargs):
     r"""Close created figures, alias to plt.close()."""
     _, plt = _import_plt()
     plt.close(*args, **kwargs)
-
-
-def _plot_graph(G, edges, index, backend, vertex_size, title, ax):
-    r"""Plot the graph.
-
-    Parameters
-    ----------
-    edges : bool
-        True to draw edges, false to only draw vertices.
-        Default True if less than 10,000 edges to draw.
-        Note that drawing many edges can be slow.
-    index : bool
-        Whether to print the node index (in the adjacency / Laplacian matrix
-        and signal vectors) on top of each node.
-        Useful to locate a node of interest.
-        Only available with the matplotlib backend.
-    backend: {'matplotlib', 'pyqtgraph'}
-        Defines the drawing backend to use. Defaults to :data:`BACKEND`.
-    vertex_size : float
-        Size of circle representing each node.
-        Defaults to G.plotting['vertex_size'].
-    title : str
-        Title of the figure.
-    ax : :class:`matplotlib.axes.Axes`
-        Axes where to draw the graph. Optional, created if not passed.
-        Only available with the matplotlib backend.
-
-    Returns
-    -------
-    fig : :class:`matplotlib.figure.Figure`
-        The figure the plot belongs to. Only with the matplotlib backend.
-    ax : :class:`matplotlib.axes.Axes`
-        The axes the plot belongs to. Only with the matplotlib backend.
-
-    Examples
-    --------
-    >>> import matplotlib
-    >>> G = graphs.Logo()
-    >>> fig, ax = G.plot()
-
-    """
-    if not hasattr(G, 'coords'):
-        raise AttributeError('Graph has no coordinate set. '
-                             'Please run G.set_coordinates() first.')
-    if (G.coords.ndim != 2) or (G.coords.shape[1] not in [2, 3]):
-        raise AttributeError('Coordinates should be in 2D or 3D space.')
-
-    if edges is None:
-        edges = G.Ne < 10e3
-
-    if backend is None:
-        backend = BACKEND
-
-    if vertex_size is None:
-        vertex_size = G.plotting['vertex_size']
-
-    if title is None:
-        title = G.__repr__(limit=4)
-
-    G = _handle_directed(G)
-
-    if backend == 'pyqtgraph':
-        _qtg_plot_graph(G, edges=edges, vertex_size=vertex_size, title=title)
-    elif backend == 'matplotlib':
-        return _plt_plot_signal(G, color=None, edges=edges,
-                                size=vertex_size, highlight=[],
-                                index=index, colorbar=False, limits=[0, 0],
-                                title=title, ax=ax)
-    else:
-        raise ValueError('Unknown backend {}.'.format(backend))
 
 
 def _qtg_plot_graph(G, edges, vertex_size, title):
@@ -354,8 +284,8 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
     ax.set_ylabel(r'$\hat{g}(\lambda)$: filter response')
 
 
-def _plot_signal(G, color, size, highlight, edges, index, colorbar,
-                 limits, ax, title, backend):
+def _plot_graph(G, color, size, highlight, edges, index, colorbar,
+                limits, ax, title, backend):
     r"""Plot a graph with signals as color or vertex size.
 
     Parameters
@@ -410,7 +340,7 @@ def _plot_signal(G, color, size, highlight, edges, index, colorbar,
     >>> import matplotlib
     >>> graph = graphs.Sensor(seed=42)
     >>> signal = np.random.RandomState(42).normal(size=graph.n_nodes)
-    >>> fig, ax = graph.plot_signal(color=signal, size=graph.dw)
+    >>> fig, ax = graph.plot(color=signal, size=graph.dw)
 
     """
     if not hasattr(G, 'coords'):
@@ -420,8 +350,11 @@ def _plot_signal(G, color, size, highlight, edges, index, colorbar,
     if G.coords.ndim != 1 and check_2d_3d:
         raise AttributeError('Coordinates should be in 1D, 2D or 3D space.')
 
-    mpl, _ = _import_plt()
-    if color is None or mpl.colors.is_color_like(color):
+    if backend is None:
+        backend = BACKEND
+
+    if color is None or (backend == 'matplotlib' and
+                         _import_plt()[0].colors.is_color_like(color)):
         limits = [0, 0]
         colorbar = False
     else:
@@ -455,25 +388,25 @@ def _plot_signal(G, color, size, highlight, edges, index, colorbar,
     if title is None:
         title = G.__repr__(limit=4)
 
-    if backend is None:
-        backend = BACKEND
-
     G = _handle_directed(G)
 
     if backend == 'pyqtgraph':
-        _qtg_plot_signal(G, signal=color, vertex_size=size, edges=edges,
-                         limits=limits, title=title)
+        if color is None:
+            _qtg_plot_graph(G, edges=edges, vertex_size=size, title=title)
+        else:
+            _qtg_plot_signal(G, signal=color, vertex_size=size, edges=edges,
+                             limits=limits, title=title)
     elif backend == 'matplotlib':
-        return _plt_plot_signal(G, color=color, size=size, highlight=highlight,
-                                edges=edges, index=index, colorbar=colorbar,
-                                limits=limits, ax=ax, title=title)
+        return _plt_plot_graph(G, color=color, size=size, highlight=highlight,
+                               edges=edges, index=index, colorbar=colorbar,
+                               limits=limits, ax=ax, title=title)
     else:
         raise ValueError('Unknown backend {}.'.format(backend))
 
 
 @_plt_handle_figure
-def _plt_plot_signal(G, color, size, highlight, edges, index, colorbar,
-                     limits, ax):
+def _plt_plot_graph(G, color, size, highlight, edges, index, colorbar,
+                    limits, ax):
 
     if edges:
 

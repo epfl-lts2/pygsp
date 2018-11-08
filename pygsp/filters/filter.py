@@ -190,7 +190,7 @@ class Filter(object):
 
         >>> fig, ax = plt.subplots()
         >>> G.set_coordinates('line1D')  # To visualize multiple signals in 1D.
-        >>> _ = G.plot_signal(s[:, 9, :], ax=ax)
+        >>> _ = G.plot(s[:, 9, :], ax=ax)
         >>> legend = [r'$\tau={}$'.format(t) for t in taus]
         >>> ax.legend(legend)  # doctest: +ELLIPSIS
         <matplotlib.legend.Legend object at ...>
@@ -218,8 +218,8 @@ class Filter(object):
         Look how well we were able to reconstruct:
 
         >>> fig, axes = plt.subplots(1, 2)
-        >>> _ = G.plot_signal(s1, ax=axes[0])
-        >>> _ = G.plot_signal(s2, ax=axes[1])
+        >>> _ = G.plot(s1, ax=axes[0])
+        >>> _ = G.plot(s2, ax=axes[1])
         >>> print('{:.5f}'.format(np.linalg.norm(s1 - s2)))
         0.29620
 
@@ -351,7 +351,7 @@ class Filter(object):
         >>> G.estimate_lmax()
         >>> g = filters.Heat(G, 100)
         >>> s = g.localize(DELTA)
-        >>> _ = G.plot_signal(s, highlight=DELTA)
+        >>> _ = G.plot(s, highlight=DELTA)
 
         """
         s = np.zeros(self.G.N)

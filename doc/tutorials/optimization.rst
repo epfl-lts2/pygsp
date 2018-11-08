@@ -22,7 +22,7 @@ This tutorial focuses on the problem of recovering a label signal on a graph fro
     >>> # Create label signal
     >>> label_signal = np.copysign(np.ones(G.N), G.U[:, 3])
     >>>
-    >>> fig, ax = G.plot_signal(label_signal)
+    >>> fig, ax = G.plot(label_signal)
 
 The first figure shows a plot of the original label signal, that we wish to recover, on the graph.
 
@@ -39,7 +39,7 @@ The first figure shows a plot of the original label signal, that we wish to reco
     >>> sigma = 0.1
     >>> subsampled_noisy_label_signal = M * (label_signal + sigma * rs.standard_normal(G.N))
     >>>
-    >>> fig, ax = G.plot_signal(subsampled_noisy_label_signal)
+    >>> fig, ax = G.plot(subsampled_noisy_label_signal)
 
 This figure shows the label signal on the graph after the application of the subsampling mask and the addition of noise. The label of more than half of the vertices has been set to :math:`0`.
 
@@ -88,7 +88,7 @@ We start with the graph TV regularization. We will use the :class:`pyunlocbox.so
         objective function f(sol) = 2.024594e+02
         stopping criterion: MAXIT
     >>>
-    >>> fig, ax = G.plot_signal(prob1['sol'])
+    >>> fig, ax = G.plot(prob1['sol'])
 
 This figure shows the label signal recovered by graph total variation regularization. We can confirm here that this sort of regularization does indeed promote piecewise-constant solutions.
 
@@ -110,6 +110,6 @@ This figure shows the label signal recovered by graph total variation regulariza
         objective function f(sol) = 9.555135e+01
         stopping criterion: MAXIT
     >>>
-    >>> fig, ax = G.plot_signal(prob2['sol'])
+    >>> fig, ax = G.plot(prob2['sol'])
 
 This last figure shows the label signal recovered by Tikhonov regularization. As expected, the recovered label signal has smoother transitions than the one obtained by graph TV regularization.

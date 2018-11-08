@@ -78,7 +78,7 @@ structure!
 >>> s = np.zeros(G.N)
 >>> s[DELTAS] = 1
 >>> s = g.filter(s)
->>> fig, ax = G.plot_signal(s, highlight=DELTAS)
+>>> fig, ax = G.plot(s, highlight=DELTAS)
 
 .. image:: ../pygsp/data/readme_example_graph.png
     :alt:

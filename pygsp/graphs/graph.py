@@ -683,21 +683,18 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         fm *= np.sqrt(self.N)
         return fm
 
-    def plot(self, edges=None, index=False, backend=None, vertex_size=None,
-             title=None, ax=None):
+    def plot(self, color=None, size=None, highlight=[], edges=None,
+             index=False, colorbar=True, limits=None, ax=None,
+             title=None, backend=None):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_graph
-        return _plot_graph(self, edges=edges, index=index, backend=backend,
-                           vertex_size=vertex_size, title=title, ax=ax)
+        return _plot_graph(self, color=color, size=size, highlight=highlight,
+                           edges=edges, index=index, colorbar=colorbar,
+                           limits=limits, ax=ax, title=title, backend=backend)
 
-    def plot_signal(self, color=None, size=None, highlight=[], edges=None,
-                    index=False, colorbar=True, limits=None, ax=None,
-                    title=None, backend=None):
-        r"""Docstring overloaded at import time."""
-        from pygsp.plotting import _plot_signal
-        return _plot_signal(self, color=color, size=size, highlight=highlight,
-                            edges=edges, index=index, colorbar=colorbar,
-                            limits=limits, ax=ax, title=title, backend=backend)
+    def plot_signal(self, *args, **kwargs):
+        r"""Deprecated, use plot() instead."""
+        return self.plot(*args, **kwargs)
 
     def plot_spectrogram(self, node_idx=None):
         r"""Docstring overloaded at import time."""

@@ -70,7 +70,7 @@ class GraphFourier(object):
         >>> # Plot some delocalized eigenvectors.
         >>> import matplotlib.pyplot as plt
         >>> graph.set_coordinates('line1D')
-        >>> _ = graph.plot_signal(graph.U[:, :5])
+        >>> _ = graph.plot(graph.U[:, :5])
 
         Localized eigenvectors.
 
@@ -83,7 +83,7 @@ class GraphFourier(object):
         >>> # Plot the most localized eigenvector.
         >>> import matplotlib.pyplot as plt
         >>> idx = np.argmax(np.max(graph.U, axis=0))
-        >>> _ = graph.plot_signal(graph.U[:, idx])
+        >>> _ = graph.plot(graph.U[:, idx])
 
         """
         return self._check_fourier_properties('coherence',

@@ -78,17 +78,17 @@ class TestCase(unittest.TestCase):
 
             G.plot(backend='pyqtgraph')
             G.plot(backend='matplotlib')
-            G.plot_signal(signal, backend='pyqtgraph')
-            G.plot_signal(signal, backend='matplotlib')
+            G.plot(signal, backend='pyqtgraph')
+            G.plot(signal, backend='matplotlib')
             plotting.close_all()
 
     def test_highlight(self):
 
         def test(G):
             s = np.arange(G.N)
-            G.plot_signal(s, backend='matplotlib', highlight=0)
-            G.plot_signal(s, backend='matplotlib', highlight=[0])
-            G.plot_signal(s, backend='matplotlib', highlight=[0, 1])
+            G.plot(s, backend='matplotlib', highlight=0)
+            G.plot(s, backend='matplotlib', highlight=[0])
+            G.plot(s, backend='matplotlib', highlight=[0, 1])
 
         # Test for 1, 2, and 3D graphs.
         G = graphs.Ring(10)
@@ -113,17 +113,19 @@ class TestCase(unittest.TestCase):
     def test_signals(self):
         """Test the different kind of parameters that can be passed."""
         G = graphs.Sensor()
-        G.plot_signal()
-        G.plot_signal(G.dw)
-        G.plot_signal(G.dw, list(G.dw))
-        G.plot_signal(list(G.dw), G.dw)
-        G.plot_signal(G.dw[:, np.newaxis], G.dw[np.newaxis, :])
-        G.plot_signal('r', 100)
-        G.plot_signal((0.5, 0.5, 0.5, 0.5))
-        self.assertRaises(ValueError, G.plot_signal, 10)
-        self.assertRaises(ValueError, G.plot_signal, (0.5, 0.5))
-        self.assertRaises(ValueError, G.plot_signal, size=[2, 3, 4, 5])
-        self.assertRaises(ValueError, G.plot_signal, size=[G.dw, G.dw])
+        G.plot()
+        G.plot(G.dw)
+        G.plot(G.dw, list(G.dw))
+        G.plot(list(G.dw), G.dw)
+        G.plot(G.dw[:, np.newaxis], G.dw[np.newaxis, :])
+        G.plot('r', 100)
+        G.plot((0.5, 0.5, 0.5, 0.5))
+        self.assertRaises(ValueError, G.plot, 'r', backend='pyqtgraph')
+        self.assertRaises(ValueError, G.plot, 3*(.5), backend='pyqtgraph')
+        self.assertRaises(ValueError, G.plot, 10)
+        self.assertRaises(ValueError, G.plot, (0.5, 0.5))
+        self.assertRaises(ValueError, G.plot, size=[2, 3, 4, 5])
+        self.assertRaises(ValueError, G.plot, size=[G.dw, G.dw])
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
