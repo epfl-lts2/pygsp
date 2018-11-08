@@ -106,7 +106,7 @@ class Filter(object):
 
         """
         # Avoid to copy data as with np.array([g(x) for g in self._kernels]).
-        y = np.empty((self.Nf, len(x)))
+        y = np.empty([self.Nf] + list(x.shape))
         for i, kernel in enumerate(self._kernels):
             y[i] = kernel(x)
         return y
