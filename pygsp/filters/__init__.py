@@ -28,7 +28,31 @@ Filters
 
 Then, derived classes implement various common graph filters.
 
-**Filter banks composed of multiple filters**
+**Low-pass filters**
+
+.. autosummary::
+
+    Heat
+
+**Band-pass filters**
+
+These filters can be configured to be low-pass, high-pass, or band-pass.
+
+.. autosummary::
+
+    Expwin
+    Rectangular
+
+**Filter banks of two filters: a low-pass and a high-pass**
+
+.. autosummary::
+
+    Regular
+    Held
+    Simoncelli
+    Papadakis
+
+**Filter banks composed of dilated or translated filters**
 
 .. autosummary::
 
@@ -42,36 +66,13 @@ Then, derived classes implement various common graph filters.
 **Filter banks for vertex-frequency analyzes**
 
 Those filter banks are composed of shifted versions of a mother filter, one per
-graph frequency (Laplacian eigenvalue).
+graph frequency (Laplacian eigenvalue). They can analyze frequency content
+locally, as a windowed graph Fourier transform.
 
 .. autosummary::
 
     Gabor
     Modulation
-
-**Filter banks of two filters: a low-pass and a high-pass**
-
-.. autosummary::
-
-    Regular
-    Held
-    Simoncelli
-    Papadakis
-
-**Low-pass filters**
-
-.. autosummary::
-
-    Heat
-    Expwin
-    Rectangular
-
-**Band-pass filters**
-
-.. autosummary::
-
-    Expwin
-    Rectangular
 
 Approximations
 --------------

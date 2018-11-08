@@ -191,7 +191,7 @@ def _qtg_plot_graph(G, edges, vertex_size, title):
 
 
 def _plot_filter(filters, n, eigenvalues, sum, title, ax, **kwargs):
-    r"""Plot the spectral response of a filter bank, a set of graph filters.
+    r"""Plot the spectral response of a filter bank.
 
     Parameters
     ----------
