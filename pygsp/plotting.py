@@ -325,8 +325,9 @@ def _plot_graph(G, color, size, highlight, edges, index, colorbar,
         Only available with the matplotlib backend.
     title : str
         Title of the figure.
-    backend: {'matplotlib', 'pyqtgraph'}
-        Defines the drawing backend to use. Defaults to :data:`BACKEND`.
+    backend: {'matplotlib', 'pyqtgraph', None}
+        Defines the drawing backend to use.
+        Defaults to :data:`pygsp.plotting.BACKEND`.
 
     Returns
     -------
