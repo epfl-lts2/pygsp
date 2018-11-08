@@ -24,7 +24,7 @@ class GraphFourier(object):
     def U(self):
         r"""Fourier basis (eigenvectors of the Laplacian).
 
-        Is computed by :func:`compute_fourier_basis`.
+        Is computed by :meth:`compute_fourier_basis`.
         """
         return self._check_fourier_properties('U', 'Fourier basis')
 
@@ -32,23 +32,68 @@ class GraphFourier(object):
     def e(self):
         r"""Eigenvalues of the Laplacian (square of graph frequencies).
 
-        Is computed by :func:`compute_fourier_basis`.
+        Is computed by :meth:`compute_fourier_basis`.
         """
         return self._check_fourier_properties('e', 'eigenvalues vector')
 
     @property
-    def mu(self):
+    def coherence(self):
         r"""Coherence of the Fourier basis.
 
-        Is computed by :func:`compute_fourier_basis`.
+        The mutual coherence between the basis of Kronecker deltas on the graph
+        and the basis of graph Laplacian eigenvectors is defined as
+
+        .. math:: \mu = \max_{\ell,i} | \langle U_\ell, \delta_i \rangle |
+                      = \max_{\ell,i} | U_{\ell, i} |
+                      \in \left[ \frac{1}{\sqrt{N}}, 1 \right].
+
+        It is a measure of the localization of the Fourier modes (Laplacian
+        eigenvectors). The smaller the value, the more localized the
+        eigenvectors can be. The extreme is a node that is disconnected from
+        the rest of the graph: an eigenvector will be localized as a Kronecker
+        delta there. In the classical setting, Fourier modes (which are complex
+        exponentials) are completely delocalized, and the coherence equals one.
+
+        The value is computed by :meth:`compute_fourier_basis`.
+
+        Examples
+        --------
+
+        Delocalized eigenvectors.
+
+        >>> graph = graphs.Path(100)
+        >>> graph.compute_fourier_basis()
+        >>> minimum = 1 / np.sqrt(graph.n_nodes)
+        >>> print('{:.2f} in [{:.2f}, 1]'.format(graph.coherence, minimum))
+        0.14 in [0.10, 1]
+        >>>
+        >>> # Plot some delocalized eigenvectors.
+        >>> import matplotlib.pyplot as plt
+        >>> graph.set_coordinates('line1D')
+        >>> _ = graph.plot(graph.U[:, :5])
+
+        Localized eigenvectors.
+
+        >>> graph = graphs.Sensor(64, seed=20)
+        >>> graph.compute_fourier_basis()
+        >>> minimum = 1 / np.sqrt(graph.n_nodes)
+        >>> print('{:.2f} in [{:.2f}, 1]'.format(graph.coherence, minimum))
+        0.97 in [0.12, 1]
+        >>>
+        >>> # Plot the most localized eigenvector.
+        >>> import matplotlib.pyplot as plt
+        >>> idx = np.argmax(np.max(graph.U, axis=0))
+        >>> _ = graph.plot(graph.U[:, idx])
+
         """
-        return self._check_fourier_properties('mu', 'Fourier basis coherence')
+        return self._check_fourier_properties('coherence',
+                                              'Fourier basis coherence')
 
     def compute_fourier_basis(self, n_eigenvectors=None, recompute=False):
         r"""Compute the (partial) Fourier basis of the graph (cached).
 
         The result is cached and accessible by the :attr:`U`, :attr:`e`,
-        :attr:`lmax`, and :attr:`mu` properties.
+        :attr:`lmax`, and :attr:`coherence` properties.
 
         Parameters
         ----------
@@ -77,7 +122,7 @@ class GraphFourier(object):
         containing the Laplacian eigenvalues. The largest eigenvalue is stored
         in *G.lmax*. The eigenvectors are stored as column vectors of *G.U* in
         the same order that the eigenvalues. Finally, the coherence of the
-        Fourier basis is found in *G.mu*.
+        Fourier basis is found in *G.coherence*.
 
         References
         ----------
@@ -98,7 +143,7 @@ class GraphFourier(object):
         (256,)
         >>> G.lmax == G.e[-1]
         True
-        >>> G.mu < 1
+        >>> G.coherence < 1
         True
 
         """
@@ -143,7 +188,7 @@ class GraphFourier(object):
         assert np.max(self._e) == self._e[-1]
         if n_eigenvectors == self.N:
             self._lmax = self._e[-1]
-            self._mu = np.max(np.abs(self._U))
+            self._coherence = np.max(np.abs(self._U))
 
     def gft(self, s):
         r"""Compute the graph Fourier transform.
@@ -217,181 +262,3 @@ class GraphFourier(object):
             raise ValueError('First dimension should be the number of nodes '
                              'G.N = {}, got {}.'.format(self.N, s_hat.shape))
         return np.tensordot(self.U, s_hat, ([1], [0]))
-
-    def translate(self, f, i):
-        r"""Translate the signal *f* to the node *i*.
-
-        Parameters
-        ----------
-        f : ndarray
-            Signal
-        i : int
-            Indices of vertex
-
-        Returns
-        -------
-        ft : translate signal
-
-        """
-
-        raise NotImplementedError('Current implementation is not working.')
-
-        fhat = self.gft(f)
-        nt = np.shape(f)[1]
-
-        ft = self.igft(fhat, np.kron(np.ones((1, nt)), self.U[i]))
-        ft *= np.sqrt(self.N)
-
-        return ft
-
-    def gft_windowed_gabor(self, s, k):
-        r"""Gabor windowed graph Fourier transform.
-
-        Parameters
-        ----------
-        s : ndarray
-            Graph signal in the vertex domain.
-        k : function
-            Gabor kernel. See :class:`pygsp.filters.Gabor`.
-
-        Returns
-        -------
-        s : ndarray
-            Vertex-frequency representation of the signals.
-
-        Examples
-        --------
-        >>> G = graphs.Logo()
-        >>> s = np.random.normal(size=(G.N, 2))
-        >>> s = G.gft_windowed_gabor(s, lambda x: x/(1.-x))
-        >>> s.shape
-        (1130, 2, 1130)
-
-        """
-        from pygsp import filters
-        return filters.Gabor(self, k).filter(s)
-
-    def gft_windowed(self, g, f, lowmemory=True):
-        r"""Windowed graph Fourier transform.
-
-        Parameters
-        ----------
-        g : ndarray or Filter
-            Window (graph signal or kernel).
-        f : ndarray
-            Graph signal in the vertex domain.
-        lowmemory : bool
-            Use less memory (default=True).
-
-        Returns
-        -------
-        C : ndarray
-            Coefficients.
-
-        """
-
-        raise NotImplementedError('Current implementation is not working.')
-
-        N = self.N
-        Nf = np.shape(f)[1]
-        U = self.U
-
-        if isinstance(g, list):
-            g = self.igft(g[0](self.e))
-        elif hasattr(g, '__call__'):
-            g = self.igft(g(self.e))
-
-        if not lowmemory:
-            # Compute the Frame into a big matrix
-            Frame = self._frame_matrix(g, normalize=False)
-
-            C = np.dot(Frame.T, f)
-            C = np.reshape(C, (N, N, Nf), order='F')
-
-        else:
-            # Compute the translate of g
-            # TODO: use self.translate()
-            ghat = np.dot(U.T, g)
-            Ftrans = np.sqrt(N) * np.dot(U, (np.kron(np.ones((N)), ghat)*U.T))
-            C = np.empty((N, N))
-
-            for j in range(Nf):
-                for i in range(N):
-                    C[:, i, j] = (np.kron(np.ones((N)), 1./U[:, 0])*U*np.dot(np.kron(np.ones((N)), Ftrans[:, i])).T, f[:, j])
-
-        return C
-
-    def gft_windowed_normalized(self, g, f, lowmemory=True):
-        r"""Normalized windowed graph Fourier transform.
-
-        Parameters
-        ----------
-        g : ndarray
-            Window.
-        f : ndarray
-            Graph signal in the vertex domain.
-        lowmemory : bool
-            Use less memory. (default = True)
-
-        Returns
-        -------
-        C : ndarray
-            Coefficients.
-
-        """
-
-        raise NotImplementedError('Current implementation is not working.')
-
-        N = self.N
-        U = self.U
-
-        if lowmemory:
-            # Compute the Frame into a big matrix
-            Frame = self._frame_matrix(g, normalize=True)
-            C = np.dot(Frame.T, f)
-            C = np.reshape(C, (N, N), order='F')
-
-        else:
-            # Compute the translate of g
-            # TODO: use self.translate()
-            ghat = np.dot(U.T, g)
-            Ftrans = np.sqrt(N)*np.dot(U, (np.kron(np.ones((1, N)), ghat)*U.T))
-            C = np.empty((N, N))
-
-            for i in range(N):
-                atoms = np.kron(np.ones((N)), 1./U[:, 0])*U*np.kron(np.ones((N)), Ftrans[:, i]).T
-
-                # normalization
-                atoms /= np.kron((np.ones((N))), np.sqrt(np.sum(np.abs(atoms),
-                                                                  axis=0)))
-                C[:, i] = np.dot(atoms, f)
-
-        return C
-
-    def _frame_matrix(self, g, normalize=False):
-        r"""Create the GWFT frame.
-
-        Parameters
-        ----------
-        g : window
-
-        Returns
-        -------
-        F : ndarray
-            Frame
-        """
-
-        N = self.N
-        U = self.U
-
-        if self.N > 256:
-            logger.warning("It will create a big matrix. You can use other methods.")
-
-        ghat = np.dot(U.T, g)
-        Ftrans = np.sqrt(N)*np.dot(U, (np.kron(np.ones(N), ghat)*U.T))
-        F = utils.repmatline(Ftrans, 1, N)*np.kron(np.ones((N)), np.kron(np.ones((N)), 1./U[:, 0]))
-
-        if normalize:
-            F /= np.kron((np.ones(N), np.sqrt(np.sum(np.power(np.abs(F), 2), axis=0))))
-
-        return F

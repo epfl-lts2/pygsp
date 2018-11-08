@@ -6,9 +6,6 @@ from pygsp import utils
 from . import Filter  # prevent circular import in Python < 3.5
 
 
-_logger = utils.build_logger(__name__)
-
-
 class Meyer(Filter):
     r"""Design a filter bank of Meyer wavelets (tight frame).
 
@@ -38,7 +35,7 @@ class Meyer(Filter):
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = g.plot(ax=axes[0])
-    >>> _ = G.plot_signal(s, ax=axes[1])
+    >>> _ = G.plot(s, ax=axes[1])
 
     """
 

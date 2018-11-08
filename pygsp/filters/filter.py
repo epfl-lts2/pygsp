@@ -31,12 +31,15 @@ class Filter(object):
     G : Graph
         The graph to which the filter bank was tailored. It is a reference to
         the graph passed when instantiating the class.
-    Nf : int
+    n_features_in : int
+        Number of signals or features the filter bank takes in.
+    n_features_out : int
+        Number of signals or features the filter bank gives out.
+    n_filters : int
         Number of filters in the filter bank.
 
     Examples
     --------
-    >>>
     >>> G = graphs.Logo()
     >>> my_filter = filters.Filter(G, lambda x: x / (1. + x))
     >>>
@@ -64,6 +67,7 @@ class Filter(object):
         self.Nf = self.n_filters  # TODO: kept for backward compatibility only.
 
     def _get_extra_repr(self):
+        """To be overloaded by children."""
         return dict()
 
     def __repr__(self):
@@ -102,7 +106,7 @@ class Filter(object):
 
         """
         # Avoid to copy data as with np.array([g(x) for g in self._kernels]).
-        y = np.empty((self.Nf, len(x)))
+        y = np.empty([self.Nf] + list(x.shape))
         for i, kernel in enumerate(self._kernels):
             y[i] = kernel(x)
         return y
@@ -186,7 +190,7 @@ class Filter(object):
 
         >>> fig, ax = plt.subplots()
         >>> G.set_coordinates('line1D')  # To visualize multiple signals in 1D.
-        >>> _ = G.plot_signal(s[:, 9, :], ax=ax)
+        >>> _ = G.plot(s[:, 9, :], ax=ax)
         >>> legend = [r'$\tau={}$'.format(t) for t in taus]
         >>> ax.legend(legend)  # doctest: +ELLIPSIS
         <matplotlib.legend.Legend object at ...>
@@ -214,8 +218,8 @@ class Filter(object):
         Look how well we were able to reconstruct:
 
         >>> fig, axes = plt.subplots(1, 2)
-        >>> _ = G.plot_signal(s1, ax=axes[0])
-        >>> _ = G.plot_signal(s2, ax=axes[1])
+        >>> _ = G.plot(s1, ax=axes[0])
+        >>> _ = G.plot(s2, ax=axes[1])
         >>> print('{:.5f}'.format(np.linalg.norm(s1 - s2)))
         0.29620
 
@@ -347,7 +351,7 @@ class Filter(object):
         >>> G.estimate_lmax()
         >>> g = filters.Heat(G, 100)
         >>> s = g.localize(DELTA)
-        >>> _ = G.plot_signal(s, highlight=DELTA)
+        >>> _ = G.plot(s, highlight=DELTA)
 
         """
         s = np.zeros(self.G.N)

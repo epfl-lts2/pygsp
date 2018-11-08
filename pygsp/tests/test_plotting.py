@@ -31,7 +31,7 @@ class TestCase(unittest.TestCase):
         With both backends.
         """
 
-        # Graphs who are not embedded, i.e. have no coordinates.
+        # Graphs who are not embedded, i.e., have no coordinates.
         COORDS_NO = {
             'Graph',
             'BarabasiAlbert',
@@ -78,26 +78,78 @@ class TestCase(unittest.TestCase):
 
             G.plot(backend='pyqtgraph')
             G.plot(backend='matplotlib')
-            G.plot_signal(signal, backend='pyqtgraph')
-            G.plot_signal(signal, backend='matplotlib')
+            G.plot(signal, backend='pyqtgraph')
+            G.plot(signal, backend='matplotlib')
             plotting.close_all()
 
     def test_highlight(self):
 
         def test(G):
             s = np.arange(G.N)
-            G.plot_signal(s, backend='matplotlib', highlight=0)
-            G.plot_signal(s, backend='matplotlib', highlight=[0])
-            G.plot_signal(s, backend='matplotlib', highlight=[0, 1])
+            G.plot(s, backend='matplotlib', highlight=0)
+            G.plot(s, backend='matplotlib', highlight=[0])
+            G.plot(s, backend='matplotlib', highlight=[0, 1])
 
         # Test for 1, 2, and 3D graphs.
-        G = graphs.Ring()
+        G = graphs.Ring(10)
         test(G)
-        G = graphs.Ring()
         G.set_coordinates('line1D')
         test(G)
         G = graphs.Torus(Nv=5)
         test(G)
+
+    def test_index(self):
+
+        def test(G):
+            G.plot(backend='matplotlib', index=False)
+            G.plot(backend='matplotlib', index=True)
+
+        # Test for 2D and 3D graphs.
+        G = graphs.Ring(10)
+        test(G)
+        G = graphs.Torus(Nv=5)
+        test(G)
+
+    def test_signals(self):
+        """Test the different kind of parameters that can be passed."""
+        G = graphs.Sensor()
+        G.plot()
+        G.plot(G.dw)
+        G.plot(G.dw, list(G.dw))
+        G.plot(list(G.dw), G.dw)
+        G.plot(G.dw[:, np.newaxis], G.dw[np.newaxis, :])
+        G.plot('r', 100)
+        G.plot((0.5, 0.5, 0.5, 0.5))
+        self.assertRaises(ValueError, G.plot, 'r', backend='pyqtgraph')
+        self.assertRaises(ValueError, G.plot, 3*(.5), backend='pyqtgraph')
+        self.assertRaises(ValueError, G.plot, 10)
+        self.assertRaises(ValueError, G.plot, (0.5, 0.5))
+        self.assertRaises(ValueError, G.plot, size=[2, 3, 4, 5])
+        self.assertRaises(ValueError, G.plot, size=[G.dw, G.dw])
+
+    def test_show_close(self):
+        G = graphs.Sensor()
+        G.plot()
+        plotting.show(block=False)  # Don't block or the test will halt.
+        plotting.close()
+        plotting.close_all()
+
+    def test_coords(self):
+        G = graphs.Sensor()
+        del G.coords
+        self.assertRaises(AttributeError, G.plot)
+        G.coords = None
+        self.assertRaises(AttributeError, G.plot)
+        G.coords = np.ones((G.N, 4))
+        self.assertRaises(AttributeError, G.plot)
+        G.coords = np.ones((G.N, 3, 1))
+        self.assertRaises(AttributeError, G.plot)
+        G.coords = np.ones((G.N//2, 3))
+        self.assertRaises(AttributeError, G.plot)
+
+    def test_unknown_backend(self):
+        G = graphs.Sensor()
+        self.assertRaises(ValueError, G.plot, backend='abc')
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

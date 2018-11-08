@@ -136,26 +136,6 @@ class TestCase(unittest.TestCase):
         s_star = self._G.igft(s_hat)
         np.testing.assert_allclose(s, s_star)
 
-    def test_gft_windowed_gabor(self):
-        self._G.gft_windowed_gabor(self._signal, lambda x: x/(1.-x))
-
-    def test_gft_windowed(self):
-        self.assertRaises(NotImplementedError, self._G.gft_windowed,
-                          None, self._signal)
-
-    def test_gft_windowed_normalized(self):
-        self.assertRaises(NotImplementedError, self._G.gft_windowed_normalized,
-                          None, self._signal)
-
-    def test_translate(self):
-        self.assertRaises(NotImplementedError, self._G.translate,
-                          self._signal, 42)
-
-    def test_modulate(self):
-        # FIXME: don't work
-        # self._G.modulate(self._signal, 3)
-        pass
-
     def test_edge_list(self):
         G = graphs.StochasticBlockModel(N=100, directed=False)
         v_in, v_out, weights = G.get_edge_list()

@@ -98,8 +98,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             self.coords = coords
 
         self.plotting = {'vertex_size': 100,
-                         'vertex_color': (0.12, 0.47, 0.71, 1),
-                         'edge_color': (0.5, 0.5, 0.5, 1),
+                         'vertex_color': (0.12, 0.47, 0.71, 0.5),
+                         'edge_color': (0.5, 0.5, 0.5, 0.5),
                          'edge_width': 1,
                          'edge_style': '-'}
         self.plotting.update(plotting)
@@ -660,45 +660,18 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             assert self.Ne == v_in.size == v_out.size == weights.size
             return v_in, v_out, weights
 
-    def modulate(self, f, k):
-        r"""Modulate the signal *f* to the frequency *k*.
-
-        Parameters
-        ----------
-        f : ndarray
-            Signal (column)
-        k : int
-            Index of frequencies
-
-        Returns
-        -------
-        fm : ndarray
-            Modulated signal
-
-        """
-
-        nt = np.shape(f)[1]
-        fm = np.kron(np.ones((1, nt)), self.U[:, k])
-        fm *= np.kron(np.ones((nt, 1)), f)
-        fm *= np.sqrt(self.N)
-        return fm
-
-    def plot(self, edges=None, backend=None, vertex_size=None, title=None,
-             ax=None):
+    def plot(self, color=None, size=None, highlight=[], edges=None,
+             index=False, colorbar=True, limits=None, ax=None,
+             title=None, backend=None):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_graph
-        return _plot_graph(self, edges=edges, backend=backend,
-                           vertex_size=vertex_size, title=title, ax=ax)
+        return _plot_graph(self, color=color, size=size, highlight=highlight,
+                           edges=edges, index=index, colorbar=colorbar,
+                           limits=limits, ax=ax, title=title, backend=backend)
 
-    def plot_signal(self, signal, edges=None, vertex_size=None, highlight=[],
-                    colorbar=True, limits=None, backend=None, title=None,
-                    ax=None):
-        r"""Docstring overloaded at import time."""
-        from pygsp.plotting import _plot_signal
-        return _plot_signal(self, signal=signal, edges=edges,
-                            vertex_size=vertex_size, highlight=highlight,
-                            colorbar=colorbar, limits=limits,
-                            backend=backend, title=title, ax=ax)
+    def plot_signal(self, *args, **kwargs):
+        r"""Deprecated, use plot() instead."""
+        return self.plot(*args, **kwargs)
 
     def plot_spectrogram(self, node_idx=None):
         r"""Docstring overloaded at import time."""
