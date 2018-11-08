@@ -127,5 +127,29 @@ class TestCase(unittest.TestCase):
         self.assertRaises(ValueError, G.plot, size=[2, 3, 4, 5])
         self.assertRaises(ValueError, G.plot, size=[G.dw, G.dw])
 
+    def test_show_close(self):
+        G = graphs.Sensor()
+        G.plot()
+        plotting.show(block=False)  # Don't block or the test will halt.
+        plotting.close()
+        plotting.close_all()
+
+    def test_coords(self):
+        G = graphs.Sensor()
+        del G.coords
+        self.assertRaises(AttributeError, G.plot)
+        G.coords = None
+        self.assertRaises(AttributeError, G.plot)
+        G.coords = np.ones((G.N, 4))
+        self.assertRaises(AttributeError, G.plot)
+        G.coords = np.ones((G.N, 3, 1))
+        self.assertRaises(AttributeError, G.plot)
+        G.coords = np.ones((G.N//2, 3))
+        self.assertRaises(AttributeError, G.plot)
+
+    def test_unknown_backend(self):
+        G = graphs.Sensor()
+        self.assertRaises(ValueError, G.plot, backend='abc')
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

@@ -130,13 +130,14 @@ def show(*args, **kwargs):
     r"""Show created figures, alias to plt.show().
 
     By default, showing plots does not block the prompt.
+    Calling this function will block execution.
     """
     _, plt = _import_plt()
     plt.show(*args, **kwargs)
 
 
 def close(*args, **kwargs):
-    r"""Close created figures, alias to plt.close()."""
+    r"""Close last created figure, alias to plt.close()."""
     _, plt = _import_plt()
     plt.close(*args, **kwargs)
 
@@ -339,12 +340,14 @@ def _plot_graph(G, color, size, highlight, edges, index, colorbar,
     >>> fig, ax = graph.plot(color=signal, size=graph.dw)
 
     """
-    if not hasattr(G, 'coords'):
+    if not hasattr(G, 'coords') or G.coords is None:
         raise AttributeError('Graph has no coordinate set. '
                              'Please run G.set_coordinates() first.')
     check_2d_3d = (G.coords.ndim != 2) or (G.coords.shape[1] not in [2, 3])
     if G.coords.ndim != 1 and check_2d_3d:
         raise AttributeError('Coordinates should be in 1D, 2D or 3D space.')
+    if G.coords.shape[0] != G.N:
+        raise AttributeError('Graph needs G.N = {} coordinates.'.format(G.N))
 
     if backend is None:
         backend = BACKEND
