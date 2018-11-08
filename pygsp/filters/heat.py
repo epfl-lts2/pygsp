@@ -72,7 +72,7 @@ class Heat(Filter):
         self.normalize = normalize
 
         def kernel(x, t):
-            return np.exp(-t * x / G.lmax)
+            return np.minimum(np.exp(-t * x / G.lmax), 1)
 
         kernels = []
         for t in tau:
