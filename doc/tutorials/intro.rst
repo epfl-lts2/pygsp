@@ -151,7 +151,7 @@ which assign a set of values (a vector in :math:`\mathbb{R}^d`) at every node
     >>>
     >>> fig, axes = plt.subplots(1, 2, figsize=(10, 3))
     >>> for i, ax in enumerate(axes):
-    ...     _ = G.plot_signal(G.U[:, i+1], vertex_size=30, ax=ax)
+    ...     _ = G.plot_signal(G.U[:, i+1], size=30, ax=ax)
     ...     _ = ax.set_title('Eigenvector {}'.format(i+2))
     ...     ax.set_axis_off()
     >>> fig.tight_layout()
@@ -227,9 +227,9 @@ low-pass filter.
     >>> s2 = g.filter(s)
     >>>
     >>> fig, axes = plt.subplots(1, 2, figsize=(10, 3))
-    >>> _ = G.plot_signal(s, vertex_size=30, title='noisy', ax=axes[0])
+    >>> _ = G.plot_signal(s, size=30, title='noisy', ax=axes[0])
     >>> axes[0].set_axis_off()
-    >>> _ = G.plot_signal(s2, vertex_size=30, title='cleaned', ax=axes[1])
+    >>> _ = G.plot_signal(s2, size=30, title='cleaned', ax=axes[1])
     >>> axes[1].set_axis_off()
     >>> fig.tight_layout()
 

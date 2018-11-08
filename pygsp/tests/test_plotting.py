@@ -110,5 +110,20 @@ class TestCase(unittest.TestCase):
         G = graphs.Torus(Nv=5)
         test(G)
 
+    def test_signals(self):
+        """Test the different kind of parameters that can be passed."""
+        G = graphs.Sensor()
+        G.plot_signal()
+        G.plot_signal(G.dw)
+        G.plot_signal(G.dw, list(G.dw))
+        G.plot_signal(list(G.dw), G.dw)
+        G.plot_signal(G.dw[:, np.newaxis], G.dw[np.newaxis, :])
+        G.plot_signal('r', 100)
+        G.plot_signal((0.5, 0.5, 0.5, 0.5))
+        self.assertRaises(ValueError, G.plot_signal, 10)
+        self.assertRaises(ValueError, G.plot_signal, (0.5, 0.5))
+        self.assertRaises(ValueError, G.plot_signal, size=[2, 3, 4, 5])
+        self.assertRaises(ValueError, G.plot_signal, size=[G.dw, G.dw])
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
