@@ -6,9 +6,10 @@ Test suite for the graphs module of the pygsp package.
 """
 
 import unittest
-
+import os
 import numpy as np
 import scipy.linalg
+import scipy.sparse.linalg
 from skimage import data, img_as_float
 
 from pygsp import graphs
@@ -179,20 +180,93 @@ class TestCase(unittest.TestCase):
     def test_nngraph(self):
         Xin = np.arange(90).reshape(30, 3)
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
+        backends = ['scipy-kdtree', 'scipy-ckdtree', 'scipy-pdist', 'nmslib']
+        if os.name != 'nt':
+            backends.append('flann')
+        order=3 # for minkowski, FLANN only accepts integer orders
+        
+        for cur_backend in backends:
+            for dist_type in dist_types:
+                #print("backend={} dist={}".format(cur_backend, dist_type))
+                if (cur_backend == 'flann' and 
+                    dist_type == 'max_dist') or (cur_backend == 'nmslib' and 
+                                           dist_type == 'minkowski'):
+                    self.assertRaises(ValueError, graphs.NNGraph, Xin, 
+                                      NNtype='knn', backend=cur_backend, 
+                                      dist_type=dist_type)
+                    self.assertRaises(ValueError, graphs.NNGraph, Xin, 
+                                      NNtype='radius', backend=cur_backend, 
+                                      dist_type=dist_type)
+                else:
+                    if cur_backend == 'nmslib':
+                        self.assertRaises(ValueError, graphs.NNGraph, Xin,
+                                          NNtype='radius', backend=cur_backend, 
+                                          dist_type=dist_type, order=order)
+                    else:
+                        graphs.NNGraph(Xin, NNtype='radius', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order)
+                        graphs.NNGraph(Xin, NNtype='knn', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order)
+                        graphs.NNGraph(Xin, NNtype='knn', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order, 
+                                       center=False)
+                        graphs.NNGraph(Xin, NNtype='knn', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order, 
+                                       rescale=False)
+                        graphs.NNGraph(Xin, NNtype='knn', 
+                                       backend=cur_backend, 
+                                       dist_type=dist_type, order=order, 
+                                       rescale=False, center=False)
+        self.assertRaises(ValueError, graphs.NNGraph, Xin, 
+                                      NNtype='badtype', backend=cur_backend, 
+                                      dist_type=dist_type)
+        self.assertRaises(ValueError, graphs.NNGraph, Xin, 
+                                      NNtype='knn', backend='badtype', 
+                                      dist_type=dist_type)
 
-        for dist_type in dist_types:
-
-            # Only p-norms with 1<=p<=infinity permitted.
-            if dist_type != 'minkowski':
-                graphs.NNGraph(Xin, NNtype='radius', dist_type=dist_type)
-                graphs.NNGraph(Xin, NNtype='knn', dist_type=dist_type)
-
-            # Distance type unsupported in the C bindings,
-            # use the C++ bindings instead.
-            if dist_type != 'max_dist':
-                graphs.NNGraph(Xin, use_flann=True, NNtype='knn',
-                               dist_type=dist_type)
-
+    def test_nngraph_consistency(self):
+        Xin = np.arange(90).reshape(30, 3)
+        dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
+        backends = ['scipy-kdtree', 'scipy-ckdtree', 'nmslib']
+        if os.name != 'nt':
+            backends.append('flann')
+        num_neighbors=4 
+        epsilon=0.1
+        
+        # use pdist as ground truth
+        G = graphs.NNGraph(Xin, NNtype='knn', 
+                           backend='scipy-pdist', k=num_neighbors)
+        for cur_backend in backends:
+            for dist_type in dist_types:
+                if cur_backend == 'flann' and dist_type == 'max_dist':
+                    continue
+                if cur_backend == 'nmslib' and dist_type == 'minkowski':
+                    continue
+                #print("backend={} dist={}".format(cur_backend, dist_type))
+                Gt = graphs.NNGraph(Xin, NNtype='knn', 
+                                    backend=cur_backend, k=num_neighbors)
+                d = scipy.sparse.linalg.norm(G.W - Gt.W)
+                self.assertTrue(d < 0.01, 'Graphs (knn {}/{}) are not identical error={}'.format(cur_backend, dist_type, d))
+                
+        G = graphs.NNGraph(Xin, NNtype='radius', 
+                           backend='scipy-pdist', epsilon=epsilon)
+        for cur_backend in backends:
+            for dist_type in dist_types:
+                if cur_backend == 'flann' and dist_type == 'max_dist':
+                    continue
+                if cur_backend == 'nmslib': #unsupported
+                    continue
+                #print("backend={} dist={}".format(cur_backend, dist_type))
+                Gt = graphs.NNGraph(Xin, NNtype='radius', 
+                                    backend=cur_backend, epsilon=epsilon)
+                d = scipy.sparse.linalg.norm(G.W - Gt.W, ord=1)
+                self.assertTrue(d < 0.01, 
+                                'Graphs (radius {}/{}) are not identical error={}'.format(cur_backend, dist_type, d))
+        
     def test_bunny(self):
         graphs.Bunny()
 
