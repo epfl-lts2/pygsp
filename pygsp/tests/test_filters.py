@@ -35,9 +35,8 @@ class TestCase(unittest.TestCase):
     def _test_methods(self, f, tight, check=True):
         self.assertIs(f.G, self._G)
 
-        s1 = f.evaluate(self._G.e)
-        s2 = f(self._G.e)
-        np.testing.assert_equal(s1, s2)
+        f.evaluate(self._G.e)
+        f.evaluate(np.random.normal(size=(4, 6, 3)))
 
         A, B = f.estimate_frame_bounds(use_eigenvalues=True)
         if tight:
@@ -149,7 +148,7 @@ class TestCase(unittest.TestCase):
         self._test_methods(f, tight=False)
 
     def test_gabor(self):
-        f = filters.Gabor(self._G, lambda x: x / (1. + x))
+        f = filters.Gabor(self._G, filters.Rectangular(self._G))
         self._test_methods(f, tight=False, check=False)
 
     def test_halfcosine(self):

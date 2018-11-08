@@ -136,9 +136,6 @@ class TestCase(unittest.TestCase):
         s_star = self._G.igft(s_hat)
         np.testing.assert_allclose(s, s_star)
 
-    def test_gft_windowed_gabor(self):
-        self._G.gft_windowed_gabor(self._signal, lambda x: x/(1.-x))
-
     def test_gft_windowed(self):
         self.assertRaises(NotImplementedError, self._G.gft_windowed,
                           None, self._signal)

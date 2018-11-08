@@ -78,9 +78,6 @@ class Filter(object):
             s += '{}={}, '.format(key, value)
         return '{}({})'.format(self.__class__.__name__, s[:-2])
 
-    def __call__(self, x):
-        return self.evaluate(x)
-
     def evaluate(self, x):
         r"""Evaluate the kernels at given frequencies.
 

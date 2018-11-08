@@ -20,7 +20,7 @@ class Gabor(Filter):
     Parameters
     ----------
     graph : :class:`pygsp.graphs.Graph`
-    kernel : callable, can be a :class:`pygsp.filters.Filter`
+    kernel : :class:`pygsp.filters.Filter`
         Kernel function to be centered at each graph frequency (eigenvalue of
         the graph Laplacian).
 
@@ -51,6 +51,6 @@ class Gabor(Filter):
 
         kernels = []
         for i in range(graph.n_nodes):
-            kernels.append(lambda x, i=i: kernel(x - graph.e[i]))
+            kernels.append(lambda x, i=i: kernel.evaluate(x - graph.e[i]))
 
         super(Gabor, self).__init__(graph, kernels)
