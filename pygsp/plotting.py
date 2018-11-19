@@ -198,12 +198,13 @@ def _plot_filter(filters, n, eigenvalues, sum, title, ax, **kwargs):
     n : int
         Number of points where the filters are evaluated.
     eigenvalues : boolean
-        To plot black X marks at all eigenvalues of the graph. You need to
-        compute the Fourier basis to use this option. By default the
-        eigenvalues are plot if they are contained in the Graph.
+        Whether to show the eigenvalues of the graph Laplacian.
+        The eigenvalues should have been computed with
+        :meth:`~pygsp.graphs.Graph.compute_fourier_basis`.
+        By default, the eigenvalues are shown if they are available.
     sum : boolean
-        To plot an extra line showing the sum of the squared magnitudes
-        of the filters (default True if there is multiple filters).
+        Whether to plot the sum of the squared magnitudes of the filters.
+        Default True if there is multiple filters.
     title : str
         Title of the figure.
     ax : :class:`matplotlib.axes.Axes`
