@@ -661,12 +661,12 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             return v_in, v_out, weights
 
     def plot(self, color=None, size=None, highlight=[], edges=None,
-             index=False, colorbar=True, limits=None, ax=None,
+             indices=False, colorbar=True, limits=None, ax=None,
              title=None, backend=None):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_graph
         return _plot_graph(self, color=color, size=size, highlight=highlight,
-                           edges=edges, index=index, colorbar=colorbar,
+                           edges=edges, indices=indices, colorbar=colorbar,
                            limits=limits, ax=ax, title=title, backend=backend)
 
     def plot_signal(self, *args, **kwargs):

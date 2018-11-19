@@ -280,7 +280,7 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
     ax.set_ylabel(r'$\hat{g}(\lambda)$: filter response')
 
 
-def _plot_graph(G, color, size, highlight, edges, index, colorbar,
+def _plot_graph(G, color, size, highlight, edges, indices, colorbar,
                 limits, ax, title, backend):
     r"""Plot a graph with signals as color or vertex size.
 
@@ -304,8 +304,8 @@ def _plot_graph(G, color, size, highlight, edges, index, colorbar,
         Whether to draw edges in addition to vertices.
         Default to True if less than 10,000 edges to draw.
         Note that drawing many edges can be slow.
-    index : bool
-        Whether to print the node index (in the adjacency / Laplacian matrix
+    indices : bool
+        Whether to print the node indices (in the adjacency / Laplacian matrix
         and signal vectors) on top of each node.
         Useful to locate a node of interest.
         Only available with the matplotlib backend.
@@ -397,14 +397,14 @@ def _plot_graph(G, color, size, highlight, edges, index, colorbar,
                              limits=limits, title=title)
     elif backend == 'matplotlib':
         return _plt_plot_graph(G, color=color, size=size, highlight=highlight,
-                               edges=edges, index=index, colorbar=colorbar,
+                               edges=edges, indices=indices, colorbar=colorbar,
                                limits=limits, ax=ax, title=title)
     else:
         raise ValueError('Unknown backend {}.'.format(backend))
 
 
 @_plt_handle_figure
-def _plt_plot_graph(G, color, size, highlight, edges, index, colorbar,
+def _plt_plot_graph(G, color, size, highlight, edges, indices, colorbar,
                     limits, ax):
 
     if edges:
@@ -471,7 +471,7 @@ def _plt_plot_graph(G, color, size, highlight, edges, index, colorbar,
         _, plt = _import_plt()
         plt.colorbar(sc, ax=ax)
 
-    if index:
+    if indices:
         for node in range(G.N):
             ax.text(*tuple(G.coords[node]),  # accomodate 2D and 3D
                     s=node,

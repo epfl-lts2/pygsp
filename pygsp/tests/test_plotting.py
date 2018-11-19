@@ -98,11 +98,11 @@ class TestCase(unittest.TestCase):
         G = graphs.Torus(Nv=5)
         test(G)
 
-    def test_index(self):
+    def test_indices(self):
 
         def test(G):
-            G.plot(backend='matplotlib', index=False)
-            G.plot(backend='matplotlib', index=True)
+            G.plot(backend='matplotlib', indices=False)
+            G.plot(backend='matplotlib', indices=True)
 
         # Test for 2D and 3D graphs.
         G = graphs.Ring(10)
