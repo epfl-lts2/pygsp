@@ -13,6 +13,17 @@ class Rectangular(Filter):
     The filter evaluates at one in the interval [band_min, band_max] and zero
     everywhere else.
 
+    The rectangular kernel is defined as
+
+    .. math:: g(\lambda) = \begin{cases}
+        0 & \text{if } \lambda < \text{band}_\text{min}, \\
+        1 & \text{if band}_\text{min} \leq \lambda \leq \text{band}_\text{max}, \\
+        0 & \text{if } \lambda > \text{band}_\text{max}, \\
+                            \end{cases}
+
+    where :math:`\lambda \in [0, 1]` corresponds to the normalized graph
+    eigenvalues.
+
     Parameters
     ----------
     G : graph
@@ -20,10 +31,12 @@ class Rectangular(Filter):
         Minimum relative band. The filter evaluates at 1 at this frequency.
         Zero corresponds to the smallest eigenvalue (which is itself equal to
         zero), one corresponds to the largest eigenvalue.
-        If None, the filter is high-pass.
+        If None, the filter has no lower bound (which corresponds to
+        :math:`\text{band}_\text{min} = -\infty`) and is high-pass.
     band_max : float
         Maximum relative band. The filter evaluates at 1 at this frequency.
-        If None, the filter is low-pass.
+        If None, the filter has no upper bound (which corresponds to
+        :math:`\text{band}_\text{min} = \infty`) and is high-pass.
 
     Examples
     --------
