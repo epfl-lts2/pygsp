@@ -42,14 +42,13 @@ _plt_figures = []
 def _import_plt():
     try:
         import matplotlib as mpl
-        import matplotlib.pyplot as plt
-        # Not used directly, but needed for 3D projection.
-        from mpl_toolkits.mplot3d import Axes3D  # noqa
+        from matplotlib import pyplot as plt
+        from mpl_toolkits import mplot3d
     except Exception:
         raise ImportError('Cannot import matplotlib. Choose another backend '
                           'or try to install it with '
                           'pip (or conda) install matplotlib.')
-    return mpl, plt
+    return mpl, plt, mplot3d
 
 
 def _import_qtg():
@@ -76,7 +75,7 @@ def _plt_handle_figure(plot):
 
         # Create a figure and an axis if none were passed.
         if kwargs['ax'] is None:
-            _, plt = _import_plt()
+            _, plt, _ = _import_plt()
             fig = plt.figure()
             global _plt_figures
             _plt_figures.append(fig)
@@ -121,7 +120,7 @@ def close_all():
 
     global _plt_figures
     for fig in _plt_figures:
-        _, plt = _import_plt()
+        _, plt, _ = _import_plt()
         plt.close(fig)
     _plt_figures = []
 
@@ -132,13 +131,13 @@ def show(*args, **kwargs):
     By default, showing plots does not block the prompt.
     Calling this function will block execution.
     """
-    _, plt = _import_plt()
+    _, plt, _ = _import_plt()
     plt.show(*args, **kwargs)
 
 
 def close(*args, **kwargs):
     r"""Close last created figure, alias to plt.close()."""
-    _, plt = _import_plt()
+    _, plt, _ = _import_plt()
     plt.close(*args, **kwargs)
 
 
@@ -408,29 +407,28 @@ def _plot_graph(G, color, size, highlight, edges, indices, colorbar,
 def _plt_plot_graph(G, color, size, highlight, edges, indices, colorbar,
                     limits, ax):
 
-    if edges:
+    mpl, plt, mplot3d = _import_plt()
 
-        if G.coords.ndim == 1:
-            pass
+    if edges and (G.coords.ndim != 1):  # No edges for 1D plots.
 
-        elif G.coords.shape[1] == 2:
-            x, y = _get_coords(G)
-            ax.plot(x, y,
-                    linewidth=G.plotting['edge_width'],
-                    color=G.plotting['edge_color'],
-                    linestyle=G.plotting['edge_style'],
-                    zorder=1)
+        v_in, v_out, _ = G.get_edge_list()
+        edges = [
+            G.coords[v_in],
+            G.coords[v_out],
+        ]
+        edges = np.stack(edges, axis=1)
 
+        if G.coords.shape[1] == 2:
+            LineCollection = mpl.collections.LineCollection
         elif G.coords.shape[1] == 3:
-            # TODO: very dirty. Cannot we prepare a set of lines?
-            x, y, z = _get_coords(G)
-            for i in range(0, x.size, 2):
-                x2, y2, z2 = x[i:i+2], y[i:i+2], z[i:i+2]
-                ax.plot(x2, y2, z2,
-                        linewidth=G.plotting['edge_width'],
-                        color=G.plotting['edge_color'],
-                        linestyle=G.plotting['edge_style'],
-                        zorder=1)
+            LineCollection = mplot3d.art3d.Line3DCollection
+        ax.add_collection(LineCollection(
+            edges,
+            linewidths=G.plotting['edge_width'],
+            colors=G.plotting['edge_color'],
+            linestyles=G.plotting['edge_style'],
+            zorder=1,
+        ))
 
     try:
         iter(highlight)
@@ -444,32 +442,24 @@ def _plt_plot_graph(G, color, size, highlight, edges, indices, colorbar,
         for coord_hl in coords_hl:
             ax.axvline(x=coord_hl, color='C1', linewidth=2)
 
-    elif G.coords.shape[1] == 2:
-        sc = ax.scatter(G.coords[:, 0], G.coords[:, 1],
+    else:
+        sc = ax.scatter(*G.coords.T,
                         c=color, s=size,
                         marker='o', linewidths=0, alpha=0.5, zorder=2,
                         vmin=limits[0], vmax=limits[1])
-        ax.scatter(coords_hl[:, 0], coords_hl[:, 1],
+        ax.scatter(*coords_hl.T,
                    s=2*size, zorder=3,
                    marker='o', c='None', edgecolors='C1', linewidths=2)
 
-    elif G.coords.shape[1] == 3:
-        sc = ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
-                        c=color, s=size,
-                        marker='o', linewidths=0, alpha=0.5, zorder=2,
-                        vmin=limits[0], vmax=limits[1])
-        ax.scatter(coords_hl[:, 0], coords_hl[:, 1], coords_hl[:, 2],
-                   s=2*size, zorder=3,
-                   marker='o', c='None', edgecolors='C1', linewidths=2)
-        try:
-            ax.view_init(elev=G.plotting['elevation'],
-                         azim=G.plotting['azimuth'])
-            ax.dist = G.plotting['distance']
-        except KeyError:
-            pass
+        if G.coords.shape[1] == 3:
+            try:
+                ax.view_init(elev=G.plotting['elevation'],
+                             azim=G.plotting['azimuth'])
+                ax.dist = G.plotting['distance']
+            except KeyError:
+                pass
 
     if G.coords.ndim != 1 and colorbar:
-        _, plt = _import_plt()
         plt.colorbar(sc, ax=ax)
 
     if indices:

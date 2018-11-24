@@ -26,14 +26,18 @@ Additional features:
 * Building a graph object is much faster.
 * New rectangular filter (low-pass and band-pass).
 * The exponential window has been updated from low-pass only to band-pass.
-* Plotting functions return matplotlib figures and axes.
-* Nodes, edges, and filters are plotted in transparency to avoid occlusion.
-* The node index can be printed on top of nodes to identify them easily.
-* Two signals can now be plotted together via vertex color and size.
 * Much better documentation for the coherence of the Fourier basis.
 * Removed translate and modulate (they were not working and have no real use).
 * Fixed and documented vertex-frequency transforms.
   They are now implemented as filter banks.
+
+Plotting:
+
+* Plotting functions return matplotlib figures and axes.
+* Nodes, edges, and filters are plotted in transparency to avoid occlusion.
+* The node index can be printed on top of nodes to identify them easily.
+* Two signals can now be plotted together via vertex color and size.
+* Much faster (10 to 100 times faster) edge plotting with matplotlib.
 
 There are many other small changes, look at the git history for the details.
 
