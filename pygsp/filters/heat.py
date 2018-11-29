@@ -86,7 +86,7 @@ class Heat(Filter):
     ...     (n_side//4 * n_side) + (n_side//4),
     ...     (n_side*3//4 * n_side) + (n_side*3//4),
     ... ]
-    >>> delta = np.zeros(graph.n_nodes)
+    >>> delta = np.zeros(graph.n_vertices)
     >>> delta[sources] = 5
     >>> steps = np.array([1, 5])
     >>> g = filters.Heat(graph, tau=10*steps)

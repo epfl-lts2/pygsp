@@ -410,14 +410,14 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
         colorbar = False
     else:
         vertex_color = np.asarray(vertex_color).squeeze()
-        check_shape(vertex_color, 'Vertex color', G.n_nodes,
+        check_shape(vertex_color, 'Vertex color', G.n_vertices,
                     many=(G.coords.ndim == 1))
 
     if vertex_size is None:
         vertex_size = G.plotting['vertex_size']
     elif not np.isscalar(vertex_size):
         vertex_size = np.asarray(vertex_size).squeeze()
-        check_shape(vertex_size, 'Vertex size', G.n_nodes)
+        check_shape(vertex_size, 'Vertex size', G.n_vertices)
         vertex_size = G.plotting['vertex_size'] * 4 * normalize(vertex_size)**2
 
     if edges is None:

@@ -63,7 +63,7 @@ class GraphFourier(object):
 
         >>> graph = graphs.Path(100)
         >>> graph.compute_fourier_basis()
-        >>> minimum = 1 / np.sqrt(graph.n_nodes)
+        >>> minimum = 1 / np.sqrt(graph.n_vertices)
         >>> print('{:.2f} in [{:.2f}, 1]'.format(graph.coherence, minimum))
         0.14 in [0.10, 1]
         >>>
@@ -76,7 +76,7 @@ class GraphFourier(object):
 
         >>> graph = graphs.Sensor(64, seed=20)
         >>> graph.compute_fourier_basis()
-        >>> minimum = 1 / np.sqrt(graph.n_nodes)
+        >>> minimum = 1 / np.sqrt(graph.n_vertices)
         >>> print('{:.2f} in [{:.2f}, 1]'.format(graph.coherence, minimum))
         0.97 in [0.12, 1]
         >>>

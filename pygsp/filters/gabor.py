@@ -81,7 +81,7 @@ class Gabor(Filter):
                              'be the one used to build the mother kernel.')
 
         kernels = []
-        for i in range(graph.n_nodes):
+        for i in range(graph.n_vertices):
             kernels.append(lambda x, i=i: kernel.evaluate(x - graph.e[i]))
 
         super(Gabor, self).__init__(graph, kernels)

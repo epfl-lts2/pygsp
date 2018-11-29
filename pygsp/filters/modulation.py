@@ -139,7 +139,7 @@ class Modulation(Filter):
             raise ValueError('The graph passed to this filter bank must '
                              'be the one used to build the mother kernel.')
 
-        self.n_features_in, self.n_features_out = (1, graph.n_nodes)
+        self.n_features_in, self.n_features_out = (1, graph.n_vertices)
         self.n_filters = self.n_features_in * self.n_features_out
         self.Nf = self.n_filters  # TODO: kept for backward compatibility only.
 
@@ -149,7 +149,7 @@ class Modulation(Filter):
         if not hasattr(self, '_coefficients'):
             # Graph Fourier transform -> modulation -> inverse GFT.
             c = self.G.igft(self._kernels.evaluate(self.G.e).squeeze())
-            c = np.sqrt(self.G.n_nodes) * self.G.U * c[:, np.newaxis]
+            c = np.sqrt(self.G.n_vertices) * self.G.U * c[:, np.newaxis]
             self._coefficients = self.G.gft(c)
 
         shape = x.shape
@@ -170,8 +170,8 @@ class Modulation(Filter):
         else:
             # The dot product with each modulated kernel is equivalent to the
             # GFT, as for the localization and the IGFT.
-            y = np.empty((self.G.n_nodes, self.G.n_nodes))
-            for i in range(self.G.n_nodes):
+            y = np.empty((self.G.n_vertices, self.G.n_vertices))
+            for i in range(self.G.n_vertices):
                 x = s * self._kernels.localize(i)
-                y[i] = np.sqrt(self.G.n_nodes) * self.G.gft(x)
+                y[i] = np.sqrt(self.G.n_vertices) * self.G.gft(x)
             return y

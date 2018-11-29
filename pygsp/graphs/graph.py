@@ -75,7 +75,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         # real number of edges. Problematic when e.g. plotting.
         self.W.eliminate_zeros()
 
-        self.n_nodes = W.shape[0]
+        self.n_vertices = W.shape[0]
 
         # TODO: why would we ever want this?
         # For large matrices it slows the graph construction by a factor 100.
@@ -106,14 +106,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         # TODO: kept for backward compatibility.
         self.Ne = self.n_edges
-        self.N = self.n_nodes
+        self.N = self.n_vertices
 
     def _get_extra_repr(self):
         return dict()
 
     def __repr__(self, limit=None):
         s = ''
-        for attr in ['n_nodes', 'n_edges']:
+        for attr in ['n_vertices', 'n_edges']:
             s += '{}={}, '.format(attr, getattr(self, attr))
         for i, (key, value) in enumerate(self._get_extra_repr().items()):
             if (limit is not None) and (i == limit - 2):
@@ -521,7 +521,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             elif lap_type == 'normalized':
                 d = np.power(self.dw, -0.5)
                 D = sparse.diags(np.ravel(d), 0).tocsc()
-                self.L = sparse.identity(self.n_nodes) - D * self.W * D
+                self.L = sparse.identity(self.n_vertices) - D * self.W * D
 
     @property
     def A(self):

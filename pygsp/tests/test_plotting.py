@@ -126,7 +126,7 @@ class TestCase(unittest.TestCase):
             for value in ['r', 4*(.5)]:
                 params = {param: value, 'backend': 'pyqtgraph'}
                 self.assertRaises(ValueError, G.plot, **params)
-        test_color('vertex_color', G.n_nodes)
+        test_color('vertex_color', G.n_vertices)
         test_color('edge_color', G.n_edges)
         def test_size(param, length):
             for value in [15, length*(2,), np.ones([1, length]),
@@ -137,7 +137,7 @@ class TestCase(unittest.TestCase):
                           np.ones([2, length, 3])]:
                 params = {param: value}
                 self.assertRaises(ValueError, G.plot, **params)
-        test_size('vertex_size', G.n_nodes)
+        test_size('vertex_size', G.n_vertices)
         test_size('edge_width', G.n_edges)
 
     def test_show_close(self):
