@@ -146,8 +146,11 @@ class TestCase(unittest.TestCase):
 
     def test_differential_operator(self):
         G = graphs.StochasticBlockModel(N=100, directed=False)
-        L = G.D.T.dot(G.D)
-        np.testing.assert_allclose(L.toarray(), G.L.toarray())
+        for lap_type in ['combinatorial', 'normalized']:
+            G.compute_laplacian(lap_type)
+            G.compute_differential_operator()
+            L = G.D.dot(G.D.T)
+            np.testing.assert_allclose(L.toarray(), G.L.toarray())
 
         G = graphs.StochasticBlockModel(N=100, directed=True)
         self.assertRaises(NotImplementedError, G.compute_differential_operator)
@@ -156,7 +159,9 @@ class TestCase(unittest.TestCase):
         for lap_type in ['combinatorial', 'normalized']:
             G = graphs.Logo(lap_type=lap_type)
             s_grad = G.grad(self._signal)
+            self.assertEqual(len(s_grad), G.n_edges)
             Ls = G.div(s_grad)
+            self.assertEqual(len(Ls), G.n_vertices)
             np.testing.assert_allclose(Ls, G.L.dot(self._signal))
 
     def test_set_coordinates(self):

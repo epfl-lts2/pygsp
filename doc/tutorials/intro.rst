@@ -98,7 +98,7 @@ smoothness of a signal.
 
     >>> G.compute_differential_operator()
     >>> G.D.shape
-    (60, 30)
+    (30, 60)
 
 .. note::
     Note that we called :meth:`pygsp.graphs.Graph.compute_fourier_basis` and

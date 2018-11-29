@@ -28,13 +28,13 @@ class GraphDifference(object):
     def compute_differential_operator(self):
         r"""Compute the graph differential operator (cached).
 
-        The differential operator is a matrix such that
+        The differential operator is the matrix :math:`D` such that
 
-        .. math:: L = D^T D,
+        .. math:: L = D D^\top,
 
-        where :math:`D` is the differential operator and :math:`L` is the graph
-        Laplacian. It is used to compute the gradient and the divergence of a
-        graph signal, see :meth:`grad` and :meth:`div`.
+        where :math:`L` is the graph Laplacian (combinatorial or normalized).
+        It is used to compute the gradient and the divergence of graph
+        signals (see :meth:`grad` and :meth:`div`).
 
         The result is cached and accessible by the :attr:`D` property.
 
@@ -46,58 +46,54 @@ class GraphDifference(object):
         Examples
         --------
         >>> G = graphs.Logo()
-        >>> G.N, G.Ne
-        (1130, 3131)
         >>> G.compute_differential_operator()
-        >>> G.D.shape == (G.Ne, G.N)
+        >>> G.D.shape == (G.n_vertices, G.n_edges)
         True
 
         """
 
         v_in, v_out, weights = self.get_edge_list()
 
-        n = len(v_in)
-        Dr = np.concatenate((np.arange(n), np.arange(n)))
-        Dc = np.empty(2*n)
-        Dc[:n] = v_in
-        Dc[n:] = v_out
-        Dv = np.empty(2*n)
+        n = self.n_edges
+        rows = np.concatenate([v_in, v_out])
+        columns = np.concatenate([np.arange(n), np.arange(n)])
+        values = np.empty(2*n)
 
         if self.lap_type == 'combinatorial':
-            Dv[:n] = np.sqrt(weights)
-            Dv[n:] = -Dv[:n]
+            values[:n] = np.sqrt(weights)
+            values[n:] = -values[:n]
         elif self.lap_type == 'normalized':
-            Dv[:n] = np.sqrt(weights / self.dw[v_in])
-            Dv[n:] = -np.sqrt(weights / self.dw[v_out])
+            values[:n] = np.sqrt(weights / self.dw[v_in])
+            values[n:] = -np.sqrt(weights / self.dw[v_out])
         else:
             raise ValueError('Unknown lap_type {}'.format(self.lap_type))
 
-        self._D = sparse.csc_matrix((Dv, (Dr, Dc)), shape=(n, self.N))
+        self._D = sparse.csc_matrix((values, (rows, columns)),
+                                    shape=(self.n_vertices, self.n_edges))
 
     def grad(self, s):
-        r"""Compute the gradient of a graph signal.
+        r"""Compute the gradient of a signal defined on the vertices.
 
         The gradient of a signal :math:`s` is defined as
 
-        .. math:: y = D s,
+        .. math:: y = D^\top s,
 
         where :math:`D` is the differential operator :attr:`D`.
 
         Parameters
         ----------
         s : ndarray
-            Signal of length G.N living on the nodes.
+            Signal of length :attr:`n_vertices` living on the vertices.
 
         Returns
         -------
         s_grad : ndarray
-            Gradient signal of length G.Ne/2 living on the edges (non-directed
-            graph).
+            Gradient signal of length :attr:`n_edges` living on the edges.
 
         See also
         --------
         compute_differential_operator
-        div : compute the divergence
+        div : compute the divergence of an edge signal
 
         Examples
         --------
@@ -113,31 +109,32 @@ class GraphDifference(object):
         """
         if self.N != s.shape[0]:
             raise ValueError('Signal length should be the number of nodes.')
-        return self.D.dot(s)
+        return self.D.T.dot(s)
 
     def div(self, s):
-        r"""Compute the divergence of a graph signal.
+        r"""Compute the divergence of a signal defined on the edges.
 
         The divergence of a signal :math:`s` is defined as
 
-        .. math:: y = D^T s,
+        .. math:: y = D s,
 
         where :math:`D` is the differential operator :attr:`D`.
 
         Parameters
         ----------
         s : ndarray
-            Signal of length G.Ne/2 living on the edges (non-directed graph).
+            Signal of length :attr:`n_edges` living on the edges.
 
         Returns
         -------
         s_div : ndarray
-            Divergence signal of length G.N living on the nodes.
+            Divergence signal of length :attr:`n_vertices` living on the
+            vertices.
 
         See also
         --------
         compute_differential_operator
-        grad : compute the gradient
+        grad : compute the gradient of a node signal
 
         Examples
         --------
@@ -151,4 +148,4 @@ class GraphDifference(object):
         """
         if self.Ne != s.shape[0]:
             raise ValueError('Signal length should be the number of edges.')
-        return self.D.T.dot(s)
+        return self.D.dot(s)
