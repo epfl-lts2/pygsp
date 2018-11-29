@@ -137,12 +137,14 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(s, s_star)
 
     def test_edge_list(self):
-        G = graphs.StochasticBlockModel(N=100, directed=False)
-        v_in, v_out, weights = G.get_edge_list()
-        self.assertEqual(G.W[v_in[42], v_out[42]], weights[42])
-
-        G = graphs.StochasticBlockModel(N=100, directed=True)
-        self.assertRaises(NotImplementedError, G.get_edge_list)
+        for directed in [False, True]:
+            G = graphs.ErdosRenyi(100, directed=directed)
+            sources, targets, weights = G.get_edge_list()
+            if not directed:
+                self.assertTrue(np.all(sources >= targets))
+            edges = np.arange(G.n_edges)
+            np.testing.assert_equal(G.W[sources[edges], targets[edges]],
+                                    weights[edges][np.newaxis, :])
 
     def test_differential_operator(self):
         G = graphs.StochasticBlockModel(N=100, directed=False)
@@ -153,7 +155,7 @@ class TestCase(unittest.TestCase):
             np.testing.assert_allclose(L.toarray(), G.L.toarray())
 
         G = graphs.StochasticBlockModel(N=100, directed=True)
-        self.assertRaises(NotImplementedError, G.compute_differential_operator)
+#        self.assertRaises(NotImplementedError, G.compute_differential_operator)
 
     def test_difference(self):
         for lap_type in ['combinatorial', 'normalized']:

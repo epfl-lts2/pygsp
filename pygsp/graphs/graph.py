@@ -646,37 +646,70 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     def get_edge_list(self):
         r"""Return an edge list, an alternative representation of the graph.
 
+        Each edge :math:`e_k = (v_i, v_j) \in \mathcal{E}` from :math:`v_i` to
+        :math:`v_j` is associated with the weight :math:`W[i, j]`. For each
+        edge :math:`e_k`, the method returns :math:`(i, j, W[i, j])` as
+        `(sources[k], targets[k], weights[k])`, with :math:`i \in [0,
+        |\mathcal{V}|-1], j \in [0, |\mathcal{V}|-1], k \in [0,
+        |\mathcal{E}|-1]`.
+
+        Returns
+        -------
+        sources : vector of int
+            Source node indices.
+        targets : vector of int
+            Target node indices.
+        weights : vector of float
+            Edge weights.
+
+        Notes
+        -----
         The weighted adjacency matrix is the canonical form used in this
         package to represent a graph as it is the easiest to work with when
         considering spectral methods.
 
-        Returns
-        -------
-        v_in : vector of int
-        v_out : vector of int
-        weights : vector of float
+        Edge orientation (i.e., which node is the source or the target) is
+        arbitrary for undirected graphs.
+        The implementation uses the low triangular part of the adjacency
+        matrix, hence :math:`j \leq i \ \forall k`.
 
         Examples
         --------
-        >>> G = graphs.Logo()
-        >>> v_in, v_out, weights = G.get_edge_list()
-        >>> v_in.shape, v_out.shape, weights.shape
-        ((3131,), (3131,), (3131,))
+
+        Edge list of a directed graph.
+
+        >>> adjacency = np.array([
+        ...     [0, 3, 0],
+        ...     [3, 0, 4],
+        ...     [0, 0, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> sources, targets, weights = graph.get_edge_list()
+        >>> list(sources), list(targets), list(weights)
+        ([0, 1, 1], [1, 0, 2], [3, 3, 4])
+
+        Edge list of an undirected graph.
+
+        >>> adjacency = np.array([
+        ...     [0, 3, 0],
+        ...     [3, 0, 4],
+        ...     [0, 4, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> sources, targets, weights = graph.get_edge_list()
+        >>> list(sources), list(targets), list(weights)
+        ([1, 2], [0, 1], [3, 4])
 
         """
 
-        if self.is_directed():
-            raise NotImplementedError('Directed graphs not supported yet.')
+        W = self.W if self.is_directed() else sparse.tril(self.W)
 
-        else:
-            v_in, v_out = sparse.tril(self.W).nonzero()
-            weights = self.W[v_in, v_out]
-            weights = np.asarray(weights).squeeze()
+        sources, targets = W.nonzero()
+        weights = self.W[sources, targets]
+        weights = np.asarray(weights).squeeze()
 
-            # TODO G.ind_edges = sub2ind(size(G.W), G.v_in, G.v_out)
-
-            assert self.Ne == v_in.size == v_out.size == weights.size
-            return v_in, v_out, weights
+        assert self.n_edges == sources.size == targets.size == weights.size
+        return sources, targets, weights
 
     def plot(self, vertex_color=None, vertex_size=None, highlight=[],
              edges=None, edge_color=None, edge_width=None,

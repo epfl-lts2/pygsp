@@ -54,10 +54,10 @@ class GraphDifference(object):
 
         """
 
-        v_in, v_out, weights = self.get_edge_list()
+        sources, targets, weights = self.get_edge_list()
 
         n = self.n_edges
-        rows = np.concatenate([v_in, v_out])
+        rows = np.concatenate([sources, targets])
         columns = np.concatenate([np.arange(n), np.arange(n)])
         values = np.empty(2*n)
 
@@ -65,8 +65,8 @@ class GraphDifference(object):
             values[:n] = np.sqrt(weights)
             values[n:] = -values[:n]
         elif self.lap_type == 'normalized':
-            values[:n] = np.sqrt(weights / self.dw[v_in])
-            values[n:] = -np.sqrt(weights / self.dw[v_out])
+            values[:n] = np.sqrt(weights / self.dw[sources])
+            values[n:] = -np.sqrt(weights / self.dw[targets])
         else:
             raise ValueError('Unknown lap_type {}'.format(self.lap_type))
 
