@@ -280,22 +280,23 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
     ax.set_ylabel(r'$\hat{g}(\lambda)$: filter response')
 
 
-def _plot_graph(G, color, size, highlight, edges, indices, colorbar,
-                limits, ax, title, backend):
+def _plot_graph(G, vertex_color, vertex_size, highlight,
+                edges, edge_color, edge_width,
+                indices, colorbar, limits, ax, title, backend):
     r"""Plot a graph with signals as color or vertex size.
 
     Parameters
     ----------
-    color : array-like or matplotlib color
-        Signal to plot as vertex color.
-        Signal length should be equal to the number of nodes.
-        If None, all vertices will have the same color.
-        Alternatively, a color (any format accepted by matplotlib) can be passed.
-    size : array-like or int
-        Signal to plot as vertex size (matplotlib only).
-        Signal length should be equal to the number of nodes.
-        If None, all vertices will have the size graph.plotting['vertex_size'].
+    vertex_color : array-like or color
+        Signal to plot as vertex color (length is the number of vertices).
+        If None, vertex color is set to `graph.plotting['vertex_color']`.
+        Alternatively, a color can be set in any format accepted by matplotlib.
+    vertex_size : array-like or int
+        Signal to plot as vertex size (length is the number of vertices).
+        Vertex size ranges from 0.5 to 2 times `graph.plotting['vertex_size']`.
+        If None, vertex size is set to `graph.plotting['vertex_size']`.
         Alternatively, a size can be passed as an integer.
+        The pyqtgraph backend only accepts an integer size.
     highlight : iterable
         List of indices of vertices to be highlighted.
         Useful for example to show where a filter was localized.
@@ -304,6 +305,19 @@ def _plot_graph(G, color, size, highlight, edges, indices, colorbar,
         Whether to draw edges in addition to vertices.
         Default to True if less than 10,000 edges to draw.
         Note that drawing many edges can be slow.
+    edge_color : array-like or color
+        Signal to plot as edge color (length is the number of edges).
+        Edge color is given by `graph.plotting['edge_color']` and transparency
+        ranges from 0.2 to 0.9.
+        If None, edge color is set to `graph.plotting['edge_color']`.
+        Alternatively, a color can be set in any format accepted by matplotlib.
+        Only available with the matplotlib backend.
+    edge_width : array-like or int
+        Signal to plot as edge width (length is the number of edges).
+        Edge width ranges from 0.5 to 2 times `graph.plotting['edge_width']`.
+        If None, edge width is set to `graph.plotting['edge_width']`.
+        Alternatively, a width can be passed as an integer.
+        Only available with the matplotlib backend.
     indices : bool
         Whether to print the node indices (in the adjacency / Laplacian matrix
         and signal vectors) on top of each node.
@@ -335,9 +349,18 @@ def _plot_graph(G, color, size, highlight, edges, indices, colorbar,
     Examples
     --------
     >>> import matplotlib
-    >>> graph = graphs.Sensor(seed=42)
-    >>> signal = np.random.RandomState(42).normal(size=graph.n_nodes)
-    >>> fig, ax = graph.plot(color=signal, size=graph.dw)
+    >>> graph = graphs.Sensor(20, seed=42)
+    >>> graph.compute_fourier_basis(n_eigenvectors=4)
+    >>> _, _, weights = graph.get_edge_list()
+    >>> fig, ax = graph.plot(graph.U[:, 1], vertex_size=graph.dw,
+    ...                      edge_color=weights)
+    >>> graph.plotting['vertex_size'] = 300
+    >>> graph.plotting['edge_width'] = 5
+    >>> graph.plotting['edge_style'] = '--'
+    >>> fig, ax = graph.plot(edge_width=weights, edge_color=(0, .8, .8, .5),
+    ...                      vertex_color='black')
+    >>> fig, ax = graph.plot(vertex_size=graph.dw, indices=True,
+    ...                      highlight=[17, 3, 16], edges=False)
 
     """
     if not hasattr(G, 'coords') or G.coords is None:
@@ -352,37 +375,75 @@ def _plot_graph(G, color, size, highlight, edges, indices, colorbar,
     if backend is None:
         backend = BACKEND
 
-    if color is None or (backend == 'matplotlib' and
-                         _import_plt()[0].colors.is_color_like(color)):
+    def check_shape(signal, name, length, many=False):
+        if (signal.ndim == 0) or (signal.shape[0] != length):
+            txt = '{}: signal should have length {}.'
+            txt = txt.format(name, length)
+            raise ValueError(txt)
+        if (not many) and (signal.ndim != 1):
+            txt = '{}: can plot only one signal (not {}).'
+            txt = txt.format(signal.shape[1])
+            raise ValueError(txt)
+
+    def normalize(x):
+        """Scale values in [0.25, 1]. Return 0.5 if constant."""
+        ptp = x.ptp()
+        if ptp == 0:
+            return np.full(x.shape, 0.5)
+        return 0.75 * (x - x.min()) / ptp + 0.25
+
+    def is_single_color(color):
+        if backend == 'matplotlib':
+            mpl, _, _ = _import_plt()
+            return mpl.colors.is_color_like(color)
+        elif backend == 'pyqtgraph':
+            # No support (yet) for single color with pyqtgraph.
+            return False
+
+    if vertex_color is None:
+        limits = [0, 0]
+        colorbar = False
+        if backend == 'matplotlib':
+            vertex_color = (G.plotting['vertex_color'],)
+    elif is_single_color(vertex_color):
         limits = [0, 0]
         colorbar = False
     else:
-        color = np.asarray(color).squeeze()
-        if color.ndim == 0 or color.shape[0] != G.N:
-            raise ValueError('Signal should have length G.N = {}.'.format(G.N))
-        if G.coords.ndim != 1 and color.ndim != 1:
-            raise ValueError('Can plot only one signal (not {}) with {}D '
-                             'coordinates.'.format(color.shape[1],
-                                                   G.coords.shape[1]))
+        vertex_color = np.asarray(vertex_color).squeeze()
+        check_shape(vertex_color, 'Vertex color', G.n_nodes,
+                    many=(G.coords.ndim == 1))
 
-    if size is None:
-        size = G.plotting['vertex_size']
-    elif not np.isscalar(size):
-        size = np.asarray(size).squeeze()
-        if size.shape[0] != G.N:
-            raise ValueError('Signal should have length G.N = {}.'.format(G.N))
-        if size.ndim != 1:
-            raise ValueError('Can plot only one signal (not {}) as '
-                             'size.'.format(size.shape[1]))
-        size -= size.min()
-        size /= size.max() + 1e-10
-        size = 500 * size**2 + 50
+    if vertex_size is None:
+        vertex_size = G.plotting['vertex_size']
+    elif not np.isscalar(vertex_size):
+        vertex_size = np.asarray(vertex_size).squeeze()
+        check_shape(vertex_size, 'Vertex size', G.n_nodes)
+        vertex_size = G.plotting['vertex_size'] * 4 * normalize(vertex_size)**2
 
     if edges is None:
         edges = G.Ne < 10e3
 
+    if edge_color is None:
+        edge_color = (G.plotting['edge_color'],)
+    elif not is_single_color(edge_color):
+        edge_color = np.array(edge_color).squeeze()
+        check_shape(edge_color, 'Edge color', G.n_edges)
+        edge_color = 0.9 * normalize(edge_color)
+        edge_color = [
+            np.tile(G.plotting['edge_color'][:3], [len(edge_color), 1]),
+            edge_color[:, np.newaxis],
+        ]
+        edge_color = np.concatenate(edge_color, axis=1)
+
+    if edge_width is None:
+        edge_width = G.plotting['edge_width']
+    elif not np.isscalar(edge_width):
+        edge_width = np.array(edge_width).squeeze()
+        check_shape(edge_width, 'Edge width', G.n_edges)
+        edge_width = G.plotting['edge_width'] * 2 * normalize(edge_width)
+
     if limits is None:
-        limits = [1.05*color.min(), 1.05*color.max()]
+        limits = [1.05*vertex_color.min(), 1.05*vertex_color.max()]
 
     if title is None:
         title = G.__repr__(limit=4)
@@ -390,22 +451,26 @@ def _plot_graph(G, color, size, highlight, edges, indices, colorbar,
     G = _handle_directed(G)
 
     if backend == 'pyqtgraph':
-        if color is None:
-            _qtg_plot_graph(G, edges=edges, vertex_size=size, title=title)
+        if vertex_color is None:
+            _qtg_plot_graph(G, edges=edges, vertex_size=vertex_size,
+                            title=title)
         else:
-            _qtg_plot_signal(G, signal=color, vertex_size=size, edges=edges,
-                             limits=limits, title=title)
+            _qtg_plot_signal(G, signal=vertex_color, vertex_size=vertex_size,
+                             edges=edges, limits=limits, title=title)
     elif backend == 'matplotlib':
-        return _plt_plot_graph(G, color=color, size=size, highlight=highlight,
+        return _plt_plot_graph(G, vertex_color=vertex_color,
+                               vertex_size=vertex_size, highlight=highlight,
                                edges=edges, indices=indices, colorbar=colorbar,
+                               edge_color=edge_color, edge_width=edge_width,
                                limits=limits, ax=ax, title=title)
     else:
         raise ValueError('Unknown backend {}.'.format(backend))
 
 
 @_plt_handle_figure
-def _plt_plot_graph(G, color, size, highlight, edges, indices, colorbar,
-                    limits, ax):
+def _plt_plot_graph(G, vertex_color, vertex_size, highlight,
+                    edges, edge_color, edge_width,
+                    indices, colorbar, limits, ax):
 
     mpl, plt, mplot3d = _import_plt()
 
@@ -424,8 +489,8 @@ def _plt_plot_graph(G, color, size, highlight, edges, indices, colorbar,
             LineCollection = mplot3d.art3d.Line3DCollection
         ax.add_collection(LineCollection(
             edges,
-            linewidths=G.plotting['edge_width'],
-            colors=G.plotting['edge_color'],
+            linewidths=edge_width,
+            colors=edge_color,
             linestyles=G.plotting['edge_style'],
             zorder=1,
         ))
@@ -437,18 +502,22 @@ def _plt_plot_graph(G, color, size, highlight, edges, indices, colorbar,
     coords_hl = G.coords[highlight]
 
     if G.coords.ndim == 1:
-        ax.plot(G.coords, color, alpha=0.5)
+        ax.plot(G.coords, vertex_color, alpha=0.5)
         ax.set_ylim(limits)
         for coord_hl in coords_hl:
             ax.axvline(x=coord_hl, color='C1', linewidth=2)
 
     else:
         sc = ax.scatter(*G.coords.T,
-                        c=color, s=size,
+                        c=vertex_color, s=vertex_size,
                         marker='o', linewidths=0, alpha=0.5, zorder=2,
                         vmin=limits[0], vmax=limits[1])
+        if np.isscalar(vertex_size):
+            size_hl = vertex_size
+        else:
+            size_hl = vertex_size[highlight]
         ax.scatter(*coords_hl.T,
-                   s=2*size, zorder=3,
+                   s=2*size_hl, zorder=3,
                    marker='o', c='None', edgecolors='C1', linewidths=2)
 
         if G.coords.shape[1] == 3:

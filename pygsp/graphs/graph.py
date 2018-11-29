@@ -100,7 +100,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         self.plotting = {'vertex_size': 100,
                          'vertex_color': (0.12, 0.47, 0.71, 0.5),
                          'edge_color': (0.5, 0.5, 0.5, 0.5),
-                         'edge_width': 1,
+                         'edge_width': 2,
                          'edge_style': '-'}
         self.plotting.update(plotting)
 
@@ -660,13 +660,16 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             assert self.Ne == v_in.size == v_out.size == weights.size
             return v_in, v_out, weights
 
-    def plot(self, color=None, size=None, highlight=[], edges=None,
+    def plot(self, vertex_color=None, vertex_size=None, highlight=[],
+             edges=None, edge_color=None, edge_width=None,
              indices=False, colorbar=True, limits=None, ax=None,
              title=None, backend=None):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_graph
-        return _plot_graph(self, color=color, size=size, highlight=highlight,
+        return _plot_graph(self, vertex_color=vertex_color,
+                           vertex_size=vertex_size, highlight=highlight,
                            edges=edges, indices=indices, colorbar=colorbar,
+                           edge_color=edge_color, edge_width=edge_width,
                            limits=limits, ax=ax, title=title, backend=backend)
 
     def plot_signal(self, *args, **kwargs):

@@ -36,7 +36,8 @@ Plotting:
 * Plotting functions return matplotlib figures and axes.
 * Nodes, edges, and filters are plotted in transparency to avoid occlusion.
 * The node index can be printed on top of nodes to identify them easily.
-* Two signals can now be plotted together via vertex color and size.
+* Two vertex signals can now be plotted together as vertex color and size.
+* Two edges signals can be plotted as edge color and width.
 * Much faster (10 to 100 times faster) edge plotting with matplotlib.
 
 There are many other small changes, look at the git history for the details.

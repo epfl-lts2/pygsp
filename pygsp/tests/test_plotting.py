@@ -111,21 +111,34 @@ class TestCase(unittest.TestCase):
         test(G)
 
     def test_signals(self):
-        """Test the different kind of parameters that can be passed."""
+        """Test the different kind of signals that can be plotted."""
         G = graphs.Sensor()
         G.plot()
-        G.plot(G.dw)
-        G.plot(G.dw, list(G.dw))
-        G.plot(list(G.dw), G.dw)
-        G.plot(G.dw[:, np.newaxis], G.dw[np.newaxis, :])
-        G.plot('r', 100)
-        G.plot((0.5, 0.5, 0.5, 0.5))
-        self.assertRaises(ValueError, G.plot, 'r', backend='pyqtgraph')
-        self.assertRaises(ValueError, G.plot, 3*(.5), backend='pyqtgraph')
-        self.assertRaises(ValueError, G.plot, 10)
-        self.assertRaises(ValueError, G.plot, (0.5, 0.5))
-        self.assertRaises(ValueError, G.plot, size=[2, 3, 4, 5])
-        self.assertRaises(ValueError, G.plot, size=[G.dw, G.dw])
+        def test_color(param, length):
+            for value in ['r', 4*(.5,), length*(2,), np.ones([1, length]),
+                          np.random.RandomState(42).uniform(size=length)]:
+                params = {param: value}
+                G.plot(**params)
+            for value in [10, (0.5, 0.5), np.ones([2, length]),
+                          np.ones([2, length, 3])]:
+                params = {param: value}
+                self.assertRaises(ValueError, G.plot, **params)
+            for value in ['r', 4*(.5)]:
+                params = {param: value, 'backend': 'pyqtgraph'}
+                self.assertRaises(ValueError, G.plot, **params)
+        test_color('vertex_color', G.n_nodes)
+        test_color('edge_color', G.n_edges)
+        def test_size(param, length):
+            for value in [15, length*(2,), np.ones([1, length]),
+                          np.random.RandomState(42).uniform(size=length)]:
+                params = {param: value}
+                G.plot(**params)
+            for value in [(2, 3, 4, 5), np.ones([2, length]),
+                          np.ones([2, length, 3])]:
+                params = {param: value}
+                self.assertRaises(ValueError, G.plot, **params)
+        test_size('vertex_size', G.n_nodes)
+        test_size('edge_width', G.n_edges)
 
     def test_show_close(self):
         G = graphs.Sensor()
