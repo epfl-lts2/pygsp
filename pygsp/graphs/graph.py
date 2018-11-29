@@ -382,10 +382,28 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> from scipy import sparse
-        >>> W = sparse.rand(10, 10, 0.2)
-        >>> G = graphs.Graph(W=W)
-        >>> directed = G.is_directed()
+
+        Directed graph:
+
+        >>> adjacency = np.array([
+        ...     [0, 3, 0],
+        ...     [3, 0, 4],
+        ...     [0, 0, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph.is_directed()
+        True
+
+        Undirected graph:
+
+        >>> adjacency = np.array([
+        ...     [0, 3, 0],
+        ...     [3, 0, 4],
+        ...     [0, 4, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph.is_directed()
+        False
 
         """
         if hasattr(self, '_directed') and not recompute:
