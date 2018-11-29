@@ -92,6 +92,10 @@ class NNGraph(Graph):
         N, d = np.shape(self.Xin)
         Xout = self.Xin
 
+        if k >= N:
+            raise ValueError('The number of neighbors (k={}) must be smaller '
+                             'than the number of nodes ({}).'.format(k, N))
+
         if self.center:
             Xout = self.Xin - np.kron(np.ones((N, 1)),
                                       np.mean(self.Xin, axis=0))
