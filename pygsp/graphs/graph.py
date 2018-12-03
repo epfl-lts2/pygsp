@@ -702,11 +702,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         """
 
-        W = self.W if self.is_directed() else sparse.tril(self.W)
+        if self.is_directed():
+            W = self.W.tocoo()
+        else:
+            W = sparse.tril(self.W, format='coo')
 
-        sources, targets = W.nonzero()
-        weights = self.W[sources, targets]
-        weights = np.asarray(weights).squeeze()
+        sources = W.row
+        targets = W.col
+        weights = W.data
 
         assert self.n_edges == sources.size == targets.size == weights.size
         return sources, targets, weights

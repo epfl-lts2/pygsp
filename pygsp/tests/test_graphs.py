@@ -166,6 +166,21 @@ class TestCase(unittest.TestCase):
             self.assertEqual(len(Ls), G.n_vertices)
             np.testing.assert_allclose(Ls, G.L.dot(self._signal))
 
+    def test_empty_graph(self, n_vertices=11):
+        graph = graphs.Graph(np.zeros((n_vertices, n_vertices)))
+        self.assertEqual(graph.n_vertices, n_vertices)
+        self.assertEqual(graph.n_edges, 0)
+        self.assertEqual(graph.W.nnz, 0)
+        self.assertEqual(graph.L.nnz, 0)
+        sources, targets, weights = graph.get_edge_list()
+        self.assertEqual(len(sources), 0)
+        self.assertEqual(len(targets), 0)
+        self.assertEqual(len(weights), 0)
+        graph.compute_differential_operator()
+        self.assertEqual(graph.D.nnz, 0)
+        graph.compute_fourier_basis()
+        np.testing.assert_allclose(graph.U, np.identity(n_vertices))
+
     def test_set_coordinates(self):
         G = graphs.FullConnected()
         coords = self._rs.uniform(size=(G.N, 2))
