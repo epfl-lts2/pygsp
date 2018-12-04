@@ -38,6 +38,50 @@ class GraphDifference(object):
         It is used to compute the gradient and the divergence of graph
         signals (see :meth:`grad` and :meth:`div`).
 
+        The differential operator computes the gradient and divergence of
+        signals, and the Laplacian computes the divergence of the gradient, as
+        follows:
+
+        .. math:: z = L x = D y = D D^\top x,
+
+        where :math:`y = D^\top x = \nabla_\mathcal{G} x` is the gradient of
+        :math:`x` and :math:`z = D y = \operatorname{div}_\mathcal{G} y` is the
+        divergence of :math:`y`. See :meth:`grad` and :meth:`div` for details.
+
+        The difference operator is actually an incidence matrix of the graph,
+        defined as
+
+        .. math:: D[i, k] =
+            \begin{cases}
+                -\sqrt{W[i, j] / 2} &
+                    \text{if } e_k = (v_i, v_j) \text{ for some } j, \\
+                +\sqrt{W[i, j] / 2} &
+                    \text{if } e_k = (v_j, v_i) \text{ for some } j, \\
+                0 & \text{otherwise}
+            \end{cases}
+
+        for the combinatorial Laplacian, and
+
+        .. math:: D[i, k] =
+            \begin{cases}
+                -\sqrt{W[i, j] / 2 / d[i]} &
+                    \text{if } e_k = (v_i, v_j) \text{ for some } j, \\
+                +\sqrt{W[i, j] / 2 / d[i]} &
+                    \text{if } e_k = (v_j, v_i) \text{ for some } j, \\
+                0 & \text{otherwise}
+            \end{cases}
+
+        for the normalized Laplacian, where :math:`v_i \in \mathcal{V}` is a
+        vertex, :math:`e_k = (v_i, v_j) \in \mathcal{E}` is an edge from
+        :math:`v_i` to :math:`v_j`, :math:`W[i, j]` is the weight :attr:`W` of
+        the edge :math:`(v_i, v_j)`, :math:`d[i]` is the degree :attr:`dw` of
+        vertex :math:`v_i`.
+
+        For undirected graphs, only half the edges are kept (the upper
+        triangular part of the adjacency matrix) in the interest of space and
+        time. In that case, the :math:`1/\sqrt{2}` factor disappears from the
+        above equations for :math:`L = D D^\top` to stand at all times.
+
         The result is cached and accessible by the :attr:`D` property.
 
         See also
@@ -47,9 +91,58 @@ class GraphDifference(object):
 
         Examples
         --------
+
+        The difference operator is an incidence matrix.
+        Example with a undirected graph.
+
+        >>> adjacency = np.array([
+        ...     [0, 2, 0],
+        ...     [2, 0, 1],
+        ...     [0, 1, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph.compute_laplacian('combinatorial')
+        >>> graph.compute_differential_operator()
+        >>> graph.D.toarray()
+        array([[-1.41421356,  0.        ],
+               [ 1.41421356, -1.        ],
+               [ 0.        ,  1.        ]])
+        >>> graph.compute_laplacian('normalized')
+        >>> graph.compute_differential_operator()
+        >>> graph.D.toarray()
+        array([[-1.        ,  0.        ],
+               [ 0.81649658, -0.57735027],
+               [ 0.        ,  1.        ]])
+
+        Example with a directed graph.
+
+        >>> adjacency = np.array([
+        ...     [0, 2, 0],
+        ...     [2, 0, 1],
+        ...     [0, 0, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph.compute_laplacian('combinatorial')
+        >>> graph.compute_differential_operator()
+        >>> graph.D.toarray()
+        array([[-1.        ,  1.        ,  0.        ],
+               [ 1.        , -1.        , -0.70710678],
+               [ 0.        ,  0.        ,  0.70710678]])
+        >>> graph.compute_laplacian('normalized')
+        >>> graph.compute_differential_operator()
+        >>> graph.D.toarray()
+        array([[-0.70710678,  0.70710678,  0.        ],
+               [ 0.63245553, -0.63245553, -0.4472136 ],
+               [ 0.        ,  0.        ,  1.        ]])
+
+        The graph Laplacian acts on a signal as the divergence of the gradient.
+
         >>> G = graphs.Logo()
         >>> G.compute_differential_operator()
-        >>> G.D.shape == (G.n_vertices, G.n_edges)
+        >>> s = np.random.normal(size=G.N)
+        >>> s_grad = G.D.T.dot(s)
+        >>> s_lap = G.D.dot(s_grad)
+        >>> np.linalg.norm(s_lap - G.L.dot(s)) < 1e-10
         True
 
         """
@@ -62,16 +155,20 @@ class GraphDifference(object):
         values = np.empty(2*n)
 
         if self.lap_type == 'combinatorial':
-            values[:n] = np.sqrt(weights)
+            values[:n] = -np.sqrt(weights)
             values[n:] = -values[:n]
         elif self.lap_type == 'normalized':
-            values[:n] = np.sqrt(weights / self.dw[sources])
-            values[n:] = -np.sqrt(weights / self.dw[targets])
+            values[:n] = -np.sqrt(weights / self.dw[sources])
+            values[n:] = +np.sqrt(weights / self.dw[targets])
         else:
             raise ValueError('Unknown lap_type {}'.format(self.lap_type))
 
+        if self.is_directed():
+            values /= np.sqrt(2)
+
         self._D = sparse.csc_matrix((values, (rows, columns)),
                                     shape=(self.n_vertices, self.n_edges))
+        self.D.eliminate_zeros()  # Self-loops introduce stored zeros.
 
     def grad(self, s):
         r"""Compute the gradient of a signal defined on the vertices.

@@ -9,6 +9,7 @@ import unittest
 
 import numpy as np
 import scipy.linalg
+import networkx as nx
 from skimage import data, img_as_float
 
 from pygsp import graphs
@@ -145,25 +146,38 @@ class TestCase(unittest.TestCase):
             np.testing.assert_equal(G.W[sources[edges], targets[edges]],
                                     weights[edges][np.newaxis, :])
 
-    def test_differential_operator(self):
-        G = graphs.StochasticBlockModel(N=100, directed=False)
-        for lap_type in ['combinatorial', 'normalized']:
-            G.compute_laplacian(lap_type)
-            G.compute_differential_operator()
-            L = G.D.dot(G.D.T)
-            np.testing.assert_allclose(L.toarray(), G.L.toarray())
-
-        G = graphs.StochasticBlockModel(N=100, directed=True)
-#        self.assertRaises(NotImplementedError, G.compute_differential_operator)
+    def test_differential_operator(self, n_vertices=98):
+        r"""The Laplacian must always be the divergence of the gradient,
+        whether the Laplacian is combinatorial or normalized, and whether the
+        graph is directed or weighted."""
+        def test_incidence_nx(graph):
+            r"""Test that the incidence matrix corresponds to NetworkX."""
+            incidence_pg = np.sign(graph.D.toarray())
+            Graph = nx.DiGraph if graph.is_directed() else nx.Graph
+            graph_nx = nx.from_scipy_sparse_matrix(graph.W, create_using=Graph)
+            incidence_nx = nx.incidence_matrix(graph_nx, oriented=True)
+            np.testing.assert_equal(incidence_pg, incidence_nx.toarray())
+        for graph in [graphs.Graph(np.zeros((n_vertices, n_vertices))),
+                      graphs.Graph(np.identity(n_vertices)),
+                      graphs.Graph(np.array([[0, 0.8], [0.8, 0]])),
+                      graphs.Graph(np.array([[1.3, 0], [0.4, 0.5]])),
+                      graphs.ErdosRenyi(n_vertices, directed=False, seed=42),
+                      graphs.ErdosRenyi(n_vertices, directed=True, seed=42)]:
+            for lap_type in ['combinatorial', 'normalized']:
+                graph.compute_laplacian(lap_type)
+                graph.compute_differential_operator()
+                L = graph.D.dot(graph.D.T)
+                np.testing.assert_allclose(L.toarray(), graph.L.toarray())
+                test_incidence_nx(graph)
 
     def test_difference(self):
         for lap_type in ['combinatorial', 'normalized']:
             G = graphs.Logo(lap_type=lap_type)
-            s_grad = G.grad(self._signal)
-            self.assertEqual(len(s_grad), G.n_edges)
-            Ls = G.div(s_grad)
-            self.assertEqual(len(Ls), G.n_vertices)
-            np.testing.assert_allclose(Ls, G.L.dot(self._signal))
+            y = G.grad(self._signal)
+            self.assertEqual(len(y), G.n_edges)
+            z = G.div(y)
+            self.assertEqual(len(z), G.n_vertices)
+            np.testing.assert_allclose(z, G.L.dot(self._signal))
 
     def test_empty_graph(self, n_vertices=11):
         graph = graphs.Graph(np.zeros((n_vertices, n_vertices)))
