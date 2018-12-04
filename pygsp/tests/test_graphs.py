@@ -141,7 +141,7 @@ class TestCase(unittest.TestCase):
             G = graphs.ErdosRenyi(100, directed=directed)
             sources, targets, weights = G.get_edge_list()
             if not directed:
-                self.assertTrue(np.all(sources >= targets))
+                self.assertTrue(np.all(sources <= targets))
             edges = np.arange(G.n_edges)
             np.testing.assert_equal(G.W[sources[edges], targets[edges]],
                                     weights[edges][np.newaxis, :])

@@ -699,8 +699,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Edge orientation (i.e., which node is the source or the target) is
         arbitrary for undirected graphs.
-        The implementation uses the low triangular part of the adjacency
-        matrix, hence :math:`j \leq i \ \forall k`.
+        The implementation uses the upper triangular part of the adjacency
+        matrix, hence :math:`i \leq j \ \forall k`.
 
         Examples
         --------
@@ -727,14 +727,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> graph = graphs.Graph(adjacency)
         >>> sources, targets, weights = graph.get_edge_list()
         >>> list(sources), list(targets), list(weights)
-        ([1, 2], [0, 1], [3, 4])
+        ([0, 1], [1, 2], [3, 4])
 
         """
 
         if self.is_directed():
             W = self.W.tocoo()
         else:
-            W = sparse.tril(self.W, format='coo')
+            W = sparse.triu(self.W, format='coo')
 
         sources = W.row
         targets = W.col
