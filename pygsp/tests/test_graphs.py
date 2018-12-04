@@ -179,6 +179,16 @@ class TestCase(unittest.TestCase):
             self.assertEqual(len(z), G.n_vertices)
             np.testing.assert_allclose(z, G.L.dot(self._signal))
 
+    def test_dirichlet_energy(self, n_vertices=100):
+        r"""The Dirichlet energy is defined as the norm of the gradient."""
+        signal = np.random.RandomState(42).uniform(size=n_vertices)
+        for lap_type in ['combinatorial', 'normalized']:
+            graph = graphs.BarabasiAlbert(n_vertices)
+            graph.compute_differential_operator()
+            energy = graph.dirichlet_energy(signal)
+            grad_norm = np.sum(graph.grad(signal)**2)
+            np.testing.assert_allclose(energy, grad_norm)
+
     def test_empty_graph(self, n_vertices=11):
         """Empty graphs have either no edge, or self-loops only. The Laplacian
         doesn't see self-loops, as the gradient on those edges is always zero.

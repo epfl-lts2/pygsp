@@ -589,6 +589,62 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         else:
             raise ValueError('Unknown Laplacian type {}'.format(lap_type))
 
+    def dirichlet_energy(self, x):
+        r"""Compute the Dirichlet energy of a signal defined on the vertices.
+
+        The Dirichlet energy of a signal :math:`x` is defined as
+
+        .. math:: x^\top L x = \| \nabla_\mathcal{G} x \|_2^2
+                             = \frac12 \sum_{i,j} W[i, j] (x[j] - x[i])^2
+
+        for the combinatorial Laplacian, and
+
+        .. math:: x^\top L x = \| \nabla_\mathcal{G} x \|_2^2
+            = \frac12 \sum_{i,j} W[i, j]
+              \left( \frac{x[j]}{d[j]} - \frac{x[i]}{d[i]} \right)^2
+
+        for the normalized Laplacian, where :math:`d` is the weighted degree
+        :attr:`dw`, :math:`\nabla_\mathcal{G} x = D^\top x` and :math:`D` is
+        the differential operator :attr:`D`. See :meth:`grad` for the
+        definition of the gradient :math:`\nabla_\mathcal{G}`.
+
+        Parameters
+        ----------
+        x : ndarray
+            Signal of length :attr:`n_vertices` living on the vertices.
+
+        Returns
+        -------
+        energy : float
+            The Dirichlet energy of the graph signal.
+
+        See also
+        --------
+        grad : compute the gradient of a vertex signal
+
+        Examples
+        --------
+        >>> graph = graphs.Path(5, directed=False)
+        >>> signal = np.array([0, 2, 2, 4, 4])
+        >>> graph.dirichlet_energy(signal)
+        8.0
+        >>> # The Dirichlet energy is indeed the squared norm of the gradient.
+        >>> graph.compute_differential_operator()
+        >>> graph.grad(signal)
+        array([2., 0., 2., 0.])
+
+        >>> graph = graphs.Path(5, directed=True)
+        >>> signal = np.array([0, 2, 2, 4, 4])
+        >>> graph.dirichlet_energy(signal)
+        4.0
+        >>> # The Dirichlet energy is indeed the squared norm of the gradient.
+        >>> graph.compute_differential_operator()
+        >>> graph.grad(signal)
+        array([1.41421356, 0.        , 1.41421356, 0.        ])
+
+        """
+        return x.T.dot(self.L.dot(x))
+
     @property
     def A(self):
         r"""Graph adjacency matrix (the binary version of W).

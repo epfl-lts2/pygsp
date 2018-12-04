@@ -56,6 +56,7 @@ Differential operators
 
     Graph.grad
     Graph.div
+    Graph.dirichlet_energy
 
 Transforms
 ----------
