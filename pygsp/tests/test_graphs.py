@@ -54,16 +54,15 @@ class TestCase(unittest.TestCase):
     def test_laplacian(self):
         # TODO: should test correctness.
 
-        G = graphs.StochasticBlockModel(N=100, directed=False)
+        G = graphs.ErdosRenyi(100, directed=False)
         self.assertFalse(G.is_directed())
         G.compute_laplacian(lap_type='combinatorial')
         G.compute_laplacian(lap_type='normalized')
 
-        G = graphs.StochasticBlockModel(N=100, directed=True)
+        G = graphs.ErdosRenyi(100, directed=True)
         self.assertTrue(G.is_directed())
         G.compute_laplacian(lap_type='combinatorial')
-        self.assertRaises(NotImplementedError, G.compute_laplacian,
-                          lap_type='normalized')
+        G.compute_laplacian(lap_type='normalized')
 
     def test_fourier_basis(self):
         # Smallest eigenvalue close to zero.

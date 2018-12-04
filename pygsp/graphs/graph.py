@@ -477,69 +477,117 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     def compute_laplacian(self, lap_type='combinatorial'):
         r"""Compute a graph Laplacian.
 
-        The result is accessible by the L attribute.
-
-        Parameters
-        ----------
-        lap_type : 'combinatorial', 'normalized'
-            The type of Laplacian to compute. Default is combinatorial.
-
-        Notes
-        -----
         For undirected graphs, the combinatorial Laplacian is defined as
 
         .. math:: L = D - W,
 
-        where :math:`W` is the weight matrix and :math:`D` the degree matrix,
-        and the normalized Laplacian is defined as
+        where :math:`W` is the weighted adjacency matrix and :math:`D` the
+        weighted degree matrix. The normalized Laplacian is defined as
 
         .. math:: L = I - D^{-1/2} W D^{-1/2},
 
         where :math:`I` is the identity matrix.
 
+        For directed graphs, the Laplacians are built from a symmetrized
+        version of the weighted adjacency matrix that is the average of the
+        weighted adjacency matrix and its transpose. As the Laplacian is
+        defined as the divergence of the gradient, it is not affected by the
+        orientation of the edges.
+
+        For both Laplacians, the diagonal entries corresponding to disconnected
+        nodes (i.e., nodes with degree zero) are set to zero.
+
+        Once computed, the Laplacian is accessible by the attribute :attr:`L`.
+
+        Parameters
+        ----------
+        lap_type : {'combinatorial', 'normalized'}
+            The type of Laplacian to compute. Default is combinatorial.
+
         Examples
         --------
+
+        Combinatorial and normalized Laplacians of an undirected graph.
+
+        >>> adjacency = np.array([
+        ...     [0, 2, 0],
+        ...     [2, 0, 1],
+        ...     [0, 1, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph.compute_laplacian('combinatorial')
+        >>> graph.L.toarray()
+        array([[ 2., -2.,  0.],
+               [-2.,  3., -1.],
+               [ 0., -1.,  1.]])
+        >>> graph.compute_laplacian('normalized')
+        >>> graph.L.toarray()
+        array([[ 1.        , -0.81649658,  0.        ],
+               [-0.81649658,  1.        , -0.57735027],
+               [ 0.        , -0.57735027,  1.        ]])
+
+        Combinatorial and normalized Laplacians of a directed graph.
+
+        >>> adjacency = np.array([
+        ...     [0, 2, 0],
+        ...     [2, 0, 1],
+        ...     [0, 0, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph.compute_laplacian('combinatorial')
+        >>> graph.L.toarray()
+        array([[ 2. , -2. ,  0. ],
+               [-2. ,  2.5, -0.5],
+               [ 0. , -0.5,  0.5]])
+        >>> graph.compute_laplacian('normalized')
+        >>> graph.L.toarray()
+        array([[ 1.        , -0.89442719,  0.        ],
+               [-0.89442719,  1.        , -0.4472136 ],
+               [ 0.        , -0.4472136 ,  1.        ]])
+
+        The Laplacian is defined as the divergence of the gradient.
+        See :meth:`compute_differential_operator` for details.
+
+        >>> graph = graphs.Path(20)
+        >>> graph.compute_differential_operator()
+        >>> L = graph.D.dot(graph.D.T)
+        >>> np.all(L.toarray() == graph.L.toarray())
+        True
+
+        The Laplacians have a bounded spectrum.
+
         >>> G = graphs.Sensor(50)
-        >>> G.L.shape
-        (50, 50)
-        >>>
         >>> G.compute_laplacian('combinatorial')
         >>> G.compute_fourier_basis()
-        >>> -1e-10 < G.e[0] < 1e-10  # Smallest eigenvalue close to 0.
+        >>> -1e-10 < G.e[0] < 1e-10 < G.e[-1] < 2*np.max(G.dw)
         True
-        >>>
         >>> G.compute_laplacian('normalized')
         >>> G.compute_fourier_basis(recompute=True)
-        >>> -1e-10 < G.e[0] < 1e-10 < G.e[-1] < 2  # Spectrum in [0, 2].
+        >>> -1e-10 < G.e[0] < 1e-10 < G.e[-1] < 2
         True
 
         """
 
-        if lap_type not in ['combinatorial', 'normalized']:
-            raise ValueError('Unknown Laplacian type {}'.format(lap_type))
         self.lap_type = lap_type
 
-        if self.is_directed():
-
-            if lap_type == 'combinatorial':
-                D1 = sparse.diags(np.ravel(self.W.sum(0)), 0)
-                D2 = sparse.diags(np.ravel(self.W.sum(1)), 0)
-                self.L = 0.5 * (D1 + D2 - self.W - self.W.T).tocsc()
-
-            elif lap_type == 'normalized':
-                raise NotImplementedError('Directed graphs with normalized '
-                                          'Laplacian not supported yet.')
-
+        if not self.is_directed():
+            W = self.W
         else:
+            W = utils.symmetrize(self.W, method='average')
 
-            if lap_type == 'combinatorial':
-                D = sparse.diags(np.ravel(self.W.sum(1)), 0)
-                self.L = (D - self.W).tocsc()
-
-            elif lap_type == 'normalized':
-                d = np.power(self.dw, -0.5)
-                D = sparse.diags(np.ravel(d), 0).tocsc()
-                self.L = sparse.identity(self.n_vertices) - D * self.W * D
+        if lap_type == 'combinatorial':
+            D = sparse.diags(self.dw)
+            self.L = D - W
+        elif lap_type == 'normalized':
+            d = np.zeros(self.n_vertices)
+            disconnected = (self.dw == 0)
+            np.power(self.dw, -0.5, where=~disconnected, out=d)
+            D = sparse.diags(d)
+            self.L = sparse.identity(self.n_vertices) - D * W * D
+            self.L[disconnected, disconnected] = 0
+            self.L.eliminate_zeros()
+        else:
+            raise ValueError('Unknown Laplacian type {}'.format(lap_type))
 
     @property
     def A(self):
