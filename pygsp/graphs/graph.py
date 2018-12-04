@@ -562,9 +562,38 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
     @property
     def dw(self):
-        r"""The weighted degree (the sum of weighted edges) of each node."""
+        r"""The weighted degree of nodes.
+
+        For undirected graphs, the weighted degree of the vertex :math:`v_i` is
+        defined as
+
+        .. math:: d[i] = \sum_j W[j, i] = \sum_j W[i, j],
+
+        where :math:`W` is the weighted adjacency matrix :attr:`W`.
+
+        For directed graphs, the weighted degree of the vertex :math:`v_i` is
+        defined as
+
+        .. math:: d[i] = \frac12 (d^\text{in}[i] + d^\text{out}[i])
+                       = \frac12 (\sum_j W[j, i] + \sum_j W[i, j]),
+
+        i.e., as the average of the in and out degrees.
+
+        Examples
+        --------
+        >>> graphs.Path(4, directed=False).dw
+        array([1., 2., 2., 1.])
+        >>> graphs.Path(4, directed=True).dw
+        array([0.5, 1. , 1. , 0.5])
+
+        """
         if not hasattr(self, '_dw'):
-            self._dw = np.asarray(self.W.sum(axis=1)).squeeze()
+            if not self.is_directed:
+                self._dw = np.ravel(self.W.sum(axis=0))
+            else:
+                degree_in = np.ravel(self.W.sum(axis=0))
+                degree_out = np.ravel(self.W.sum(axis=1))
+                self._dw = 0.5 * (degree_in + degree_out)
         return self._dw
 
     @property
