@@ -181,9 +181,11 @@ class GraphFourier(object):
         assert -1e-12 < self._e[0] < 1e-12
         self._e[0] = 0
 
-        if self.lap_type == 'normalized':
-            # Spectrum bounded by [0, 2].
-            assert self._e[-1] <= 2
+        # Bounded spectrum.
+        if self.lap_type == 'combinatorial':
+            assert self._e[-1] <= 2 * np.max(self.dw) + 1e-12
+        elif self.lap_type == 'normalized':
+            assert self._e[-1] <= 2 + 1e-12
 
         assert np.max(self._e) == self._e[-1]
         if n_eigenvectors == self.N:
