@@ -180,19 +180,35 @@ class TestCase(unittest.TestCase):
             np.testing.assert_allclose(z, G.L.dot(self._signal))
 
     def test_empty_graph(self, n_vertices=11):
-        graph = graphs.Graph(np.zeros((n_vertices, n_vertices)))
-        self.assertEqual(graph.n_vertices, n_vertices)
-        self.assertEqual(graph.n_edges, 0)
-        self.assertEqual(graph.W.nnz, 0)
-        self.assertEqual(graph.L.nnz, 0)
-        sources, targets, weights = graph.get_edge_list()
-        self.assertEqual(len(sources), 0)
-        self.assertEqual(len(targets), 0)
-        self.assertEqual(len(weights), 0)
-        graph.compute_differential_operator()
-        self.assertEqual(graph.D.nnz, 0)
-        graph.compute_fourier_basis()
-        np.testing.assert_allclose(graph.U, np.identity(n_vertices))
+        """Empty graphs have either no edge, or self-loops only. The Laplacian
+        doesn't see self-loops, as the gradient on those edges is always zero.
+        """
+        adjacencies = [
+            np.zeros((n_vertices, n_vertices)),
+            np.identity(n_vertices),
+        ]
+        for adjacency, n_edges in zip(adjacencies, [0, n_vertices]):
+            graph = graphs.Graph(adjacency)
+            self.assertEqual(graph.n_vertices, n_vertices)
+            self.assertEqual(graph.n_edges, n_edges)
+            self.assertEqual(graph.W.nnz, n_edges)
+            for laplacian in ['combinatorial', 'normalized']:
+                graph.compute_laplacian(laplacian)
+                self.assertEqual(graph.L.nnz, 0)
+                sources, targets, weights = graph.get_edge_list()
+                self.assertEqual(len(sources), n_edges)
+                self.assertEqual(len(targets), n_edges)
+                self.assertEqual(len(weights), n_edges)
+                graph.compute_differential_operator()
+                self.assertEqual(graph.D.nnz, 0)
+                graph.compute_fourier_basis()
+                np.testing.assert_allclose(graph.U, np.identity(n_vertices))
+                np.testing.assert_allclose(graph.e, np.zeros(n_vertices))
+            # NetworkX uses the same conventions.
+            G = nx.from_scipy_sparse_matrix(graph.W)
+            self.assertEqual(nx.laplacian_matrix(G).nnz, 0)
+            self.assertEqual(nx.normalized_laplacian_matrix(G).nnz, 0)
+            self.assertEqual(nx.incidence_matrix(G).nnz, 0)
 
     def test_set_coordinates(self):
         G = graphs.FullConnected()
