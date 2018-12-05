@@ -153,8 +153,8 @@ class TestCase(unittest.TestCase):
         def test_incidence_nx(graph):
             r"""Test that the incidence matrix corresponds to NetworkX."""
             incidence_pg = np.sign(graph.D.toarray())
-            Graph = nx.DiGraph if graph.is_directed() else nx.Graph
-            graph_nx = nx.from_scipy_sparse_matrix(graph.W, create_using=Graph)
+            G = nx.OrderedDiGraph if graph.is_directed() else nx.OrderedGraph
+            graph_nx = nx.from_scipy_sparse_matrix(graph.W, create_using=G)
             incidence_nx = nx.incidence_matrix(graph_nx, oriented=True)
             np.testing.assert_equal(incidence_pg, incidence_nx.toarray())
         for graph in [graphs.Graph(np.zeros((n_vertices, n_vertices))),
