@@ -76,7 +76,7 @@ We start with the graph TV regularization. We will use the :class:`pyunlocbox.so
     >>>
     >>> # Define the solver
     >>> G.compute_differential_operator()
-    >>> L = G.D.toarray()
+    >>> L = G.D.T.toarray()
     >>> step = 0.999 / (1 + np.linalg.norm(L))
     >>> solver = pyunlocbox.solvers.mlfbf(L=L, step=step)
     >>>

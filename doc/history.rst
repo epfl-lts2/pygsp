@@ -5,6 +5,20 @@ History
 0.6.0 (xxxx-xx-xx)
 ------------------
 
+* print(graph) and print(filters) now show valuable information.
+* Building a graph object is much faster.
+* New rectangular filter (low-pass and band-pass).
+* The exponential window has been updated from low-pass only to band-pass.
+* Much better documentation for the coherence of the Fourier basis.
+* Removed translate and modulate (they were not working and have no real use).
+* Fixed and documented vertex-frequency transforms.
+  They are now implemented as filter banks.
+* Directed graphs are now completely supported.
+* The differential operator (D, grad, div) is better tested and documented.
+* A new method (G.dirichlet_energy) computes the Dirichlet energy of a signal.
+
+Plotting:
+
 The plotting interface was updated to be more user-friendly. First, the
 documentation is now shown for filter.plot(), graph.plot(), and co. Second, the
 API in the plotting library has been deprecated. That module is now mostly for
@@ -20,18 +34,7 @@ names were changed:
 * npoints => n
 * save_as was removed
 
-Additional features:
-
-* print(graph) and print(filters) now show valuable information.
-* Building a graph object is much faster.
-* New rectangular filter (low-pass and band-pass).
-* The exponential window has been updated from low-pass only to band-pass.
-* Much better documentation for the coherence of the Fourier basis.
-* Removed translate and modulate (they were not working and have no real use).
-* Fixed and documented vertex-frequency transforms.
-  They are now implemented as filter banks.
-
-Plotting:
+Other changes regarding plotting:
 
 * Plotting functions return matplotlib figures and axes.
 * Nodes, edges, and filters are plotted in transparency to avoid occlusion.

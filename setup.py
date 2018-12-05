@@ -33,6 +33,8 @@ setup(
     extras_require={
         # Optional dependencies for some functionalities.
         'alldeps': (
+            # Import and export.
+            'networkx',
             # Construct patch graphs from images.
             'scikit-image',
             # Approximate nearest neighbors for kNN graphs.

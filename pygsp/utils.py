@@ -207,6 +207,12 @@ def symmetrize(W, method='average'):
         * 'tril' : symmetrize by considering the lower triangular part only.
         * 'triu' : symmetrize by considering the upper triangular part only.
 
+    Notes
+    -----
+    You can have the sum by multiplying the average by two. It is however not a
+    good candidate for this function as it modifies an already symmetric
+    matrix.
+
     Examples
     --------
     >>> from pygsp import utils
@@ -219,6 +225,10 @@ def symmetrize(W, method='average'):
     array([[0., 3., 2.],
            [3., 1., 4.],
            [2., 4., 3.]])
+    >>> 2 * utils.symmetrize(W, method='average')
+    array([[0., 6., 4.],
+           [6., 2., 8.],
+           [4., 8., 6.]])
     >>> utils.symmetrize(W, method='maximum')
     array([[0., 3., 4.],
            [3., 1., 6.],
@@ -242,9 +252,6 @@ def symmetrize(W, method='average'):
 
     if method == 'average':
         return (W + W.T) / 2
-
-    # Sum is 2x average. It is not a good candidate as it modifies an already
-    # symmetric matrix.
 
     elif method == 'maximum':
         if sparse.issparse(W):

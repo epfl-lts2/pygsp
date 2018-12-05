@@ -346,6 +346,11 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
     ax : :class:`matplotlib.axes.Axes`
         The axes the plot belongs to. Only with the matplotlib backend.
 
+    Notes
+    -----
+    The orientation of directed edges is not shown. If edges exist in both
+    directions, they will be drawn on top of each other.
+
     Examples
     --------
     >>> import matplotlib
@@ -448,8 +453,6 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
     if title is None:
         title = G.__repr__(limit=4)
 
-    G = _handle_directed(G)
-
     if backend == 'pyqtgraph':
         if vertex_color is None:
             _qtg_plot_graph(G, edges=edges, vertex_size=vertex_size,
@@ -476,10 +479,10 @@ def _plt_plot_graph(G, vertex_color, vertex_size, highlight,
 
     if edges and (G.coords.ndim != 1):  # No edges for 1D plots.
 
-        v_in, v_out, _ = G.get_edge_list()
+        sources, targets, _ = G.get_edge_list()
         edges = [
-            G.coords[v_in],
-            G.coords[v_out],
+            G.coords[sources],
+            G.coords[targets],
         ]
         edges = np.stack(edges, axis=1)
 
@@ -660,12 +663,12 @@ def _plot_spectrogram(G, node_idx):
 
 def _get_coords(G, edge_list=False):
 
-    v_in, v_out, _ = G.get_edge_list()
+    sources, targets, _ = G.get_edge_list()
 
     if edge_list:
-        return np.stack((v_in, v_out), axis=1)
+        return np.stack((sources, targets), axis=1)
 
-    coords = [np.stack((G.coords[v_in, d], G.coords[v_out, d]), axis=0)
+    coords = [np.stack((G.coords[sources, d], G.coords[targets, d]), axis=0)
               for d in range(G.coords.shape[1])]
 
     if G.coords.shape[1] == 2:
@@ -673,15 +676,3 @@ def _get_coords(G, edge_list=False):
 
     elif G.coords.shape[1] == 3:
         return [coord.reshape(-1, order='F') for coord in coords]
-
-
-def _handle_directed(G):
-    # FIXME: plot edge direction. For now we just symmetrize the weight matrix.
-    if not G.is_directed():
-        return G
-    else:
-        from pygsp import graphs
-        G2 = graphs.Graph(utils.symmetrize(G.W))
-        G2.coords = G.coords
-        G2.plotting = G.plotting
-        return G2
