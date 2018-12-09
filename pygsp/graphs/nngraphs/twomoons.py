@@ -40,7 +40,7 @@ class TwoMoons(NNGraph):
     >>> G = graphs.TwoMoons()
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=0.5)
-    >>> G.plot(edges=True, ax=axes[1])
+    >>> _ = G.plot(edges=True, ax=axes[1])
 
     """
 
@@ -97,6 +97,7 @@ class TwoMoons(NNGraph):
         }
 
         super(TwoMoons, self).__init__(Xin=Xin, sigma=sigmag, k=5,
+                                       center=False, rescale=False,
                                        plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):

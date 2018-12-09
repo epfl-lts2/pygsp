@@ -61,7 +61,7 @@ main objects of the package.
 >>> G.compute_fourier_basis()  # Fourier to plot the eigenvalues.
 >>> # G.estimate_lmax() is otherwise sufficient.
 >>> g = filters.Heat(G, tau=50)
->>> g.plot()
+>>> fig, ax = g.plot()
 
 .. image:: ../pygsp/data/readme_example_filter.png
     :alt:
@@ -78,7 +78,7 @@ structure!
 >>> s = np.zeros(G.N)
 >>> s[DELTAS] = 1
 >>> s = g.filter(s)
->>> G.plot_signal(s, highlight=DELTAS)
+>>> fig, ax = G.plot(s, highlight=DELTAS)
 
 .. image:: ../pygsp/data/readme_example_graph.png
     :alt:

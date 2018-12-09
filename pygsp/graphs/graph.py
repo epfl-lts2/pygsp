@@ -75,7 +75,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         # real number of edges. Problematic when e.g. plotting.
         self.W.eliminate_zeros()
 
-        self.n_nodes = W.shape[0]
+        self.n_vertices = W.shape[0]
 
         # TODO: why would we ever want this?
         # For large matrices it slows the graph construction by a factor 100.
@@ -98,22 +98,22 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             self.coords = coords
 
         self.plotting = {'vertex_size': 100,
-                         'vertex_color': (0.12, 0.47, 0.71, 1),
-                         'edge_color': (0.5, 0.5, 0.5, 1),
-                         'edge_width': 1,
+                         'vertex_color': (0.12, 0.47, 0.71, 0.5),
+                         'edge_color': (0.5, 0.5, 0.5, 0.5),
+                         'edge_width': 2,
                          'edge_style': '-'}
         self.plotting.update(plotting)
 
         # TODO: kept for backward compatibility.
         self.Ne = self.n_edges
-        self.N = self.n_nodes
+        self.N = self.n_vertices
 
     def _get_extra_repr(self):
         return dict()
 
     def __repr__(self, limit=None):
         s = ''
-        for attr in ['n_nodes', 'n_edges']:
+        for attr in ['n_vertices', 'n_edges']:
             s += '{}={}, '.format(attr, getattr(self, attr))
         for i, (key, value) in enumerate(self._get_extra_repr().items()):
             if (limit is not None) and (i == limit - 2):
@@ -197,7 +197,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         --------
         >>> G = graphs.ErdosRenyi()
         >>> G.set_coordinates()
-        >>> G.plot()
+        >>> fig, ax = G.plot()
 
         """
 
@@ -382,10 +382,28 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> from scipy import sparse
-        >>> W = sparse.rand(10, 10, 0.2)
-        >>> G = graphs.Graph(W=W)
-        >>> directed = G.is_directed()
+
+        Directed graph:
+
+        >>> adjacency = np.array([
+        ...     [0, 3, 0],
+        ...     [3, 0, 4],
+        ...     [0, 0, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph.is_directed()
+        True
+
+        Undirected graph:
+
+        >>> adjacency = np.array([
+        ...     [0, 3, 0],
+        ...     [3, 0, 4],
+        ...     [0, 4, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph.is_directed()
+        False
 
         """
         if hasattr(self, '_directed') and not recompute:
@@ -459,69 +477,173 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     def compute_laplacian(self, lap_type='combinatorial'):
         r"""Compute a graph Laplacian.
 
-        The result is accessible by the L attribute.
-
-        Parameters
-        ----------
-        lap_type : 'combinatorial', 'normalized'
-            The type of Laplacian to compute. Default is combinatorial.
-
-        Notes
-        -----
         For undirected graphs, the combinatorial Laplacian is defined as
 
         .. math:: L = D - W,
 
-        where :math:`W` is the weight matrix and :math:`D` the degree matrix,
-        and the normalized Laplacian is defined as
+        where :math:`W` is the weighted adjacency matrix and :math:`D` the
+        weighted degree matrix. The normalized Laplacian is defined as
 
         .. math:: L = I - D^{-1/2} W D^{-1/2},
 
         where :math:`I` is the identity matrix.
 
+        For directed graphs, the Laplacians are built from a symmetrized
+        version of the weighted adjacency matrix that is the average of the
+        weighted adjacency matrix and its transpose. As the Laplacian is
+        defined as the divergence of the gradient, it is not affected by the
+        orientation of the edges.
+
+        For both Laplacians, the diagonal entries corresponding to disconnected
+        nodes (i.e., nodes with degree zero) are set to zero.
+
+        Once computed, the Laplacian is accessible by the attribute :attr:`L`.
+
+        Parameters
+        ----------
+        lap_type : {'combinatorial', 'normalized'}
+            The type of Laplacian to compute. Default is combinatorial.
+
         Examples
         --------
+
+        Combinatorial and normalized Laplacians of an undirected graph.
+
+        >>> adjacency = np.array([
+        ...     [0, 2, 0],
+        ...     [2, 0, 1],
+        ...     [0, 1, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph.compute_laplacian('combinatorial')
+        >>> graph.L.toarray()
+        array([[ 2., -2.,  0.],
+               [-2.,  3., -1.],
+               [ 0., -1.,  1.]])
+        >>> graph.compute_laplacian('normalized')
+        >>> graph.L.toarray()
+        array([[ 1.        , -0.81649658,  0.        ],
+               [-0.81649658,  1.        , -0.57735027],
+               [ 0.        , -0.57735027,  1.        ]])
+
+        Combinatorial and normalized Laplacians of a directed graph.
+
+        >>> adjacency = np.array([
+        ...     [0, 2, 0],
+        ...     [2, 0, 1],
+        ...     [0, 0, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph.compute_laplacian('combinatorial')
+        >>> graph.L.toarray()
+        array([[ 2. , -2. ,  0. ],
+               [-2. ,  2.5, -0.5],
+               [ 0. , -0.5,  0.5]])
+        >>> graph.compute_laplacian('normalized')
+        >>> graph.L.toarray()
+        array([[ 1.        , -0.89442719,  0.        ],
+               [-0.89442719,  1.        , -0.4472136 ],
+               [ 0.        , -0.4472136 ,  1.        ]])
+
+        The Laplacian is defined as the divergence of the gradient.
+        See :meth:`compute_differential_operator` for details.
+
+        >>> graph = graphs.Path(20)
+        >>> graph.compute_differential_operator()
+        >>> L = graph.D.dot(graph.D.T)
+        >>> np.all(L.toarray() == graph.L.toarray())
+        True
+
+        The Laplacians have a bounded spectrum.
+
         >>> G = graphs.Sensor(50)
-        >>> G.L.shape
-        (50, 50)
-        >>>
         >>> G.compute_laplacian('combinatorial')
         >>> G.compute_fourier_basis()
-        >>> -1e-10 < G.e[0] < 1e-10  # Smallest eigenvalue close to 0.
+        >>> -1e-10 < G.e[0] < 1e-10 < G.e[-1] < 2*np.max(G.dw)
         True
-        >>>
         >>> G.compute_laplacian('normalized')
         >>> G.compute_fourier_basis(recompute=True)
-        >>> -1e-10 < G.e[0] < 1e-10 < G.e[-1] < 2  # Spectrum in [0, 2].
+        >>> -1e-10 < G.e[0] < 1e-10 < G.e[-1] < 2
         True
 
         """
 
-        if lap_type not in ['combinatorial', 'normalized']:
-            raise ValueError('Unknown Laplacian type {}'.format(lap_type))
         self.lap_type = lap_type
 
-        if self.is_directed():
-
-            if lap_type == 'combinatorial':
-                D1 = sparse.diags(np.ravel(self.W.sum(0)), 0)
-                D2 = sparse.diags(np.ravel(self.W.sum(1)), 0)
-                self.L = 0.5 * (D1 + D2 - self.W - self.W.T).tocsc()
-
-            elif lap_type == 'normalized':
-                raise NotImplementedError('Directed graphs with normalized '
-                                          'Laplacian not supported yet.')
-
+        if not self.is_directed():
+            W = self.W
         else:
+            W = utils.symmetrize(self.W, method='average')
 
-            if lap_type == 'combinatorial':
-                D = sparse.diags(np.ravel(self.W.sum(1)), 0)
-                self.L = (D - self.W).tocsc()
+        if lap_type == 'combinatorial':
+            D = sparse.diags(self.dw)
+            self.L = D - W
+        elif lap_type == 'normalized':
+            d = np.zeros(self.n_vertices)
+            disconnected = (self.dw == 0)
+            np.power(self.dw, -0.5, where=~disconnected, out=d)
+            D = sparse.diags(d)
+            self.L = sparse.identity(self.n_vertices) - D * W * D
+            self.L[disconnected, disconnected] = 0
+            self.L.eliminate_zeros()
+        else:
+            raise ValueError('Unknown Laplacian type {}'.format(lap_type))
 
-            elif lap_type == 'normalized':
-                d = np.power(self.dw, -0.5)
-                D = sparse.diags(np.ravel(d), 0).tocsc()
-                self.L = sparse.identity(self.n_nodes) - D * self.W * D
+    def dirichlet_energy(self, x):
+        r"""Compute the Dirichlet energy of a signal defined on the vertices.
+
+        The Dirichlet energy of a signal :math:`x` is defined as
+
+        .. math:: x^\top L x = \| \nabla_\mathcal{G} x \|_2^2
+                             = \frac12 \sum_{i,j} W[i, j] (x[j] - x[i])^2
+
+        for the combinatorial Laplacian, and
+
+        .. math:: x^\top L x = \| \nabla_\mathcal{G} x \|_2^2
+            = \frac12 \sum_{i,j} W[i, j]
+              \left( \frac{x[j]}{d[j]} - \frac{x[i]}{d[i]} \right)^2
+
+        for the normalized Laplacian, where :math:`d` is the weighted degree
+        :attr:`dw`, :math:`\nabla_\mathcal{G} x = D^\top x` and :math:`D` is
+        the differential operator :attr:`D`. See :meth:`grad` for the
+        definition of the gradient :math:`\nabla_\mathcal{G}`.
+
+        Parameters
+        ----------
+        x : ndarray
+            Signal of length :attr:`n_vertices` living on the vertices.
+
+        Returns
+        -------
+        energy : float
+            The Dirichlet energy of the graph signal.
+
+        See also
+        --------
+        grad : compute the gradient of a vertex signal
+
+        Examples
+        --------
+        >>> graph = graphs.Path(5, directed=False)
+        >>> signal = np.array([0, 2, 2, 4, 4])
+        >>> graph.dirichlet_energy(signal)
+        8.0
+        >>> # The Dirichlet energy is indeed the squared norm of the gradient.
+        >>> graph.compute_differential_operator()
+        >>> graph.grad(signal)
+        array([2., 0., 2., 0.])
+
+        >>> graph = graphs.Path(5, directed=True)
+        >>> signal = np.array([0, 2, 2, 4, 4])
+        >>> graph.dirichlet_energy(signal)
+        4.0
+        >>> # The Dirichlet energy is indeed the squared norm of the gradient.
+        >>> graph.compute_differential_operator()
+        >>> graph.grad(signal)
+        array([1.41421356, 0.        , 1.41421356, 0.        ])
+
+        """
+        return x.T.dot(self.L.dot(x))
 
     @property
     def A(self):
@@ -544,9 +666,38 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
     @property
     def dw(self):
-        r"""The weighted degree (the sum of weighted edges) of each node."""
+        r"""The weighted degree of nodes.
+
+        For undirected graphs, the weighted degree of the vertex :math:`v_i` is
+        defined as
+
+        .. math:: d[i] = \sum_j W[j, i] = \sum_j W[i, j],
+
+        where :math:`W` is the weighted adjacency matrix :attr:`W`.
+
+        For directed graphs, the weighted degree of the vertex :math:`v_i` is
+        defined as
+
+        .. math:: d[i] = \frac12 (d^\text{in}[i] + d^\text{out}[i])
+                       = \frac12 (\sum_j W[j, i] + \sum_j W[i, j]),
+
+        i.e., as the average of the in and out degrees.
+
+        Examples
+        --------
+        >>> graphs.Path(4, directed=False).dw
+        array([1., 2., 2., 1.])
+        >>> graphs.Path(4, directed=True).dw
+        array([0.5, 1. , 1. , 0.5])
+
+        """
         if not hasattr(self, '_dw'):
-            self._dw = np.asarray(self.W.sum(axis=1)).squeeze()
+            if not self.is_directed:
+                self._dw = np.ravel(self.W.sum(axis=0))
+            else:
+                degree_in = np.ravel(self.W.sum(axis=0))
+                degree_out = np.ravel(self.W.sum(axis=1))
+                self._dw = 0.5 * (degree_in + degree_out)
         return self._dw
 
     @property
@@ -634,76 +785,89 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     def get_edge_list(self):
         r"""Return an edge list, an alternative representation of the graph.
 
+        Each edge :math:`e_k = (v_i, v_j) \in \mathcal{E}` from :math:`v_i` to
+        :math:`v_j` is associated with the weight :math:`W[i, j]`. For each
+        edge :math:`e_k`, the method returns :math:`(i, j, W[i, j])` as
+        `(sources[k], targets[k], weights[k])`, with :math:`i \in [0,
+        |\mathcal{V}|-1], j \in [0, |\mathcal{V}|-1], k \in [0,
+        |\mathcal{E}|-1]`.
+
+        Returns
+        -------
+        sources : vector of int
+            Source node indices.
+        targets : vector of int
+            Target node indices.
+        weights : vector of float
+            Edge weights.
+
+        Notes
+        -----
         The weighted adjacency matrix is the canonical form used in this
         package to represent a graph as it is the easiest to work with when
         considering spectral methods.
 
-        Returns
-        -------
-        v_in : vector of int
-        v_out : vector of int
-        weights : vector of float
+        Edge orientation (i.e., which node is the source or the target) is
+        arbitrary for undirected graphs.
+        The implementation uses the upper triangular part of the adjacency
+        matrix, hence :math:`i \leq j \ \forall k`.
 
         Examples
         --------
-        >>> G = graphs.Logo()
-        >>> v_in, v_out, weights = G.get_edge_list()
-        >>> v_in.shape, v_out.shape, weights.shape
-        ((3131,), (3131,), (3131,))
+
+        Edge list of a directed graph.
+
+        >>> adjacency = np.array([
+        ...     [0, 3, 0],
+        ...     [3, 0, 4],
+        ...     [0, 0, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> sources, targets, weights = graph.get_edge_list()
+        >>> list(sources), list(targets), list(weights)
+        ([0, 1, 1], [1, 0, 2], [3, 3, 4])
+
+        Edge list of an undirected graph.
+
+        >>> adjacency = np.array([
+        ...     [0, 3, 0],
+        ...     [3, 0, 4],
+        ...     [0, 4, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> sources, targets, weights = graph.get_edge_list()
+        >>> list(sources), list(targets), list(weights)
+        ([0, 1], [1, 2], [3, 4])
 
         """
 
         if self.is_directed():
-            raise NotImplementedError('Directed graphs not supported yet.')
-
+            W = self.W.tocoo()
         else:
-            v_in, v_out = sparse.tril(self.W).nonzero()
-            weights = self.W[v_in, v_out]
-            weights = np.asarray(weights).squeeze()
+            W = sparse.triu(self.W, format='coo')
 
-            # TODO G.ind_edges = sub2ind(size(G.W), G.v_in, G.v_out)
+        sources = W.row
+        targets = W.col
+        weights = W.data
 
-            assert self.Ne == v_in.size == v_out.size == weights.size
-            return v_in, v_out, weights
+        assert self.n_edges == sources.size == targets.size == weights.size
+        return sources, targets, weights
 
-    def modulate(self, f, k):
-        r"""Modulate the signal *f* to the frequency *k*.
-
-        Parameters
-        ----------
-        f : ndarray
-            Signal (column)
-        k : int
-            Index of frequencies
-
-        Returns
-        -------
-        fm : ndarray
-            Modulated signal
-
-        """
-
-        nt = np.shape(f)[1]
-        fm = np.kron(np.ones((1, nt)), self.U[:, k])
-        fm *= np.kron(np.ones((nt, 1)), f)
-        fm *= np.sqrt(self.N)
-        return fm
-
-    def plot(self, edges=None, backend=None, vertex_size=None, title=None,
-             save=None, ax=None):
+    def plot(self, vertex_color=None, vertex_size=None, highlight=[],
+             edges=None, edge_color=None, edge_width=None,
+             indices=False, colorbar=True, limits=None, ax=None,
+             title=None, backend=None):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_graph
-        _plot_graph(self, edges=edges, backend=backend,
-                    vertex_size=vertex_size, title=title, save=save, ax=ax)
+        return _plot_graph(self, vertex_color=vertex_color,
+                           vertex_size=vertex_size, highlight=highlight,
+                           edges=edges, indices=indices, colorbar=colorbar,
+                           edge_color=edge_color, edge_width=edge_width,
+                           limits=limits, ax=ax, title=title, backend=backend)
 
-    def plot_signal(self, signal, edges=None, vertex_size=None, highlight=[],
-                    colorbar=True, limits=None, backend=None, title=None,
-                    save=None, ax=None):
-        r"""Docstring overloaded at import time."""
-        from pygsp.plotting import _plot_signal
-        _plot_signal(self, signal=signal, edges=edges, vertex_size=vertex_size,
-                     highlight=highlight, colorbar=colorbar, limits=limits,
-                     backend=backend, title=title, save=save, ax=ax)
+    def plot_signal(self, *args, **kwargs):
+        r"""Deprecated, use plot() instead."""
+        return self.plot(*args, **kwargs)
 
     def plot_spectrogram(self, node_idx=None):
         r"""Docstring overloaded at import time."""

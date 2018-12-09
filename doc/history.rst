@@ -2,44 +2,62 @@
 History
 =======
 
-0.6.0 (2018-04-xx)
+0.6.0 (xxxx-xx-xx)
 ------------------
 
-Filters approximated by Chebyshev polynomials are now implemented as separate
-filters, i.e. you need to do Chebyshev(Heat(tau=1), order=10).filter(signal) to
-filter a signal with a heat kernel approximated by a Chebyshev polynomial of
-order 10. The reasons are multiple:
+* Filters approximated by Chebyshev polynomials are now implemented as separate
+  filters, i.e. you need to do Chebyshev(Heat(tau=1), order=10).filter(signal) to
+  filter a signal with a heat kernel approximated by a Chebyshev polynomial of
+  order 10. The reasons are multiple:
+  - They are arguably different filters.
+    Try Heat().plot() and Chebyshev(Heat(), order=1).plot().
+  - It allows to visualize the approximated filters in the spectral domain, and
+    compare them with their continuous counterpart or other approximations.
+  - One can now instantiates filters which are solely defined by their Chebyshev
+    coefficients. That is the case when learning them with back-propagation in a
+    neural network setting, and it's useful to (i) visualize the learned filters
+    in the spectral and vertex domains, and (ii) to compute and visualize the
+    feature maps.
+  See the new tutorial on filter approximations for usage.
+* print(graph) and print(filters) now show valuable information.
+* Building a graph object is much faster.
+* New rectangular filter (low-pass and band-pass).
+* The exponential window has been updated from low-pass only to band-pass.
+* Much better documentation for the coherence of the Fourier basis.
+* Removed translate and modulate (they were not working and have no real use).
+* Fixed and documented vertex-frequency transforms.
+  They are now implemented as filter banks.
+* Directed graphs are now completely supported.
+* The differential operator (D, grad, div) is better tested and documented.
+* A new method (G.dirichlet_energy) computes the Dirichlet energy of a signal.
 
-* They are arguably different filters.
-  Try Heat().plot() and Chebyshev(Heat(), order=1).plot().
-* It allows to visualize the approximated filters in the spectral domain, and
-  compare them with their continuous counterpart or other approximations.
-* One can now instantiates filters which are solely defined by their Chebyshev
-  coefficients. That is the case when learning them with back-propagation in a
-  neural network setting, and it's useful to (i) visualize the learned filters
-  in the spectral and vertex domains, and (ii) to compute and visualize the
-  feature maps.
-
-See the new tutorial on filter approximations for usage.
+Plotting:
 
 The plotting interface was updated to be more user-friendly. First, the
-documentation is now shown for filters.plot(), G.plot(), and co. Second, the
+documentation is now shown for filter.plot(), graph.plot(), and co. Second, the
 API in the plotting library has been deprecated. That module is now mostly for
-implementation only. Finally, the following parameter names were changed:
+implementation only. Third, graph.plot() and graph.plot_signal() have been
+merged. As such, plot_signal() is deprecated. Finally, the following parameter
+names were changed:
 
 * plot_name => title
 * plot_eigenvalues => eigenvalues
 * show_sum => sum
 * show_edges => edges
+* vertex_size => size
 * npoints => n
-* save_as => save
+* save_as was removed
 
-Additional features:
+Other changes regarding plotting:
 
-* print(graph) and print(filters) now show valuable information.
-* Building a graph object is much faster.
-* New rectangular filter (low-pass and band-pass).
-* The exponential window has been updated from low-pass only to band-pass.
+* Plotting functions return matplotlib figures and axes.
+* Nodes, edges, and filters are plotted in transparency to avoid occlusion.
+* The node index can be printed on top of nodes to identify them easily.
+* Two vertex signals can now be plotted together as vertex color and size.
+* Two edges signals can be plotted as edge color and width.
+* Much faster (10 to 100 times faster) edge plotting with matplotlib.
+
+There are many other small changes, look at the git history for the details.
 
 0.5.1 (2017-12-15)
 ------------------

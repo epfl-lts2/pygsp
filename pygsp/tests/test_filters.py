@@ -36,6 +36,7 @@ class TestCase(unittest.TestCase):
         self.assertIs(f.G, self._G)
 
         f.evaluate(self._G.e)
+        f.evaluate(np.random.normal(size=(4, 6, 3)))
 
         A, B = f.estimate_frame_bounds(use_eigenvalues=True)
         if tight:
@@ -61,8 +62,6 @@ class TestCase(unittest.TestCase):
             # Tight frames should not loose information.
             np.testing.assert_allclose(s4, A * self._signal)
             assert np.linalg.norm(s5 - A * self._signal) < 0.1
-
-        self.assertRaises(ValueError, f.filter, s2, method='lanczos')
 
         if f.Nf < 10:
             # Computing the frame is an alternative way to filter.
@@ -147,8 +146,32 @@ class TestCase(unittest.TestCase):
         self._test_methods(f, tight=False)
 
     def test_gabor(self):
-        f = filters.Gabor(self._G, lambda x: x / (1. + x))
+        f = filters.Rectangular(self._G, None, 0.1)
+        f = filters.Gabor(self._G, f)
         self._test_methods(f, tight=False, check=False)
+        self.assertRaises(ValueError, filters.Gabor, graphs.Sensor(), f)
+        f = filters.Regular(self._G)
+        self.assertRaises(ValueError, filters.Gabor, self._G, f)
+
+    def test_modulation(self):
+        f = filters.Rectangular(self._G, None, 0.1)
+        # TODO: synthesis doesn't work yet.
+        # f = filters.Modulation(self._G, f, modulation_first=False)
+        # self._test_methods(f, tight=False, check=False)
+        f = filters.Modulation(self._G, f, modulation_first=True)
+        self._test_methods(f, tight=False, check=False)
+        self.assertRaises(ValueError, filters.Modulation, graphs.Sensor(), f)
+        f = filters.Regular(self._G)
+        self.assertRaises(ValueError, filters.Modulation, self._G, f)
+
+    def test_modulation_gabor(self):
+        """Both should be equivalent for deltas centered at the eigenvalues."""
+        f = filters.Rectangular(self._G, 0, 0)
+        f1 = filters.Modulation(self._G, f, modulation_first=True)
+        f2 = filters.Gabor(self._G, f)
+        s1 = f1.filter(self._signal)
+        s2 = f2.filter(self._signal)
+        np.testing.assert_allclose(s1, s2, atol=1e-5)
 
     def test_halfcosine(self):
         f = filters.HalfCosine(self._G, Nf=4)
@@ -220,6 +243,8 @@ class TestCase(unittest.TestCase):
         self._test_methods(f, tight=False)
         f = filters.Expwin(self._G, band_min=0.1, band_max=0.7)
         self._test_methods(f, tight=False)
+        f = filters.Expwin(self._G, band_min=None, band_max=None)
+        self._test_methods(f, tight=True)
 
     def test_rectangular(self):
         f = filters.Rectangular(self._G)
@@ -232,12 +257,6 @@ class TestCase(unittest.TestCase):
         self._test_methods(f, tight=False, check=False)
         f = filters.Rectangular(self._G, band_min=None, band_max=None)
         self._test_methods(f, tight=True, check=True)
-        self.assertRaises(ValueError, filters.Rectangular, self._G,
-                          band_min=-1)
-        self.assertRaises(ValueError, filters.Rectangular, self._G,
-                          band_max=2)
-        self.assertRaises(ValueError, filters.Rectangular, self._G,
-                          band_min=0.8, band_max=0.5)
 
     def test_approximations(self):
         r"""

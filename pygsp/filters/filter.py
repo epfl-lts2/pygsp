@@ -32,12 +32,15 @@ class Filter(object):
     G : Graph
         The graph to which the filter bank was tailored. It is a reference to
         the graph passed when instantiating the class.
-    Nf : int
+    n_features_in : int
+        Number of signals or features the filter bank takes in.
+    n_features_out : int
+        Number of signals or features the filter bank gives out.
+    n_filters : int
         Number of filters in the filter bank.
 
     Examples
     --------
-    >>>
     >>> G = graphs.Logo()
     >>> my_filter = filters.Filter(G, lambda x: x / (1. + x))
     >>>
@@ -66,6 +69,7 @@ class Filter(object):
         self.Nf = self.n_filters  # TODO: kept for backward compatibility only.
 
     def _get_extra_repr(self):
+        """To be overloaded by children."""
         return dict()
 
     def __repr__(self):
@@ -109,7 +113,7 @@ class Filter(object):
     def _evaluate(self, x, _):
         r"""Default implementation for filters defined as kernel functions."""
         # Avoid to copy data as with np.array([g(x) for g in self._kernels]).
-        y = np.empty((self.Nf, len(x)))
+        y = np.empty([self.Nf] + list(x.shape))
         for i, kernel in enumerate(self._kernels):
             y[i] = kernel(x)
         return y
@@ -240,7 +244,7 @@ class Filter(object):
 
         >>> fig, ax = plt.subplots()
         >>> G.set_coordinates('line1D')  # To visualize multiple signals in 1D.
-        >>> G.plot_signal(s[:, 9, :], ax=ax)
+        >>> _ = G.plot(s[:, 9, :], ax=ax)
         >>> legend = [r'$\tau={}$'.format(t) for t in taus]
         >>> ax.legend(legend)  # doctest: +ELLIPSIS
         <matplotlib.legend.Legend object at ...>
@@ -268,8 +272,8 @@ class Filter(object):
         Look how well we were able to reconstruct:
 
         >>> fig, axes = plt.subplots(1, 2)
-        >>> G.plot_signal(s1, ax=axes[0])
-        >>> G.plot_signal(s2, ax=axes[1])
+        >>> _ = G.plot(s1, ax=axes[0])
+        >>> _ = G.plot(s2, ax=axes[1])
         >>> print('{:.5f}'.format(np.linalg.norm(s1 - s2)))
         0.29620
 
@@ -413,7 +417,7 @@ class Filter(object):
         >>> G.estimate_lmax()
         >>> g = filters.Heat(G, 100)
         >>> s = g.localize(DELTA)
-        >>> G.plot_signal(s, highlight=DELTA)
+        >>> _ = G.plot(s, highlight=DELTA)
 
         """
         # Localize each filter: g[in, out].localize(i) for all (in, out).
@@ -547,7 +551,7 @@ class Filter(object):
         >>> s1 = s1.reshape(G.N, -1)
         >>>
         >>> s2 = f.filter(s)
-        >>> np.all((s1 - s2) < 1e-10)
+        >>> np.all(np.abs(s1 - s2) < 1e-10)
         True
 
         """
@@ -581,9 +585,9 @@ class Filter(object):
 
         return Filter(self.G, kernels)
 
-    def plot(self, n=500, eigenvalues=None, sum=None, title=None, save=None,
+    def plot(self, n=500, eigenvalues=None, sum=None, title=None,
              ax=None, **kwargs):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_filter
-        _plot_filter(self, n=n, eigenvalues=eigenvalues, sum=sum, title=title,
-                     save=save, ax=ax, **kwargs)
+        return _plot_filter(self, n=n, eigenvalues=eigenvalues, sum=sum,
+                            title=title, ax=ax, **kwargs)

@@ -68,7 +68,7 @@ class NNGraph(Graph):
     >>> G = graphs.NNGraph(X)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=5)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
@@ -91,6 +91,10 @@ class NNGraph(Graph):
 
         N, d = np.shape(self.Xin)
         Xout = self.Xin
+
+        if k >= N:
+            raise ValueError('The number of neighbors (k={}) must be smaller '
+                             'than the number of nodes ({}).'.format(k, N))
 
         if self.center:
             Xout = self.Xin - np.kron(np.ones((N, 1)),

@@ -14,7 +14,8 @@ autodoc_member_order = 'groupwise'  # alphabetical, groupwise, bysource
 
 extensions.append('sphinx.ext.intersphinx')
 intersphinx_mapping = {
-    'pyunlocbox': ('https://pyunlocbox.readthedocs.io/en/stable', None)
+    'pyunlocbox': ('https://pyunlocbox.readthedocs.io/en/stable', None),
+    'matplotlib': ('https://matplotlib.org', None),
 }
 
 extensions.append('numpydoc')

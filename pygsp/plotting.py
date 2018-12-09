@@ -8,8 +8,8 @@ with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
 
 Most users won't use this module directly.
 Graphs (from :mod:`pygsp.graphs`) are to be plotted with
-:meth:`pygsp.graphs.Graph.plot`, :meth:`pygsp.graphs.Graph.plot_spectrogram`,
-and :meth:`pygsp.graphs.Graph.plot_signal`.
+:meth:`pygsp.graphs.Graph.plot` and
+:meth:`pygsp.graphs.Graph.plot_spectrogram`.
 Filters (from :mod:`pygsp.filters`) are to be plotted with
 :meth:`pygsp.filters.Filter.plot`.
 
@@ -41,14 +41,14 @@ _plt_figures = []
 
 def _import_plt():
     try:
-        import matplotlib.pyplot as plt
-        # Not used directly, but needed for 3D projection.
-        from mpl_toolkits.mplot3d import Axes3D  # noqa
+        import matplotlib as mpl
+        from matplotlib import pyplot as plt
+        from mpl_toolkits import mplot3d
     except Exception:
         raise ImportError('Cannot import matplotlib. Choose another backend '
                           'or try to install it with '
                           'pip (or conda) install matplotlib.')
-    return plt
+    return mpl, plt, mplot3d
 
 
 def _import_qtg():
@@ -66,30 +66,26 @@ def _import_qtg():
 
 def _plt_handle_figure(plot):
     r"""Handle the common work (creating an axis if not given, setting the
-    title, saving the created plot) of all matplotlib plot commands."""
+    title) of all matplotlib plot commands."""
 
     # Preserve documentation of plot.
     @functools.wraps(plot)
 
     def inner(obj, **kwargs):
 
-        plt = _import_plt()
-
         # Create a figure and an axis if none were passed.
         if kwargs['ax'] is None:
+            _, plt, _ = _import_plt()
             fig = plt.figure()
             global _plt_figures
             _plt_figures.append(fig)
 
             if (hasattr(obj, 'coords') and obj.coords.ndim == 2 and
                     obj.coords.shape[1] == 3):
-                ax = fig.add_subplot(111, projection='3d')
+                kwargs['ax'] = fig.add_subplot(111, projection='3d')
             else:
-                ax = fig.add_subplot(111)
+                kwargs['ax'] = fig.add_subplot(111)
 
-            kwargs['ax'] = ax
-
-        save = kwargs.pop('save')
         title = kwargs.pop('title')
 
         plot(obj, **kwargs)
@@ -97,14 +93,12 @@ def _plt_handle_figure(plot):
         kwargs['ax'].set_title(title)
 
         try:
-            if save is not None:
-                fig.savefig(save + '.png')
-                fig.savefig(save + '.pdf')
-            else:
-                fig.show(warn=False)
+            fig.show(warn=False)
         except NameError:
             # No figure created, an axis was passed.
             pass
+
+        return kwargs['ax'].figure, kwargs['ax']
 
     return inner
 
@@ -126,7 +120,7 @@ def close_all():
 
     global _plt_figures
     for fig in _plt_figures:
-        plt = _import_plt()
+        _, plt, _ = _import_plt()
         plt.close(fig)
     _plt_figures = []
 
@@ -135,213 +129,97 @@ def show(*args, **kwargs):
     r"""Show created figures, alias to plt.show().
 
     By default, showing plots does not block the prompt.
+    Calling this function will block execution.
     """
-    plt = _import_plt()
+    _, plt, _ = _import_plt()
     plt.show(*args, **kwargs)
 
 
 def close(*args, **kwargs):
-    r"""Close created figures, alias to plt.close()."""
-    plt = _import_plt()
+    r"""Close last created figure, alias to plt.close()."""
+    _, plt, _ = _import_plt()
     plt.close(*args, **kwargs)
-
-
-def _plot_graph(G, edges, backend, vertex_size, title, save, ax):
-    r"""Plot the graph.
-
-    Parameters
-    ----------
-    edges : bool
-        True to draw edges, false to only draw vertices.
-        Default True if less than 10,000 edges to draw.
-        Note that drawing a large number of edges might be particularly slow.
-    backend: {'matplotlib', 'pyqtgraph'}
-        Defines the drawing backend to use. Defaults to :data:`BACKEND`.
-    vertex_size : float
-        Size of circle representing each node.
-        Defaults to G.plotting['vertex_size'].
-    title : str
-        Title of the figure.
-    save : str
-        Whether to save the plot as save.png and save.pdf. Shown in a
-        window if None (default). Only available with the matplotlib backend.
-    ax : matplotlib.axes
-        Axes where to draw the graph. Optional, created if not passed.
-        Only available with the matplotlib backend.
-
-    Examples
-    --------
-    >>> import matplotlib
-    >>> G = graphs.Logo()
-    >>> G.plot()
-
-    """
-    if not hasattr(G, 'coords'):
-        raise AttributeError('Graph has no coordinate set. '
-                             'Please run G.set_coordinates() first.')
-    if (G.coords.ndim != 2) or (G.coords.shape[1] not in [2, 3]):
-        raise AttributeError('Coordinates should be in 2D or 3D space.')
-
-    if edges is None:
-        edges = G.Ne < 10e3
-
-    if backend is None:
-        backend = BACKEND
-
-    if vertex_size is None:
-        vertex_size = G.plotting['vertex_size']
-
-    if title is None:
-        title = G.__repr__(limit=4)
-
-    G = _handle_directed(G)
-
-    if backend == 'pyqtgraph':
-        _qtg_plot_graph(G, edges=edges, vertex_size=vertex_size, title=title)
-    elif backend == 'matplotlib':
-        _plt_plot_graph(G, edges=edges, vertex_size=vertex_size, title=title,
-                        save=save, ax=ax)
-    else:
-        raise ValueError('Unknown backend {}.'.format(backend))
-
-
-@_plt_handle_figure
-def _plt_plot_graph(G, edges, vertex_size, ax):
-
-    # TODO handling when G is a list of graphs
-    # TODO integrate param when G is a clustered graph
-
-    if edges:
-
-        if G.is_directed():
-            raise NotImplementedError
-
-        else:
-
-            if G.coords.shape[1] == 2:
-                x, y = _get_coords(G)
-                ax.plot(x, y, linewidth=G.plotting['edge_width'],
-                        color=G.plotting['edge_color'],
-                        linestyle=G.plotting['edge_style'],
-                        marker='o', markersize=vertex_size/10,
-                        markerfacecolor=G.plotting['vertex_color'],
-                        markeredgecolor=G.plotting['vertex_color'])
-
-            if G.coords.shape[1] == 3:
-                # TODO: very dirty. Cannot we prepare a set of lines?
-                x, y, z = _get_coords(G)
-                for i in range(0, x.size, 2):
-                    x2, y2, z2 = x[i:i+2], y[i:i+2], z[i:i+2]
-                    ax.plot(x2, y2, z2, linewidth=G.plotting['edge_width'],
-                            color=G.plotting['edge_color'],
-                            linestyle=G.plotting['edge_style'],
-                            marker='o', markersize=vertex_size/10,
-                            markerfacecolor=G.plotting['vertex_color'],
-                            markeredgecolor=G.plotting['vertex_color'])
-
-    else:
-
-        # TODO: is ax.plot(G.coords[:, 0], G.coords[:, 1], 'bo') faster?
-        if G.coords.shape[1] == 2:
-            ax.scatter(G.coords[:, 0], G.coords[:, 1], marker='o',
-                       s=vertex_size,
-                       c=G.plotting['vertex_color'])
-
-        if G.coords.shape[1] == 3:
-            ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
-                       marker='o', s=vertex_size,
-                       c=G.plotting['vertex_color'])
-
-    if G.coords.shape[1] == 3:
-        try:
-            ax.view_init(elev=G.plotting['elevation'],
-                         azim=G.plotting['azimuth'])
-            ax.dist = G.plotting['distance']
-        except KeyError:
-            pass
 
 
 def _qtg_plot_graph(G, edges, vertex_size, title):
 
-    # TODO handling when G is a list of graphs
-
     qtg, gl, QtGui = _import_qtg()
 
-    if G.is_directed():
-        raise NotImplementedError
+    if G.coords.shape[1] == 2:
 
-    else:
+        window = qtg.GraphicsWindow()
+        window.setWindowTitle(title)
+        view = window.addViewBox()
+        view.setAspectLocked()
 
-        if G.coords.shape[1] == 2:
+        if edges:
+            pen = tuple(np.array(G.plotting['edge_color']) * 255)
+        else:
+            pen = None
 
-            window = qtg.GraphicsWindow()
-            window.setWindowTitle(title)
-            view = window.addViewBox()
-            view.setAspectLocked()
+        adj = _get_coords(G, edge_list=True)
 
-            if edges:
-                pen = tuple(np.array(G.plotting['edge_color']) * 255)
-            else:
-                pen = None
+        g = qtg.GraphItem(pos=G.coords, adj=adj, pen=pen,
+                          size=vertex_size/10)
+        view.addItem(g)
 
-            adj = _get_coords(G, edge_list=True)
+        global _qtg_windows
+        _qtg_windows.append(window)
 
-            g = qtg.GraphItem(pos=G.coords, adj=adj, pen=pen,
-                              size=vertex_size/10)
-            view.addItem(g)
+    elif G.coords.shape[1] == 3:
+        if not QtGui.QApplication.instance():
+            QtGui.QApplication([])  # We want only one application.
+        widget = gl.GLViewWidget()
+        widget.opts['distance'] = 10
+        widget.show()
+        widget.setWindowTitle(title)
 
-            global _qtg_windows
-            _qtg_windows.append(window)
+        if edges:
+            x, y, z = _get_coords(G)
+            pos = np.stack((x, y, z), axis=1)
+            g = gl.GLLinePlotItem(pos=pos, mode='lines',
+                                  color=G.plotting['edge_color'])
+            widget.addItem(g)
 
-        elif G.coords.shape[1] == 3:
-            if not QtGui.QApplication.instance():
-                QtGui.QApplication([])  # We want only one application.
-            widget = gl.GLViewWidget()
-            widget.opts['distance'] = 10
-            widget.show()
-            widget.setWindowTitle(title)
+        gp = gl.GLScatterPlotItem(pos=G.coords, size=vertex_size/3,
+                                  color=G.plotting['vertex_color'])
+        widget.addItem(gp)
 
-            if edges:
-                x, y, z = _get_coords(G)
-                pos = np.stack((x, y, z), axis=1)
-                g = gl.GLLinePlotItem(pos=pos, mode='lines',
-                                      color=G.plotting['edge_color'])
-                widget.addItem(g)
-
-            gp = gl.GLScatterPlotItem(pos=G.coords, size=vertex_size/3,
-                                      color=G.plotting['vertex_color'])
-            widget.addItem(gp)
-
-            global _qtg_widgets
-            _qtg_widgets.append(widget)
+        global _qtg_widgets
+        _qtg_widgets.append(widget)
 
 
-def _plot_filter(filters, n, eigenvalues, sum, title, save, ax, **kwargs):
-    r"""Plot the spectral response of a filter bank, a set of graph filters.
+def _plot_filter(filters, n, eigenvalues, sum, title, ax, **kwargs):
+    r"""Plot the spectral response of a filter bank.
 
     Parameters
     ----------
     n : int
         Number of points where the filters are evaluated.
     eigenvalues : boolean
-        To plot black X marks at all eigenvalues of the graph. You need to
-        compute the Fourier basis to use this option. By default the
-        eigenvalues are plot if they are contained in the Graph.
+        Whether to show the eigenvalues of the graph Laplacian.
+        The eigenvalues should have been computed with
+        :meth:`~pygsp.graphs.Graph.compute_fourier_basis`.
+        By default, the eigenvalues are shown if they are available.
     sum : boolean
-        To plot an extra line showing the sum of the squared magnitudes
-        of the filters (default True if there is multiple filters).
+        Whether to plot the sum of the squared magnitudes of the filters.
+        Default True if there is multiple filters.
     title : str
         Title of the figure.
-    save : str
-        Whether to save the plot as save.png and save.pdf. Shown in a
-        window if None (default). Only available with the matplotlib backend.
-    ax : matplotlib.axes
+    ax : :class:`matplotlib.axes.Axes`
         Axes where to draw the graph. Optional, created if not passed.
         Only available with the matplotlib backend.
     kwargs : dict
         Additional parameters passed to the matplotlib plot function.
         Useful for example to change the linewidth, linestyle, or set a label.
         Only available with the matplotlib backend.
+
+    Returns
+    -------
+    fig : :class:`matplotlib.figure.Figure`
+        The figure the plot belongs to. Only with the matplotlib backend.
+    ax : :class:`matplotlib.axes.Axes`
+        The axes the plot belongs to. Only with the matplotlib backend.
 
     Notes
     -----
@@ -352,7 +230,7 @@ def _plot_filter(filters, n, eigenvalues, sum, title, save, ax, **kwargs):
     >>> import matplotlib
     >>> G = graphs.Logo()
     >>> mh = filters.MexicanHat(G)
-    >>> mh.plot()
+    >>> fig, ax = mh.plot()
 
     """
 
@@ -365,22 +243,33 @@ def _plot_filter(filters, n, eigenvalues, sum, title, save, ax, **kwargs):
     if title is None:
         title = repr(filters)
 
-    _plt_plot_filter(filters, n=n, eigenvalues=eigenvalues, sum=sum,
-                     title=title, save=save, ax=ax, **kwargs)
+    return _plt_plot_filter(filters, n=n, eigenvalues=eigenvalues, sum=sum,
+                            title=title, ax=ax, **kwargs)
 
 
 @_plt_handle_figure
 def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
 
+    x = np.linspace(0, filters.G.lmax, n)
+
+    params = dict(alpha=0.5)
+    params.update(kwargs)
+
     if eigenvalues:
+
         for e in filters.G.e:
             ax.axvline(x=e, color=[0.9]*3, linewidth=1)
 
-    x = np.linspace(0, filters.G.lmax, n)
-    # Plot all filters on one figure. A user can plot a single filterbank with
-    # filter[1].plot() or a single filter with filter[1, 3].plot().
-    y = filters.evaluate(x).reshape((-1, n)).T
-    ax.plot(x, y, **kwargs)
+        # Plot dots where the evaluation matters.
+        y = filters.evaluate(filters.G.e).T
+        ax.plot(filters.G.e, y, '.', **params)
+
+        # Evaluate the filter bank at the eigenvalues to avoid plotting
+        # artifacts, for example when deltas are centered on the eigenvalues.
+        x = np.sort(np.concatenate([x, filters.G.e]))
+
+    y = filters.evaluate(x).T
+    ax.plot(x, y, **params)
 
     # TODO: plot highlighted eigenvalues
 
@@ -391,135 +280,223 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
     ax.set_ylabel(r'$\hat{g}(\lambda)$: filter response')
 
 
-def _plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
-                 limits, backend, title, save, ax):
-    r"""Plot a signal on the graph.
+def _plot_graph(G, vertex_color, vertex_size, highlight,
+                edges, edge_color, edge_width,
+                indices, colorbar, limits, ax, title, backend):
+    r"""Plot a graph with signals as color or vertex size.
 
     Parameters
     ----------
-    signal : array of int
-        Signal to plot. Signal length should be equal to the number of nodes.
-    edges : bool
-        True to draw edges, false to only draw vertices.
-        Default True if less than 10,000 edges to draw.
-        Note that drawing a large number of edges might be particularly slow.
-    cp : list of int
-        NOT IMPLEMENTED. Camera position when plotting a 3D graph.
-    vertex_size : float
-        Size of circle representing each node.
-        Defaults to G.plotting['vertex_size'].
+    vertex_color : array-like or color
+        Signal to plot as vertex color (length is the number of vertices).
+        If None, vertex color is set to `graph.plotting['vertex_color']`.
+        Alternatively, a color can be set in any format accepted by matplotlib.
+    vertex_size : array-like or int
+        Signal to plot as vertex size (length is the number of vertices).
+        Vertex size ranges from 0.5 to 2 times `graph.plotting['vertex_size']`.
+        If None, vertex size is set to `graph.plotting['vertex_size']`.
+        Alternatively, a size can be passed as an integer.
+        The pyqtgraph backend only accepts an integer size.
     highlight : iterable
         List of indices of vertices to be highlighted.
-        Useful to e.g. show where a filter was localized.
+        Useful for example to show where a filter was localized.
+        Only available with the matplotlib backend.
+    edges : bool
+        Whether to draw edges in addition to vertices.
+        Default to True if less than 10,000 edges to draw.
+        Note that drawing many edges can be slow.
+    edge_color : array-like or color
+        Signal to plot as edge color (length is the number of edges).
+        Edge color is given by `graph.plotting['edge_color']` and transparency
+        ranges from 0.2 to 0.9.
+        If None, edge color is set to `graph.plotting['edge_color']`.
+        Alternatively, a color can be set in any format accepted by matplotlib.
+        Only available with the matplotlib backend.
+    edge_width : array-like or int
+        Signal to plot as edge width (length is the number of edges).
+        Edge width ranges from 0.5 to 2 times `graph.plotting['edge_width']`.
+        If None, edge width is set to `graph.plotting['edge_width']`.
+        Alternatively, a width can be passed as an integer.
+        Only available with the matplotlib backend.
+    indices : bool
+        Whether to print the node indices (in the adjacency / Laplacian matrix
+        and signal vectors) on top of each node.
+        Useful to locate a node of interest.
         Only available with the matplotlib backend.
     colorbar : bool
         Whether to plot a colorbar indicating the signal's amplitude.
         Only available with the matplotlib backend.
     limits : [vmin, vmax]
-        Maps colors from vmin to vmax.
+        Map colors from vmin to vmax.
         Defaults to signal minimum and maximum value.
         Only available with the matplotlib backend.
-    bar : boolean
-        NOT IMPLEMENTED. Signal values are displayed using colors when False,
-        and bars when True (default False).
-    bar_width : int
-        NOT IMPLEMENTED. Width of the bar (default 1).
-    backend: {'matplotlib', 'pyqtgraph'}
-        Defines the drawing backend to use. Defaults to :data:`BACKEND`.
-    title : str
-        Title of the figure.
-    save : str
-        Whether to save the plot as save.png and save.pdf. Shown in a
-        window if None (default). Only available with the matplotlib backend.
-    ax : matplotlib.axes
+    ax : :class:`matplotlib.axes.Axes`
         Axes where to draw the graph. Optional, created if not passed.
         Only available with the matplotlib backend.
+    title : str
+        Title of the figure.
+    backend: {'matplotlib', 'pyqtgraph', None}
+        Defines the drawing backend to use.
+        Defaults to :data:`pygsp.plotting.BACKEND`.
+
+    Returns
+    -------
+    fig : :class:`matplotlib.figure.Figure`
+        The figure the plot belongs to. Only with the matplotlib backend.
+    ax : :class:`matplotlib.axes.Axes`
+        The axes the plot belongs to. Only with the matplotlib backend.
+
+    Notes
+    -----
+    The orientation of directed edges is not shown. If edges exist in both
+    directions, they will be drawn on top of each other.
 
     Examples
     --------
     >>> import matplotlib
-    >>> G = graphs.Grid2d(8)
-    >>> signal = np.sin((np.arange(8**2) * 2*np.pi/8**2))
-    >>> G.plot_signal(signal)
+    >>> graph = graphs.Sensor(20, seed=42)
+    >>> graph.compute_fourier_basis(n_eigenvectors=4)
+    >>> _, _, weights = graph.get_edge_list()
+    >>> fig, ax = graph.plot(graph.U[:, 1], vertex_size=graph.dw,
+    ...                      edge_color=weights)
+    >>> graph.plotting['vertex_size'] = 300
+    >>> graph.plotting['edge_width'] = 5
+    >>> graph.plotting['edge_style'] = '--'
+    >>> fig, ax = graph.plot(edge_width=weights, edge_color=(0, .8, .8, .5),
+    ...                      vertex_color='black')
+    >>> fig, ax = graph.plot(vertex_size=graph.dw, indices=True,
+    ...                      highlight=[17, 3, 16], edges=False)
 
     """
-    if not hasattr(G, 'coords'):
+    if not hasattr(G, 'coords') or G.coords is None:
         raise AttributeError('Graph has no coordinate set. '
                              'Please run G.set_coordinates() first.')
     check_2d_3d = (G.coords.ndim != 2) or (G.coords.shape[1] not in [2, 3])
     if G.coords.ndim != 1 and check_2d_3d:
         raise AttributeError('Coordinates should be in 1D, 2D or 3D space.')
-
-    signal = signal.squeeze()
-    if G.coords.ndim == 2 and signal.ndim != 1:
-        raise ValueError('Can plot only one signal (not {}) with {}D '
-                         'coordinates.'.format(signal.shape[1],
-                                               G.coords.shape[1]))
-    if signal.shape[0] != G.N:
-        raise ValueError('Signal length is {}, should be '
-                         'G.N = {}.'.format(signal.shape[0], G.N))
-    if np.sum(np.abs(signal.imag)) > 1e-10:
-        raise ValueError("Can't display complex signals.")
-
-    if edges is None:
-        edges = G.Ne < 10e3
-
-    if vertex_size is None:
-        vertex_size = G.plotting['vertex_size']
-
-    if title is None:
-        title = G.__repr__(limit=4)
-
-    if limits is None:
-        limits = [1.05*signal.min(), 1.05*signal.max()]
+    if G.coords.shape[0] != G.N:
+        raise AttributeError('Graph needs G.N = {} coordinates.'.format(G.N))
 
     if backend is None:
         backend = BACKEND
 
-    G = _handle_directed(G)
+    def check_shape(signal, name, length, many=False):
+        if (signal.ndim == 0) or (signal.shape[0] != length):
+            txt = '{}: signal should have length {}.'
+            txt = txt.format(name, length)
+            raise ValueError(txt)
+        if (not many) and (signal.ndim != 1):
+            txt = '{}: can plot only one signal (not {}).'
+            txt = txt.format(signal.shape[1])
+            raise ValueError(txt)
+
+    def normalize(x):
+        """Scale values in [0.25, 1]. Return 0.5 if constant."""
+        ptp = x.ptp()
+        if ptp == 0:
+            return np.full(x.shape, 0.5)
+        return 0.75 * (x - x.min()) / ptp + 0.25
+
+    def is_single_color(color):
+        if backend == 'matplotlib':
+            mpl, _, _ = _import_plt()
+            return mpl.colors.is_color_like(color)
+        elif backend == 'pyqtgraph':
+            # No support (yet) for single color with pyqtgraph.
+            return False
+
+    if vertex_color is None:
+        limits = [0, 0]
+        colorbar = False
+        if backend == 'matplotlib':
+            vertex_color = (G.plotting['vertex_color'],)
+    elif is_single_color(vertex_color):
+        limits = [0, 0]
+        colorbar = False
+    else:
+        vertex_color = np.asarray(vertex_color).squeeze()
+        check_shape(vertex_color, 'Vertex color', G.n_vertices,
+                    many=(G.coords.ndim == 1))
+
+    if vertex_size is None:
+        vertex_size = G.plotting['vertex_size']
+    elif not np.isscalar(vertex_size):
+        vertex_size = np.asarray(vertex_size).squeeze()
+        check_shape(vertex_size, 'Vertex size', G.n_vertices)
+        vertex_size = G.plotting['vertex_size'] * 4 * normalize(vertex_size)**2
+
+    if edges is None:
+        edges = G.Ne < 10e3
+
+    if edge_color is None:
+        edge_color = (G.plotting['edge_color'],)
+    elif not is_single_color(edge_color):
+        edge_color = np.array(edge_color).squeeze()
+        check_shape(edge_color, 'Edge color', G.n_edges)
+        edge_color = 0.9 * normalize(edge_color)
+        edge_color = [
+            np.tile(G.plotting['edge_color'][:3], [len(edge_color), 1]),
+            edge_color[:, np.newaxis],
+        ]
+        edge_color = np.concatenate(edge_color, axis=1)
+
+    if edge_width is None:
+        edge_width = G.plotting['edge_width']
+    elif not np.isscalar(edge_width):
+        edge_width = np.array(edge_width).squeeze()
+        check_shape(edge_width, 'Edge width', G.n_edges)
+        edge_width = G.plotting['edge_width'] * 2 * normalize(edge_width)
+
+    if limits is None:
+        limits = [1.05*vertex_color.min(), 1.05*vertex_color.max()]
+
+    if title is None:
+        title = G.__repr__(limit=4)
 
     if backend == 'pyqtgraph':
-        _qtg_plot_signal(G, signal=signal, edges=edges,
-                         vertex_size=vertex_size, limits=limits, title=title)
+        if vertex_color is None:
+            _qtg_plot_graph(G, edges=edges, vertex_size=vertex_size,
+                            title=title)
+        else:
+            _qtg_plot_signal(G, signal=vertex_color, vertex_size=vertex_size,
+                             edges=edges, limits=limits, title=title)
     elif backend == 'matplotlib':
-        _plt_plot_signal(G, signal=signal, edges=edges,
-                         vertex_size=vertex_size, limits=limits, title=title,
-                         highlight=highlight, colorbar=colorbar,
-                         save=save, ax=ax)
+        return _plt_plot_graph(G, vertex_color=vertex_color,
+                               vertex_size=vertex_size, highlight=highlight,
+                               edges=edges, indices=indices, colorbar=colorbar,
+                               edge_color=edge_color, edge_width=edge_width,
+                               limits=limits, ax=ax, title=title)
     else:
         raise ValueError('Unknown backend {}.'.format(backend))
 
 
 @_plt_handle_figure
-def _plt_plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
-                     limits, ax):
+def _plt_plot_graph(G, vertex_color, vertex_size, highlight,
+                    edges, edge_color, edge_width,
+                    indices, colorbar, limits, ax):
 
-    if edges:
+    mpl, plt, mplot3d = _import_plt()
 
-        if G.is_directed():
-            raise NotImplementedError
+    if edges and (G.coords.ndim != 1):  # No edges for 1D plots.
 
-        else:
+        sources, targets, _ = G.get_edge_list()
+        edges = [
+            G.coords[sources],
+            G.coords[targets],
+        ]
+        edges = np.stack(edges, axis=1)
 
-            if G.coords.ndim == 1:
-                pass
-
-            elif G.coords.shape[1] == 2:
-                x, y = _get_coords(G)
-                ax.plot(x, y, linewidth=G.plotting['edge_width'],
-                        color=G.plotting['edge_color'],
-                        linestyle=G.plotting['edge_style'],
-                        zorder=1)
-
-            elif G.coords.shape[1] == 3:
-                # TODO: very dirty. Cannot we prepare a set of lines?
-                x, y, z = _get_coords(G)
-                for i in range(0, x.size, 2):
-                    x2, y2, z2 = x[i:i+2], y[i:i+2], z[i:i+2]
-                    ax.plot(x2, y2, z2, linewidth=G.plotting['edge_width'],
-                            color=G.plotting['edge_color'],
-                            linestyle=G.plotting['edge_style'],
-                            zorder=1)
+        if G.coords.shape[1] == 2:
+            LineCollection = mpl.collections.LineCollection
+        elif G.coords.shape[1] == 3:
+            LineCollection = mplot3d.art3d.Line3DCollection
+        ax.add_collection(LineCollection(
+            edges,
+            linewidths=edge_width,
+            colors=edge_color,
+            linestyles=G.plotting['edge_style'],
+            zorder=1,
+        ))
 
     try:
         iter(highlight)
@@ -528,36 +505,42 @@ def _plt_plot_signal(G, signal, edges, vertex_size, highlight, colorbar,
     coords_hl = G.coords[highlight]
 
     if G.coords.ndim == 1:
-        ax.plot(G.coords, signal)
+        ax.plot(G.coords, vertex_color, alpha=0.5)
         ax.set_ylim(limits)
         for coord_hl in coords_hl:
             ax.axvline(x=coord_hl, color='C1', linewidth=2)
 
-    elif G.coords.shape[1] == 2:
-        sc = ax.scatter(G.coords[:, 0], G.coords[:, 1],
-                        s=vertex_size, c=signal, zorder=2,
+    else:
+        sc = ax.scatter(*G.coords.T,
+                        c=vertex_color, s=vertex_size,
+                        marker='o', linewidths=0, alpha=0.5, zorder=2,
                         vmin=limits[0], vmax=limits[1])
-        ax.scatter(coords_hl[:, 0], coords_hl[:, 1],
-                   s=2*vertex_size, zorder=3,
+        if np.isscalar(vertex_size):
+            size_hl = vertex_size
+        else:
+            size_hl = vertex_size[highlight]
+        ax.scatter(*coords_hl.T,
+                   s=2*size_hl, zorder=3,
                    marker='o', c='None', edgecolors='C1', linewidths=2)
 
-    elif G.coords.shape[1] == 3:
-        sc = ax.scatter(G.coords[:, 0], G.coords[:, 1], G.coords[:, 2],
-                        s=vertex_size, c=signal, zorder=2,
-                        vmin=limits[0], vmax=limits[1])
-        ax.scatter(coords_hl[:, 0], coords_hl[:, 1], coords_hl[:, 2],
-                   s=2*vertex_size, zorder=3,
-                   marker='o', c='None', edgecolors='C1', linewidths=2)
-        try:
-            ax.view_init(elev=G.plotting['elevation'],
-                         azim=G.plotting['azimuth'])
-            ax.dist = G.plotting['distance']
-        except KeyError:
-            pass
+        if G.coords.shape[1] == 3:
+            try:
+                ax.view_init(elev=G.plotting['elevation'],
+                             azim=G.plotting['azimuth'])
+                ax.dist = G.plotting['distance']
+            except KeyError:
+                pass
 
     if G.coords.ndim != 1 and colorbar:
-        plt = _import_plt()
         plt.colorbar(sc, ax=ax)
+
+    if indices:
+        for node in range(G.N):
+            ax.text(*tuple(G.coords[node]),  # accomodate 2D and 3D
+                    s=node,
+                    color='white',
+                    horizontalalignment='center',
+                    verticalalignment='center')
 
 
 def _qtg_plot_signal(G, signal, edges, vertex_size, limits, title):
@@ -578,24 +561,19 @@ def _qtg_plot_signal(G, signal, edges, vertex_size, limits, title):
 
     if edges:
 
-        if G.is_directed():
-            raise NotImplementedError
+        if G.coords.shape[1] == 2:
+            adj = _get_coords(G, edge_list=True)
+            pen = tuple(np.array(G.plotting['edge_color']) * 255)
+            g = qtg.GraphItem(pos=G.coords, adj=adj, symbolBrush=None,
+                              symbolPen=None, pen=pen)
+            view.addItem(g)
 
-        else:
-
-            if G.coords.shape[1] == 2:
-                adj = _get_coords(G, edge_list=True)
-                pen = tuple(np.array(G.plotting['edge_color']) * 255)
-                g = qtg.GraphItem(pos=G.coords, adj=adj, symbolBrush=None,
-                                  symbolPen=None, pen=pen)
-                view.addItem(g)
-
-            elif G.coords.shape[1] == 3:
-                x, y, z = _get_coords(G)
-                pos = np.stack((x, y, z), axis=1)
-                g = gl.GLLinePlotItem(pos=pos, mode='lines',
-                                      color=G.plotting['edge_color'])
-                widget.addItem(g)
+        elif G.coords.shape[1] == 3:
+            x, y, z = _get_coords(G)
+            pos = np.stack((x, y, z), axis=1)
+            g = gl.GLLinePlotItem(pos=pos, mode='lines',
+                                  color=G.plotting['edge_color'])
+            widget.addItem(g)
 
     pos = [1, 8, 24, 40, 56, 64]
     color = np.array([[0, 0, 143, 255], [0, 0, 255, 255], [0, 255, 255, 255],
@@ -685,12 +663,12 @@ def _plot_spectrogram(G, node_idx):
 
 def _get_coords(G, edge_list=False):
 
-    v_in, v_out, _ = G.get_edge_list()
+    sources, targets, _ = G.get_edge_list()
 
     if edge_list:
-        return np.stack((v_in, v_out), axis=1)
+        return np.stack((sources, targets), axis=1)
 
-    coords = [np.stack((G.coords[v_in, d], G.coords[v_out, d]), axis=0)
+    coords = [np.stack((G.coords[sources, d], G.coords[targets, d]), axis=0)
               for d in range(G.coords.shape[1])]
 
     if G.coords.shape[1] == 2:
@@ -698,15 +676,3 @@ def _get_coords(G, edge_list=False):
 
     elif G.coords.shape[1] == 3:
         return [coord.reshape(-1, order='F') for coord in coords]
-
-
-def _handle_directed(G):
-    # FIXME: plot edge direction. For now we just symmetrize the weight matrix.
-    if not G.is_directed():
-        return G
-    else:
-        from pygsp import graphs
-        G2 = graphs.Graph(utils.symmetrize(G.W))
-        G2.coords = G.coords
-        G2.plotting = G.plotting
-        return G2

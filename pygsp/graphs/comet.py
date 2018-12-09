@@ -24,11 +24,16 @@ class Comet(Graph):
     >>> G = graphs.Comet(15, 10)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
     def __init__(self, N=32, k=12, **kwargs):
+
+        if k > N-1:
+            raise ValueError('The degree of the center node k={} cannot be '
+                             'larger than the number of nodes N={} minus '
+                             'one.'.format(k, N))
 
         self.k = k
 
