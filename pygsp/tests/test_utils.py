@@ -129,3 +129,5 @@ class TestCase(unittest.TestCase):
         # test_tree_depths(A, root)
 
         # test_distanz(x, y)
+
+suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

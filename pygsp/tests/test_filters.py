@@ -427,3 +427,6 @@ class TestApproximations(unittest.TestCase):
         self.assertRaises(ValueError, f.filter, x)
         x = self._rs.uniform(size=(2, M, Fin, self._G.N))
         self.assertRaises(ValueError, f.filter, x)
+
+suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
+suite_approximations = unittest.TestLoader().loadTestsFromTestCase(TestApproximations)
