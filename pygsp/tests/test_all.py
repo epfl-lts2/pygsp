@@ -13,6 +13,7 @@ from pygsp.tests import test_filters
 from pygsp.tests import test_utils
 from pygsp.tests import test_docstrings
 from pygsp.tests import test_plotting
+from pygsp.tests import test_learning
 
 
 
