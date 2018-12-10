@@ -98,6 +98,7 @@ class TestCase(unittest.TestCase):
         G = graphs.Torus(Nv=5)
         test(G)
 
+
     def test_indices(self):
 
         def test(G):

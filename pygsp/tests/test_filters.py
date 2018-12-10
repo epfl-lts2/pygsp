@@ -273,4 +273,160 @@ class TestCase(unittest.TestCase):
         self.assertRaises(ValueError, f.filter, self._signal, method='lanczos')
 
 
+class TestApproximations(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls._G = graphs.Logo()
+        cls._G.compute_fourier_basis()
+        cls._rs = np.random.RandomState(42)
+        cls._signal = cls._rs.uniform(size=cls._G.N)
+
+    def test_scaling(self, N=40):
+        x = np.linspace(0, self._G.lmax, N)
+        x = filters.Chebyshev.scale_data(x, self._G.lmax)
+        self.assertEqual(x.min(), -1)
+        self.assertEqual(x.max(), 1)
+        L = filters.Chebyshev.scale_operator(self._G.L, self._G.lmax)
+
+    def test_chebyshev_basis(self, K=5, c=2, N=100):
+        r"""
+        Test that the evaluation of the Chebyshev series yields the expected
+        basis. We only test the first two elements here. The higher-order
+        polynomials are compared with the trigonometric definition.
+        """
+        f = filters.Chebyshev(self._G, c * np.identity(K))
+        x = np.linspace(0, self._G.lmax, N)
+        y = f.evaluate(x)
+        np.testing.assert_equal(y[0], c)
+        np.testing.assert_allclose(y[1], np.linspace(-c, c, N))
+
+    def test_evaluation_methods(self, K=30, F=5, N=100):
+        r"""Test that all evaluation methods return the same results."""
+        coefficients = self._rs.uniform(size=(K, F, F))
+        f = filters.Chebyshev(self._G, coefficients)
+        x = np.linspace(0, self._G.lmax, N)
+        y1 = f.evaluate(x, method='recursive')
+        y2 = f.evaluate(x, method='direct')
+        y3 = f.evaluate(x, method='clenshaw')
+        np.testing.assert_allclose(y1, y2)
+        np.testing.assert_allclose(y1, y3)
+        # Evaluate on n-dimensional arrays.
+        x = self._rs.uniform(0, self._G.lmax, size=(3, 1, 19))
+        y1 = f.evaluate(x, method='recursive')
+        y2 = f.evaluate(x, method='direct')
+        y3 = f.evaluate(x, method='clenshaw')
+        np.testing.assert_allclose(y1, y2)
+        np.testing.assert_allclose(y1, y3)
+        # Unknown method.
+        self.assertRaises(ValueError, f.evaluate, x, method='unk')
+
+    def test_filter_identity(self, M=10, c=2.3):
+        r"""Test that filtering with c0 only scales the signal."""
+        x = self._rs.uniform(size=(M, self._G.N))
+        f = filters.Chebyshev(self._G, c)
+        y = f.filter(x, method='recursive')
+        np.testing.assert_equal(y, c * x)
+        # Test with dense Laplacian.
+        L = self._G.L
+        self._G.L = L.toarray()
+        y = f.filter(x, method='recursive')
+        self._G.L = L
+        np.testing.assert_equal(y, c * x)
+
+    def test_filter_methods(self, K=30, Fin=5, Fout=6, M=100):
+        r"""Test that all filter methods return the same results."""
+        coefficients = self._rs.uniform(size=(K, Fout, Fin))
+        x = self._rs.uniform(size=(M, Fin, self._G.N))
+        f = filters.Chebyshev(self._G, coefficients)
+        y1 = f.filter(x, method='recursive')
+        y2 = f.filter(x, method='clenshaw')
+        self.assertTupleEqual(y1.shape, (M, Fout, self._G.N))
+        np.testing.assert_allclose(y1, y2, rtol=1e-5)
+        # Unknown method.
+        self.assertRaises(ValueError, f.filter, x, method='unk')
+
+    def test_coefficients(self, K=10, slope=3.14):
+        r"""Test that the computed Chebyshev coefficients are correct."""
+        # Identity filter.
+        f = filters.Heat(self._G, tau=0)
+        f = filters.Chebyshev.from_filter(f, order=K)
+        c = f._coefficients.squeeze()
+        np.testing.assert_allclose(c, [1] + K*[0], atol=1e-12)
+        # Linear filter.
+        f = filters.Filter(self._G, lambda x: slope*x)
+        f = filters.Chebyshev.from_filter(f, order=K)
+        c1 = f._coefficients.squeeze()
+        c2 = slope / 2 * self._G.lmax
+        np.testing.assert_allclose(c1, 2*[c2] + (K-1)*[0], atol=1e-12)
+
+    def test_approximations(self, N=100, K=20):
+        r"""Test that the approximations are not far from the exact filters."""
+        # Evaluation.
+        x = self._rs.uniform(0, self._G.lmax, N)
+        f1 = filters.Heat(self._G)
+        y1 = f1.evaluate(x)
+        f2 = f1.approximate('Chebyshev', order=K)
+        y2 = f2.evaluate(x)
+        np.testing.assert_allclose(y2, y1.squeeze())
+        # Filtering.
+        x = self._rs.uniform(size=(1, 1, self._G.N))
+        y1 = f1.filter(x.T).T
+        y2 = f2.filter(x)
+        np.testing.assert_allclose(y2.squeeze(), y1)
+
+    def test_shape_normalization(self):
+        """Test that signal's shapes are properly normalized."""
+        # TODO: should also test filters which are not approximations.
+
+        def test_normalization(M, Fin, Fout, K=7):
+
+            def test_shape(y, M, Fout, N=self._G.N):
+                """Test that filtered signals are squeezed."""
+                if Fout == 1 and M == 1:
+                    self.assertEqual(y.shape, (N,))
+                elif Fout == 1:
+                    self.assertEqual(y.shape, (M, N))
+                elif M == 1:
+                    self.assertEqual(y.shape, (Fout, N))
+                else:
+                    self.assertEqual(y.shape, (M, Fout, N))
+
+            coefficients = self._rs.uniform(size=(K, Fout, Fin))
+            f = filters.Chebyshev(self._G, coefficients)
+            assert f.shape == (Fin, Fout)
+            assert (f.n_features_in, f.n_features_out) == (Fin, Fout)
+
+            x = self._rs.uniform(size=(M, Fin, self._G.N))
+            y = f.filter(x)
+            test_shape(y, M, Fout)
+
+            if Fin == 1 or M == 1:
+                # It only makes sense to squeeze if one dimension is unitary.
+                x = x.squeeze()
+                y = f.filter(x)
+                test_shape(y, M, Fout)
+
+        # Test all possible correct combinations of input and output signals.
+        for M in [1, 9]:
+            for Fin in [1, 3]:
+                for Fout in [1, 5]:
+                    test_normalization(M, Fin, Fout)
+
+        # Test failure cases.
+        M, Fin, Fout, K = 9, 3, 5, 7
+        coefficients = self._rs.uniform(size=(K, Fout, Fin))
+        f = filters.Chebyshev(self._G, coefficients)
+        x = self._rs.uniform(size=(M, Fin, 2))
+        self.assertRaises(ValueError, f.filter, x)
+        x = self._rs.uniform(size=(M, 2, self._G.N))
+        self.assertRaises(ValueError, f.filter, x)
+        x = self._rs.uniform(size=(2, self._G.N))
+        self.assertRaises(ValueError, f.filter, x)
+        x = self._rs.uniform(size=(self._G.N))
+        self.assertRaises(ValueError, f.filter, x)
+        x = self._rs.uniform(size=(2, M, Fin, self._G.N))
+        self.assertRaises(ValueError, f.filter, x)
+
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
+suite_approximations = unittest.TestLoader().loadTestsFromTestCase(TestApproximations)

@@ -1,343 +1,362 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import numpy as np
 from scipy import sparse
 
 from pygsp import utils
+from . import Filter  # prevent circular import in Python < 3.5
 
 
 _logger = utils.build_logger(__name__)
 
 
-@utils.filterbank_handler
-def compute_cheby_coeff(f, m=30, N=None, *args, **kwargs):
-    r"""
-    Compute Chebyshev coefficients for a Filterbank.
+class Chebyshev(Filter):
+    r"""Approximate continuous filters with Chebyshev polynomials.
+
+    Math which explains the polynomial filters sum_k theta_k lambda^k
+    Weighted sum of diffused versions of the signal
+    Note recursive computation. O(N) computational cost and 4N space.
+
+    Math to show how the coefficients are computed
+
+    Evaluation methods (which can be passed when calling :meth:`Filter.evaluate` or :meth:`Filter.filter` are:
+
+    * recursive, defined
+    * direct, which returns :math:`\sum_k c_k T_k(x) s = \sum_k c_k \cos(k \arccos x) s`.
 
     Parameters
     ----------
-    f : Filter
-        Filterbank with at least 1 filter
-    m : int
-        Maximum order of Chebyshev coeff to compute
-        (default = 30)
-    N : int
-        Grid order used to compute quadrature
-        (default = m + 1)
-    i : int
-        Index of the Filterbank element to compute
-        (default = 0)
-
-    Returns
-    -------
-    c : ndarray
-        Matrix of Chebyshev coefficients
-
-    """
-    G = f.G
-    i = kwargs.pop('i', 0)
-
-    if not N:
-        N = m + 1
-
-    a_arange = [0, G.lmax]
-
-    a1 = (a_arange[1] - a_arange[0]) / 2
-    a2 = (a_arange[1] + a_arange[0]) / 2
-    c = np.zeros(m + 1)
-
-    tmpN = np.arange(N)
-    num = np.cos(np.pi * (tmpN + 0.5) / N)
-    for o in range(m + 1):
-        c[o] = 2. / N * np.dot(f._kernels[i](a1 * num + a2),
-                               np.cos(np.pi * o * (tmpN + 0.5) / N))
-
-    return c
-
-
-def cheby_op(G, c, signal, **kwargs):
-    r"""
-    Chebyshev polynomial of graph Laplacian applied to vector.
-
-    Parameters
-    ----------
-    G : Graph
-    c : ndarray or list of ndarrays
-        Chebyshev coefficients for a Filter or a Filterbank
-    signal : ndarray
-        Signal to filter
-
-    Returns
-    -------
-    r : ndarray
-        Result of the filtering
-
-    """
-    # Handle if we do not have a list of filters but only a simple filter in cheby_coeff.
-    if not isinstance(c, np.ndarray):
-        c = np.array(c)
-
-    c = np.atleast_2d(c)
-    Nscales, M = c.shape
-
-    if M < 2:
-        raise TypeError("The coefficients have an invalid shape")
-
-    # thanks to that, we can also have 1d signal.
-    try:
-        Nv = np.shape(signal)[1]
-        r = np.zeros((G.N * Nscales, Nv))
-    except IndexError:
-        r = np.zeros((G.N * Nscales))
-
-    a_arange = [0, G.lmax]
-
-    a1 = float(a_arange[1] - a_arange[0]) / 2.
-    a2 = float(a_arange[1] + a_arange[0]) / 2.
-
-    twf_old = signal
-    twf_cur = (G.L.dot(signal) - a2 * signal) / a1
-
-    tmpN = np.arange(G.N, dtype=int)
-    for i in range(Nscales):
-        r[tmpN + G.N*i] = 0.5 * c[i, 0] * twf_old + c[i, 1] * twf_cur
-
-    factor = 2/a1 * (G.L - a2 * sparse.eye(G.N))
-    for k in range(2, M):
-        twf_new = factor.dot(twf_cur) - twf_old
-        for i in range(Nscales):
-            r[tmpN + G.N*i] += c[i, k] * twf_new
-
-        twf_old = twf_cur
-        twf_cur = twf_new
-
-    return r
-
-
-def cheby_rect(G, bounds, signal, **kwargs):
-    r"""
-    Fast filtering using Chebyshev polynomial for a perfect rectangle filter.
-
-    Parameters
-    ----------
-    G : Graph
-    bounds : array-like
-        The bounds of the pass-band filter
-    signal : array-like
-        Signal to filter
-    order : int (optional)
-        Order of the Chebyshev polynomial (default: 30)
-
-    Returns
-    -------
-    r : array-like
-        Result of the filtering
-
-    """
-    if not (isinstance(bounds, (list, np.ndarray)) and len(bounds) == 2):
-        raise ValueError('Bounds of wrong shape.')
-
-    bounds = np.array(bounds)
-
-    m = int(kwargs.pop('order', 30) + 1)
-
-    try:
-        Nv = np.shape(signal)[1]
-        r = np.zeros((G.N, Nv))
-    except IndexError:
-        r = np.zeros((G.N))
-
-    b1, b2 = np.arccos(2. * bounds / G.lmax - 1.)
-    factor = 4./G.lmax * G.L - 2.*sparse.eye(G.N)
-
-    T_old = signal
-    T_cur = factor.dot(signal) / 2.
-    r = (b1 - b2)/np.pi * signal + 2./np.pi * (np.sin(b1) - np.sin(b2)) * T_cur
-
-    for k in range(2, m):
-        T_new = factor.dot(T_cur) - T_old
-        r += 2./(k*np.pi) * (np.sin(k*b1) - np.sin(k*b2)) * T_new
-        T_old = T_cur
-        T_cur = T_new
-
-    return r
-
-
-def compute_jackson_cheby_coeff(filter_bounds, delta_lambda, m):
-    r"""
-    To compute the m+1 coefficients of the polynomial approximation of an ideal band-pass between a and b, between a range of values defined by lambda_min and lambda_max.
-
-    Parameters
-    ----------
-    filter_bounds : list
-        [a, b]
-    delta_lambda : list
-        [lambda_min, lambda_max]
-    m : int
-
-    Returns
-    -------
-    ch : ndarray
-    jch : ndarray
-
-    References
-    ----------
-    :cite:`tremblay2016compressive`
-
-    """
-    # Parameters check
-    if delta_lambda[0] > filter_bounds[0] or delta_lambda[1] < filter_bounds[1]:
-        _logger.error("Bounds of the filter are out of the lambda values")
-        raise()
-    elif delta_lambda[0] > delta_lambda[1]:
-        _logger.error("lambda_min is greater than lambda_max")
-        raise()
-
-    # Scaling and translating to standard cheby interval
-    a1 = (delta_lambda[1]-delta_lambda[0])/2
-    a2 = (delta_lambda[1]+delta_lambda[0])/2
-
-    # Scaling bounds of the band pass according to lrange
-    filter_bounds[0] = (filter_bounds[0]-a2)/a1
-    filter_bounds[1] = (filter_bounds[1]-a2)/a1
-
-    # First compute cheby coeffs
-    ch = np.arange(float(m+1))
-    ch[0] = (2/(np.pi))*(np.arccos(filter_bounds[0])-np.arccos(filter_bounds[1]))
-    for i in ch[1:]:
-        ch[i] = (2/(np.pi * i)) * \
-            (np.sin(i * np.arccos(filter_bounds[0])) - np.sin(i * np.arccos(filter_bounds[1])))
-
-    # Then compute jackson coeffs
-    jch = np.arange(float(m+1))
-    alpha = (np.pi/(m+2))
-    for i in jch:
-        jch[i] = (1/np.sin(alpha)) * \
-            ((1 - i/(m+2)) * np.sin(alpha) * np.cos(i * alpha) +
-             (1/(m+2)) * np.cos(alpha) * np.sin(i * alpha))
-
-    # Combine jackson and cheby coeffs
-    jch = ch * jch
-
-    return ch, jch
-
-
-def lanczos_op(f, s, order=30):
-    r"""
-    Perform the lanczos approximation of the signal s.
-
-    Parameters
-    ----------
-    f: Filter
-    s : ndarray
-        Signal to approximate.
+    G : graph
+    filters : Filter or array-like
+        Either a :class:`Filter` object or a set of Chebyshev coefficients
+        represented as an array of size K x F, where K is the polynomial
+        order and F the number of filters.
+        K x Fout x Fin
+        For convenience, Fin and Fout can be omitted.
     order : int
-        Degree of the lanczos approximation. (default = 30)
+        Polynomial order.
 
-    Returns
-    -------
-    L : ndarray
-        lanczos approximation of s
+    Examples
+    --------
+
+    Plot the basis formed by the first K Chebyshev polynomials:
+
+    >>> import matplotlib.pyplot as plt
+    >>> fig, axes = plt.subplots(1, 2)
+    >>>
+    >>> G = graphs.Ring(N=20)
+    >>> G.compute_fourier_basis()  # To be exactly orthogonal in vertex domain.
+    >>> G.set_coordinates('line1D')
+    >>>
+    >>> K = 5  # Polynomials of order up to K.
+    >>>
+    >>> coefficients = np.identity(K)
+    >>> f = filters.Chebyshev(G, coefficients)
+    >>> s = f.localize(G.N // 2)
+    >>> _ = f.plot(sum=False, eigenvalues=False, ax=axes[0])
+    >>> _ = G.plot_signal(s.T, ax=axes[1])
+    >>>
+    >>> _ = axes[0].set_title('Chebysev polynomials in the spectral domain')
+    >>> _ = axes[1].set_title('Chebysev polynomials in the ring graph domain')
+    >>> _ = axes[0].legend(['order {}'.format(order) for order in range(K)])
+    >>> _ = axes[1].legend(['order {}'.format(order) for order in range(K)])
+
+    They are orthogonal in the vertex domain:
+
+    >>> s = s.T.reshape((G.N, -1))
+    >>> print(s.T.dot(s))
+    [[20.  0.  0.  0.  0.]
+     [ 0. 10.  0.  0.  0.]
+     [ 0.  0. 10.  0.  0.]
+     [ 0.  0.  0. 10.  0.]
+     [ 0.  0.  0.  0. 10.]]
 
     """
-    G = f.G
-    Nf = len(f.g)
 
-    # To have the right shape for the output array depending on the signal dim
-    try:
-        Nv = np.shape(s)[1]
-        is2d = True
-        c = np.zeros((G.N*Nf, Nv))
-    except IndexError:
-        Nv = 1
-        is2d = False
-        c = np.zeros((G.N*Nf))
+    def __init__(self, G, coefficients):
 
-    tmpN = np.arange(G.N, dtype=int)
-    for j in range(Nv):
-        if is2d:
-            V, H, _ = lanczos(G.L.toarray(), order, s[:, j])
+        self.G = G
+
+        coefficients = np.asarray(coefficients)
+        while coefficients.ndim < 3:
+            coefficients = np.expand_dims(coefficients, -1)
+
+        self.n_features_out, self.n_features_in = coefficients.shape[1:]
+        self.shape = (self.n_features_in, self.n_features_out)  # TODO: useful?
+        self.n_filters = self.n_features_in * self.n_features_out
+        self.Nf = self.n_filters  # TODO: kept for backward compatibility only.
+        self._coefficients = coefficients
+
+    # That is a factory method.
+    @classmethod
+    def from_filter(cls, filters, order=30, n=None):
+        r"""Compute the Chebyshev coefficients which approximate the filters.
+
+        The :math:`K+1` coefficients, where :math:`K` is the polynomial order,
+        to approximate the function :math:`f` are computed by the discrete
+        orthogonality condition as
+
+        .. math:: a_k \approx \frac{2-\delta_{0k}}{N}
+                              \sum_{n=0}^{N-1} T_k(x_n) f(x_n),
+
+        where :math:`\delta_{ij}` is the Kronecker delta function and the
+        :math:`x_n` are the N shifted Gauss–Chebyshev zeros of :math:`T_N(x)`,
+        given by
+
+        .. math:: x_n = \frac{\lambda_\text{max}}{2}
+                        \cos\left( \frac{\pi (2k+1)}{2N} \right)
+                        + \frac{\lambda_\text{max}}{2}.
+
+        For any N, these approximate coefficients provide an exact
+        approximation to the function at :math:`x_k` with a controlled error
+        between those points. The exact coefficients are obtained with
+        :math:`N=\infty`, thus representing the function exactly at all points
+        in :math:`[0, \lambda_\text{max}]`. The rate of convergence depends on
+        the function and its smoothness.
+
+        Parameters
+        ----------
+        filters : filters.Filter
+            A filterbank (:class:`Filter`) to be approximated by a set of
+            Chebyshev polynomials.
+        order : int
+            The order of the Chebyshev polynomials.
+        n : int
+            The number of Gauss–Chebyshev zeros used to approximate the
+            coefficients. Defaults to the polynomial order plus one.
+
+        Examples
+        --------
+
+        Chebyshev coefficients which approximate a linear function:
+
+        >>> G = graphs.Ring()
+        >>> G.estimate_lmax()
+        >>> g = filters.Filter(G, lambda x: 2*x)
+        >>> h = filters.Chebyshev.from_filter(g, order=4)
+        >>> print(', '.join([str(int(c)) for c in h._coefficients]))
+        4, 4, 0, 0, 0
+
+        Coefficients of smooth filters decrease rapidly:
+
+        >>> import matplotlib.pyplot as plt
+        >>> taus = [5, 10, 20, 50]
+        >>> g = filters.Heat(G, tau=taus)
+        >>> h = filters.Chebyshev.from_filter(g, order=10)
+        >>> fig, axes = plt.subplots(1, 2)
+        >>> _ = g.plot(sum=False, ax=axes[0])
+        >>> _ = axes[1].plot(h._coefficients.squeeze())
+        >>> _ = axes[0].legend(['tau = {}'.format(tau) for tau in taus])
+        >>> _ = axes[1].legend(['tau = {}'.format(tau) for tau in taus])
+
+        """
+        lmax = filters.G.lmax
+
+        if n is None:
+            n = order + 1
+
+        points = np.pi * (np.arange(n) + 0.5) / n
+
+        # The Gauss–Chebyshev zeros of Tk(x), scaled to [0, lmax].
+        zeros = lmax/2 * np.cos(points) + lmax/2
+
+        # TODO: compute with scipy.fftpack.dct().
+        c = np.empty((order + 1, filters.Nf))
+        for i, kernel in enumerate(filters._kernels):
+            for k in range(order + 1):
+                T_k = np.cos(k * points)  # Chebyshev polynomials of order k.
+                c[k, i] = 2 / n * kernel(zeros).dot(T_k)
+        c[0, :] /= 2
+
+        return cls(filters.G, c)
+
+    @staticmethod
+    def scale_data(x, lmax):
+        r"""Given numbers in [0, lmax], scale them to [-1, 1]."""
+
+        if x.min() < 0 or x.max() > lmax:
+            _logger.warning('You are trying to evaluate Chebyshev '
+                            'polynomials outside of their orthonormal '
+                            'domain [0, lmax={:.2f}].'.format(lmax))
+
+        return 2 * x / lmax - 1
+
+    @staticmethod
+    def scale_operator(L, lmax):
+        r"""Scale an operator's eigenvalues from [0, lmax] to [-1, 1]."""
+        if not sparse.issparse(L):
+            I = np.identity(L.shape[0], dtype=L.dtype)
         else:
-            V, H, _ = lanczos(G.L.toarray(), order, s)
+            I = sparse.identity(L.shape[0], format=L.format, dtype=L.dtype)
 
-        Eh, Uh = np.linalg.eig(H)
+        return 2 * L / lmax - I
 
-        Eh[Eh < 0] = 0
-        fe = f.evaluate(Eh)
-        V = np.dot(V, Uh)
+    def _evaluate(self, x, method):
 
-        for i in range(Nf):
-            if is2d:
-                c[tmpN + i*G.N, j] = np.dot(V, fe[:][i] * np.dot(V.T, s[:, j]))
+        x = self.scale_data(x, self.G.lmax)
+
+        c = self._coefficients
+        K, Fout, Fin = c.shape  # #order x #features_out x #features_in
+        c = c.reshape((K, Fout * Fin) + (1,) * x.ndim)  # For broadcasting.
+
+        # Recursive faster than direct faster than clenshaw.
+        method = 'recursive' if method is None else method
+
+        try:
+            y = getattr(self, '_evaluate_' + method)(c, x)
+        except AttributeError:
+            raise ValueError('Unknown method {}.'.format(method))
+
+        return y.reshape((Fout, Fin) + x.shape).squeeze()
+
+    def _filter(self, s, method, _):
+
+        # TODO: signal normalization will move to Filter.filter()
+
+        # Dimension 3: number of nodes.
+        if s.shape[-1] != self.G.N:
+            raise ValueError('The last dimension should be {}, '
+                             'the number of nodes. '
+                             'Got instead a signal of shape '
+                             '{}.'.format(self.G.N, s.shape))
+
+        # Dimension 2: number of input features.
+        if s.ndim == 1:
+            s = np.expand_dims(s, 0)
+        if s.shape[-2] != self.n_features_in:
+            if self.n_features_in == 1 and s.ndim == 2:
+                # Dimension can be omitted if there's 1 input feature.
+                s = np.expand_dims(s, -2)
             else:
-                c[tmpN + i*G.N] = np.dot(V, fe[:][i] * np.dot(V.T, s))
+                raise ValueError('The second to last dimension should be {}, '
+                                 'the number of input features. '
+                                 'Got instead a signal of shape '
+                                 '{}.'.format(self.n_features_in, s.shape))
 
-    return c
+        # Dimension 1: number of independent signals.
+        if s.ndim < 3:
+            s = np.expand_dims(s, 0)
 
+        if s.ndim > 3:
+            raise ValueError('Signals should have at most 3 dimensions: '
+                             '#signals x #features x #nodes.')
 
-def lanczos(A, order, x):
-    r"""
-    TODO short description
+        assert s.ndim == 3
+        assert s.shape[2] == self.G.N  # Number of nodes.
+        assert s.shape[1] == self.n_features_in  # Number of input features.
+        # n_signals = s.shape[0]
 
-    Parameters
-    ----------
-    A: ndarray
+        L = self.scale_operator(self.G.L, self.G.lmax)
 
-    Returns
-    -------
-    """
-    try:
-        N, M = np.shape(x)
-    except ValueError:
-        N = np.shape(x)[0]
-        M = 1
-        x = x[:, np.newaxis]
+        # Recursive and clenshaw are similarly fast.
+        method = 'recursive' if method is None else method
 
-    # normalization
-    q = np.divide(x, np.kron(np.ones((N, 1)), np.linalg.norm(x, axis=0)))
+        try:
+            return getattr(self, '_filter_' + method)(L, s)
+        except AttributeError:
+            raise ValueError('Unknown method {}.'.format(method))
 
-    # initialization
-    hiv = np.arange(0, order*M, order)
-    V = np.zeros((N, M*order))
-    V[:, hiv] = q
+    def _evaluate_direct(self, c, x):
+        r"""Evaluate Fout*Fin polynomials at each value in x."""
+        K, F = c.shape[:2]
+        result = np.zeros((F,) + x.shape)
+        x = np.arccos(x)
+        for k in range(K):
+            result += c[k] * np.cos(k * x)
+        return result
 
-    H = np.zeros((order + 1, M*order))
-    r = np.dot(A, q)
-    H[0, hiv] = np.sum(q*r, axis=0)
-    r -= np.kron(np.ones((N, 1)), H[0, hiv])*q
-    H[1, hiv] = np.linalg.norm(r, axis=0)
+    def _evaluate_recursive(self, c, x):
+        """Evaluate a Chebyshev series for y. Optionally, times s.
 
-    orth = np.zeros((order))
-    orth[0] = np.linalg.norm(np.dot(V.T, V) - M)
+        .. math:: p(x) = \sum_{k=0}^{K} a_k * T_k(x) * s
 
-    for k in range(1, order):
-        if np.sum(np.abs(H[k, hiv + k - 1])) <= np.spacing(1):
-            H = H[:k - 1, _sum_ind(np.arange(k), hiv)]
-            V = V[:, _sum_ind(np.arange(k), hiv)]
-            orth = orth[:k]
+        Parameters
+        ----------
+        c: array-like
+            set of Chebyshev coefficients. (size K x F where K is the polynomial order, F is the number of filters)
+        x: array-like
+            vector to be evaluated. (size N x 1)
+            vector or matrix
+        signal: array-like
+            signal (vector) to be multiplied to the result. It allows to avoid the computation of powers of matrices when what we care about is L^k s not L^k.
+            vector or matrix (ndarray)
 
-            return V, H, orth
+        Returns
+        -------
+        corresponding Chebyshev Series. (size F x N)
 
-        H[k - 1, hiv + k] = H[k, hiv + k - 1]
-        v = q
-        q = r/np.tile(H[k - 1, k + hiv], (N, 1))
-        V[:, k + hiv] = q
+        """
+        K = c.shape[0]
+        x0 = np.ones_like(x)
+        result = c[0] * x0
+        if K > 1:
+            x1 = x
+            result += c[1] * x1
+        for k in range(2, K):
+            x2 = 2 * x * x1 - x0
+            result += c[k] * x2
+            x0, x1 = x1, x2
+        return result
 
-        r = np.dot(A, q)
-        r -= np.tile(H[k - 1, k + hiv], (N, 1))*v
-        H[k, k + hiv] = np.sum(np.multiply(q, r), axis=0)
-        r -= np.tile(H[k, k + hiv], (N, 1))*q
+    def _filter_recursive(self, L, s):
+        r"""Filter a signal with the 3-way recursive relation.
+        Time: O(M N Fin Fout K)
+        Space: O(4 M Fin N)
+        """
+        c = self._coefficients
+        K, Fout, Fin = c.shape  # #order x #features_out x #features_in
+        M, Fin, N = s.shape  # #signals x #features x #nodes
 
-        # The next line has to be checked
-        r -= np.dot(V, np.dot(V.T, r))  # full reorthogonalization
-        H[k + 1, k + hiv] = np.linalg.norm(r, axis=0)
-        orth[k] = np.linalg.norm(np.dot(V.T, V) - M)
+        def mult(c, x):
+            """Multiply the diffused signals by the Chebyshev coefficients."""
+            x.shape = (M, Fin, N)
+            return np.einsum('oi,min->mon', c, x)
+        def dot(L, x):
+            """One diffusion step by multiplication with the Laplacian."""
+            x.shape = (M * Fin, N)
+            return L.__rmatmul__(x)  # x @ L
 
-    H = H[np.ix_(np.arange(order), np.arange(order))]
+        x0 = s.view()
+        result = mult(c[0], x0)
+        if K > 1:
+            x1 = dot(L, x0)
+            result += mult(c[1], x1)
+        for k in range(2, K):
+            x2 = 2 * dot(L, x1) - x0
+            result += mult(c[k], x2)
+            x0, x1 = x1, x2
+        return result
 
-    return V, H, orth
+    def _filter_clenshaw(self, L, s):
+        c = self._coefficients
+        K, Fout, Fin = c.shape  # #order x #features_out x #features_in
+        M, Fin, N = s.shape  # #signals x #features x #nodes
 
+        def mult(c, s):
+            """Multiply the signals by the Chebyshev coefficients."""
+            return np.einsum('oi,min->mon', c, s)
+        def dot(L, x):
+            """One diffusion step by multiplication with the Laplacian."""
+            x.shape = (M * Fout, N)
+            y = L.__rmatmul__(x)  # x @ L
+            x.shape = (M, Fout, N)
+            y.shape = (M, Fout, N)
+            return y
 
-def _sum_ind(ind1, ind2):
-    ind = np.tile(np.ravel(ind1), (np.size(ind2), 1)).T + np.ravel(ind2)
-    return np.ravel(ind)
+        b2 = 0
+        b1 = mult(c[K-1], s) if K >= 2 else np.zeros((M, Fout, N))
+        for k in range(K-2, 0, -1):
+            b = mult(c[k], s) + 2 * dot(L, b1) - b2
+            b2, b1 = b1, b
+        return mult(c[0], s) + dot(L, b1) - b2
+
+    def _evaluate_clenshaw(self, c, x):
+        K = c.shape[0]
+        b2 = 0
+        b1 = c[K-1] * np.ones_like(x) if K >= 2 else 0
+        for k in range(K-2, 0, -1):
+            b = c[k] + 2 * x * b1 - b2
+            b2, b1 = b1, b
+        return c[0] + x * b1 - b2

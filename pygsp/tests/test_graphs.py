@@ -360,5 +360,4 @@ class TestCase(unittest.TestCase):
     def test_grid2dimgpatches(self):
         graphs.Grid2dImgPatches(img=self._img, patch_shape=(3, 3))
 
-
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

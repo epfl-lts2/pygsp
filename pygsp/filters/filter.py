@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from scipy import sparse
 
 from pygsp import utils
 # prevent circular import in Python < 3.5
-from . import approximations
+from . import approximations_old as approximations
 
 
 _logger = utils.build_logger(__name__)
@@ -61,8 +62,9 @@ class Filter(object):
             kernels = [kernels]
         self._kernels = kernels
 
-        # Only used by subclasses to instantiate a single filterbank.
+        # This constructor is only used by subclasses to instantiate a single filterbank.
         self.n_features_in, self.n_features_out = (1, len(kernels))
+        self.shape = (self.n_features_in, self.n_features_out)  # TODO: useful?
         self.n_filters = self.n_features_in * self.n_features_out
         self.Nf = self.n_filters  # TODO: kept for backward compatibility only.
 
@@ -78,7 +80,7 @@ class Filter(object):
             s += '{}={}, '.format(key, value)
         return '{}({})'.format(self.__class__.__name__, s[:-2])
 
-    def evaluate(self, x):
+    def evaluate(self, x, method=None):
         r"""Evaluate the kernels at given frequencies.
 
         Parameters
@@ -105,13 +107,65 @@ class Filter(object):
         [<matplotlib.lines.Line2D object at ...>]
 
         """
+        x = np.asarray(x)  # For iterables. Sparse makes no sense here.
+        return self._evaluate(x, method)
+
+    def _evaluate(self, x, _):
+        r"""Default implementation for filters defined as kernel functions."""
         # Avoid to copy data as with np.array([g(x) for g in self._kernels]).
         y = np.empty([self.Nf] + list(x.shape))
         for i, kernel in enumerate(self._kernels):
             y[i] = kernel(x)
         return y
 
-    def filter(self, s, method='chebyshev', order=30):
+    def approximate(self, method, **kwargs):
+        r"""Return a filter which approximates this filter.
+
+        While approximations might loose accuracy, they allow for much faster
+        computations.
+
+        Parameters
+        ----------
+        method : str
+            Approximation method. Only 'Chebyshev' is supported for now.
+        kwargs : dict
+            Parameters for the approximation method.
+
+        Examples
+        --------
+
+        Approximate a filter with Chebyshev polynomials of various orders:
+
+        >>> import matplotlib.pyplot as plt
+        >>> fig, ax = plt.subplots(1, 1)
+        >>>
+        >>> G = graphs.Ring()
+        >>> G.compute_fourier_basis()
+        >>> f1 = filters.Heat(G)
+        >>> _ = f1.plot(eigenvalues=True, linewidth=3, label='continuous', ax=ax)
+        >>>
+        >>> for order in range(1, 5):
+        ...     f2 = f1.approximate('Chebyshev', order=order)
+        ...     l = 'Chebyshev order {}'.format(order)
+        ...     _ = f2.plot(eigenvalues=False, label=l, linestyle='dashed', ax=ax)
+        >>>
+        >>> _ = ax.set_title('Approximation for various polynomial orders')
+        >>> _ = ax.legend()
+
+        Approximate a filterbank with Chebyshev polynomials:
+
+        >>> G = graphs.Ring()
+        >>> G.compute_fourier_basis()
+        >>> f1 = filters.Itersine(G)
+        >>> f2 = f1.approximate('Chebyshev', order=20)
+        >>> _ = f1.plot(title='Continuous filterbank')
+        >>> _ = f2.plot(title='Approximated filterbank')
+
+        """
+        from . import approximations
+        return getattr(approximations, method).from_filter(self, **kwargs)
+
+    def filter(self, s, method=None, order=30):
         r"""Filter signals (analysis or synthesis).
 
         A signal is defined as a rank-3 tensor of shape ``(N_NODES, N_SIGNALS,
@@ -164,7 +218,7 @@ class Filter(object):
         s : ndarray
             Graph signals, a tensor of shape ``(N_NODES, N_SIGNALS,
             N_FEATURES)``, where ``N_NODES`` and ``N_SIGNALS`` are the number
-            of nodes and signals of the signal tensor that pas passed in, and
+            of nodes and signals of the signal tensor that was passed in, and
             ``N_FEATURES`` is either 1 (synthesis) or the number of filters in
             the filter bank (analysis).
 
@@ -232,6 +286,19 @@ class Filter(object):
         True
 
         """
+        if not sparse.issparse(s):
+            s = np.asarray(s)  # For iterables.
+
+        s = self._filter(s, method, order)
+
+        # Return a 1D signal if e.g. a 1D signal was filtered by one filter.
+        return s.squeeze()
+
+    def _filter(self, s, method='chebyshev', order=30):
+        r"""Default implementation for filters defined as kernel functions."""
+
+        method = 'chebyshev' if method is None else method
+
         if s.shape[0] != self.G.N:
             raise ValueError('First dimension should be the number of nodes '
                              'G.N = {}, got {}.'.format(self.G.N, s.shape))
@@ -296,8 +363,7 @@ class Filter(object):
         else:
             raise ValueError('Unknown method {}.'.format(method))
 
-        # Return a 1D signal if e.g. a 1D signal was filtered by one filter.
-        return s.squeeze()
+        return s
 
     def analyze(self, s, method='chebyshev', order=30):
         r"""Convenience alias to :meth:`filter`."""
@@ -354,8 +420,12 @@ class Filter(object):
         >>> _ = G.plot(s, highlight=DELTA)
 
         """
-        s = np.zeros(self.G.N)
-        s[i] = 1
+        # Localize each filter: g[in, out].localize(i) for all (in, out).
+        s = np.zeros((self.n_features_in, self.n_features_in, self.G.N))
+        fin = range(self.n_features_in)
+        s[fin, fin, i] = 1
+        # TODO: remove once all signals have the new shape.
+        s = s.squeeze()
         return np.sqrt(self.G.N) * self.filter(s, **kwargs)
 
     def estimate_frame_bounds(self, min=0, max=None, N=1000,

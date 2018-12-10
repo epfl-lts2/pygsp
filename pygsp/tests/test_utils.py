@@ -130,5 +130,4 @@ class TestCase(unittest.TestCase):
 
         # test_distanz(x, y)
 
-
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

@@ -716,7 +716,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             self.estimate_lmax()
         return self._lmax
 
-    def estimate_lmax(self, recompute=False):
+    def estimate_lmax(self, tol=5e-3, recompute=False):
         r"""Estimate the Laplacian's largest eigenvalue (cached).
 
         The result is cached and accessible by the :attr:`lmax` property.
@@ -727,6 +727,10 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Parameters
         ----------
+        tol : float
+            Relative accuracy when computing eigenvalues (stopping criterion).
+            The larger the tolerance the faster the computation but the less
+            accurate the estimation. A value of 0 implies machine precision.
         recompute : boolean
             Force to recompute the largest eigenvalue. Default is false.
 
@@ -747,21 +751,23 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> G.compute_fourier_basis()
         >>> print('{:.2f}'.format(G.lmax))
         13.78
-        >>> G = graphs.Logo()
         >>> G.estimate_lmax(recompute=True)
         >>> print('{:.2f}'.format(G.lmax))
         13.92
+        >>> G.estimate_lmax(tol=0, recompute=True)
+        >>> print('{:.2f}'.format(G.lmax))
+        13.78
 
         """
         if hasattr(self, '_lmax') and not recompute:
             return
 
         try:
-            lmax = sparse.linalg.eigsh(self.L, k=1, tol=5e-3,
+            lmax = sparse.linalg.eigsh(self.L, k=1, tol=tol,
                                        ncv=min(self.N, 10),
                                        return_eigenvectors=False)
             lmax = lmax[0]
-            lmax *= 1.01  # Increase by 1 percent to be robust to errors.
+            lmax *= 1 + 2*tol  # Be robust to errors.
 
         except sparse.linalg.ArpackNoConvergence:
             self.logger.warning('Lanczos method did not converge. '

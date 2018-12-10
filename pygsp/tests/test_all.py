@@ -14,10 +14,13 @@ from pygsp.tests import test_utils
 from pygsp.tests import test_docstrings
 from pygsp.tests import test_plotting
 
+loader = unittest.TestLoader()
 
 suites = []
+
 suites.append(test_graphs.suite)
 suites.append(test_filters.suite)
+suites.append(test_filters.suite_approximations)
 suites.append(test_utils.suite)
 suites.append(test_docstrings.suite)
 suites.append(test_plotting.suite)  # TODO: can SIGSEGV if not last

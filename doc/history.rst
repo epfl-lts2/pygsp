@@ -5,6 +5,20 @@ History
 0.6.0 (xxxx-xx-xx)
 ------------------
 
+* Filters approximated by Chebyshev polynomials are now implemented as separate
+  filters, i.e. you need to do Chebyshev(Heat(tau=1), order=10).filter(signal) to
+  filter a signal with a heat kernel approximated by a Chebyshev polynomial of
+  order 10. The reasons are multiple:
+  - They are arguably different filters.
+    Try Heat().plot() and Chebyshev(Heat(), order=1).plot().
+  - It allows to visualize the approximated filters in the spectral domain, and
+    compare them with their continuous counterpart or other approximations.
+  - One can now instantiates filters which are solely defined by their Chebyshev
+    coefficients. That is the case when learning them with back-propagation in a
+    neural network setting, and it's useful to (i) visualize the learned filters
+    in the spectral and vertex domains, and (ii) to compute and visualize the
+    feature maps.
+  See the new tutorial on filter approximations for usage.
 * print(graph) and print(filters) now show valuable information.
 * Building a graph object is much faster.
 * New rectangular filter (low-pass and band-pass).
