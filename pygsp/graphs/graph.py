@@ -567,18 +567,20 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         True
 
         """
-        dtype = np.dtype(self.W)
         self.lap_type = lap_type
         if not self.is_directed():
             W = self.W
         else:
             W = utils.symmetrize(self.W, method='average')
+        dtype = np.dtype(W)
 
         if lap_type == 'combinatorial':
             D = sparse.diags(self.dw, dtype=dtype)
             self.L = D - W
         elif lap_type == 'normalized':
-            d = np.zeros(self.n_vertices)
+            if dtype==int:
+                dtype = np.float
+            d = np.zeros(self.n_vertices, dtype=dtype)
             disconnected = (self.dw == 0)
             np.power(self.dw, -0.5, where=~disconnected, out=d)
             D = sparse.diags(d, dtype=dtype)

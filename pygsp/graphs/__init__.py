@@ -169,8 +169,7 @@ _NNGRAPHS = [
     'ImgPatches',
     'Grid2dImgPatches',
     'Sphere',
-    'TwoMoons',
-    'SensorLarge'
+    'TwoMoons'
 ]
 
 __all__ = _GRAPHS + _NNGRAPHS

@@ -38,7 +38,7 @@ class Itersine(Filter):
 
     """
 
-    def __init__(self, G, Nf=6, overlap=2):
+    def __init__(self, G, Nf=6, overlap=2, **kwargs):
 
         self.overlap = overlap
 

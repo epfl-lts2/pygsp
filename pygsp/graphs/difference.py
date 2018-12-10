@@ -148,7 +148,9 @@ class GraphDifference(object):
         """
 
         sources, targets, weights = self.get_edge_list()
-
+        dtype = np.dtype(self.W)
+        if dtype==int:
+            dtype = np.float
         n = self.n_edges
         rows = np.concatenate([sources, targets])
         columns = np.concatenate([np.arange(n), np.arange(n)])
@@ -167,7 +169,7 @@ class GraphDifference(object):
             values /= np.sqrt(2)
 
         self._D = sparse.csc_matrix((values, (rows, columns)),
-                                    shape=(self.n_vertices, self.n_edges))
+                                    shape=(self.n_vertices, self.n_edges), dtype=dtype)
         self.D.eliminate_zeros()  # Self-loops introduce stored zeros.
 
     def grad(self, x):
