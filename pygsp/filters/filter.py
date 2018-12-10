@@ -142,12 +142,12 @@ class Filter(object):
         >>> G = graphs.Ring()
         >>> G.compute_fourier_basis()
         >>> f1 = filters.Heat(G)
-        >>> f1.plot(eigenvalues=True, linewidth=3, label='continuous', ax=ax)
+        >>> _ = f1.plot(eigenvalues=True, linewidth=3, label='continuous', ax=ax)
         >>>
         >>> for order in range(1, 5):
         ...     f2 = f1.approximate('Chebyshev', order=order)
         ...     l = 'Chebyshev order {}'.format(order)
-        ...     f2.plot(eigenvalues=False, label=l, linestyle='dashed', ax=ax)
+        ...     _ = f2.plot(eigenvalues=False, label=l, linestyle='dashed', ax=ax)
         >>>
         >>> _ = ax.set_title('Approximation for various polynomial orders')
         >>> _ = ax.legend()
@@ -158,8 +158,8 @@ class Filter(object):
         >>> G.compute_fourier_basis()
         >>> f1 = filters.Itersine(G)
         >>> f2 = f1.approximate('Chebyshev', order=20)
-        >>> f1.plot(title='Continuous filterbank')
-        >>> f2.plot(title='Approximated filterbank')
+        >>> _ = f1.plot(title='Continuous filterbank')
+        >>> _ = f2.plot(title='Approximated filterbank')
 
         """
         from . import approximations
