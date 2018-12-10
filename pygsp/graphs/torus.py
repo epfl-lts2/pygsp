@@ -28,7 +28,7 @@ class Torus(Graph):
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')
     >>> _ = ax1.spy(G.W, markersize=1.5)
-    >>> G.plot(ax=ax2)
+    >>> _ = G.plot(ax=ax2)
     >>> _ = ax2.set_zlim(-1.5, 1.5)
 
     """
@@ -37,6 +37,9 @@ class Torus(Graph):
 
         if Mv is None:
             Mv = Nv
+
+        self.Nv = Nv
+        self.Mv = Mv
 
         # Create weighted adjancency matrix
         K = 2 * Nv
@@ -83,13 +86,14 @@ class Torus(Graph):
                                  np.reshape(ytmp, (Mv*Nv, 1), order='F'),
                                  np.reshape(ztmp, (Mv*Nv, 1), order='F')),
                                 axis=1)
-        self.Nv = Nv
-        self.Mv = Nv
 
         plotting = {
             'vertex_size': 60,
             'limits': np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])
         }
 
-        super(Torus, self).__init__(W=W, gtype='Torus', coords=coords,
+        super(Torus, self).__init__(W=W, coords=coords,
                                     plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        return dict(Nv=self.Nv, Mv=self.Mv)

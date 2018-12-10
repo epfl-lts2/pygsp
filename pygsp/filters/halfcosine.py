@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import numpy as np
 
 from . import Filter  # prevent circular import in Python < 3.5
@@ -26,23 +28,30 @@ class HalfCosine(Filter):
     >>> g = filters.HalfCosine(G)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
-    >>> g.plot(ax=axes[0])
-    >>> G.plot_signal(s, ax=axes[1])
+    >>> _ = g.plot(ax=axes[0])
+    >>> _ = G.plot(s, ax=axes[1])
 
     """
 
-    def __init__(self, G, Nf=6, **kwargs):
+    def __init__(self, G, Nf=6):
 
         if Nf <= 2:
-            raise ValueError('The number of filters must be higher than 2.')
+            raise ValueError('The number of filters must be greater than 2.')
 
-        dila_fact = G.lmax * (3./(Nf - 2))
+        dila_fact = G.lmax * 3 / (Nf - 2)
 
-        main_window = lambda x: np.multiply(np.multiply((.5 + .5*np.cos(2.*np.pi*(x/dila_fact - 1./2))), (x >= 0)), (x <= dila_fact))
+        def kernel(x):
+            y = np.cos(2 * np.pi * (x / dila_fact - .5))
+            y = np.multiply((.5 + .5*y), (x >= 0))
+            return np.multiply(y, (x <= dila_fact))
 
-        g = []
+        kernels = []
 
         for i in range(Nf):
-            g.append(lambda x, ind=i: main_window(x - dila_fact/3. * (ind - 2)))
 
-        super(HalfCosine, self).__init__(G, g, **kwargs)
+            def kernel_centered(x, i=i):
+                return kernel(x - dila_fact/3 * (i - 2))
+
+            kernels.append(kernel_centered)
+
+        super(HalfCosine, self).__init__(G, kernels)

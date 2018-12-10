@@ -24,11 +24,14 @@ class DavidSensorNet(Graph):
     >>> G = graphs.DavidSensorNet()
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
     def __init__(self, N=64, seed=None, **kwargs):
+
+        self.seed = seed
+
         if N == 64:
             data = utils.loadmat('pointclouds/david64')
             assert data['N'][0, 0] == N
@@ -54,6 +57,8 @@ class DavidSensorNet(Graph):
 
         plotting = {"limits": [0, 1, 0, 1]}
 
-        super(DavidSensorNet, self).__init__(W=W, gtype='davidsensornet',
-                                             coords=coords, plotting=plotting,
-                                             **kwargs)
+        super(DavidSensorNet, self).__init__(W=W, coords=coords,
+                                             plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        return dict(seed=self.seed)

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 r"""
-The :mod:`pygsp.optimization` module provides tools for convex optimization on
-graphs.
+The :mod:`pygsp.optimization` module provides tools to solve convex
+optimization problems on graphs.
 """
 
 from pygsp import utils

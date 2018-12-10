@@ -12,8 +12,10 @@ The :class:`Graph` base class allows to construct a graph object from any
 adjacency matrix and provides a common interface to that object. Derived
 classes then allows to instantiate various standard graph models.
 
-Matrix operators
-----------------
+Attributes
+----------
+
+**Matrix operators**
 
 .. autosummary::
 
@@ -22,14 +24,20 @@ Matrix operators
     Graph.U
     Graph.D
 
-Checks
-------
+**Vectors**
 
 .. autosummary::
 
-    Graph.check_weights
-    Graph.is_connected
-    Graph.is_directed
+    Graph.d
+    Graph.dw
+    Graph.e
+
+**Scalars**
+
+.. autosummary::
+
+    Graph.lmax
+    Graph.coherence
 
 Attributes computation
 ----------------------
@@ -48,25 +56,28 @@ Differential operators
 
     Graph.grad
     Graph.div
+    Graph.dirichlet_energy
 
-Localization
-------------
-
-.. autosummary::
-
-    Graph.modulate
-    Graph.translate
-
-Transforms (frequency and vertex-frequency)
--------------------------------------------
+Transforms
+----------
 
 .. autosummary::
 
     Graph.gft
     Graph.igft
-    Graph.gft_windowed
-    Graph.gft_windowed_gabor
-    Graph.gft_windowed_normalized
+
+Vertex-frequency transforms are implemented as filter banks and are found in
+:mod:`pygsp.filters` (such as :class:`~pygsp.filters.Gabor` and
+:class:`~pygsp.filters.Modulation`).
+
+Checks
+------
+
+.. autosummary::
+
+    Graph.check_weights
+    Graph.is_connected
+    Graph.is_directed
 
 Plotting
 --------
@@ -74,7 +85,6 @@ Plotting
 .. autosummary::
 
     Graph.plot
-    Graph.plot_signal
     Graph.plot_spectrogram
 
 Others

@@ -6,9 +6,6 @@ from pygsp import utils
 from . import Filter  # prevent circular import in Python < 3.5
 
 
-_logger = utils.build_logger(__name__)
-
-
 class SimpleTight(Filter):
     r"""Design a simple tight frame filter bank (tight frame).
 
@@ -37,12 +34,12 @@ class SimpleTight(Filter):
     >>> g = filters.SimpleTight(G)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
-    >>> g.plot(ax=axes[0])
-    >>> G.plot_signal(s, ax=axes[1])
+    >>> _ = g.plot(ax=axes[0])
+    >>> _ = G.plot(s, ax=axes[1])
 
     """
 
-    def __init__(self, G, Nf=6, scales=None, **kwargs):
+    def __init__(self, G, Nf=6, scales=None):
 
         def kernel(x, kerneltype):
             r"""
@@ -89,13 +86,14 @@ class SimpleTight(Filter):
 
         if not scales:
             scales = (1./(2.*G.lmax) * np.power(2, np.arange(Nf-2, -1, -1)))
+        self.scales = scales
 
         if len(scales) != Nf - 1:
             raise ValueError('len(scales) should be Nf-1.')
 
-        g = [lambda x: kernel(scales[0] * x, 'sf')]
+        kernels = [lambda x: kernel(scales[0] * x, 'sf')]
 
         for i in range(Nf - 1):
-            g.append(lambda x, i=i: kernel(scales[i] * x, 'wavelet'))
+            kernels.append(lambda x, i=i: kernel(scales[i] * x, 'wavelet'))
 
-        super(SimpleTight, self).__init__(G, g, **kwargs)
+        super(SimpleTight, self).__init__(G, kernels)

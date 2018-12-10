@@ -32,10 +32,11 @@ class TestCase(unittest.TestCase):
             S[vertex_delta + i * self._G.N, i] = 1
         return S
 
-    def _test_methods(self, f, tight):
+    def _test_methods(self, f, tight, check=True):
         self.assertIs(f.G, self._G)
 
         f.evaluate(self._G.e)
+        f.evaluate(np.random.normal(size=(4, 6, 3)))
 
         A, B = f.estimate_frame_bounds(use_eigenvalues=True)
         if tight:
@@ -51,9 +52,9 @@ class TestCase(unittest.TestCase):
         s4 = f.filter(s2, method='exact')
         s5 = f.filter(s3, method='chebyshev', order=100)
 
-        if f.Nf < 100:
+        if check:
             # Chebyshev should be close to exact.
-            # TODO: does not pass for Gabor.
+            # Does not pass for Gabor and Rectangular (not smooth).
             np.testing.assert_allclose(s2, s3, rtol=0.1, atol=0.01)
             np.testing.assert_allclose(s4, s5, rtol=0.1, atol=0.01)
 
@@ -61,8 +62,6 @@ class TestCase(unittest.TestCase):
             # Tight frames should not loose information.
             np.testing.assert_allclose(s4, A * self._signal)
             assert np.linalg.norm(s5 - A * self._signal) < 0.1
-
-        self.assertRaises(ValueError, f.filter, s2, method='lanczos')
 
         if f.Nf < 10:
             # Computing the frame is an alternative way to filter.
@@ -147,8 +146,32 @@ class TestCase(unittest.TestCase):
         self._test_methods(f, tight=False)
 
     def test_gabor(self):
-        f = filters.Gabor(self._G, lambda x: x / (1. + x))
-        self._test_methods(f, tight=False)
+        f = filters.Rectangular(self._G, None, 0.1)
+        f = filters.Gabor(self._G, f)
+        self._test_methods(f, tight=False, check=False)
+        self.assertRaises(ValueError, filters.Gabor, graphs.Sensor(), f)
+        f = filters.Regular(self._G)
+        self.assertRaises(ValueError, filters.Gabor, self._G, f)
+
+    def test_modulation(self):
+        f = filters.Rectangular(self._G, None, 0.1)
+        # TODO: synthesis doesn't work yet.
+        # f = filters.Modulation(self._G, f, modulation_first=False)
+        # self._test_methods(f, tight=False, check=False)
+        f = filters.Modulation(self._G, f, modulation_first=True)
+        self._test_methods(f, tight=False, check=False)
+        self.assertRaises(ValueError, filters.Modulation, graphs.Sensor(), f)
+        f = filters.Regular(self._G)
+        self.assertRaises(ValueError, filters.Modulation, self._G, f)
+
+    def test_modulation_gabor(self):
+        """Both should be equivalent for deltas centered at the eigenvalues."""
+        f = filters.Rectangular(self._G, 0, 0)
+        f1 = filters.Modulation(self._G, f, modulation_first=True)
+        f2 = filters.Gabor(self._G, f)
+        s1 = f1.filter(self._signal)
+        s2 = f2.filter(self._signal)
+        np.testing.assert_allclose(s1, s2, atol=1e-5)
 
     def test_halfcosine(self):
         f = filters.HalfCosine(self._G, Nf=4)
@@ -175,9 +198,9 @@ class TestCase(unittest.TestCase):
     def test_regular(self):
         f = filters.Regular(self._G)
         self._test_methods(f, tight=True)
-        f = filters.Regular(self._G, d=5)
+        f = filters.Regular(self._G, degree=5)
         self._test_methods(f, tight=True)
-        f = filters.Regular(self._G, d=0)
+        f = filters.Regular(self._G, degree=0)
         self._test_methods(f, tight=True)
 
     def test_held(self):
@@ -214,6 +237,26 @@ class TestCase(unittest.TestCase):
     def test_expwin(self):
         f = filters.Expwin(self._G)
         self._test_methods(f, tight=False)
+        f = filters.Expwin(self._G, band_min=None, band_max=0.8)
+        self._test_methods(f, tight=False)
+        f = filters.Expwin(self._G, band_min=0.1, band_max=None)
+        self._test_methods(f, tight=False)
+        f = filters.Expwin(self._G, band_min=0.1, band_max=0.7)
+        self._test_methods(f, tight=False)
+        f = filters.Expwin(self._G, band_min=None, band_max=None)
+        self._test_methods(f, tight=True)
+
+    def test_rectangular(self):
+        f = filters.Rectangular(self._G)
+        self._test_methods(f, tight=False, check=False)
+        f = filters.Rectangular(self._G, band_min=None, band_max=0.8)
+        self._test_methods(f, tight=False, check=False)
+        f = filters.Rectangular(self._G, band_min=0.1, band_max=None)
+        self._test_methods(f, tight=False, check=False)
+        f = filters.Rectangular(self._G, band_min=0.1, band_max=0.7)
+        self._test_methods(f, tight=False, check=False)
+        f = filters.Rectangular(self._G, band_min=None, band_max=None)
+        self._test_methods(f, tight=True, check=True)
 
     def test_approximations(self):
         r"""

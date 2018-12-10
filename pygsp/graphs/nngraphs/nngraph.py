@@ -47,8 +47,6 @@ class NNGraph(Graph):
         to the average of the nearest neighboor distance).
     epsilon : float, optional
         Radius for the epsilon-neighborhood search (default is 0.01)
-    gtype : string, optional
-        The type of graph (default is 'nearest neighbors')
     plotting : dict, optional
         Dictionary of plotting parameters. See :obj:`pygsp.plotting`.
         (default is {})
@@ -71,12 +69,12 @@ class NNGraph(Graph):
     >>> G = graphs.NNGraph(X)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=5)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
     def __init__(self, Xin, NNtype='knn', use_flann=False, center=True,
-                 rescale=True, k=10, sigma=None, epsilon=0.01, gtype=None,
+                 rescale=True, k=10, sigma=None, epsilon=0.01,
                  plotting={}, symmetrize_type='average', dist_type='euclidean',
                  order=0, **kwargs):
 
@@ -88,16 +86,16 @@ class NNGraph(Graph):
         self.k = k
         self.sigma = sigma
         self.epsilon = epsilon
-
-        if gtype is None:
-            gtype = 'nearest neighbors'
-        else:
-            gtype = '{}, NNGraph'.format(gtype)
-
         self.symmetrize_type = symmetrize_type
+        self.dist_type = dist_type
+        self.order = order
 
         N, d = np.shape(self.Xin)
         Xout = self.Xin
+
+        if k >= N:
+            raise ValueError('The number of neighbors (k={}) must be smaller '
+                             'than the number of nodes ({}).'.format(k, N))
 
         if self.center:
             Xout = self.Xin - np.kron(np.ones((N, 1)),
@@ -185,5 +183,17 @@ class NNGraph(Graph):
         # np.abs(W - W.T).sum() is as costly as the symmetrization itself.
         W = utils.symmetrize(W, method=symmetrize_type)
 
-        super(NNGraph, self).__init__(W=W, gtype=gtype, plotting=plotting,
+        super(NNGraph, self).__init__(W=W, plotting=plotting,
                                       coords=Xout, **kwargs)
+
+    def _get_extra_repr(self):
+        return {'NNtype': self.NNtype,
+                'use_flann': self.use_flann,
+                'center': self.center,
+                'rescale': self.rescale,
+                'k': self.k,
+                'sigma': '{:.2f}'.format(self.sigma),
+                'epsilon': '{:.2f}'.format(self.epsilon),
+                'symmetrize_type': self.symmetrize_type,
+                'dist_type': self.dist_type,
+                'order': self.order}

@@ -41,7 +41,7 @@ class StochasticBlockModel(Graph):
         Allow self loops if True (default is False).
     connected : bool
         Force the graph to be connected (default is False).
-    max_iter : int
+    n_try : int
         Maximum number of trials to get a connected graph (default is 10).
     seed : int
         Seed for the random number generator (for reproducible graphs).
@@ -54,22 +54,31 @@ class StochasticBlockModel(Graph):
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=0.8)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
     def __init__(self, N=1024, k=5, z=None, M=None, p=0.7, q=None,
                  directed=False, self_loops=False, connected=False,
-                 max_iter=10, seed=None, **kwargs):
+                 n_try=10, seed=None, **kwargs):
+
+        self.k = k
+        self.directed = directed
+        self.self_loops = self_loops
+        self.connected = connected
+        self.n_try = n_try
+        self.seed = seed
 
         rs = np.random.RandomState(seed)
 
         if z is None:
             z = rs.randint(0, k, N)
             z.sort()  # Sort for nice spy plot of W, where blocks are apparent.
+        self.z = z
 
         if M is None:
 
+            self.p = p
             p = np.asarray(p)
             if p.size == 1:
                 p = p * np.ones(k)
@@ -79,6 +88,7 @@ class StochasticBlockModel(Graph):
 
             if q is None:
                 q = 0.3 / k
+            self.q = q
             q = np.asarray(q)
             if q.size == 1:
                 q = q * np.ones((k, k))
@@ -89,6 +99,8 @@ class StochasticBlockModel(Graph):
             M = q
             M.flat[::k+1] = p  # edit the diagonal terms
 
+        self.M = M
+
         if (M < 0).any() or (M > 1).any():
             raise ValueError('Probabilities should be in [0, 1].')
 
@@ -96,7 +108,7 @@ class StochasticBlockModel(Graph):
         # Along the lines of np.random.uniform(size=(N, N)) < p.
         # Or similar to sparse.random(N, N, p, data_rvs=lambda n: np.ones(n)).
 
-        for nb_iter in range(max_iter):
+        for nb_iter in range(n_try):
 
             nb_row, nb_col = 0, 0
             csr_data, csr_i, csr_j = [], [], []
@@ -124,13 +136,24 @@ class StochasticBlockModel(Graph):
                 self.W = W
                 if self.is_connected(recompute=True):
                     break
-            if nb_iter == max_iter - 1:
+            if nb_iter == n_try - 1:
                 raise ValueError('The graph could not be connected after {} '
                                  'trials. Increase the connection probability '
-                                 'or the number of trials.'.format(max_iter))
+                                 'or the number of trials.'.format(n_try))
 
         self.info = {'node_com': z, 'comm_sizes': np.bincount(z),
                      'world_rad': np.sqrt(N)}
 
-        gtype = 'StochasticBlockModel'
-        super(StochasticBlockModel, self).__init__(gtype=gtype, W=W, **kwargs)
+        super(StochasticBlockModel, self).__init__(W=W, **kwargs)
+
+    def _get_extra_repr(self):
+        attrs = {'k': self.k}
+        if type(self.p) is float:
+            attrs['p'] = '{:.2f}'.format(self.p)
+        if type(self.q) is float:
+            attrs['q'] = '{:.2f}'.format(self.q)
+        attrs.update({'directed': self.directed,
+                      'self_loops': self.self_loops,
+                      'connected': self.connected,
+                      'seed': self.seed})
+        return attrs

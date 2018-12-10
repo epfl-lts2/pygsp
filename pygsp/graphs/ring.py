@@ -22,11 +22,13 @@ class Ring(Graph):
     >>> G = graphs.Ring(N=10)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
     def __init__(self, N=64, k=1, **kwargs):
+
+        self.k = k
 
         if 2*k > N:
             raise ValueError('Too many neighbors requested.')
@@ -55,10 +57,9 @@ class Ring(Graph):
 
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
-        gtype = 'ring' if k == 1 else 'k-ring'
-        self.k = k
-
-        super(Ring, self).__init__(W=W, gtype=gtype, plotting=plotting,
-                                   **kwargs)
+        super(Ring, self).__init__(W=W, plotting=plotting, **kwargs)
 
         self.set_coordinates('ring2D')
+
+    def _get_extra_repr(self):
+        return dict(k=self.k)

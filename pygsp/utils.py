@@ -39,23 +39,6 @@ def build_logger(name):
 logger = build_logger(__name__)
 
 
-def graph_array_handler(func):
-
-    def inner(G, *args, **kwargs):
-
-        if type(G) is list:
-            output = []
-            for g in G:
-                output.append(func(g, *args, **kwargs))
-
-            return output
-
-        else:
-            return func(G, *args, **kwargs)
-
-    return inner
-
-
 def filterbank_handler(func):
 
     # Preserve documentation of func.
@@ -74,14 +57,6 @@ def filterbank_handler(func):
             for i in range(f.Nf):
                 output.append(func(f, *args, i=i, **kwargs))
             return output
-
-    return inner
-
-
-def sparsifier(func):
-
-    def inner(*args, **kwargs):
-        return sparse.lil_matrix(func(*args, **kwargs))
 
     return inner
 
@@ -135,9 +110,9 @@ def distanz(x, y=None):
     >>> from pygsp import utils
     >>> x = np.arange(3)
     >>> utils.distanz(x, x)
-    array([[ 0.,  1.,  2.],
-           [ 1.,  0.,  1.],
-           [ 2.,  1.,  0.]])
+    array([[0., 1., 2.],
+           [1., 0., 1.],
+           [2., 1., 0.]])
 
     """
     try:
@@ -232,34 +207,44 @@ def symmetrize(W, method='average'):
         * 'tril' : symmetrize by considering the lower triangular part only.
         * 'triu' : symmetrize by considering the upper triangular part only.
 
+    Notes
+    -----
+    You can have the sum by multiplying the average by two. It is however not a
+    good candidate for this function as it modifies an already symmetric
+    matrix.
+
     Examples
     --------
     >>> from pygsp import utils
     >>> W = np.array([[0, 3, 0], [3, 1, 6], [4, 2, 3]], dtype=float)
     >>> W
-    array([[ 0.,  3.,  0.],
-           [ 3.,  1.,  6.],
-           [ 4.,  2.,  3.]])
+    array([[0., 3., 0.],
+           [3., 1., 6.],
+           [4., 2., 3.]])
     >>> utils.symmetrize(W, method='average')
-    array([[ 0.,  3.,  2.],
-           [ 3.,  1.,  4.],
-           [ 2.,  4.,  3.]])
+    array([[0., 3., 2.],
+           [3., 1., 4.],
+           [2., 4., 3.]])
+    >>> 2 * utils.symmetrize(W, method='average')
+    array([[0., 6., 4.],
+           [6., 2., 8.],
+           [4., 8., 6.]])
     >>> utils.symmetrize(W, method='maximum')
-    array([[ 0.,  3.,  4.],
-           [ 3.,  1.,  6.],
-           [ 4.,  6.,  3.]])
+    array([[0., 3., 4.],
+           [3., 1., 6.],
+           [4., 6., 3.]])
     >>> utils.symmetrize(W, method='fill')
-    array([[ 0.,  3.,  4.],
-           [ 3.,  1.,  4.],
-           [ 4.,  4.,  3.]])
+    array([[0., 3., 4.],
+           [3., 1., 4.],
+           [4., 4., 3.]])
     >>> utils.symmetrize(W, method='tril')
-    array([[ 0.,  3.,  4.],
-           [ 3.,  1.,  2.],
-           [ 4.,  2.,  3.]])
+    array([[0., 3., 4.],
+           [3., 1., 2.],
+           [4., 2., 3.]])
     >>> utils.symmetrize(W, method='triu')
-    array([[ 0.,  3.,  0.],
-           [ 3.,  1.,  6.],
-           [ 0.,  6.,  3.]])
+    array([[0., 3., 0.],
+           [3., 1., 6.],
+           [0., 6., 3.]])
 
     """
     if W.shape[0] != W.shape[1]:
@@ -267,9 +252,6 @@ def symmetrize(W, method='average'):
 
     if method == 'average':
         return (W + W.T) / 2
-
-    # Sum is 2x average. It is not a good candidate as it modifies an already
-    # symmetric matrix.
 
     elif method == 'maximum':
         if sparse.issparse(W):
@@ -355,50 +337,12 @@ def compute_log_scales(lmin, lmax, Nscales, t1=1, t2=2):
     --------
     >>> from pygsp import utils
     >>> utils.compute_log_scales(1, 10, 3)
-    array([ 2.       ,  0.4472136,  0.1      ])
+    array([2.       , 0.4472136, 0.1      ])
 
     """
     scale_min = t1 / lmax
     scale_max = t2 / lmin
     return np.exp(np.linspace(np.log(scale_max), np.log(scale_min), Nscales))
-
-
-def repmatline(A, ncol=1, nrow=1):
-    r"""
-    Repeat the matrix A in a specific manner.
-
-    Parameters
-    ----------
-    A : ndarray
-    ncol : int
-        default is 1
-    nrow : int
-        default is 1
-
-    Returns
-    -------
-    Ar : ndarray
-
-    Examples
-    --------
-    >>> from pygsp import utils
-    >>> x = np.array([[1, 2], [3, 4]])
-    >>> x
-    array([[1, 2],
-           [3, 4]])
-    >>> utils.repmatline(x, nrow=2, ncol=3)
-    array([[1, 1, 1, 2, 2, 2],
-           [1, 1, 1, 2, 2, 2],
-           [3, 3, 3, 4, 4, 4],
-           [3, 3, 3, 4, 4, 4]])
-
-    """
-
-    if ncol < 1 or nrow < 1:
-        raise ValueError('The number of lines and rows must be greater or '
-                         'equal to one, or you will get an empty array.')
-
-    return np.repeat(np.repeat(A, ncol, axis=1), nrow, axis=0)
 
 
 def import_modules(names, src, dst):

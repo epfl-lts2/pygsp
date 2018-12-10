@@ -23,7 +23,7 @@ class Grid2d(Graph):
     >>> G = graphs.Grid2d(N1=5, N2=4)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
@@ -31,6 +31,9 @@ class Grid2d(Graph):
 
         if N2 is None:
             N2 = N1
+
+        self.N1 = N1
+        self.N2 = N2
 
         N = N1 * N2
 
@@ -54,5 +57,8 @@ class Grid2d(Graph):
         plotting = {"limits": np.array([-1. / N2, 1 + 1. / N2,
                                         1. / N1, 1 + 1. / N1])}
 
-        super(Grid2d, self).__init__(W=W, gtype='2d-grid', coords=coords,
+        super(Grid2d, self).__init__(W=W, coords=coords,
                                      plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        return dict(N1=self.N1, N2=self.N2)

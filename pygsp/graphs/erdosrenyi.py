@@ -23,7 +23,7 @@ class ErdosRenyi(StochasticBlockModel):
         Allow self loops if True (default is False).
     connected : bool
         Force the graph to be connected (default is False).
-    max_iter : int
+    n_try : int
         Maximum number of trials to get a connected graph (default is 10).
     seed : int
         Seed for the random number generator (for reproducible graphs).
@@ -35,18 +35,17 @@ class ErdosRenyi(StochasticBlockModel):
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
     def __init__(self, N=100, p=0.1, directed=False, self_loops=False,
-                 connected=False, max_iter=10, seed=None, **kwargs):
+                 connected=False, n_try=10, seed=None, **kwargs):
 
         super(ErdosRenyi, self).__init__(N=N, k=1, p=p,
                                          directed=directed,
                                          self_loops=self_loops,
                                          connected=connected,
-                                         max_iter=max_iter,
+                                         n_try=n_try,
                                          seed=seed,
                                          **kwargs)
-        self.gtype = u"Erdös Renyi"

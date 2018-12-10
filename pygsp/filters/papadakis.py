@@ -36,15 +36,20 @@ class Papadakis(Filter):
     >>> g = filters.Papadakis(G)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
-    >>> g.plot(ax=axes[0])
-    >>> G.plot_signal(s, ax=axes[1])
+    >>> _ = g.plot(ax=axes[0])
+    >>> _ = G.plot(s, ax=axes[1])
 
     """
-    def __init__(self, G, a=0.75, **kwargs):
 
-        g = [lambda x: papadakis(x * (2./G.lmax), a)]
-        g.append(lambda x: np.real(np.sqrt(1 - (papadakis(x*(2./G.lmax), a)) **
-                                   2)))
+    def __init__(self, G, a=0.75):
+
+        self.a = a
+
+        kernels = [lambda x: papadakis(x * (2./G.lmax), a)]
+        def dual(x):
+            y = papadakis(x * (2./G.lmax), a)
+            return np.real(np.sqrt(1 - y**2))
+        kernels.append(dual)
 
         def papadakis(val, a):
             y = np.empty(np.shape(val))
@@ -61,4 +66,7 @@ class Papadakis(Filter):
 
             return y
 
-        super(Papadakis, self).__init__(G, g, **kwargs)
+        super(Papadakis, self).__init__(G, kernels)
+
+    def _get_extra_repr(self):
+        return dict(a='{:.2f}'.format(self.a))

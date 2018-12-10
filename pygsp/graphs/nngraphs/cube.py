@@ -30,7 +30,7 @@ class Cube(NNGraph):
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')
     >>> _ = ax1.spy(G.W, markersize=0.5)
-    >>> G.plot(ax=ax2)
+    >>> _ = G.plot(ax=ax2)
 
     """
 
@@ -46,10 +46,11 @@ class Cube(NNGraph):
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
         self.sampling = sampling
+        self.seed = seed
         rs = np.random.RandomState(seed)
 
         if self.nb_dim > 3:
-            raise NotImplementedError("Dimension > 3 not supported yet !")
+            raise NotImplementedError("Dimension > 3 not supported yet!")
 
         if self.sampling == "random":
             if self.nb_dim == 2:
@@ -85,8 +86,18 @@ class Cube(NNGraph):
             'vertex_size': 80,
             'elevation': 15,
             'azimuth': 0,
-            'distance': 7,
+            'distance': 9,
         }
 
-        super(Cube, self).__init__(Xin=pts, k=10, gtype="Cube",
+        super(Cube, self).__init__(Xin=pts, k=10,
+                                   center=False, rescale=False,
                                    plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        attrs = {'radius': '{:.2f}'.format(self.radius),
+                 'nb_pts': self.nb_pts,
+                 'nb_dim': self.nb_dim,
+                 'sampling': self.sampling,
+                 'seed': self.seed}
+        attrs.update(super(Cube, self)._get_extra_repr())
+        return attrs

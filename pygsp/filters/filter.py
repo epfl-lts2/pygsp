@@ -31,16 +31,15 @@ class Filter(object):
     G : Graph
         The graph to which the filter bank was tailored. It is a reference to
         the graph passed when instantiating the class.
-    kernels : function or list of functions
-        A (list of) function defining the filter bank. One function per filter.
-        Either passed by the user when instantiating the base class, either
-        constructed by the derived classes.
-    Nf : int
+    n_features_in : int
+        Number of signals or features the filter bank takes in.
+    n_features_out : int
+        Number of signals or features the filter bank gives out.
+    n_filters : int
         Number of filters in the filter bank.
 
     Examples
     --------
-    >>>
     >>> G = graphs.Logo()
     >>> my_filter = filters.Filter(G, lambda x: x / (1. + x))
     >>>
@@ -62,7 +61,22 @@ class Filter(object):
             kernels = [kernels]
         self._kernels = kernels
 
-        self.Nf = len(kernels)
+        # Only used by subclasses to instantiate a single filterbank.
+        self.n_features_in, self.n_features_out = (1, len(kernels))
+        self.n_filters = self.n_features_in * self.n_features_out
+        self.Nf = self.n_filters  # TODO: kept for backward compatibility only.
+
+    def _get_extra_repr(self):
+        """To be overloaded by children."""
+        return dict()
+
+    def __repr__(self):
+        attrs = {'in': self.n_features_in, 'out': self.n_features_out}
+        attrs.update(self._get_extra_repr())
+        s = ''
+        for key, value in attrs.items():
+            s += '{}={}, '.format(key, value)
+        return '{}({})'.format(self.__class__.__name__, s[:-2])
 
     def evaluate(self, x):
         r"""Evaluate the kernels at given frequencies.
@@ -92,9 +106,9 @@ class Filter(object):
 
         """
         # Avoid to copy data as with np.array([g(x) for g in self._kernels]).
-        y = np.empty((self.Nf, len(x)))
-        for i, g in enumerate(self._kernels):
-            y[i] = g(x)
+        y = np.empty([self.Nf] + list(x.shape))
+        for i, kernel in enumerate(self._kernels):
+            y[i] = kernel(x)
         return y
 
     def filter(self, s, method='chebyshev', order=30):
@@ -176,7 +190,7 @@ class Filter(object):
 
         >>> fig, ax = plt.subplots()
         >>> G.set_coordinates('line1D')  # To visualize multiple signals in 1D.
-        >>> G.plot_signal(s[:, 9, :], ax=ax)
+        >>> _ = G.plot(s[:, 9, :], ax=ax)
         >>> legend = [r'$\tau={}$'.format(t) for t in taus]
         >>> ax.legend(legend)  # doctest: +ELLIPSIS
         <matplotlib.legend.Legend object at ...>
@@ -204,8 +218,8 @@ class Filter(object):
         Look how well we were able to reconstruct:
 
         >>> fig, axes = plt.subplots(1, 2)
-        >>> G.plot_signal(s1, ax=axes[0])
-        >>> G.plot_signal(s2, ax=axes[1])
+        >>> _ = G.plot(s1, ax=axes[0])
+        >>> _ = G.plot(s2, ax=axes[1])
         >>> print('{:.5f}'.format(np.linalg.norm(s1 - s2)))
         0.29620
 
@@ -337,7 +351,7 @@ class Filter(object):
         >>> G.estimate_lmax()
         >>> g = filters.Heat(G, 100)
         >>> s = g.localize(DELTA)
-        >>> G.plot_signal(s, highlight=DELTA)
+        >>> _ = G.plot(s, highlight=DELTA)
 
         """
         s = np.zeros(self.G.N)
@@ -467,7 +481,7 @@ class Filter(object):
         >>> s1 = s1.reshape(G.N, -1)
         >>>
         >>> s2 = f.filter(s)
-        >>> np.all((s1 - s2) < 1e-10)
+        >>> np.all(np.abs(s1 - s2) < 1e-10)
         True
 
         """
@@ -501,10 +515,9 @@ class Filter(object):
 
         return Filter(self.G, kernels)
 
-    def plot(self, **kwargs):
-        r"""Plot the filter bank's frequency response.
-
-        See :func:`pygsp.plotting.plot_filter`.
-        """
-        from pygsp import plotting
-        plotting.plot_filter(self, **kwargs)
+    def plot(self, n=500, eigenvalues=None, sum=None, title=None,
+             ax=None, **kwargs):
+        r"""Docstring overloaded at import time."""
+        from pygsp.plotting import _plot_filter
+        return _plot_filter(self, n=n, eigenvalues=eigenvalues, sum=sum,
+                            title=title, ax=ax, **kwargs)

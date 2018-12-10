@@ -30,7 +30,7 @@ class Sphere(NNGraph):
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')
     >>> _ = ax1.spy(G.W, markersize=1.5)
-    >>> G.plot(ax=ax2)
+    >>> _ = _ = G.plot(ax=ax2)
 
     """
 
@@ -46,6 +46,7 @@ class Sphere(NNGraph):
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
         self.sampling = sampling
+        self.seed = seed
 
         if self.sampling == 'random':
 
@@ -57,11 +58,21 @@ class Sphere(NNGraph):
 
         else:
 
-            raise ValueError('Unknown sampling!')
+            raise ValueError('Unknown sampling {}'.format(sampling))
 
         plotting = {
             'vertex_size': 80,
         }
 
-        super(Sphere, self).__init__(Xin=pts, gtype='Sphere', k=10,
+        super(Sphere, self).__init__(Xin=pts, k=10,
+                                     center=False, rescale=False,
                                      plotting=plotting, **kwargs)
+
+    def _get_extra_repr(self):
+        attrs = {'radius': '{:.2f}'.format(self.radius),
+                 'nb_pts': self.nb_pts,
+                 'nb_dim': self.nb_dim,
+                 'sampling': self.sampling,
+                 'seed': self.seed}
+        attrs.update(super(Sphere, self)._get_extra_repr())
+        return attrs

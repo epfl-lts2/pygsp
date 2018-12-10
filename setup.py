@@ -11,6 +11,12 @@ setup(
     long_description=open('README.rst').read(),
     author='EPFL LTS2',
     url='https://github.com/epfl-lts2/pygsp',
+    project_urls={
+        'Documentation': 'https://pygsp.readthedocs.io',
+        'Source Code': 'https://github.com/epfl-lts2/pygsp',
+        'Bug Tracker': 'https://github.com/epfl-lts2/pygsp/issues',
+        'Try It Online': 'https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=playground.ipynb',
+    },
     packages=[
         'pygsp',
         'pygsp.graphs',
@@ -27,6 +33,8 @@ setup(
     extras_require={
         # Optional dependencies for some functionalities.
         'alldeps': (
+            # Import and export.
+            'networkx',
             # Construct patch graphs from images.
             'scikit-image',
             # Approximate nearest neighbors for kNN graphs.

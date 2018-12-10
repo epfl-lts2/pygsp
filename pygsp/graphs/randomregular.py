@@ -20,7 +20,7 @@ class RandomRegular(Graph):
         Number of nodes (default is 64)
     k : int
         Number of connections, or degree, of each node (default is 6)
-    maxIter : int
+    max_iter : int
         Maximum number of iterations (default is 10)
     seed : int
         Seed for the random number generator (for reproducible graphs).
@@ -43,12 +43,15 @@ class RandomRegular(Graph):
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
-    def __init__(self, N=64, k=6, maxIter=10, seed=None, **kwargs):
+    def __init__(self, N=64, k=6, max_iter=10, seed=None, **kwargs):
+
         self.k = k
+        self.max_iter = max_iter
+        self.seed = seed
 
         self.logger = utils.build_logger(__name__)
 
@@ -67,10 +70,9 @@ class RandomRegular(Graph):
         edgesTested = 0
         repetition = 1
 
-        while np.size(U) and repetition < maxIter:
+        while np.size(U) and repetition < max_iter:
             edgesTested += 1
 
-            # print(progess)
             if edgesTested % 5000 == 0:
                 self.logger.debug("createRandRegGraph() progress: edges= "
                                   "{}/{}.".format(edgesTested, N*k/2))
@@ -98,8 +100,7 @@ class RandomRegular(Graph):
                 v = sorted([i1, i2])
                 U = np.concatenate((U[:v[0]], U[v[0] + 1:v[1]], U[v[1] + 1:]))
 
-        super(RandomRegular, self).__init__(W=A, gtype="random_regular",
-                                            **kwargs)
+        super(RandomRegular, self).__init__(W=A, **kwargs)
 
         self.is_regular()
 
@@ -133,3 +134,6 @@ class RandomRegular(Graph):
 
         if warn:
             self.logger.warning('{}.'.format(msg[:-1]))
+
+    def _get_extra_repr(self):
+        return dict(k=self.k, seed=self.seed)

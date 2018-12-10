@@ -15,7 +15,7 @@ class Logo(Graph):
     >>> G = graphs.Logo()
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=0.5)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
@@ -31,5 +31,4 @@ class Logo(Graph):
         plotting = {"limits": np.array([0, 640, -400, 0])}
 
         super(Logo, self).__init__(W=data['W'], coords=data['coords'],
-                                   gtype='LogoGSP', plotting=plotting,
-                                   **kwargs)
+                                   plotting=plotting, **kwargs)

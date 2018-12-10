@@ -42,13 +42,14 @@ class ImgPatches(NNGraph):
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
     def __init__(self, img, patch_shape=(3, 3), **kwargs):
 
         self.img = img
+        self.patch_shape = patch_shape
 
         try:
             h, w, d = img.shape
@@ -90,6 +91,9 @@ class ImgPatches(NNGraph):
         patches = skimage.util.view_as_windows(img, window_shape=window_shape)
         patches = patches.reshape((h * w, r * c * d))
 
-        super(ImgPatches, self).__init__(patches,
-                                         gtype='patch-graph',
-                                         **kwargs)
+        super(ImgPatches, self).__init__(patches, **kwargs)
+
+    def _get_extra_repr(self):
+        attrs = dict(patch_shape=self.patch_shape)
+        attrs.update(super(ImgPatches, self)._get_extra_repr())
+        return attrs

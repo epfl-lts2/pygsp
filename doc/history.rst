@@ -2,6 +2,7 @@
 History
 =======
 
+
 0.x.x (xxxx-xx-xx)
 ------------------
 
@@ -9,8 +10,49 @@ New features:
 
 * A learning module with two functions to solve classification and regression
   semi-supervised learning problems.
-* SensorLarge: a sensor graph model which scales linearly with the number of
-  nodes.
+
+0.6.0 (xxxx-xx-xx)
+------------------
+
+* print(graph) and print(filters) now show valuable information.
+* Building a graph object is much faster.
+* New rectangular filter (low-pass and band-pass).
+* The exponential window has been updated from low-pass only to band-pass.
+* Much better documentation for the coherence of the Fourier basis.
+* Removed translate and modulate (they were not working and have no real use).
+* Fixed and documented vertex-frequency transforms.
+  They are now implemented as filter banks.
+* Directed graphs are now completely supported.
+* The differential operator (D, grad, div) is better tested and documented.
+* A new method (G.dirichlet_energy) computes the Dirichlet energy of a signal.
+
+Plotting:
+
+The plotting interface was updated to be more user-friendly. First, the
+documentation is now shown for filter.plot(), graph.plot(), and co. Second, the
+API in the plotting library has been deprecated. That module is now mostly for
+implementation only. Third, graph.plot() and graph.plot_signal() have been
+merged. As such, plot_signal() is deprecated. Finally, the following parameter
+names were changed:
+
+* plot_name => title
+* plot_eigenvalues => eigenvalues
+* show_sum => sum
+* show_edges => edges
+* vertex_size => size
+* npoints => n
+* save_as was removed
+
+Other changes regarding plotting:
+
+* Plotting functions return matplotlib figures and axes.
+* Nodes, edges, and filters are plotted in transparency to avoid occlusion.
+* The node index can be printed on top of nodes to identify them easily.
+* Two vertex signals can now be plotted together as vertex color and size.
+* Two edges signals can be plotted as edge color and width.
+* Much faster (10 to 100 times faster) edge plotting with matplotlib.
+
+There are many other small changes, look at the git history for the details.
 
 0.5.1 (2017-12-15)
 ------------------
@@ -28,6 +70,7 @@ only loaded when needed, not when the PyGSP is imported. A nice side-effect is
 that importing the PyGSP is now much faster!
 
 The following packages were made optional dependencies:
+
 * scikit-image, as it is only used to build patch graphs from images. The
   problem was that scikit-image does not provide a wheel for Windows and its
   build is painful and error-prone. Moreover, scikit-image has a lot of
