@@ -260,21 +260,27 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
         for e in filters.G.e:
             ax.axvline(x=e, color=[0.9]*3, linewidth=1)
 
-        # Plot dots where the evaluation matters.
-        y = filters.evaluate(filters.G.e).T
-        ax.plot(filters.G.e, y, '.', **params)
-
         # Evaluate the filter bank at the eigenvalues to avoid plotting
         # artifacts, for example when deltas are centered on the eigenvalues.
         x = np.sort(np.concatenate([x, filters.G.e]))
 
     y = filters.evaluate(x).T
-    ax.plot(x, y, **params)
+    lines = ax.plot(x, y, **params)
 
     # TODO: plot highlighted eigenvalues
 
     if sum:
-        ax.plot(x, np.sum(y**2, 1), 'k', **kwargs)
+        line_sum, = ax.plot(x, np.sum(y**2, 1), 'k', **kwargs)
+
+    if eigenvalues:
+        # Plot dots where the evaluation matters.
+        y = filters.evaluate(filters.G.e).T
+        for i in range(y.shape[1]):
+            params.update(color=lines[i].get_color())
+            ax.plot(filters.G.e, y[:, i], '.', **params)
+        if sum:
+            params.update(color=line_sum.get_color())
+            ax.plot(filters.G.e, np.sum(y**2, 1), '.', **params)
 
     ax.set_xlabel(r"$\lambda$: laplacian's eigenvalues / graph frequencies")
     ax.set_ylabel(r'$\hat{g}(\lambda)$: filter response')
