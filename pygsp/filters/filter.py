@@ -89,7 +89,7 @@ class Filter(object):
         Returns
         -------
         y : ndarray
-            Frequency response of the filters. Shape ``(G.Nf, len(x))``.
+            Frequency response of the filters. Shape ``(g.Nf, len(x))``.
 
         Examples
         --------
