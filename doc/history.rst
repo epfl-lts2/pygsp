@@ -18,6 +18,13 @@ History
 * A new method (G.dirichlet_energy) computes the Dirichlet energy of a signal.
 * Better documentation of the frame and its bounds.
 
+Experimental filter API (to be tested and validated):
+
+* evaluate a filter bank with ``g(values)``
+* filter with ``g(graph) @ signal``
+* index the ``len(g)`` filters of a filter bank with ``g[idx]``
+* concatenate filter banks with ``g + h``
+
 Plotting:
 
 The plotting interface was updated to be more user-friendly. First, the

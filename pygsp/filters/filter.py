@@ -5,6 +5,7 @@ import numpy as np
 from pygsp import utils
 # prevent circular import in Python < 3.5
 from . import approximations
+from ..graphs import Graph
 
 
 _logger = utils.build_logger(__name__)
@@ -63,6 +64,7 @@ class Filter(object):
 
         # Only used by subclasses to instantiate a single filterbank.
         self.n_features_in, self.n_features_out = (1, len(kernels))
+        self.shape = (self.n_features_out, self.n_features_in)
         self.n_filters = self.n_features_in * self.n_features_out
         self.Nf = self.n_filters  # TODO: kept for backward compatibility only.
 
@@ -77,6 +79,28 @@ class Filter(object):
         for key, value in attrs.items():
             s += '{}={}, '.format(key, value)
         return '{}({})'.format(self.__class__.__name__, s[:-2])
+
+    def __len__(self):
+        # Numpy returns shape[0].
+        return self.n_filters
+
+    def __getitem__(self, key):
+        return Filter(self.G, self._kernels[key])
+
+    def __add__(self, other):
+        """Concatenation of filterbanks."""
+        if not isinstance(other, Filter):
+            return NotImplemented
+        return Filter(self.G, self._kernels + other._kernels)
+
+    def __call__(self, x):
+        if isinstance(x, Graph):
+            return Filter(x, self._kernels)
+        else:
+            return self.evaluate(x)
+
+    def __matmul__(self, other):
+        return self.filter(other)
 
     def evaluate(self, x):
         r"""Evaluate the kernels at given frequencies.
