@@ -38,7 +38,7 @@ class TestCase(unittest.TestCase):
         f.evaluate(self._G.e)
         f.evaluate(np.random.normal(size=(4, 6, 3)))
 
-        A, B = f.estimate_frame_bounds(use_eigenvalues=True)
+        A, B = f.estimate_frame_bounds(self._G.e)
         if tight:
             np.testing.assert_allclose(A, B)
         else:
@@ -67,13 +67,11 @@ class TestCase(unittest.TestCase):
             # Computing the frame is an alternative way to filter.
             # Though it is memory intensive.
             F = f.compute_frame(method='exact')
-            F = F.reshape(self._G.N, -1)
-            s = F.T.dot(self._signal).reshape(self._G.N, -1).squeeze()
+            s = F.dot(self._signal).reshape(-1, self._G.N).T.squeeze()
             np.testing.assert_allclose(s, s2)
 
             F = f.compute_frame(method='chebyshev', order=100)
-            F = F.reshape(self._G.N, -1)
-            s = F.T.dot(self._signal).reshape(self._G.N, -1).squeeze()
+            s = F.dot(self._signal).reshape(-1, self._G.N).T.squeeze()
             np.testing.assert_allclose(s, s3)
 
         # TODO: f.can_dual()

@@ -322,11 +322,13 @@ class Filter(object):
 
         That is particularly useful to visualize a filter in the vertex domain.
 
-        A kernel is localized by filtering a Kronecker delta, i.e.
+        A kernel is localized on vertex :math:`v_i` by filtering a Kronecker
+        delta :math:`\delta_i` as
 
-        .. math:: g(L) s = g(L)_i, \text{ where } s_j = \delta_{ij} =
-                  \begin{cases} 0 \text{ if } i \neq j \\
-                                1 \text{ if } i = j    \end{cases}
+        .. math:: (g(L) \delta_i)(j) = g(L)(i,j),
+                  \text{ where } \delta_i(j) =
+                  \begin{cases} 0 \text{ if } i \neq j, \\
+                                1 \text{ if } i = j.    \end{cases}
 
         Parameters
         ----------
@@ -358,27 +360,30 @@ class Filter(object):
         s[i] = 1
         return np.sqrt(self.G.N) * self.filter(s, **kwargs)
 
-    def estimate_frame_bounds(self, min=0, max=None, N=1000,
-                              use_eigenvalues=False):
+    def estimate_frame_bounds(self, x=None):
         r"""Estimate lower and upper frame bounds.
 
-        The frame bounds are estimated using the vector :code:`np.linspace(min,
-        max, N)` with min=0 and max=G.lmax by default. The eigenvalues G.e can
-        be used instead if you set use_eigenvalues to True.
+        A filter bank forms a frame if there are positive real numbers
+        :math:`A` and :math:`B`, :math:`0 < A \leq B < \infty`, that satisfy
+        the *frame condition*
+
+        .. math:: A \|x\|^2 \leq \| g(L) x \|^2 \leq B \|x\|^2
+
+        for all signals :math:`x \in \mathbb{R}^N`, where :math:`g(L)` is the
+        analysis operator of the filter bank.
+
+        As :math:`g(L) = U g(\Lambda) U^\top` is diagonalized by the Fourier
+        basis :math:`U` with eigenvalues :math:`\Lambda`, :math:`\| g(L) x \|^2
+        = \| g(\Lambda) U x \|^2`, and :math:`A = \min g^2(\Lambda)`,
+        :math:`B = \max g^2(\Lambda)`.
 
         Parameters
         ----------
-        min : float
-            The lowest value the filter bank is evaluated at. By default
-            filtering is bounded by the eigenvalues of G, i.e. min = 0.
-        max : float
-            The largest value the filter bank is evaluated at. By default
-            filtering is bounded by the eigenvalues of G, i.e. max = G.lmax.
-        N : int
-            Number of points where the filter bank is evaluated.
-            Default is 1000.
-        use_eigenvalues : bool
-            Set to True to use the Laplacian eigenvalues instead.
+        x : ndarray
+            Graph frequencies at which to evaluate the filter bank `g(x)`.
+            The default is `x = np.linspace(0, G.lmax, 1000)`.
+            The exact bounds are given by evaluating the filter bank at the
+            eigenvalues of the graph Laplacian, i.e., `x = G.e`.
 
         Returns
         -------
@@ -387,68 +392,119 @@ class Filter(object):
         B : float
             Upper frame bound of the filter bank.
 
+        See also
+        --------
+        compute_frame: compute the frame
+
         Examples
         --------
-        >>> G = graphs.Logo()
+
+        >>> from matplotlib import pyplot as plt
+        >>> fig, axes = plt.subplots(2, 2, figsize=(10, 6))
+        >>> G = graphs.Sensor(64, seed=42)
         >>> G.compute_fourier_basis()
-        >>> f = filters.MexicanHat(G)
+        >>> g = filters.Abspline(G, 7)
 
-        Bad estimation:
+        Estimation quality (loose, precise, exact):
 
-        >>> A, B = f.estimate_frame_bounds(min=1, max=20, N=100)
+        >>> A, B = g.estimate_frame_bounds(np.linspace(0, G.lmax, 5))
         >>> print('A={:.3f}, B={:.3f}'.format(A, B))
-        A=0.125, B=0.270
-
-        Better estimation:
-
-        >>> A, B = f.estimate_frame_bounds()
+        A=1.883, B=2.288
+        >>> A, B = g.estimate_frame_bounds()
         >>> print('A={:.3f}, B={:.3f}'.format(A, B))
-        A=0.177, B=0.270
-
-        Best estimation:
-
-        >>> G.compute_fourier_basis()
-        >>> A, B = f.estimate_frame_bounds(use_eigenvalues=True)
+        A=1.708, B=2.359
+        >>> A, B = g.estimate_frame_bounds(G.e)
         >>> print('A={:.3f}, B={:.3f}'.format(A, B))
-        A=0.177, B=0.270
+        A=1.762, B=2.359
 
-        The Itersine filter bank defines a tight frame:
+        The frame bounds can be seen in the plot of the filter bank as the
+        minimum and maximum of their squared sum (the black curve):
 
-        >>> f = filters.Itersine(G)
-        >>> A, B = f.estimate_frame_bounds(use_eigenvalues=True)
+        >>> def plot(g, ax):
+        ...     g.plot(ax=ax, title='')
+        ...     ax.hlines(B, 0, G.lmax, colors='r', zorder=3,
+        ...               label='upper bound $B={:.2f}$'.format(B))
+        ...     ax.hlines(A, 0, G.lmax, colors='b', zorder=3,
+        ...               label='lower bound $A={:.2f}$'.format(A))
+        ...     ax.legend(loc='center right')
+        >>> plot(g, axes[0, 0])
+
+        The heat kernel has a null-space and doesn't define a frame (the lower
+        bound should be greater than 0 to have a frame):
+
+        >>> g = filters.Heat(G)
+        >>> A, B = g.estimate_frame_bounds()
+        >>> print('A={:.3f}, B={:.3f}'.format(A, B))
+        A=0.000, B=1.000
+        >>> plot(g, axes[0, 1])
+
+        Without a null-space, the heat kernel forms a frame:
+
+        >>> g = filters.Heat(G, tau=[1, 10])
+        >>> A, B = g.estimate_frame_bounds()
+        >>> print('A={:.3f}, B={:.3f}'.format(A, B))
+        A=0.135, B=2.000
+        >>> plot(g, axes[1, 0])
+
+        A kernel and its dual form a tight frame (A=B):
+
+        >>> g = filters.Regular(G)
+        >>> A, B = g.estimate_frame_bounds()
+        >>> print('A={:.3f}, B={:.3f}'.format(A, B))
+        A=1.000, B=1.000
+        >>> plot(g, axes[1, 1])
+        >>> fig.tight_layout()
+
+        The Itersine filter bank forms a tight frame (A=B):
+
+        >>> g = filters.Itersine(G)
+        >>> A, B = g.estimate_frame_bounds()
         >>> print('A={:.3f}, B={:.3f}'.format(A, B))
         A=1.000, B=1.000
 
         """
-        if max is None:
-            max = self.G.lmax
+        if x is None:
+            x = np.linspace(0, self.G.lmax, 1000)
 
-        if use_eigenvalues:
-            x = self.G.e
-        else:
-            x = np.linspace(min, max, N)
-
-        sum_filters = np.sum(np.abs(self.evaluate(x)**2), axis=0)
+        sum_filters = np.sum(self.evaluate(x)**2, axis=0)
 
         return sum_filters.min(), sum_filters.max()
 
     def compute_frame(self, **kwargs):
         r"""Compute the associated frame.
 
-        The size of the returned matrix operator :math:`D` is N x MN, where M
-        is the number of filters and N the number of nodes. Multiplying this
-        matrix with a set of signals is equivalent to analyzing them with the
-        associated filterbank. Though computing this matrix is a rather
-        inefficient way of doing it.
+        A filter bank defines a frame, which is a generalization of a basis to
+        sets of vectors that may be linearly dependent. See
+        `Wikipedia <https://en.wikipedia.org/wiki/Frame_(linear_algebra)>`_.
 
-        The frame is defined as follows:
+        The frame of a filter bank is the union of the frames of its
+        constituent filters. The vectors forming the frame are the rows of the
+        *analysis operator*
 
-        .. math:: g_i(L) = U g_i(\Lambda) U^*,
+        .. math::
+            g(L) = \begin{pmatrix} g_0(L) \\ \vdots \\ g_F(L) \end{pmatrix}
+                   \in \mathbb{R}^{NF \times N}, \quad
+            g_i(L) = U g_i(\Lambda) U^\top,
 
-        where :math:`g` is the filter kernel, :math:`L` is the graph Laplacian,
-        :math:`\Lambda` is a diagonal matrix of the Laplacian's eigenvalues,
-        and :math:`U` is the Fourier basis, i.e. its columns are the
-        eigenvectors of the Laplacian.
+        where :math:`g_i` are the filter kernels, :math:`N` is the number of
+        nodes, :math:`F` is the number of filters, :math:`L` is the graph
+        Laplacian, :math:`\Lambda` is a diagonal matrix of the Laplacian's
+        eigenvalues, and :math:`U` is the Fourier basis, i.e., its columns are
+        the eigenvectors of the Laplacian.
+
+        The matrix :math:`g(L)` represents the *analysis operator* of the
+        frame. Its adjoint :math:`g(L)^\top` represents the *synthesis
+        operator*. A signal :math:`x` is thus analyzed with the frame by
+        :math:`y = g(L) x`, and synthesized from its frame coefficients by
+        :math:`z = g(L)^\top y`. Computing this matrix is however a rather
+        inefficient way of doing those operations.
+
+        If :math:`F > 1`, the frame is said to be over-complete and the
+        representation :math:`g(L) x` of the signal :math:`x` is said to be
+        redundant.
+
+        If the frame is tight, the *frame operator* :math:`g(L)^\top g(L)` is
+        diagonal, with entries equal to the frame bound :math:`A = B`.
 
         Parameters
         ----------
@@ -458,39 +514,56 @@ class Filter(object):
         Returns
         -------
         frame : ndarray
-            Matrix of size N x MN.
+            Array of size (#nodes x #filters) x #nodes.
 
         See also
         --------
+        estimate_frame_bounds: estimate the frame bounds
         filter: more efficient way to filter signals
 
         Examples
         --------
-        Filtering signals as a matrix multiplication.
 
-        >>> G = graphs.Sensor(N=1000, seed=42)
-        >>> G.estimate_lmax()
-        >>> f = filters.MexicanHat(G, Nf=6)
+        >>> G = graphs.Sensor(100, seed=42)
+        >>> G.compute_fourier_basis()
+
+        Filtering as a multiplication with the matrix representation of the
+        frame analysis operator:
+
+        >>> g = filters.MexicanHat(G, Nf=6)
         >>> s = np.random.uniform(size=G.N)
         >>>
-        >>> frame = f.compute_frame()
-        >>> frame.shape
-        (1000, 1000, 6)
-        >>> frame = frame.reshape(G.N, -1).T
-        >>> s1 = np.dot(frame, s)
-        >>> s1 = s1.reshape(G.N, -1)
+        >>> gL = g.compute_frame()
+        >>> gL.shape
+        (600, 100)
+        >>> s1 = gL.dot(s)
+        >>> s1 = s1.reshape(G.N, -1, order='F')
         >>>
-        >>> s2 = f.filter(s)
+        >>> s2 = g.filter(s)
         >>> np.all(np.abs(s1 - s2) < 1e-10)
+        True
+
+        The frame operator of a tight frame is the identity matrix times the
+        frame bound:
+
+        >>> g = filters.Itersine(G)
+        >>> A, B = g.estimate_frame_bounds()
+        >>> print('A={:.3f}, B={:.3f}'.format(A, B))
+        A=1.000, B=1.000
+        >>> gL = g.compute_frame(method='exact')
+        >>> gL.shape
+        (600, 100)
+        >>> np.all(gL.T.dot(gL) - np.identity(G.N) < 1e-10)
         True
 
         """
         if self.G.N > 2000:
-            _logger.warning('Creating a big matrix, you can use other means.')
+            _logger.warning('Creating a big matrix. '
+                            'You should prefer the filter method.')
 
         # Filter one delta per vertex.
         s = np.identity(self.G.N)
-        return self.filter(s, **kwargs)
+        return self.filter(s, **kwargs).T.reshape(-1, self.G.N)
 
     def can_dual(self):
         r"""Creates a dual graph form a given graph"""

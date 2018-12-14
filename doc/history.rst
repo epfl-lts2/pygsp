@@ -16,6 +16,7 @@ History
 * Directed graphs are now completely supported.
 * The differential operator (D, grad, div) is better tested and documented.
 * A new method (G.dirichlet_energy) computes the Dirichlet energy of a signal.
+* Better documentation of the frame and its bounds.
 
 Plotting:
 
