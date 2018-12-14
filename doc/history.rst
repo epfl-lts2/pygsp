@@ -5,7 +5,7 @@ History
 0.6.0 (xxxx-xx-xx)
 ------------------
 
-* print(graph) and print(filters) now show valuable information.
+* ``print(graph)`` and ``print(filters)`` now show valuable information.
 * Building a graph object is much faster.
 * New rectangular filter (low-pass and band-pass).
 * The exponential window has been updated from low-pass only to band-pass.
@@ -15,7 +15,7 @@ History
   They are now implemented as filter banks.
 * Directed graphs are now completely supported.
 * The differential operator (D, grad, div) is better tested and documented.
-* A new method (G.dirichlet_energy) computes the Dirichlet energy of a signal.
+* ``G.dirichlet_energy(sig)`` computes the Dirichlet energy of a signal.
 * Better documentation of the frame and its bounds.
 * ``g.inverse()`` returns the pseudo-inverse of the filter bank.
 * ``g.complement()`` returns the filter that makes the frame tight.
@@ -30,19 +30,19 @@ Experimental filter API (to be tested and validated):
 Plotting:
 
 The plotting interface was updated to be more user-friendly. First, the
-documentation is now shown for filter.plot(), graph.plot(), and co. Second, the
-API in the plotting library has been deprecated. That module is now mostly for
-implementation only. Third, graph.plot() and graph.plot_signal() have been
-merged. As such, plot_signal() is deprecated. Finally, the following parameter
-names were changed:
+documentation is now shown for ``filter.plot()``, ``graph.plot()``, and co.
+Second, the API in the plotting library has been deprecated. That module is now
+mostly for implementation only. Third, ``graph.plot()`` and
+``graph.plot_signal()`` have been merged. As such, ``plot_signal()`` is
+deprecated. Finally, the following parameter names were changed:
 
-* plot_name => title
-* plot_eigenvalues => eigenvalues
-* show_sum => sum
-* show_edges => edges
-* vertex_size => size
-* npoints => n
-* save_as was removed
+* ``plot_name`` => ``title``
+* ``plot_eigenvalues`` => ``eigenvalues``
+* ``show_sum`` => ``sum``
+* ``show_edges`` => ``edges``
+* ``vertex_size`` => ``size``
+* ``npoints`` => ``n``
+* ``save_as`` was removed
 
 Other changes regarding plotting:
 
