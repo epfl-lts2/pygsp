@@ -131,6 +131,30 @@ class TestCase(unittest.TestCase):
         F = g.compute_frame(method='exact')
         np.testing.assert_allclose(F, gL)
 
+    def test_frame_bounds(self):
+        # Not a frame, it as a null-space.
+        g = filters.Rectangular(self._G)
+        A, B = g.estimate_frame_bounds()
+        self.assertEqual(A, 0)
+        self.assertEqual(B, 1)
+        # Identity is tight.
+        g = filters.Filter(self._G, lambda x: np.full_like(x, 2))
+        A, B = g.estimate_frame_bounds()
+        self.assertEqual(A, 4)
+        self.assertEqual(B, 4)
+
+    def test_frame(self):
+        """The frame is a stack of functions of the Laplacian."""
+        G = graphs.Sensor(100, seed=42)
+        g = filters.Heat(G, tau=[8, 9])
+        gL1 = g.compute_frame(method='exact')
+        gL2 = g.compute_frame(method='chebyshev', order=30)
+        def get_frame(freq_response):
+            return G.U.dot(np.diag(freq_response).dot(G.U.T))
+        gL = np.concatenate([get_frame(gl) for gl in g.evaluate(G.e)])
+        np.testing.assert_allclose(gL1, gL)
+        np.testing.assert_allclose(gL2, gL)
+
     def test_custom_filter(self):
         def kernel(x):
             return x / (1. + x)
