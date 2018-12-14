@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from functools import partial
+
 import numpy as np
 
 from pygsp import utils
@@ -589,26 +591,72 @@ class Filter(object):
         s = np.identity(self.G.N)
         return self.filter(s, **kwargs).T.reshape(-1, self.G.N)
 
-    def can_dual(self):
-        r"""Creates a dual graph form a given graph"""
+    def inverse(self):
+        r"""Return the pseudo-inverse filter bank.
 
-        def can_dual_func(g, n, x):
-            # Nshape = np.shape(x)
-            x = np.ravel(x)
-            N = np.shape(x)[0]
-            M = g.Nf
-            gcoeff = g.evaluate(x).T
+        The pseudo-inverse of the filter bank :math:`g` is the filter bank
+        :math:`g^+` such that
 
-            s = np.zeros((N, M))
-            for i in range(N):
-                s[i] = np.linalg.pinv(np.expand_dims(gcoeff[i], axis=1))
+        .. math:: g(L)^+ g(L) = I,
 
-            ret = s[:, n]
-            return ret
+        where :math:`I` is the identity matrix, and :math:`g(L)^+ = (g(L)\top
+        g(L))^{-1} g(L)^\top` is the left pseudo-inverse of :math:`g(L)`.
 
-        kernels = []
-        for i in range(self.Nf):
-            kernels.append(lambda x, i=i: can_dual_func(self, i, x))
+        The above relation holds, and the reconstruction is exact, if and only
+        if :math:`g(L)` is a frame. To be a frame, the rows of :math:`g(L)`
+        must span the whole space (i.e., :math:`g(L)` must have full row rank).
+        That is the case if the lower frame bound :math:`A > 0`. If
+        :math:`g(L)` is not a frame, the reconstruction :math:`g(L)^+ g(L) x`
+        will be the closest to :math:`x` in the least square sense.
+
+        Returns
+        -------
+        inverse: Filter
+            The pseudo-inverse filter bank.
+
+        See also
+        --------
+        estimate_frame_bounds: estimate the frame bounds
+
+        Examples
+        --------
+        >>> from matplotlib import pyplot as plt
+        >>> G = graphs.Sensor(100, seed=42)
+        >>> G.compute_fourier_basis()
+        >>> # Create a filter and its inverse.
+        >>> g = filters.Abspline(G, 5)
+        >>> h = g.inverse()
+        >>> # Plot them.
+        >>> fig, axes = plt.subplots(1, 2)
+        >>> _ = g.plot(ax=axes[0], title='original filter bank')
+        >>> _ = h.plot(ax=axes[1], title='inverse filter bank')
+        >>> # Filtering with the inverse reconstructs the original signal.
+        >>> x = np.random.RandomState(42).normal(size=G.N)
+        >>> y = g.filter(x, method='exact')
+        >>> z = h.filter(y, method='exact')
+        >>> print('error: {:.0e}'.format(np.linalg.norm(x - z)))
+        error: 3e-14
+        >>> # Indeed, they cancel each others' effect.
+        >>> Ag, Bg = g.estimate_frame_bounds()
+        >>> Ah, Bh = h.estimate_frame_bounds()
+        >>> print('A(g)*B(h) = {:.3f} * {:.3f} = {:.3f}'.format(Ag, Bh, Ag*Bh))
+        A(g)*B(h) = 0.687 * 1.457 = 1.000
+        >>> print('B(g)*A(h) = {:.3f} * {:.3f} = {:.3f}'.format(Bg, Ah, Bg*Ah))
+        B(g)*A(h) = 1.994 * 0.501 = 1.000
+
+        """
+
+        A, _ = self.estimate_frame_bounds()
+        if A == 0:
+            _logger.warning('The filter bank is not invertible as it is not '
+                            'a frame (lower frame bound A=0).')
+
+        def kernel(g, i, x):
+            y = g.evaluate(x).T
+            z = np.linalg.pinv(np.expand_dims(y, axis=-1)).squeeze(axis=-2)
+            return z[:, i]  # Return one filter.
+
+        kernels = [partial(kernel, self, i) for i in range(self.n_filters)]
 
         return Filter(self.G, kernels)
 

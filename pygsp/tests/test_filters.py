@@ -6,6 +6,7 @@ Test suite for the filters module of the pygsp package.
 """
 
 import unittest
+import sys
 
 import numpy as np
 
@@ -73,8 +74,6 @@ class TestCase(unittest.TestCase):
             F = f.compute_frame(method='chebyshev', order=100)
             s = F.dot(self._signal).reshape(-1, self._G.N).T.squeeze()
             np.testing.assert_allclose(s, s3)
-
-        # TODO: f.can_dual()
 
     def test_filter(self):
         Nf = 5
@@ -154,6 +153,31 @@ class TestCase(unittest.TestCase):
         gL = np.concatenate([get_frame(gl) for gl in g.evaluate(G.e)])
         np.testing.assert_allclose(gL1, gL)
         np.testing.assert_allclose(gL2, gL)
+
+    def test_inverse(self):
+        """The frame is the pseudo-inverse of the original frame."""
+        g = filters.Heat(self._G, tau=[2, 3, 4])
+        h = g.inverse()
+        Ag, Bg = g.estimate_frame_bounds()
+        Ah, Bh = h.estimate_frame_bounds()
+        np.testing.assert_allclose(Ag * Bh, 1)
+        np.testing.assert_allclose(Bg * Ah, 1)
+        gL = g.compute_frame(method='exact')
+        hL = h.compute_frame(method='exact')
+        I = np.identity(self._G.N)
+        np.testing.assert_allclose(hL.T.dot(gL), I, atol=1e-10)
+        pinv = np.linalg.inv(gL.T.dot(gL)).dot(gL.T)
+        np.testing.assert_allclose(pinv, hL.T, atol=1e-10)
+        # The reconstruction is exact for any frame (lower bound A > 0).
+        y = g.filter(self._signal, method='exact')
+        z = h.filter(y, method='exact')
+        np.testing.assert_allclose(z, self._signal)
+        # Not invertible if not a frame.
+        if sys.version_info > (3, 4):
+            g = filters.Expwin(self._G)
+            with self.assertLogs(level='WARNING'):
+                h = g.inverse()
+                h.evaluate(self._G.e)
 
     def test_custom_filter(self):
         def kernel(x):
