@@ -18,6 +18,7 @@ The :class:`Filter` base class implements a common interface to all filters:
     Filter.filter
     Filter.analyze
     Filter.synthesize
+    Filter.complement
     Filter.inverse
     Filter.compute_frame
     Filter.estimate_frame_bounds

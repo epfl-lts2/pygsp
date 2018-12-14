@@ -154,6 +154,13 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(gL1, gL)
         np.testing.assert_allclose(gL2, gL)
 
+    def test_complement(self):
+        """Any filter bank becomes tight upon addition of their complement."""
+        g = filters.MexicanHat(self._G)
+        g += g.complement()
+        A, B = g.estimate_frame_bounds()
+        np.testing.assert_allclose(A, B)
+
     def test_inverse(self):
         """The frame is the pseudo-inverse of the original frame."""
         g = filters.Heat(self._G, tau=[2, 3, 4])

@@ -18,6 +18,7 @@ History
 * A new method (G.dirichlet_energy) computes the Dirichlet energy of a signal.
 * Better documentation of the frame and its bounds.
 * ``g.inverse()`` returns the pseudo-inverse of the filter bank.
+* ``g.complement()`` returns the filter that makes the frame tight.
 
 Experimental filter API (to be tested and validated):
 

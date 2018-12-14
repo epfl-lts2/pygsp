@@ -421,6 +421,7 @@ class Filter(object):
         See also
         --------
         compute_frame: compute the frame
+        complement: complement a filter bank to become a tight frame
 
         Examples
         --------
@@ -590,6 +591,67 @@ class Filter(object):
         # Filter one delta per vertex.
         s = np.identity(self.G.N)
         return self.filter(s, **kwargs).T.reshape(-1, self.G.N)
+
+    def complement(self, frame_bound=None):
+        r"""Return the filter that makes the frame tight.
+
+        The complementary filter is designed such that the union of a filter
+        bank and its complementary filter forms a tight frame.
+
+        Parameters
+        ----------
+        frame_bound : float or None
+            The desired frame bound :math:`A = B` of the resulting tight frame.
+            The chosen bound should be larger than the sum of squared
+            evaluations of all filters in the filter bank.
+            If None (the default), the method chooses the smallest feasible
+            bound that is greater than one.
+
+        Returns
+        -------
+        complement: Filter
+            The complementary filter.
+
+        See also
+        --------
+        estimate_frame_bounds: estimate the frame bounds
+
+        Examples
+        --------
+        >>> from matplotlib import pyplot as plt
+        >>> G = graphs.Sensor(100, seed=42)
+        >>> G.estimate_lmax()
+        >>> g = filters.Abspline(G, 4)
+        >>> A, B = g.estimate_frame_bounds()
+        >>> print('A={:.3f}, B={:.3f}'.format(A, B))
+        A=0.200, B=1.971
+        >>> fig, axes = plt.subplots(1, 2)
+        >>> fig, ax = g.plot(ax=axes[0])
+        >>> g += g.complement()
+        >>> A, B = g.estimate_frame_bounds()
+        >>> print('A={:.3f}, B={:.3f}'.format(A, B))
+        A=1.971, B=1.971
+        >>> fig, ax = g.plot(ax=axes[1])
+
+        """
+
+        def kernel(x, *args, **kwargs):
+
+            y = self.evaluate(x)
+            np.power(y, 2, out=y)
+            y = np.sum(y, axis=0)
+
+            if frame_bound is None:
+                bound = np.maximum(np.max(y), 1)
+            elif y.max() > frame_bound:
+                raise ValueError('The chosen bound is not feasible. '
+                                 'Choose at least {}.'.format(y.max()))
+            else:
+                bound = frame_bound
+
+            return np.sqrt(bound - y)
+
+        return Filter(self.G, kernel)
 
     def inverse(self):
         r"""Return the pseudo-inverse filter bank.
