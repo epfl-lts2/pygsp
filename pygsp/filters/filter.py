@@ -610,9 +610,8 @@ class Filter(object):
         frame_bound : float or None
             The desired frame bound :math:`A = B` of the resulting tight frame.
             The chosen bound should be larger than the sum of squared
-            evaluations of all filters in the filter bank.
-            If None (the default), the method chooses the smallest feasible
-            bound that is greater than one.
+            evaluations of all filters in the filter bank. If None (the
+            default), the method chooses the smallest feasible bound.
 
         Returns
         -------
@@ -649,7 +648,7 @@ class Filter(object):
             y = np.sum(y, axis=0)
 
             if frame_bound is None:
-                bound = np.maximum(np.max(y), 1)
+                bound = y.max()
             elif y.max() > frame_bound:
                 raise ValueError('The chosen bound is not feasible. '
                                  'Choose at least {}.'.format(y.max()))
