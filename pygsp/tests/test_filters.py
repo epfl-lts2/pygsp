@@ -37,7 +37,7 @@ class TestCase(unittest.TestCase):
         self.assertIs(f.G, self._G)
 
         f.evaluate(self._G.e)
-        f.evaluate(np.random.normal(size=(4, 6, 3)))
+        f.evaluate(np.random.uniform(0, 1, size=(4, 6, 3)))
 
         A, B = f.estimate_frame_bounds(self._G.e)
         if tight:
