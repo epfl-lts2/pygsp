@@ -104,6 +104,13 @@ class Filter(object):
     def __matmul__(self, other):
         return self.filter(other)
 
+    def toarray(self):
+        r"""Return an array representation of the filter bank.
+
+        See :meth:`compute_frame`.
+        """
+        return self.compute_frame()
+
     def evaluate(self, x):
         r"""Evaluate the kernels at given frequencies.
 

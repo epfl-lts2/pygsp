@@ -24,6 +24,7 @@ Experimental filter API (to be tested and validated):
 
 * evaluate a filter bank with ``g(values)``
 * filter with ``g(graph) @ signal``
+* get an array representation (the frame) with ``g.toarray()``
 * index the ``len(g)`` filters of a filter bank with ``g[idx]``
 * concatenate filter banks with ``g + h``
 
