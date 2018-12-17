@@ -668,7 +668,8 @@ class Filter(object):
         .. math:: g(L)^+ g(L) = I,
 
         where :math:`I` is the identity matrix, and :math:`g(L)^+ = (g(L)\top
-        g(L))^{-1} g(L)^\top` is the left pseudo-inverse of :math:`g(L)`.
+        g(L))^{-1} g(L)^\top` is the left pseudo-inverse of the analysis
+        operator :math:`g(L)`.
 
         The above relation holds, and the reconstruction is exact, if and only
         if :math:`g(L)` is a frame. To be a frame, the rows of :math:`g(L)`
@@ -676,6 +677,10 @@ class Filter(object):
         That is the case if the lower frame bound :math:`A > 0`. If
         :math:`g(L)` is not a frame, the reconstruction :math:`g(L)^+ g(L) x`
         will be the closest to :math:`x` in the least square sense.
+
+        While there exists infinitely many inverses of the analysis operator of
+        a frame, the pseudo-inverse is unique and corresponds to the canonical
+        dual of the filter kernel.
 
         Returns
         -------
