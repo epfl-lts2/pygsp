@@ -682,6 +682,10 @@ class Filter(object):
         a frame, the pseudo-inverse is unique and corresponds to the canonical
         dual of the filter kernel.
 
+        If the frame is tight (i.e., :math:`A=B`), the canonical dual filters
+        are given by :math:`h_i = g_i / A`, where :math:`g_i` are the filters
+        composing the filter bank :math:`g`.
+
         Returns
         -------
         inverse: Filter

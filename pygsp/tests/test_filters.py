@@ -154,14 +154,15 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(gL1, gL)
         np.testing.assert_allclose(gL2, gL)
 
-    def test_complement(self):
+    def test_complement(self, frame_bound=2.5):
         """Any filter bank becomes tight upon addition of their complement."""
         g = filters.MexicanHat(self._G)
-        g += g.complement()
+        g += g.complement(frame_bound)
         A, B = g.estimate_frame_bounds()
-        np.testing.assert_allclose(A, B)
+        np.testing.assert_allclose(A, frame_bound)
+        np.testing.assert_allclose(B, frame_bound)
 
-    def test_inverse(self):
+    def test_inverse(self, frame_bound=3):
         """The frame is the pseudo-inverse of the original frame."""
         g = filters.Heat(self._G, tau=[2, 3, 4])
         h = g.inverse()
@@ -185,6 +186,11 @@ class TestCase(unittest.TestCase):
             with self.assertLogs(level='WARNING'):
                 h = g.inverse()
                 h.evaluate(self._G.e)
+        # If the frame is tight, inverse is h=g/A.
+        g += g.complement(frame_bound)
+        h = g.inverse()
+        he = g(self._G.e) / frame_bound
+        np.testing.assert_allclose(h(self._G.e), he, atol=1e-10)
 
     def test_custom_filter(self):
         def kernel(x):
