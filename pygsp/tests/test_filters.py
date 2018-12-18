@@ -77,16 +77,15 @@ class TestCase(unittest.TestCase):
             s = F.dot(self._signal).reshape(-1, self._G.N).T.squeeze()
             np.testing.assert_allclose(s, s3)
 
-    def test_filter(self):
-        Nf = 5
-        g = filters.MexicanHat(self._G, Nf=Nf)
+    def test_filter(self, n_filters=5):
+        g = filters.MexicanHat(self._G, n_filters)
 
         s1 = self._rs.uniform(size=self._G.N)
         s2 = s1.reshape((self._G.N, 1))
         s3 = g.filter(s1)
         s4 = g.filter(s2)
         s5 = g.analyze(s1)
-        assert s3.shape == (self._G.N, Nf)
+        assert s3.shape == (self._G.N, n_filters)
         np.testing.assert_allclose(s3, s4)
         np.testing.assert_allclose(s3, s5)
 
@@ -95,12 +94,12 @@ class TestCase(unittest.TestCase):
         s3 = g.filter(s1)
         s4 = g.filter(s2)
         s5 = g.analyze(s1)
-        assert s3.shape == (self._G.N, 4, Nf)
+        assert s3.shape == (self._G.N, 4, n_filters)
         np.testing.assert_allclose(s3, s4)
         np.testing.assert_allclose(s3, s5)
 
-        s1 = self._rs.uniform(size=(self._G.N, Nf))
-        s2 = s1.reshape((self._G.N, 1, Nf))
+        s1 = self._rs.uniform(size=(self._G.N, n_filters))
+        s2 = s1.reshape((self._G.N, 1, n_filters))
         s3 = g.filter(s1)
         s4 = g.filter(s2)
         s5 = g.synthesize(s1)
@@ -108,7 +107,7 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(s3, s4)
         np.testing.assert_allclose(s3, s5)
 
-        s1 = self._rs.uniform(size=(self._G.N, 10, Nf))
+        s1 = self._rs.uniform(size=(self._G.N, 10, n_filters))
         s3 = g.filter(s1)
         s5 = g.synthesize(s1)
         assert s3.shape == (self._G.N, 10)
