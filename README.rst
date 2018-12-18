@@ -60,7 +60,7 @@ main objects of the package.
 >>> G = graphs.Logo()
 >>> G.compute_fourier_basis()  # Fourier to plot the eigenvalues.
 >>> # G.estimate_lmax() is otherwise sufficient.
->>> g = filters.Heat(G, tau=50)
+>>> g = filters.Heat(G, scale=50)
 >>> fig, ax = g.plot()
 
 .. image:: ../pygsp/data/readme_example_filter.png

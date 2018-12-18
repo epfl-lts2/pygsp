@@ -38,9 +38,10 @@ class Heat(Filter):
     Parameters
     ----------
     G : graph
-    tau : int or list of ints
-        Scaling parameter. If a list, creates a filter bank with one filter per
-        value of tau.
+    scale : float or iterable
+        Scaling parameter. When solving heat diffusion, it encompasses both
+        time and thermal diffusivity.
+        If iterable, creates a filter bank with one filter per value.
     normalize : bool
         Normalizes the kernel. Needs the eigenvalues.
 
@@ -50,7 +51,7 @@ class Heat(Filter):
     Regular heat kernel.
 
     >>> G = graphs.Logo()
-    >>> g = filters.Heat(G, tau=[5, 10])
+    >>> g = filters.Heat(G, scale=[5, 10])
     >>> print('{} filters'.format(g.Nf))
     2 filters
     >>> y = g.evaluate(G.e)
@@ -59,7 +60,7 @@ class Heat(Filter):
 
     Normalized heat kernel.
 
-    >>> g = filters.Heat(G, tau=[5, 10], normalize=True)
+    >>> g = filters.Heat(G, scale=[5, 10], normalize=True)
     >>> y = g.evaluate(G.e)
     >>> print('{:.2f}'.format(np.linalg.norm(y[0])))
     1.00
@@ -70,7 +71,7 @@ class Heat(Filter):
     >>> G = graphs.Ring(N=20)
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
-    >>> g = filters.Heat(G, tau=[5, 10, 100])
+    >>> g = filters.Heat(G, scale=[5, 10, 100])
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = g.plot(ax=axes[0])
@@ -89,7 +90,8 @@ class Heat(Filter):
     >>> delta = np.zeros(graph.n_vertices)
     >>> delta[sources] = 5
     >>> steps = np.array([1, 5])
-    >>> g = filters.Heat(graph, tau=10*steps)
+    >>> diffusivity = 10
+    >>> g = filters.Heat(graph, scale=diffusivity*steps)
     >>> diffused = g.filter(delta)
     >>> fig, axes = plt.subplots(1, len(steps), figsize=(10, 4))
     >>> _ = fig.suptitle('Heat diffusion', fontsize=16)
@@ -101,26 +103,26 @@ class Heat(Filter):
 
     """
 
-    def __init__(self, G, tau=10, normalize=False):
+    def __init__(self, G, scale=10, normalize=False):
 
         try:
-            iter(tau)
+            iter(scale)
         except TypeError:
-            tau = [tau]
+            scale = [scale]
 
-        self.tau = tau
+        self.scale = scale
         self.normalize = normalize
 
-        def kernel(x, t):
-            return np.minimum(np.exp(-t * x / G.lmax), 1)
+        def kernel(x, scale):
+            return np.minimum(np.exp(-scale * x / G.lmax), 1)
 
         kernels = []
-        for t in tau:
-            norm = np.linalg.norm(kernel(G.e, t)) if normalize else 1
-            kernels.append(lambda x, t=t, norm=norm: kernel(x, t) / norm)
+        for s in scale:
+            norm = np.linalg.norm(kernel(G.e, s)) if normalize else 1
+            kernels.append(lambda x, s=s, norm=norm: kernel(x, s) / norm)
 
         super(Heat, self).__init__(G, kernels)
 
     def _get_extra_repr(self):
-        tau = '[' + ', '.join('{:.2f}'.format(t) for t in self.tau) + ']'
-        return dict(tau=tau, normalize=self.normalize)
+        scale = '[' + ', '.join('{:.2f}'.format(s) for s in self.scale) + ']'
+        return dict(scale=scale, normalize=self.normalize)

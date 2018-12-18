@@ -143,7 +143,7 @@ class TestCase(unittest.TestCase):
 
     def test_frame(self):
         """The frame is a stack of functions of the Laplacian."""
-        g = filters.Heat(self._G, tau=[8, 9])
+        g = filters.Heat(self._G, scale=[8, 9])
         gL1 = g.compute_frame(method='exact')
         gL2 = g.compute_frame(method='chebyshev', order=30)
         def get_frame(freq_response):
@@ -162,7 +162,7 @@ class TestCase(unittest.TestCase):
 
     def test_inverse(self, frame_bound=3):
         """The frame is the pseudo-inverse of the original frame."""
-        g = filters.Heat(self._G, tau=[2, 3, 4])
+        g = filters.Heat(self._G, scale=[2, 3, 4])
         h = g.inverse()
         Ag, Bg = g.estimate_frame_bounds()
         Ah, Bh = h.estimate_frame_bounds()
@@ -279,14 +279,14 @@ class TestCase(unittest.TestCase):
         self._test_methods(f, tight=True)
 
     def test_heat(self):
-        f = filters.Heat(self._G, normalize=False, tau=10)
+        f = filters.Heat(self._G, normalize=False, scale=10)
         self._test_methods(f, tight=False)
-        f = filters.Heat(self._G, normalize=False, tau=np.array([5, 10]))
+        f = filters.Heat(self._G, normalize=False, scale=np.array([5, 10]))
         self._test_methods(f, tight=False)
-        f = filters.Heat(self._G, normalize=True, tau=10)
+        f = filters.Heat(self._G, normalize=True, scale=10)
         np.testing.assert_allclose(np.linalg.norm(f.evaluate(self._G.e)), 1)
         self._test_methods(f, tight=False)
-        f = filters.Heat(self._G, normalize=True, tau=[5, 10])
+        f = filters.Heat(self._G, normalize=True, scale=[5, 10])
         np.testing.assert_allclose(np.linalg.norm(f.evaluate(self._G.e)[0]), 1)
         np.testing.assert_allclose(np.linalg.norm(f.evaluate(self._G.e)[1]), 1)
         self._test_methods(f, tight=False)
