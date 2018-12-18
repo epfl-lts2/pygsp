@@ -17,7 +17,7 @@ class TestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls._G = graphs.Logo()
+        cls._G = graphs.Sensor(123, seed=42)
         cls._G.compute_fourier_basis()
         cls._rs = np.random.RandomState(42)
         cls._signal = cls._rs.uniform(size=cls._G.N)
@@ -55,7 +55,7 @@ class TestCase(unittest.TestCase):
 
         if check:
             # Chebyshev should be close to exact.
-            # Does not pass for Gabor and Rectangular (not smooth).
+            # Does not pass for Gabor, Modulation and Rectangular (not smooth).
             np.testing.assert_allclose(s2, s3, rtol=0.1, atol=0.01)
             np.testing.assert_allclose(s4, s5, rtol=0.1, atol=0.01)
 
@@ -64,9 +64,11 @@ class TestCase(unittest.TestCase):
             np.testing.assert_allclose(s4, A * self._signal)
             assert np.linalg.norm(s5 - A * self._signal) < 0.1
 
-        if f.Nf < 10:
-            # Computing the frame is an alternative way to filter.
-            # Though it is memory intensive.
+        # Computing the frame is an alternative way to filter.
+        if f.n_filters != self._G.n_vertices:
+            # It doesn't work (yet) if the number of filters is the same as the
+            # number of nodes as f.filter() infers that we want synthesis where
+            # we actually want analysis.
             F = f.compute_frame(method='exact')
             s = F.dot(self._signal).reshape(-1, self._G.N).T.squeeze()
             np.testing.assert_allclose(s, s2)
@@ -113,17 +115,15 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(s3, s5)
 
     def test_localize(self):
-        G = graphs.Grid2d(20)
-        G.compute_fourier_basis()
-        g = filters.Heat(G, 100)
+        g = filters.Heat(self._G, 100)
 
         # Localize signal at node by filtering Kronecker delta.
         NODE = 10
         s1 = g.localize(NODE, method='exact')
 
         # Should be equal to a row / column of the filtering operator.
-        gL = G.U.dot(np.diag(g.evaluate(G.e)[0]).dot(G.U.T))
-        s2 = np.sqrt(G.N) * gL[NODE, :]
+        gL = self._G.U.dot(np.diag(g.evaluate(self._G.e)[0]).dot(self._G.U.T))
+        s2 = np.sqrt(self._G.N) * gL[NODE, :]
         np.testing.assert_allclose(s1, s2)
 
         # That is actually a row / column of the analysis operator.
@@ -144,15 +144,14 @@ class TestCase(unittest.TestCase):
 
     def test_frame(self):
         """The frame is a stack of functions of the Laplacian."""
-        G = graphs.Sensor(100, seed=42)
-        g = filters.Heat(G, tau=[8, 9])
+        g = filters.Heat(self._G, tau=[8, 9])
         gL1 = g.compute_frame(method='exact')
         gL2 = g.compute_frame(method='chebyshev', order=30)
         def get_frame(freq_response):
-            return G.U.dot(np.diag(freq_response).dot(G.U.T))
-        gL = np.concatenate([get_frame(gl) for gl in g.evaluate(G.e)])
+            return self._G.U.dot(np.diag(freq_response).dot(self._G.U.T))
+        gL = np.concatenate([get_frame(gl) for gl in g.evaluate(self._G.e)])
         np.testing.assert_allclose(gL1, gL)
-        np.testing.assert_allclose(gL2, gL)
+        np.testing.assert_allclose(gL2, gL, atol=1e-10)
 
     def test_complement(self, frame_bound=2.5):
         """Any filter bank becomes tight upon addition of their complement."""
