@@ -30,6 +30,16 @@ Filters
 
 Then, derived classes implement various common graph filters.
 
+**Filters that solve differential equations**
+
+The following filters solve partial differential equations (PDEs) on graphs,
+which model processes such as heat diffusion or wave propagation.
+
+.. autosummary::
+
+    Heat
+    Wave
+
 **Low-pass filters**
 
 .. autosummary::
@@ -122,6 +132,7 @@ _FILTERS = [
     'Regular',
     'Simoncelli',
     'SimpleTight',
+    'Wave',
 ]
 _APPROXIMATIONS = [
     'compute_cheby_coeff',

@@ -291,6 +291,25 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(np.linalg.norm(f.evaluate(self._G.e)[1]), 1)
         self._test_methods(f, tight=False)
 
+    def test_wave(self):
+        f = filters.Wave(self._G)
+        self._test_methods(f, tight=False)
+        f = filters.Wave(self._G, time=1)
+        self._test_methods(f, tight=False)
+        f = filters.Wave(self._G, time=[1, 2, 3])
+        self._test_methods(f, tight=False)
+        f = filters.Wave(self._G, speed=[1])
+        self._test_methods(f, tight=False)
+        f = filters.Wave(self._G, speed=[0.5, 1, 1.5])
+        self._test_methods(f, tight=False)
+        f = filters.Wave(self._G, time=[1, 2], speed=[1, 1.5])
+        self._test_methods(f, tight=False)
+        # Sequences of differing lengths.
+        self.assertRaises(ValueError, filters.Wave, self._G, time=[1, 2, 3],
+                          speed=[0, 1])
+        # Invalid speed.
+        self.assertRaises(ValueError, filters.Wave, self._G, speed=2)
+
     def test_expwin(self):
         f = filters.Expwin(self._G)
         self._test_methods(f, tight=False)
