@@ -10,28 +10,31 @@ from . import Filter  # prevent circular import in Python < 3.5
 class Heat(Filter):
     r"""Design a filter bank of heat kernels.
 
-    The (low-pass) heat kernel filter is defined in the spectral domain as
+    The (low-pass) heat kernel is defined in the spectral domain as
 
-    .. math:: \hat{g}_\tau(\lambda) =
-        \exp \left( -\tau \frac{\lambda}{\lambda_\text{max}} \right).
+    .. math:: g_\tau(\lambda) = \exp(-\tau \lambda),
+
+    where :math:`\lambda \in [0, 1]` are the normalized eigenvalues of the
+    graph Laplacian, and :math:`\tau` is a parameter that captures both time
+    and thermal diffusivity.
 
     The heat kernel is the fundamental solution to the heat equation
 
-    .. math:: \tau L f(t) = - \partial_t f(t),
+    .. math:: - \tau L f(t) = \partial_t f(t),
 
-    where :math:`f: \mathbb{R}_+ \rightarrow \mathbb{R}^N`. Given the initial
-    condition :math:`f(0)`, the solution of the heat equation is expressed as
+    where :math:`f: \mathbb{R}_+ \rightarrow \mathbb{R}^N` is the heat
+    distribution over the graph at time :math:`t`. Given the initial condition
+    :math:`f(0)`, the solution of the heat equation is expressed as
 
-    .. math:: f(t) = e^{-L \tau t} f(0)
-                   = U e^{-\Lambda \tau t} U^\top f(0)
-                   = K_t(L) f(0).
+    .. math:: f(t) = e^{-\tau t L} f(0)
+                   = U e^{-\tau t \Lambda} U^\top f(0)
+                   = g_{\tau t}(L) f(0).
 
     The above is, by definition, the convolution of the signal :math:`f(0)`
-    with the kernel :math:`K_t(\lambda) = \exp(-\tau t \lambda) = \hat{g}_\tau
-    (t \lambda \lambda_\text{max})`.
+    with the kernel :math:`g_{\tau t}(\lambda) = \exp(-\tau t \lambda)`.
     Hence, applying this filter to a signal simulates heat diffusion.
 
-    Since the kernel is applied to the graph eigenvalues :math:`\Lambda`, which
+    Since the kernel is applied to the graph eigenvalues :math:`\lambda`, which
     can be interpreted as squared frequencies, it can also be considered as a
     generalization of the Gaussian kernel on graphs.
 
@@ -43,27 +46,11 @@ class Heat(Filter):
         time and thermal diffusivity.
         If iterable, creates a filter bank with one filter per value.
     normalize : bool
-        Normalizes the kernel. Needs the eigenvalues.
+        Whether to normalize the kernel to have unit L2 norm.
+        The normalization needs the eigenvalues of the graph Laplacian.
 
     Examples
     --------
-
-    Regular heat kernel.
-
-    >>> G = graphs.Logo()
-    >>> g = filters.Heat(G, scale=[5, 10])
-    >>> print('{} filters'.format(g.Nf))
-    2 filters
-    >>> y = g.evaluate(G.e)
-    >>> print('{:.2f}'.format(np.linalg.norm(y[0])))
-    9.76
-
-    Normalized heat kernel.
-
-    >>> g = filters.Heat(G, scale=[5, 10], normalize=True)
-    >>> y = g.evaluate(G.e)
-    >>> print('{:.2f}'.format(np.linalg.norm(y[0])))
-    1.00
 
     Filter bank's representation in Fourier and time (ring graph) domains.
 
@@ -100,6 +87,19 @@ class Heat(Filter):
     ...                    title='step {}'.format(steps[i]), ax=ax)
     ...     ax.set_aspect('equal', 'box')
     ...     ax.set_axis_off()
+
+    Normalized heat kernel.
+
+    >>> G = graphs.Logo()
+    >>> G.compute_fourier_basis()
+    >>> g = filters.Heat(G, scale=5)
+    >>> y = g.evaluate(G.e)
+    >>> print('norm: {:.2f}'.format(np.linalg.norm(y[0])))
+    norm: 9.76
+    >>> g = filters.Heat(G, scale=5, normalize=True)
+    >>> y = g.evaluate(G.e)
+    >>> print('norm: {:.2f}'.format(np.linalg.norm(y[0])))
+    norm: 1.00
 
     """
 
