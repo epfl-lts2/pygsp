@@ -58,7 +58,7 @@ class Gabor(Filter):
     >>>
     >>> g1 = filters.Expwin(G, band_min=None, band_max=0, slope=3)
     >>> g2 = filters.Rectangular(G, band_min=-0.05, band_max=0.05)
-    >>> g3 = filters.Heat(G, tau=10)
+    >>> g3 = filters.Heat(G, scale=10)
     >>>
     >>> fig, axes = plt.subplots(3, 2, figsize=(10, 10))
     >>> for g, ax in zip([g1, g2, g3], axes):

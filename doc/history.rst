@@ -19,6 +19,7 @@ History
 * Better documentation of the frame and its bounds.
 * ``g.inverse()`` returns the pseudo-inverse of the filter bank.
 * ``g.complement()`` returns the filter that makes the frame tight.
+* Wave filter bank which application simulates the propagation of a wave.
 
 Experimental filter API (to be tested and validated):
 

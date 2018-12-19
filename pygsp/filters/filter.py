@@ -474,7 +474,7 @@ class Filter(object):
 
         Without a null-space, the heat kernel forms a frame:
 
-        >>> g = filters.Heat(G, tau=[1, 10])
+        >>> g = filters.Heat(G, scale=[1, 10])
         >>> A, B = g.estimate_frame_bounds()
         >>> print('A={:.3f}, B={:.3f}'.format(A, B))
         A=0.135, B=2.000
