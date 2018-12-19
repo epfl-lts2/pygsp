@@ -301,7 +301,7 @@ class TestCase(unittest.TestCase):
         graphs.Sensor(regular=False)
         graphs.Sensor(distributed=True)
         graphs.Sensor(distributed=False)
-        graphs.Sensor(connected=True)
+        graphs.Sensor(connected=True, n_try=100)
         graphs.Sensor(connected=False)
 
     def test_stochasticblockmodel(self):
@@ -309,10 +309,10 @@ class TestCase(unittest.TestCase):
         graphs.StochasticBlockModel(N=100, directed=False)
         graphs.StochasticBlockModel(N=100, self_loops=True)
         graphs.StochasticBlockModel(N=100, self_loops=False)
-        graphs.StochasticBlockModel(N=100, connected=True)
+        graphs.StochasticBlockModel(N=100, connected=True, n_try=100)
         graphs.StochasticBlockModel(N=100, connected=False)
         self.assertRaises(ValueError, graphs.StochasticBlockModel,
-                          N=100, p=0, q=0, connected=True)
+                          N=100, p=0, q=0, connected=True, n_try=100)
 
     def test_airfoil(self):
         graphs.Airfoil()
@@ -325,8 +325,8 @@ class TestCase(unittest.TestCase):
     def test_erdosreny(self):
         graphs.ErdosRenyi(N=100, connected=False, directed=False)
         graphs.ErdosRenyi(N=100, connected=False, directed=True)
-        graphs.ErdosRenyi(N=100, connected=True, directed=False)
-        graphs.ErdosRenyi(N=100, connected=True, directed=True)
+        graphs.ErdosRenyi(N=100, connected=True, n_try=100, directed=False)
+        graphs.ErdosRenyi(N=100, connected=True, n_try=100, directed=True)
         G = graphs.ErdosRenyi(N=100, p=1, self_loops=True)
         self.assertEqual(G.W.nnz, 100**2)
 
