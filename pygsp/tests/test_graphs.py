@@ -65,6 +65,45 @@ class TestCase(unittest.TestCase):
         G.compute_laplacian(lap_type='combinatorial')
         G.compute_laplacian(lap_type='normalized')
 
+    def test_estimate_lmax(self):
+
+        graph = graphs.Sensor()
+        self.assertRaises(ValueError, graph.estimate_lmax, method='unk')
+
+        def check_lmax(graph, lmax):
+            graph.estimate_lmax(method='bounds', recompute=True)
+            np.testing.assert_allclose(graph.lmax, lmax)
+            graph.estimate_lmax(method='lanczos', recompute=True)
+            np.testing.assert_allclose(graph.lmax, lmax*1.01)
+            graph.compute_fourier_basis()
+            np.testing.assert_allclose(graph.lmax, lmax)
+
+        # Full graph (bound is tight).
+        n_nodes, value = 10, 2
+        adjacency = np.full((n_nodes, n_nodes), value)
+        graph = graphs.Graph(adjacency, lap_type='combinatorial')
+        check_lmax(graph, lmax=value*n_nodes)
+
+        # Regular bipartite graph (bound is tight).
+        adjacency = np.array([
+            [0, 0, 1, 1],
+            [0, 0, 1, 1],
+            [1, 1, 0, 0],
+            [1, 1, 0, 0],
+        ])
+        graph = graphs.Graph(adjacency, lap_type='combinatorial')
+        check_lmax(graph, lmax=4)
+
+        # Bipartite graph (bound is tight).
+        adjacency = np.array([
+            [0, 0, 1, 1],
+            [0, 0, 1, 0],
+            [1, 1, 0, 0],
+            [1, 0, 0, 0],
+        ])
+        graph = graphs.Graph(adjacency, lap_type='normalized')
+        check_lmax(graph, lmax=2)
+
     def test_fourier_basis(self):
         # Smallest eigenvalue close to zero.
         np.testing.assert_allclose(self._G.e[0], 0, atol=1e-12)
@@ -302,7 +341,7 @@ class TestCase(unittest.TestCase):
         graphs.Sensor(regular=False)
         graphs.Sensor(distributed=True)
         graphs.Sensor(distributed=False)
-        graphs.Sensor(connected=True)
+        graphs.Sensor(connected=True, n_try=100)
         graphs.Sensor(connected=False)
 
     def test_stochasticblockmodel(self):
@@ -310,10 +349,10 @@ class TestCase(unittest.TestCase):
         graphs.StochasticBlockModel(N=100, directed=False)
         graphs.StochasticBlockModel(N=100, self_loops=True)
         graphs.StochasticBlockModel(N=100, self_loops=False)
-        graphs.StochasticBlockModel(N=100, connected=True)
+        graphs.StochasticBlockModel(N=100, connected=True, n_try=100)
         graphs.StochasticBlockModel(N=100, connected=False)
         self.assertRaises(ValueError, graphs.StochasticBlockModel,
-                          N=100, p=0, q=0, connected=True)
+                          N=100, p=0, q=0, connected=True, n_try=100)
 
     def test_airfoil(self):
         graphs.Airfoil()
@@ -326,8 +365,8 @@ class TestCase(unittest.TestCase):
     def test_erdosreny(self):
         graphs.ErdosRenyi(N=100, connected=False, directed=False)
         graphs.ErdosRenyi(N=100, connected=False, directed=True)
-        graphs.ErdosRenyi(N=100, connected=True, directed=False)
-        graphs.ErdosRenyi(N=100, connected=True, directed=True)
+        graphs.ErdosRenyi(N=100, connected=True, n_try=100, directed=False)
+        graphs.ErdosRenyi(N=100, connected=True, n_try=100, directed=True)
         G = graphs.ErdosRenyi(N=100, p=1, self_loops=True)
         self.assertEqual(G.W.nnz, 100**2)
 

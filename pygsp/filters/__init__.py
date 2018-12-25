@@ -18,6 +18,8 @@ The :class:`Filter` base class implements a common interface to all filters:
     Filter.filter
     Filter.analyze
     Filter.synthesize
+    Filter.complement
+    Filter.inverse
     Filter.compute_frame
     Filter.estimate_frame_bounds
     Filter.plot
@@ -27,6 +29,16 @@ Filters
 -------
 
 Then, derived classes implement various common graph filters.
+
+**Filters that solve differential equations**
+
+The following filters solve partial differential equations (PDEs) on graphs,
+which model processes such as heat diffusion or wave propagation.
+
+.. autosummary::
+
+    Heat
+    Wave
 
 **Low-pass filters**
 
@@ -120,6 +132,7 @@ _FILTERS = [
     'Regular',
     'Simoncelli',
     'SimpleTight',
+    'Wave',
 ]
 _APPROXIMATIONS = [
     'compute_cheby_coeff',

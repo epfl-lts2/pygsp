@@ -717,7 +717,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             self.estimate_lmax()
         return self._lmax
 
-    def estimate_lmax(self, recompute=False):
+    def estimate_lmax(self, method='lanczos', recompute=False):
         r"""Estimate the Laplacian's largest eigenvalue (cached).
 
         The result is cached and accessible by the :attr:`lmax` property.
@@ -728,54 +728,93 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Parameters
         ----------
+        method : {'lanczos', 'bounds'}
+            Whether to estimate the largest eigenvalue with the implicitly
+            restarted Lanczos method, or to return an upper bound on the
+            spectrum of the Laplacian.
         recompute : boolean
             Force to recompute the largest eigenvalue. Default is false.
 
         Notes
         -----
-        Runs the implicitly restarted Lanczos method with a large tolerance,
-        then increases the calculated largest eigenvalue by 1 percent. For much
-        of the PyGSP machinery, we need to approximate wavelet kernels on an
+        Runs the implicitly restarted Lanczos method (as implemented in
+        :func:`scipy.sparse.linalg.eigsh`) with a large tolerance, then
+        increases the calculated largest eigenvalue by 1 percent. For much of
+        the PyGSP machinery, we need to approximate filter kernels on an
         interval that contains the spectrum of L. The only cost of using a
         larger interval is that the polynomial approximation over the larger
         interval may be a slightly worse approximation on the actual spectrum.
         As this is a very mild effect, it is not necessary to obtain very tight
         bounds on the spectrum of L.
 
+        A faster but less tight alternative is to use known algebraic bounds on
+        the graph Laplacian.
+
         Examples
         --------
         >>> G = graphs.Logo()
-        >>> G.compute_fourier_basis()
+        >>> G.compute_fourier_basis()  # True value.
         >>> print('{:.2f}'.format(G.lmax))
         13.78
-        >>> G = graphs.Logo()
-        >>> G.estimate_lmax(recompute=True)
+        >>> G.estimate_lmax(recompute=True)  # Estimate.
         >>> print('{:.2f}'.format(G.lmax))
         13.92
+        >>> G.estimate_lmax(method='bounds', recompute=True)  # Upper bound.
+        >>> print('{:.2f}'.format(G.lmax))
+        18.58
 
         """
         if hasattr(self, '_lmax') and not recompute:
             return
 
-        try:
-            lmax = sparse.linalg.eigsh(self.L, k=1, tol=5e-3,
-                                       ncv=min(self.N, 10),
-                                       return_eigenvectors=False)
-            lmax = lmax[0]
-            lmax *= 1.01  # Increase by 1 percent to be robust to errors.
+        if method == 'lanczos':
+            try:
+                lmax = sparse.linalg.eigsh(self.L, k=1, tol=5e-3,
+                                           ncv=min(self.N, 10),
+                                           return_eigenvectors=False)
+                lmax = lmax[0]
+                assert lmax <= self._get_upper_bound() + 1e-12
+                lmax *= 1.01  # Increase by 1% to be robust to errors.
+                self._lmax = lmax
+            except sparse.linalg.ArpackNoConvergence:
+                raise ValueError('The Lanczos method did not converge. '
+                                 'Try to use bounds.')
 
-        except sparse.linalg.ArpackNoConvergence:
-            self.logger.warning('Lanczos method did not converge. '
-                                'Using an alternative method.')
-            if self.lap_type == 'normalized':
-                lmax = 2  # Spectrum is bounded by [0, 2].
-            elif self.lap_type == 'combinatorial':
-                lmax = 2 * np.max(self.dw)
+        elif method == 'bounds':
+            self._lmax = self._get_upper_bound()
+
+        else:
+            raise ValueError('Unknown method {}'.format(method))
+
+    def _get_upper_bound(self):
+        r"""Return an upper bound on the eigenvalues of the Laplacian."""
+
+        if self.lap_type == 'normalized':
+            return 2  # Equal iff the graph is bipartite.
+        elif self.lap_type == 'combinatorial':
+            bounds = []
+            # Equal for full graphs.
+            bounds += [self.n_vertices * np.max(self.W)]
+            # Gershgorin circle theorem. Equal for regular bipartite graphs.
+            # Special case of the below bound.
+            bounds += [2 * np.max(self.dw)]
+            # Anderson, Morley, Eigenvalues of the Laplacian of a graph.
+            # Equal for regular bipartite graphs.
+            if self.n_edges > 0:
+                sources, targets, _ = self.get_edge_list()
+                bounds += [np.max(self.dw[sources] + self.dw[targets])]
+            # Merris, A note on Laplacian graph eigenvalues.
+            if not self.is_directed():
+                W = self.W
             else:
-                raise ValueError('Unknown Laplacian type '
-                                 '{}'.format(self.lap_type))
-
-        self._lmax = lmax
+                W = utils.symmetrize(self.W, method='average')
+            m = W.dot(self.dw) / self.dw  # Mean degree of adjacent vertices.
+            bounds += [np.max(self.dw + m)]
+            # Good review: On upper bounds for Laplacian graph eigenvalues.
+            return min(bounds)
+        else:
+            raise ValueError('Unknown Laplacian type '
+                             '{}'.format(self.lap_type))
 
     def get_edge_list(self):
         r"""Return an edge list, an alternative representation of the graph.
