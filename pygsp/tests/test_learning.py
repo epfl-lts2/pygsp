@@ -105,10 +105,10 @@ class TestCase(unittest.TestCase):
             recovery3[:, i] = learning.regression_tik(
                     G2, measurements[:, i], mask, TAU)
 
-        np.testing.assert_allclose(recovery, recovery0, atol=1e-6)
-        np.testing.assert_allclose(recovery, recovery1, atol=1e-6)
-        np.testing.assert_allclose(recovery, recovery2, atol=1e-6)
-        np.testing.assert_allclose(recovery, recovery3, atol=1e-6)
+        np.testing.assert_allclose(recovery, recovery0, atol=1e-5)
+        np.testing.assert_allclose(recovery, recovery1, atol=1e-5)
+        np.testing.assert_allclose(recovery, recovery2, atol=1e-5)
+        np.testing.assert_allclose(recovery, recovery3, atol=1e-5)
 
     def test_classification_tik(self):
         """Solve a classification problem."""
