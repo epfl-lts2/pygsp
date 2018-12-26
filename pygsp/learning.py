@@ -68,7 +68,7 @@ def classification_tik_simplex(G, y, M, tau=0.1, **kwargs):
 
     Solve the classification problem by reconstructing the signal:
 
-    >>> recovery = learning.classification_tik(G, measurements, mask, tau=0)
+    >>> recovery = learning.classification_tik_simplex(G, measurements, mask, tau=0)
 
     Plot the results. Note that recovery gives the logits, we recover the class
     using `np.argmax(recovery, axis=1)`
