@@ -166,6 +166,7 @@ _NNGRAPHS = [
     'NNGraph',
     'Bunny',
     'Cube',
+    'NNSensor',
     'ImgPatches',
     'Grid2dImgPatches',
     'Sphere',

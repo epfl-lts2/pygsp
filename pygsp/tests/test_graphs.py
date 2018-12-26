@@ -263,7 +263,7 @@ class TestCase(unittest.TestCase):
         W = 10*np.abs(np.random.randn(10,10))
         W = W + W.T
         W = W - np.diag(np.diag(W))
-        
+
         G = graphs.Graph(W)
         G.estimate_lmax()
         G.compute_fourier_basis()
@@ -359,6 +359,14 @@ class TestCase(unittest.TestCase):
         graphs.Sensor(distributed=False)
         graphs.Sensor(connected=True, n_try=100)
         graphs.Sensor(connected=False)
+
+    def test_nnsensor(self):
+        graphs.NNSensor(N=30000)
+        graphs.NNSensor(N=100, distributed=True)
+        graphs.NNSensor(N=100, distributed=False)
+        graphs.NNSensor(N=100, seed=10)
+        graphs.NNSensor(N=100, k=20)
+
 
     def test_stochasticblockmodel(self):
         graphs.StochasticBlockModel(N=100, directed=True)

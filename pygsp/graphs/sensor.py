@@ -133,3 +133,4 @@ class Sensor(Graph):
                 'distributed': self.distributed,
                 'connected': self.connected,
                 'seed': self.seed}
+
