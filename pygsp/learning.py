@@ -152,12 +152,12 @@ def classification_tik(G, y, M, tau=0):
 
     >>> fig, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(10, 3))
     >>> _ = G.plot_signal(signal, ax=ax1)
-    >>> ax1.set_title('Ground truth')
-    >>> G.plot_signal(measurements, ax=ax2)
-    >>> ax2.set_title('Measurements')
-    >>> G.plot_signal(recovery, ax=ax3)
-    >>> ax3.set_title('Recovery')
-    >>> fig.tight_layout()
+    >>> _ = ax1.set_title('Ground truth')
+    >>> _ = G.plot_signal(measurements, ax=ax2)
+    >>> _ = ax2.set_title('Measurements')
+    >>> _ = G.plot_signal(recovery, ax=ax3)
+    >>> _ = ax3.set_title('Recovery')
+    >>> _ = fig.tight_layout()
 
     """
 
@@ -223,11 +223,12 @@ def regression_tik(G, y, M, tau=0):
     >>> f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True)
     >>> c = [signal.min(), signal.max()]
     >>> _ = G.plot_signal(signal, ax=ax1, limits=c)
-    >>> ax1.set_title('Ground truth')
+    >>> _ = ax1.set_title('Ground truth')
     >>> _ = G.plot_signal(measurements, ax=ax2, limits=c)
-    >>> ax2.set_title('Measurements')
+    >>> _ = ax2.set_title('Measurements')
     >>> _ = G.plot_signal(recovery, ax=ax3, limits=c)
-    >>> ax3.set_title('Recovery')
+    >>> _ = ax3.set_title('Recovery')
+    >>> _ = fig.tight_layout()
 
     """
 
