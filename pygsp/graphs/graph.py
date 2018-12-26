@@ -769,7 +769,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         if method == 'lanczos':
             try:
-                lmax = sparse.linalg.eigsh(self.L, k=1, tol=5e-3,
+                # We need to cast the matrix L as a supported type...
+                # This is probably not good in term of memory
+                lmax = sparse.linalg.eigsh(self.L.asfptype(), k=1, tol=5e-3,
                                            ncv=min(self.N, 10),
                                            return_eigenvectors=False)
                 lmax = lmax[0]
