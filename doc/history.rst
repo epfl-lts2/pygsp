@@ -8,8 +8,9 @@ History
 
 New features:
 
-* A learning module with two functions to solve classification and regression
-  semi-supervised learning problems.
+* A learning module with three functions to solve classification and regression
+ semi-supervised learning problems.
+* A new graph called NNSensor that scales (contrarily to the current Sensor graph)
 
 0.6.0 (xxxx-xx-xx)
 ------------------
