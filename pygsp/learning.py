@@ -260,7 +260,7 @@ def regression_tik(G, y, M, tau=0):
     else:
 
         if np.prod(M.shape) != G.N:
-            ValueError("M should be of size [G.N,]")
+            raise ValueError("M should be of size [G.N,]")
 
         indl = M
         indu = M == False

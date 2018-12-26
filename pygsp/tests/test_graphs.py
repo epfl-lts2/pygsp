@@ -259,6 +259,22 @@ class TestCase(unittest.TestCase):
             self.assertEqual(nx.laplacian_matrix(G).nnz, 0)
             self.assertEqual(nx.normalized_laplacian_matrix(G).nnz, 0)
             self.assertEqual(nx.incidence_matrix(G).nnz, 0)
+    def test_other_laptype(self):
+        W = 10*np.abs(np.random.randn(10,10))
+        W = W + W.T
+        W = W - np.diag(np.diag(W))
+        
+        G = graphs.Graph(W)
+        G.estimate_lmax()
+        G.compute_fourier_basis()
+
+        G = graphs.Graph(W.astype(np.float32))
+        G.estimate_lmax()
+        G.compute_fourier_basis()
+
+        G = graphs.Graph(W.astype(np.int))
+        G.estimate_lmax()
+        G.compute_fourier_basis()
 
     def test_set_coordinates(self):
         G = graphs.FullConnected()

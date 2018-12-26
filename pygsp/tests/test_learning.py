@@ -23,6 +23,12 @@ class TestCase(unittest.TestCase):
         recovery1 = learning.regression_tik(G3, signal, mask, tau=0)
         np.testing.assert_allclose(recovery0, recovery1)
 
+        # Test the numpy solution
+        W = G3.W.toarray()
+        G4 = graphs.Graph(W)
+        recovery2 = learning.regression_tik(G4, signal, mask, tau=0)
+        np.testing.assert_allclose(recovery0, recovery2)
+
     def test_regression_tik_2(self):
         """Solve a regression problem with a constraint."""
         # Create the graph
@@ -122,6 +128,16 @@ class TestCase(unittest.TestCase):
         recovery = learning.classification_tik(G, measurements, mask, tau=0)
 
         np.testing.assert_array_equal(recovery, signal)
+
+        # test the function witht the simplex projection
+        recovery2 = learning.classification_tik_simplex(G, measurements, mask, tau=0.1)
+
+        # Assert that the probabilities sums to 1
+        np.testing.assert_allclose(np.sum(recovery2, axis=1),1)
+
+        # Check the quality of the solution
+        recovery3 = np.argmax(recovery2, axis=1)
+        np.testing.assert_allclose(signal, recovery3)
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

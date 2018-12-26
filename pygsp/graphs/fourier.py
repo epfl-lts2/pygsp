@@ -179,7 +179,7 @@ class GraphFourier(object):
         # filter's implementations may not anticipate. Better for plotting too.
         # Nati: Shall we make a difference for float32?
         if np.dtype(self.L) == 'float32':
-            assert -1e-9 < self._e[0] < 1e-8
+            assert -1e-5 < self._e[0] < 1e-5
         else:
             assert -1e-12 < self._e[0] < 1e-12
         self._e[0] = 0
