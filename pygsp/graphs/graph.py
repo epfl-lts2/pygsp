@@ -510,9 +510,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Combinatorial and normalized Laplacians of an undirected graph.
 
         >>> adjacency = np.array([
-        ...     [0, 2, 0],
-        ...     [2, 0, 1],
-        ...     [0, 1, 0],
+        ...     [0., 2., 0.],
+        ...     [2., 0., 1.],
+        ...     [0., 1., 0.],
         ... ])
         >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')

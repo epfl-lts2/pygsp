@@ -76,7 +76,7 @@ def classification_tik_simplex(G, y, M, tau=0.1, **kwargs):
     f1 = functions.func()
 
     def smooth_eval(x):
-        xTLx = np.sum(x * (G.L @ x))
+        xTLx = np.sum(x * (G.L.dot(x)))
         e = M*((M*x.T)-Y.T)
         l2 = np.sum(e*e)
         return tau*xTLx + l2
@@ -151,9 +151,12 @@ def classification_tik(G, y, M, tau=0):
     Plot the results:
 
     >>> fig, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(10, 3))
-    >>> G.plot_signal(signal, plot_name='Ground truth', ax=ax1)
-    >>> G.plot_signal(measurements, plot_name='Measurements', ax=ax2)
-    >>> G.plot_signal(recovery, plot_name='Recovery', ax=ax3)
+    >>> _ = G.plot_signal(signal, ax=ax1)
+    >>> ax1.set_title('Ground truth')
+    >>> G.plot_signal(measurements, ax=ax2)
+    >>> ax2.set_title('Measurements')
+    >>> G.plot_signal(recovery, ax=ax3)
+    >>> ax3.set_title('Recovery')
     >>> fig.tight_layout()
 
     """
@@ -219,9 +222,12 @@ def regression_tik(G, y, M, tau=0):
 
     >>> f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True)
     >>> c = [signal.min(), signal.max()]
-    >>> G.plot_signal(signal, plot_name='Ground truth', ax=ax1, limits=c)
-    >>> G.plot_signal(measurements, plot_name='Measurements', ax=ax2, limits=c)
-    >>> G.plot_signal(recovery, plot_name='Recovery', ax=ax3, limits=c)
+    >>> _ = G.plot_signal(signal, ax=ax1, limits=c)
+    >>> ax1.set_title('Ground truth')
+    >>> _ = G.plot_signal(measurements, ax=ax2, limits=c)
+    >>> ax2.set_title('Measurements')
+    >>> _ = G.plot_signal(recovery, ax=ax3, limits=c)
+    >>> ax3.set_title('Recovery')
 
     """
 
