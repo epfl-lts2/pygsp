@@ -25,6 +25,71 @@ from pyunlocbox import functions, solvers
 
 
 def classification_tik_simplex(G, y, M, tau=0.1, **kwargs):
+    r"""Solve a classification problem on graph via Tikhonov minimization 
+    with simple constraints.
+
+    The function first transform :math:`y` in logits :math:`Y`. It then solves
+
+    .. math:: \operatorname*{arg min}_X \| M X - Y \|_2^2 + \tau \ tr(X^T L X) 
+                                        s.t. sum(Y) = 1 and Y>=0
+
+    otherwise, where :math:`X` and :math:`Y` are logits. The function returns
+    the logits.
+
+    Parameters
+    ----------
+    G : Graph
+    y : array of length G.N
+        Measurements
+    M : array of boolean, length G.N
+        Masking vector.
+    tau : float
+        Regularization parameter.
+
+    Examples
+    --------
+    >>> from pygsp import graphs, learning
+    >>> import matplotlib.pyplot as plt
+    >>>
+    >>> G = graphs.Logo()
+
+    Create a ground truth signal:
+
+    >>> signal = np.zeros(G.N)
+    >>> signal[G.info['idx_s']] = 1
+    >>> signal[G.info['idx_p']] = 2
+
+    Construct a measurements signal from a binary mask:
+
+    >>> rs = np.random.RandomState(42)
+    >>> mask = rs.uniform(0, 1, G.N) > 0.5
+    >>> measurements = signal.copy()
+    >>> measurements[~mask] = np.nan
+
+    Solve the classification problem by reconstructing the signal:
+
+    >>> recovery = learning.classification_tik(G, measurements, mask, tau=0)
+
+    Plot the results. Note that recovery gives the logits, we recover the class
+    using `np.argmax(recovery, axis=1)`
+
+    >>> fig, ax = plt.subplots(2, 3, sharey=True, figsize=(10, 6))
+    >>> (ax1, ax2, ax3), (ax4, ax5, ax6)  = ax
+    >>> _ = G.plot_signal(signal, ax=ax1)
+    >>> _ = ax1.set_title('Ground truth')
+    >>> _ = G.plot_signal(measurements, ax=ax2)
+    >>> _ = ax2.set_title('Measurements')
+    >>> _ = G.plot_signal(np.argmax(recovery, axis=1), ax=ax3)
+    >>> _ = ax3.set_title('Max logit')
+    >>> _ = G.plot_signal(recovery[:,0], ax=ax4)
+    >>> _ = ax4.set_title('Logit 0')
+    >>> _ = G.plot_signal(recovery[:,1], ax=ax5)
+    >>> _ = ax5.set_title('Logit 1')
+    >>> _ = G.plot_signal(recovery[:,2], ax=ax6)
+    >>> _ = ax6.set_title('Logit 2')
+    >>> _ = fig.tight_layout()
+
+    """
     assert(tau > 0)
 
     def to_logits(x):
@@ -220,7 +285,7 @@ def regression_tik(G, y, M, tau=0):
 
     Plot the results:
 
-    >>> f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True)
+    >>> f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(10, 3))
     >>> c = [signal.min(), signal.max()]
     >>> _ = G.plot_signal(signal, ax=ax1, limits=c)
     >>> _ = ax1.set_title('Ground truth')
