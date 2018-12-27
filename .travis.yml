@@ -28,8 +28,9 @@ install:
 
 script:
 # - make lint
-  - make test
-  - make doc
+#  - make test
+# - make doc
+  - docker run -v `pwd`:/opt/pygsp cgallay/pygsp make test
 
 after_success:
   - coveralls
