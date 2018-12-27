@@ -23,21 +23,14 @@ addons:
       - libflann-dev
 
 install:
-  - pip install --upgrade --upgrade-strategy eager .[dev]
-  # Upgrade to test with the latest version of our dependencies.
-
-before_script:
-  # As graph-tool cannot be installed by pip, link to the system installation
-  # from the virtual environment.
-  # TODO: remove the condition once we drop python 2.7.
-  - if [[ $(python -c 'import sys; print(sys.version_info[0])') = 3 ]] ;
-    then ln -s "/usr/lib/python3/dist-packages/graph_tool" $(python -c "import site; print(site.getsitepackages()[0])");
-    else ln -s "/usr/lib/python2.7/dist-packages/graph_tool" $(python -c "import site; print(site.getsitepackages()[0])"); fi
+  - pip install -U --upgrade-strategy eager .[alldeps,test,doc]
+  # Update dependencies (e.g. numpy formatting changed in v1.14).
 
 script:
 # - make lint
-  - make test
-  - make doc
+#  - make test
+# - make doc
+  - docker run -v `pwd`:/opt/pygsp cgallay/pygsp make test
 
 after_success:
   - coveralls
