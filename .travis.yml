@@ -1,26 +1,14 @@
 sudo: false
 
 language: python
-cache: pip  # cache wheels for faster tests (PySide build can timeout)
-python:
-  - 2.7
-  - 3.4
-  - 3.5
-  - 3.6
-
-addons:
-  apt:
-    packages:
-      - xvfb
-
-install:
-  - pip install -U --upgrade-strategy eager .[alldeps,test,doc]
-  # Update dependencies (e.g. numpy formatting changed in v1.14).
+services:
+  - docker
 
 script:
 # - make lint
-  - make test
-  - make doc
+#  - make test
+# - make doc
+  - docker run -v `pwd`:/opt/pygsp cgallay/pygsp make test
 
 after_success:
   - coveralls
