@@ -1,15 +1,19 @@
+# Needed as trusty (the default) doesn't support python 3.7.
+# Remove once xenial is made default.
+# https://github.com/travis-ci/travis-ci/issues/9815
+dist: xenial
+
 language: python
 cache: pip  # cache wheels for faster tests (PySide build can timeout)
 python:
-  - 2.7
   - 3.5
   - 3.6
-# Enable 3.7 without globally enabling sudo and xenial
-# https://github.com/travis-ci/travis-ci/issues/9815
+  - 3.7
+
 matrix:
   include:
-    - python: 3.7
-      dist: xenial
+    - python: 2.7
+      dist: trusty  # "cannot import name QtOpenGL" with xenial
 
 addons:
   apt:
