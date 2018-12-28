@@ -14,10 +14,11 @@ logger = utils.build_logger(__name__)
 def _import_pyunlocbox():
     try:
         from pyunlocbox import functions, solvers
-    except Exception:
+    except Exception as e:
         raise ImportError('Cannot import pyunlocbox, which is needed to solve '
                           'this optimization problem. Try to install it with '
-                          'pip (or conda) install pyunlocbox.')
+                          'pip (or conda) install pyunlocbox. '
+                          'Original exception: {}'.format(e))
     return functions, solvers
 
 

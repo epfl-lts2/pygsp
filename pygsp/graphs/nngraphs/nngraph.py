@@ -14,10 +14,11 @@ _logger = utils.build_logger(__name__)
 def _import_pfl():
     try:
         import pyflann as pfl
-    except Exception:
+    except Exception as e:
         raise ImportError('Cannot import pyflann. Choose another nearest '
                           'neighbors method or try to install it with '
-                          'pip (or conda) install pyflann (or pyflann3).')
+                          'pip (or conda) install pyflann (or pyflann3). '
+                          'Original exception: {}'.format(e))
     return pfl
 
 
