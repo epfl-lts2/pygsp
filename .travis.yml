@@ -16,11 +16,6 @@ matrix:
       dist: trusty  # "cannot import name QtOpenGL" with xenial
       cache: pip  # avoid PySide wheel build
 
-addons:
-  apt:
-    packages:
-      - xvfb
-
 install:
   - pip install -U --upgrade-strategy eager .[alldeps,test,doc]
   # Update dependencies (e.g. numpy formatting changed in v1.14).
