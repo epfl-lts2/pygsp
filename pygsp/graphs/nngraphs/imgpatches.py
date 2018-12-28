@@ -84,10 +84,11 @@ class ImgPatches(NNGraph):
         #              sklearn has much less dependencies than skimage.
         try:
             import skimage
-        except Exception:
+        except Exception as e:
             raise ImportError('Cannot import skimage, which is needed to '
                               'extract patches. Try to install it with '
-                              'pip (or conda) install scikit-image.')
+                              'pip (or conda) install scikit-image. '
+                              'Original exception: {}'.format(e))
         patches = skimage.util.view_as_windows(img, window_shape=window_shape)
         patches = patches.reshape((h * w, r * c * d))
 

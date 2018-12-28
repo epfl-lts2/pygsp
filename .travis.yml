@@ -1,17 +1,20 @@
-sudo: false
+# Needed as trusty (the default) doesn't support python 3.7.
+# Remove once xenial is made default.
+# https://github.com/travis-ci/travis-ci/issues/9815
+dist: xenial
 
 language: python
-cache: pip  # cache wheels for faster tests (PySide build can timeout)
+
 python:
-  - 2.7
-  - 3.4
   - 3.5
   - 3.6
+  - 3.7
 
-addons:
-  apt:
-    packages:
-      - xvfb
+matrix:
+  include:
+    - python: 2.7
+      dist: trusty  # "cannot import name QtOpenGL" with xenial
+      cache: pip  # avoid PySide wheel build
 
 install:
   - pip install -U --upgrade-strategy eager .[alldeps,test,doc]

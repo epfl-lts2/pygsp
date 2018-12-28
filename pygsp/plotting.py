@@ -44,10 +44,11 @@ def _import_plt():
         import matplotlib as mpl
         from matplotlib import pyplot as plt
         from mpl_toolkits import mplot3d
-    except Exception:
+    except Exception as e:
         raise ImportError('Cannot import matplotlib. Choose another backend '
                           'or try to install it with '
-                          'pip (or conda) install matplotlib.')
+                          'pip (or conda) install matplotlib. '
+                          'Original exception: {}'.format(e))
     return mpl, plt, mplot3d
 
 
@@ -56,11 +57,12 @@ def _import_qtg():
         import pyqtgraph as qtg
         import pyqtgraph.opengl as gl
         from pyqtgraph.Qt import QtGui
-    except Exception:
+    except Exception as e:
         raise ImportError('Cannot import pyqtgraph. Choose another backend '
                           'or try to install it with '
                           'pip (or conda) install pyqtgraph. You will also '
-                          'need PyQt5 (or PySide) and PyOpenGL.')
+                          'need PyQt5 (or PySide) and PyOpenGL. '
+                          'Original exception: {}'.format(e))
     return qtg, gl, QtGui
 
 
