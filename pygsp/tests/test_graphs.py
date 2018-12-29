@@ -361,12 +361,12 @@ class TestCase(unittest.TestCase):
         graphs.Sensor(connected=False)
 
     def test_nnsensor(self):
-        graphs.NNSensor(N=30000)
+        graphs.NNSensor(3000)
         graphs.NNSensor(N=100, distributed=True)
-        graphs.NNSensor(N=100, distributed=False)
-        graphs.NNSensor(N=100, seed=10)
-        graphs.NNSensor(N=100, k=20)
-
+        self.assertRaises(ValueError, graphs.NNSensor, N=101, distributed=True)
+        graphs.NNSensor(N=101, distributed=False)
+        graphs.NNSensor(seed=10)
+        graphs.NNSensor(k=20)
 
     def test_stochasticblockmodel(self):
         graphs.StochasticBlockModel(N=100, directed=True)

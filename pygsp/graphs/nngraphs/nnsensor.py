@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import numpy as np
 
 from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
@@ -14,13 +16,18 @@ class NNSensor(NNGraph):
     Parameters
     ----------
     N : int
-        Number of nodes (default = 64)
-    distribute : bool
-        To distribute the points more evenly (default = False)
+        Number of nodes.
+        Must be a perfect square if ``distributed=True``.
+    k : int
+        Minimum number of neighbors.
+    distributed : bool
+        Whether to distribute the vertices more evenly on the plane.
+        If False, coordinates are taken uniformly at random in a [0, 1] square.
+        If True, the vertices are arranged on a perturbed grid.
     seed : int
         Seed for the random number generator (for reproducible graphs).
-    k : number of neighboors (Default 6)
-    **kwargs : keyword arguments for NNGraph
+    **kwargs :
+        Additional keyword arguments for :class:`NNGraph`.
 
     Examples
     --------
@@ -30,50 +37,41 @@ class NNSensor(NNGraph):
     >>> _ = axes[0].spy(G.W, markersize=2)
     >>> _ = G.plot(ax=axes[1])
 
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.NNSensor(N=64, distributed=True, seed=42)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = axes[0].spy(G.W, markersize=2)
+    >>> _ = G.plot(ax=axes[1])
+
     """
 
-    def __init__(self, N=10000, distributed=False, seed=None, k=6, **kwargs):
-        """Initialize a Sentor graph based on NNgraph."""
+    def __init__(self, N=64, k=6, distributed=False, seed=None, **kwargs):
+
         self.distributed = distributed
         self.seed = seed
-        self.k = k
 
         plotting = {'limits': np.array([0, 1, 0, 1])}
-
-        coords = self._create_coords(N, distributed)
-
-        super(NNSensor, self).__init__(Xin=coords, k=k,
-                                       plotting=plotting, **kwargs)
-
-    def _create_coords(self, N, distributed):
-        XCoords = np.zeros((N, 1))
-        YCoords = np.zeros((N, 1))
 
         rs = np.random.RandomState(self.seed)
 
         if distributed:
-            mdim = int(np.ceil(np.sqrt(N)))
 
-            # for i in range(mdim):
-            #     for j in range(mdim):
-            #         if i*mdim + j < N:
-            #             XCoords[i*mdim + j] = np.array((i + rs.rand()) / mdim)
-            #             YCoords[i*mdim + j] = np.array((j + rs.rand()) / mdim)
-            XCoords = np.repeat(np.arange(mdim),mdim) + rs.rand(mdim**2)
-            YCoords = np.tile(np.arange(mdim), mdim) + rs.rand(mdim**2)
+            m = np.sqrt(N)
+            if not m.is_integer():
+                raise ValueError('The number of vertices must be a '
+                                 'perfect square if they are to be '
+                                 'distributed on a grid.')
 
-            XCoords /= mdim
-            YCoords /= mdim
-            XCoords = XCoords[:N].reshape((N, 1))
-            YCoords = YCoords[:N].reshape((N, 1))
-        # take random coordinates in a 1 by 1 square
+            coords = np.mgrid[0:1:1/m, 0:1:1/m].reshape(2, -1).T
+            coords += rs.uniform(0, 1/m, (N, 2))
+
         else:
-            XCoords = rs.rand(N, 1)
-            YCoords = rs.rand(N, 1)
 
-        coords = np.concatenate((XCoords, YCoords), axis=1)
+            coords = rs.uniform(0, 1, (N, 2))
 
-        return coords
+        super(NNSensor, self).__init__(Xin=coords, k=k,
+                                       rescale=False, center=False,
+                                       plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         return {'k': self.k,

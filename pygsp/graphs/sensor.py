@@ -21,9 +21,9 @@ class Sensor(Graph):
     n_try : int
         Maximum number of trials to get a connected graph (default is 50).
     distributed : bool
-        To distribute the points more evenly (default = False)
+        Whether to distribute the vertices more evenly on the plane.
     connected : bool
-        To force the graph to be connected (default = True)
+        Whether to force the graph to be connected (default = True).
     seed : int
         Seed for the random number generator (for reproducible graphs).
 
