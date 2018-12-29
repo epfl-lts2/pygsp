@@ -5,6 +5,8 @@ Test suite for the graphs module of the pygsp package.
 
 """
 
+from __future__ import division
+
 import unittest
 
 import numpy as np
@@ -53,17 +55,62 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(G.dw, 3 * 0.3)
 
     def test_laplacian(self):
-        # TODO: should test correctness.
+
+        adjacency = np.array([
+            [0, 3, 0, 1],
+            [3, 0, 1, 0],
+            [0, 1, 0, 3],
+            [1, 0, 3, 0],
+        ])
+        laplacian = np.array([
+            [+4, -3, +0, -1],
+            [-3, +4, -1, +0],
+            [+0, -1, +4, -3],
+            [-1, +0, -3, +4],
+        ])
+        G = graphs.Graph(adjacency)
+        self.assertFalse(G.is_directed())
+        G.compute_laplacian('combinatorial')
+        np.testing.assert_allclose(G.L.toarray(), laplacian)
+        G.compute_laplacian('normalized')
+        np.testing.assert_allclose(G.L.toarray(), laplacian/4)
+
+        adjacency = np.array([
+            [0, 6, 0, 1],
+            [0, 0, 0, 0],
+            [0, 2, 0, 3],
+            [1, 0, 3, 0],
+        ])
+        G = graphs.Graph(adjacency)
+        self.assertTrue(G.is_directed())
+        G.compute_laplacian('combinatorial')
+        np.testing.assert_allclose(G.L.toarray(), laplacian)
+        G.compute_laplacian('normalized')
+        np.testing.assert_allclose(G.L.toarray(), laplacian/4)
+
+        def test_combinatorial(G):
+            np.testing.assert_equal(G.L.toarray(), G.L.T.toarray())
+            np.testing.assert_equal(G.L.sum(axis=0), 0)
+            np.testing.assert_equal(G.L.sum(axis=1), 0)
+            np.testing.assert_equal(G.L.diagonal(), G.dw)
+
+        def test_normalized(G):
+            np.testing.assert_equal(G.L.toarray(), G.L.T.toarray())
+            np.testing.assert_equal(G.L.diagonal(), 1)
 
         G = graphs.ErdosRenyi(100, directed=False)
         self.assertFalse(G.is_directed())
         G.compute_laplacian(lap_type='combinatorial')
+        test_combinatorial(G)
         G.compute_laplacian(lap_type='normalized')
+        test_normalized(G)
 
         G = graphs.ErdosRenyi(100, directed=True)
         self.assertTrue(G.is_directed())
         G.compute_laplacian(lap_type='combinatorial')
+        test_combinatorial(G)
         G.compute_laplacian(lap_type='normalized')
+        test_normalized(G)
 
     def test_estimate_lmax(self):
 
