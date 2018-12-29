@@ -144,9 +144,8 @@ class TestCase(unittest.TestCase):
         G = graphs.Sensor()
         G.plot()
         plotting.show(block=False)  # Don't block or the test will halt.
-        # FIXME: raises a RecursionError with Python 3.6 on Travis.
-        # plotting.close()
-        # plotting.close_all()
+        plotting.close()
+        plotting.close_all()
 
     def test_coords(self):
         G = graphs.Sensor()

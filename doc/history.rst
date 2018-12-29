@@ -30,6 +30,7 @@ New features:
 * ``g.inverse()`` returns the pseudo-inverse of the filter bank.
 * ``g.complement()`` returns the filter that makes the frame tight.
 * Wave filter bank which application simulates the propagation of a wave.
+* Drop support of Python 3.4 and test with 3.7. Last version to support 2.7.
 
 Experimental filter API (to be tested and validated):
 
