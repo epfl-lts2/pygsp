@@ -205,14 +205,14 @@ def compute_jackson_cheby_coeff(filter_bounds, delta_lambda, m):
     ch = np.arange(float(m+1))
     ch[0] = (2/(np.pi))*(np.arccos(filter_bounds[0])-np.arccos(filter_bounds[1]))
     for i in ch[1:]:
-        ch[i] = (2/(np.pi * i)) * \
+        ch[int(i)] = (2/(np.pi * i)) * \
             (np.sin(i * np.arccos(filter_bounds[0])) - np.sin(i * np.arccos(filter_bounds[1])))
 
     # Then compute jackson coeffs
     jch = np.arange(float(m+1))
     alpha = (np.pi/(m+2))
     for i in jch:
-        jch[i] = (1/np.sin(alpha)) * \
+        jch[int(i)] = (1/np.sin(alpha)) * \
             ((1 - i/(m+2)) * np.sin(alpha) * np.cos(i * alpha) +
              (1/(m+2)) * np.cos(alpha) * np.sin(i * alpha))
 
