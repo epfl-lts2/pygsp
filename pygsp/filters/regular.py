@@ -47,7 +47,7 @@ class Regular(Filter):
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = g.plot(ax=axes[0])
-    >>> _ = G.plot_signal(s, ax=axes[1])
+    >>> _ = G.plot(s, ax=axes[1])
 
     """
 
@@ -55,21 +55,17 @@ class Regular(Filter):
 
         self.degree = degree
 
-        kernels = [lambda x: regular(x * (2/G.lmax), degree)]
-        def dual(x):
-            y = regular(x * (2/G.lmax), degree)
-            return np.real(np.sqrt(1 - y**2))
-        kernels.append(dual)
-
-        def regular(val, degree):
+        def kernel(x, degree):
             if degree == 0:
-                return np.sin(np.pi / 4*val)
-
+                return np.sin(np.pi / 4 * x)
             else:
-                output = np.sin(np.pi*(val - 1) / 2)
-                for i in range(2, degree):
-                    output = np.sin(np.pi*output / 2)
+                output = np.sin(np.pi * (x - 1) / 2)
+                for _ in range(2, degree):
+                    output = np.sin(np.pi * output / 2)
+                return np.sin(np.pi / 4 * (1 + output))
 
-                return np.sin(np.pi / 4*(1 + output))
+        regular = Filter(G, lambda x: kernel(x*2/G.lmax, degree))
+        complement = regular.complement(frame_bound=1)
+        kernels = regular._kernels + complement._kernels
 
         super(Regular, self).__init__(G, kernels)

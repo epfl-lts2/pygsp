@@ -39,7 +39,7 @@ class Simoncelli(Filter):
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = g.plot(ax=axes[0])
-    >>> _ = G.plot_signal(s, ax=axes[1])
+    >>> _ = G.plot(s, ax=axes[1])
 
     """
 
@@ -47,26 +47,24 @@ class Simoncelli(Filter):
 
         self.a = a
 
-        kernels = [lambda x: simoncelli(x * (2/G.lmax), a)]
-        def dual(x):
-            y = simoncelli(x * (2/G.lmax), a)
-            return np.real(np.sqrt(1 - y**2))
-        kernels.append(dual)
-
-        def simoncelli(val, a):
-            y = np.empty(np.shape(val))
+        def kernel(x, a):
+            y = np.empty(np.shape(x))
             l1 = a
             l2 = 2 * a
 
-            r1ind = (val >= 0) * (val < l1)
-            r2ind = (val >= l1) * (val < l2)
-            r3ind = (val >= l2)
+            r1ind = (x >= 0) * (x < l1)
+            r2ind = (x >= l1) * (x < l2)
+            r3ind = (x >= l2)
 
             y[r1ind] = 1
-            y[r2ind] = np.cos(np.pi/2 * np.log(val[r2ind]/a) / np.log(2))
+            y[r2ind] = np.cos(np.pi/2 * np.log(x[r2ind]/a) / np.log(2))
             y[r3ind] = 0
 
             return y
+
+        simoncelli = Filter(G, lambda x: kernel(x*2/G.lmax, a))
+        complement = simoncelli.complement(frame_bound=1)
+        kernels = simoncelli._kernels + complement._kernels
 
         super(Simoncelli, self).__init__(G, kernels)
 

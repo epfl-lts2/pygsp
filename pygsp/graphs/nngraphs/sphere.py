@@ -65,6 +65,7 @@ class Sphere(NNGraph):
         }
 
         super(Sphere, self).__init__(Xin=pts, k=10,
+                                     center=False, rescale=False,
                                      plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):

@@ -5,6 +5,8 @@ Test suite for the graphs module of the pygsp package.
 
 """
 
+from __future__ import division
+
 import unittest
 import random
 import os
@@ -56,18 +58,101 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(G.dw, 3 * 0.3)
 
     def test_laplacian(self):
-        # TODO: should test correctness.
 
-        G = graphs.StochasticBlockModel(N=100, directed=False)
+        adjacency = np.array([
+            [0, 3, 0, 1],
+            [3, 0, 1, 0],
+            [0, 1, 0, 3],
+            [1, 0, 3, 0],
+        ])
+        laplacian = np.array([
+            [+4, -3, +0, -1],
+            [-3, +4, -1, +0],
+            [+0, -1, +4, -3],
+            [-1, +0, -3, +4],
+        ])
+        G = graphs.Graph(adjacency)
+        self.assertFalse(G.is_directed())
+        G.compute_laplacian('combinatorial')
+        np.testing.assert_allclose(G.L.toarray(), laplacian)
+        G.compute_laplacian('normalized')
+        np.testing.assert_allclose(G.L.toarray(), laplacian/4)
+
+        adjacency = np.array([
+            [0, 6, 0, 1],
+            [0, 0, 0, 0],
+            [0, 2, 0, 3],
+            [1, 0, 3, 0],
+        ])
+        G = graphs.Graph(adjacency)
+        self.assertTrue(G.is_directed())
+        G.compute_laplacian('combinatorial')
+        np.testing.assert_allclose(G.L.toarray(), laplacian)
+        G.compute_laplacian('normalized')
+        np.testing.assert_allclose(G.L.toarray(), laplacian/4)
+
+        def test_combinatorial(G):
+            np.testing.assert_equal(G.L.toarray(), G.L.T.toarray())
+            np.testing.assert_equal(G.L.sum(axis=0), 0)
+            np.testing.assert_equal(G.L.sum(axis=1), 0)
+            np.testing.assert_equal(G.L.diagonal(), G.dw)
+
+        def test_normalized(G):
+            np.testing.assert_equal(G.L.toarray(), G.L.T.toarray())
+            np.testing.assert_equal(G.L.diagonal(), 1)
+
+        G = graphs.ErdosRenyi(100, directed=False)
         self.assertFalse(G.is_directed())
         G.compute_laplacian(lap_type='combinatorial')
+        test_combinatorial(G)
         G.compute_laplacian(lap_type='normalized')
+        test_normalized(G)
 
-        G = graphs.StochasticBlockModel(N=100, directed=True)
+        G = graphs.ErdosRenyi(100, directed=True)
         self.assertTrue(G.is_directed())
         G.compute_laplacian(lap_type='combinatorial')
-        self.assertRaises(NotImplementedError, G.compute_laplacian,
-                          lap_type='normalized')
+        test_combinatorial(G)
+        G.compute_laplacian(lap_type='normalized')
+        test_normalized(G)
+
+    def test_estimate_lmax(self):
+
+        graph = graphs.Sensor()
+        self.assertRaises(ValueError, graph.estimate_lmax, method='unk')
+
+        def check_lmax(graph, lmax):
+            graph.estimate_lmax(method='bounds', recompute=True)
+            np.testing.assert_allclose(graph.lmax, lmax)
+            graph.estimate_lmax(method='lanczos', recompute=True)
+            np.testing.assert_allclose(graph.lmax, lmax*1.01)
+            graph.compute_fourier_basis()
+            np.testing.assert_allclose(graph.lmax, lmax)
+
+        # Full graph (bound is tight).
+        n_nodes, value = 10, 2
+        adjacency = np.full((n_nodes, n_nodes), value)
+        graph = graphs.Graph(adjacency, lap_type='combinatorial')
+        check_lmax(graph, lmax=value*n_nodes)
+
+        # Regular bipartite graph (bound is tight).
+        adjacency = np.array([
+            [0, 0, 1, 1],
+            [0, 0, 1, 1],
+            [1, 1, 0, 0],
+            [1, 1, 0, 0],
+        ])
+        graph = graphs.Graph(adjacency, lap_type='combinatorial')
+        check_lmax(graph, lmax=4)
+
+        # Bipartite graph (bound is tight).
+        adjacency = np.array([
+            [0, 0, 1, 1],
+            [0, 0, 1, 0],
+            [1, 1, 0, 0],
+            [1, 0, 0, 0],
+        ])
+        graph = graphs.Graph(adjacency, lap_type='normalized')
+        check_lmax(graph, lmax=2)
 
     def test_fourier_basis(self):
         # Smallest eigenvalue close to zero.
@@ -140,48 +225,89 @@ class TestCase(unittest.TestCase):
         s_star = self._G.igft(s_hat)
         np.testing.assert_allclose(s, s_star)
 
-    def test_gft_windowed_gabor(self):
-        self._G.gft_windowed_gabor(self._signal, lambda x: x/(1.-x))
-
-    def test_gft_windowed(self):
-        self.assertRaises(NotImplementedError, self._G.gft_windowed,
-                          None, self._signal)
-
-    def test_gft_windowed_normalized(self):
-        self.assertRaises(NotImplementedError, self._G.gft_windowed_normalized,
-                          None, self._signal)
-
-    def test_translate(self):
-        self.assertRaises(NotImplementedError, self._G.translate,
-                          self._signal, 42)
-
-    def test_modulate(self):
-        # FIXME: don't work
-        # self._G.modulate(self._signal, 3)
-        pass
-
     def test_edge_list(self):
-        G = graphs.StochasticBlockModel(N=100, directed=False)
-        v_in, v_out, weights = G.get_edge_list()
-        self.assertEqual(G.W[v_in[42], v_out[42]], weights[42])
+        for directed in [False, True]:
+            G = graphs.ErdosRenyi(100, directed=directed)
+            sources, targets, weights = G.get_edge_list()
+            if not directed:
+                self.assertTrue(np.all(sources <= targets))
+            edges = np.arange(G.n_edges)
+            np.testing.assert_equal(G.W[sources[edges], targets[edges]],
+                                    weights[edges][np.newaxis, :])
 
-        G = graphs.StochasticBlockModel(N=100, directed=True)
-        self.assertRaises(NotImplementedError, G.get_edge_list)
-
-    def test_differential_operator(self):
-        G = graphs.StochasticBlockModel(N=100, directed=False)
-        L = G.D.T.dot(G.D)
-        np.testing.assert_allclose(L.toarray(), G.L.toarray())
-
-        G = graphs.StochasticBlockModel(N=100, directed=True)
-        self.assertRaises(NotImplementedError, G.compute_differential_operator)
+    def test_differential_operator(self, n_vertices=98):
+        r"""The Laplacian must always be the divergence of the gradient,
+        whether the Laplacian is combinatorial or normalized, and whether the
+        graph is directed or weighted."""
+        def test_incidence_nx(graph):
+            r"""Test that the incidence matrix corresponds to NetworkX."""
+            incidence_pg = np.sign(graph.D.toarray())
+            G = nx.OrderedDiGraph if graph.is_directed() else nx.OrderedGraph
+            graph_nx = nx.from_scipy_sparse_matrix(graph.W, create_using=G)
+            incidence_nx = nx.incidence_matrix(graph_nx, oriented=True)
+            np.testing.assert_equal(incidence_pg, incidence_nx.toarray())
+        for graph in [graphs.Graph(np.zeros((n_vertices, n_vertices))),
+                      graphs.Graph(np.identity(n_vertices)),
+                      graphs.Graph(np.array([[0, 0.8], [0.8, 0]])),
+                      graphs.Graph(np.array([[1.3, 0], [0.4, 0.5]])),
+                      graphs.ErdosRenyi(n_vertices, directed=False, seed=42),
+                      graphs.ErdosRenyi(n_vertices, directed=True, seed=42)]:
+            for lap_type in ['combinatorial', 'normalized']:
+                graph.compute_laplacian(lap_type)
+                graph.compute_differential_operator()
+                L = graph.D.dot(graph.D.T)
+                np.testing.assert_allclose(L.toarray(), graph.L.toarray())
+                test_incidence_nx(graph)
 
     def test_difference(self):
         for lap_type in ['combinatorial', 'normalized']:
             G = graphs.Logo(lap_type=lap_type)
-            s_grad = G.grad(self._signal)
-            Ls = G.div(s_grad)
-            np.testing.assert_allclose(Ls, G.L.dot(self._signal))
+            y = G.grad(self._signal)
+            self.assertEqual(len(y), G.n_edges)
+            z = G.div(y)
+            self.assertEqual(len(z), G.n_vertices)
+            np.testing.assert_allclose(z, G.L.dot(self._signal))
+
+    def test_dirichlet_energy(self, n_vertices=100):
+        r"""The Dirichlet energy is defined as the norm of the gradient."""
+        signal = np.random.RandomState(42).uniform(size=n_vertices)
+        for lap_type in ['combinatorial', 'normalized']:
+            graph = graphs.BarabasiAlbert(n_vertices)
+            graph.compute_differential_operator()
+            energy = graph.dirichlet_energy(signal)
+            grad_norm = np.sum(graph.grad(signal)**2)
+            np.testing.assert_allclose(energy, grad_norm)
+
+    def test_empty_graph(self, n_vertices=11):
+        """Empty graphs have either no edge, or self-loops only. The Laplacian
+        doesn't see self-loops, as the gradient on those edges is always zero.
+        """
+        adjacencies = [
+            np.zeros((n_vertices, n_vertices)),
+            np.identity(n_vertices),
+        ]
+        for adjacency, n_edges in zip(adjacencies, [0, n_vertices]):
+            graph = graphs.Graph(adjacency)
+            self.assertEqual(graph.n_vertices, n_vertices)
+            self.assertEqual(graph.n_edges, n_edges)
+            self.assertEqual(graph.W.nnz, n_edges)
+            for laplacian in ['combinatorial', 'normalized']:
+                graph.compute_laplacian(laplacian)
+                self.assertEqual(graph.L.nnz, 0)
+                sources, targets, weights = graph.get_edge_list()
+                self.assertEqual(len(sources), n_edges)
+                self.assertEqual(len(targets), n_edges)
+                self.assertEqual(len(weights), n_edges)
+                graph.compute_differential_operator()
+                self.assertEqual(graph.D.nnz, 0)
+                graph.compute_fourier_basis()
+                np.testing.assert_allclose(graph.U, np.identity(n_vertices))
+                np.testing.assert_allclose(graph.e, np.zeros(n_vertices))
+            # NetworkX uses the same conventions.
+            G = nx.from_scipy_sparse_matrix(graph.W)
+            self.assertEqual(nx.laplacian_matrix(G).nnz, 0)
+            self.assertEqual(nx.normalized_laplacian_matrix(G).nnz, 0)
+            self.assertEqual(nx.incidence_matrix(G).nnz, 0)
 
     def test_set_coordinates(self):
         G = graphs.FullConnected()
@@ -264,7 +390,7 @@ class TestCase(unittest.TestCase):
         graphs.Sensor(regular=False)
         graphs.Sensor(distributed=True)
         graphs.Sensor(distributed=False)
-        graphs.Sensor(connected=True)
+        graphs.Sensor(connected=True, n_try=100)
         graphs.Sensor(connected=False)
 
     def test_stochasticblockmodel(self):
@@ -272,10 +398,10 @@ class TestCase(unittest.TestCase):
         graphs.StochasticBlockModel(N=100, directed=False)
         graphs.StochasticBlockModel(N=100, self_loops=True)
         graphs.StochasticBlockModel(N=100, self_loops=False)
-        graphs.StochasticBlockModel(N=100, connected=True)
+        graphs.StochasticBlockModel(N=100, connected=True, n_try=100)
         graphs.StochasticBlockModel(N=100, connected=False)
         self.assertRaises(ValueError, graphs.StochasticBlockModel,
-                          N=100, p=0, q=0, connected=True)
+                          N=100, p=0, q=0, connected=True, n_try=100)
 
     def test_airfoil(self):
         graphs.Airfoil()
@@ -288,8 +414,8 @@ class TestCase(unittest.TestCase):
     def test_erdosreny(self):
         graphs.ErdosRenyi(N=100, connected=False, directed=False)
         graphs.ErdosRenyi(N=100, connected=False, directed=True)
-        graphs.ErdosRenyi(N=100, connected=True, directed=False)
-        graphs.ErdosRenyi(N=100, connected=True, directed=True)
+        graphs.ErdosRenyi(N=100, connected=True, n_try=100, directed=False)
+        graphs.ErdosRenyi(N=100, connected=True, n_try=100, directed=True)
         G = graphs.ErdosRenyi(N=100, p=1, self_loops=True)
         self.assertEqual(G.W.nnz, 100**2)
 

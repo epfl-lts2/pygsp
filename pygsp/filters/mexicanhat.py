@@ -51,7 +51,7 @@ class MexicanHat(Filter):
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = g.plot(ax=axes[0])
-    >>> _ = G.plot_signal(s, ax=axes[1])
+    >>> _ = G.plot(s, ax=axes[1])
 
     """
 

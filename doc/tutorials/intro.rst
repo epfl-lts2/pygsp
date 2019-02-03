@@ -98,7 +98,7 @@ smoothness of a signal.
 
     >>> G.compute_differential_operator()
     >>> G.D.shape
-    (60, 30)
+    (30, 60)
 
 .. note::
     Note that we called :meth:`pygsp.graphs.Graph.compute_fourier_basis` and
@@ -151,7 +151,7 @@ which assign a set of values (a vector in :math:`\mathbb{R}^d`) at every node
     >>>
     >>> fig, axes = plt.subplots(1, 2, figsize=(10, 3))
     >>> for i, ax in enumerate(axes):
-    ...     _ = G.plot_signal(G.U[:, i+1], vertex_size=30, ax=ax)
+    ...     _ = G.plot(G.U[:, i+1], vertex_size=30, ax=ax)
     ...     _ = ax.set_title('Eigenvector {}'.format(i+2))
     ...     ax.set_axis_off()
     >>> fig.tight_layout()
@@ -168,9 +168,9 @@ plot best represents the graph.
     >>> G2 = graphs.Ring(N=50)
     >>> G2.compute_fourier_basis()
     >>> fig, axes = plt.subplots(1, 2, figsize=(10, 4))
-    >>> _ = G2.plot_signal(G2.U[:, 4], ax=axes[0])
+    >>> _ = G2.plot(G2.U[:, 4], ax=axes[0])
     >>> G2.set_coordinates('line1D')
-    >>> _ = G2.plot_signal(G2.U[:, 1:4], ax=axes[1])
+    >>> _ = G2.plot(G2.U[:, 1:4], ax=axes[1])
     >>> fig.tight_layout()
 
 Filters
@@ -227,9 +227,9 @@ low-pass filter.
     >>> s2 = g.filter(s)
     >>>
     >>> fig, axes = plt.subplots(1, 2, figsize=(10, 3))
-    >>> _ = G.plot_signal(s, vertex_size=30, title='noisy', ax=axes[0])
+    >>> _ = G.plot(s, vertex_size=30, title='noisy', ax=axes[0])
     >>> axes[0].set_axis_off()
-    >>> _ = G.plot_signal(s2, vertex_size=30, title='cleaned', ax=axes[1])
+    >>> _ = G.plot(s2, vertex_size=30, title='cleaned', ax=axes[1])
     >>> axes[1].set_axis_off()
     >>> fig.tight_layout()
 

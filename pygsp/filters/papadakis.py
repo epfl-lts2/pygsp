@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import numpy as np
 
 from . import Filter  # prevent circular import in Python < 3.5
@@ -37,7 +39,7 @@ class Papadakis(Filter):
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = g.plot(ax=axes[0])
-    >>> _ = G.plot_signal(s, ax=axes[1])
+    >>> _ = G.plot(s, ax=axes[1])
 
     """
 
@@ -45,26 +47,24 @@ class Papadakis(Filter):
 
         self.a = a
 
-        kernels = [lambda x: papadakis(x * (2./G.lmax), a)]
-        def dual(x):
-            y = papadakis(x * (2./G.lmax), a)
-            return np.real(np.sqrt(1 - y**2))
-        kernels.append(dual)
-
-        def papadakis(val, a):
-            y = np.empty(np.shape(val))
+        def kernel(x, a):
+            y = np.empty(np.shape(x))
             l1 = a
-            l2 = a*5./3
+            l2 = a * 5 / 3
 
-            r1ind = (val >= 0) * (val < l1)
-            r2ind = (val >= l1) * (val < l2)
-            r3ind = val >= l2
+            r1ind = (x >= 0) * (x < l1)
+            r2ind = (x >= l1) * (x < l2)
+            r3ind = (x >= l2)
 
             y[r1ind] = 1
-            y[r2ind] = np.sqrt((1 - np.sin(3*np.pi/(2*a) * val[r2ind]))/2.)
+            y[r2ind] = np.sqrt((1 - np.sin(3*np.pi/(2*a) * x[r2ind]))/2)
             y[r3ind] = 0
 
             return y
+
+        papadakis = Filter(G, lambda x: kernel(x*2/G.lmax, a))
+        complement = papadakis.complement(frame_bound=1)
+        kernels = papadakis._kernels + complement._kernels
 
         super(Papadakis, self).__init__(G, kernels)
 

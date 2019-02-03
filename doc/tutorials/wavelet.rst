@@ -76,7 +76,7 @@ scales.
     >>> for i in range(g.Nf):
     ...     ax = fig.add_subplot(1, g.Nf, i+1, projection='3d')
     ...     title = r'Heat diffusion, $\tau={}$'.format(taus[i])
-    ...     _ = G.plot_signal(s[:, i], colorbar=False, title=title, ax=ax)
+    ...     _ = G.plot(s[:, i], colorbar=False, title=title, ax=ax)
     ...     ax.set_axis_off()
     >>> fig.tight_layout()
 
@@ -124,7 +124,7 @@ a Kronecker delta placed at one specific vertex.
     >>> fig = plt.figure(figsize=(10, 2.5))
     >>> for i in range(3):
     ...     ax = fig.add_subplot(1, 3, i+1, projection='3d')
-    ...     _ = G.plot_signal(s[:, i], title='Wavelet {}'.format(i+1), ax=ax)
+    ...     _ = G.plot(s[:, i], title='Wavelet {}'.format(i+1), ax=ax)
     ...     ax.set_axis_off()
     >>> fig.tight_layout()
 
@@ -165,6 +165,6 @@ curvature at different scales.
     >>> for i in range(4):
     ...     ax = fig.add_subplot(2, 2, i+1, projection='3d')
     ...     title = 'Curvature estimation (scale {})'.format(i+1)
-    ...     _ = G.plot_signal(s[:, i], title=title, ax=ax)
+    ...     _ = G.plot(s[:, i], title=title, ax=ax)
     ...     ax.set_axis_off()
     >>> fig.tight_layout()

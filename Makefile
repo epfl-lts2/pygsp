@@ -14,7 +14,11 @@ clean:
 lint:
 	flake8 --doctests --exclude=doc
 
-test: export DISPLAY = :99
+# Matplotlib doesn't print to screen. Also faster.
+export MPLBACKEND = agg
+# Virtual framebuffer nonetheless needed for the pyqtgraph backend.
+export DISPLAY = :99
+
 test:
 	Xvfb $$DISPLAY -screen 0 800x600x24 &
 	coverage run --branch --source pygsp setup.py test

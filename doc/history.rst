@@ -5,25 +5,58 @@ History
 0.6.0 (xxxx-xx-xx)
 ------------------
 
-The plotting interface was updated to be more user-friendly. First, the
-documentation is now shown for filters.plot(), G.plot(), and co. Second, the
-API in the plotting library has been deprecated. That module is now mostly for
-implementation only. Finally, the following parameter names were changed:
-
-* plot_name => title
-* plot_eigenvalues => eigenvalues
-* show_sum => sum
-* show_edges => edges
-* npoints => n
-* save_as => save
-
-Additional features:
-
-* print(graph) and print(filters) now show valuable information.
+* ``print(graph)`` and ``print(filters)`` now show valuable information.
 * Building a graph object is much faster.
 * New rectangular filter (low-pass and band-pass).
 * The exponential window has been updated from low-pass only to band-pass.
+* Much better documentation for the coherence of the Fourier basis.
+* Removed translate and modulate (they were not working and have no real use).
+* Fixed and documented vertex-frequency transforms.
+  They are now implemented as filter banks.
+* Directed graphs are now completely supported.
+* The differential operator (D, grad, div) is better tested and documented.
+* ``G.dirichlet_energy(sig)`` computes the Dirichlet energy of a signal.
+* Better documentation of the frame and its bounds.
+* ``g.inverse()`` returns the pseudo-inverse of the filter bank.
+* ``g.complement()`` returns the filter that makes the frame tight.
+* Wave filter bank which application simulates the propagation of a wave.
+* Drop support of Python 3.4 and test with 3.7. Last version to support 2.7.
+
+Experimental filter API (to be tested and validated):
+
+* evaluate a filter bank with ``g(values)``
+* filter with ``g(graph) @ signal``
+* get an array representation (the frame) with ``g.toarray()``
+* index the ``len(g)`` filters of a filter bank with ``g[idx]``
+* concatenate filter banks with ``g + h``
+
+Plotting:
+
+The plotting interface was updated to be more user-friendly. First, the
+documentation is now shown for ``filter.plot()``, ``graph.plot()``, and co.
+Second, the API in the plotting library has been deprecated. That module is now
+mostly for implementation only. Third, ``graph.plot()`` and
+``graph.plot_signal()`` have been merged. As such, ``plot_signal()`` is
+deprecated. Finally, the following parameter names were changed:
+
+* ``plot_name`` => ``title``
+* ``plot_eigenvalues`` => ``eigenvalues``
+* ``show_sum`` => ``sum``
+* ``show_edges`` => ``edges``
+* ``vertex_size`` => ``size``
+* ``npoints`` => ``n``
+* ``save_as`` was removed
+
+Other changes regarding plotting:
+
 * Plotting functions return matplotlib figures and axes.
+* Nodes, edges, and filters are plotted in transparency to avoid occlusion.
+* The node index can be printed on top of nodes to identify them easily.
+* Two vertex signals can now be plotted together as vertex color and size.
+* Two edges signals can be plotted as edge color and width.
+* Much faster (10 to 100 times faster) edge plotting with matplotlib.
+
+There are many other small changes, look at the git history for the details.
 
 0.5.1 (2017-12-15)
 ------------------
