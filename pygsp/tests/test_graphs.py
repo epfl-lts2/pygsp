@@ -539,7 +539,7 @@ class TestCaseImportExport(unittest.TestCase):
         graph.set_signal(signal1, "signal1")
         graph.set_signal(signal2, "signal2")
         graph_nx = graph.to_networkx()
-        for i in range(graph.n_nodes):
+        for i in range(graph.N):
             self.assertEqual(graph_nx.node[i]["signal1"], signal1[i])
             self.assertEqual(graph_nx.node[i]["signal2"], signal2[i])
 
@@ -597,7 +597,7 @@ class TestCaseImportExport(unittest.TestCase):
 
     def test_save_load(self):
         g = graphs.Bunny()
-        tested_fmt = ["gml", "gexf"] #"dot", "graphml"
+        tested_fmt = ["gml", "gexf"]  # "dot", "graphml"
         for fmt in tested_fmt:
             g.save("bunny." + fmt)
 

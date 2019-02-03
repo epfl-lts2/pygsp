@@ -145,7 +145,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             edge_attribute='weight')
 
         for name, signal in self.signals.items():
-            signal_dict = {i: signal[i] for i in range(self.n_nodes)}
+            signal_dict = {i: signal[i] for i in range(self.N)}
             nx.set_node_attributes(graph_nx, signal_dict, name)
         return graph_nx
 
