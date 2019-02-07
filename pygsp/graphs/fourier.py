@@ -78,7 +78,7 @@ class GraphFourier(object):
         >>> graph.compute_fourier_basis()
         >>> minimum = 1 / np.sqrt(graph.n_vertices)
         >>> print('{:.2f} in [{:.2f}, 1]'.format(graph.coherence, minimum))
-        0.97 in [0.12, 1]
+        0.88 in [0.12, 1]
         >>>
         >>> # Plot the most localized eigenvector.
         >>> import matplotlib.pyplot as plt

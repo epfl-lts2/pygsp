@@ -7,7 +7,7 @@ import numpy as np
 from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
 
-class NNSensor(NNGraph):
+class Sensor(NNGraph):
     r"""Random sensor graph based on a NNgraph.
 
     When creating large graphs, it is more computationally efficient than the
@@ -32,13 +32,13 @@ class NNSensor(NNGraph):
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> G = graphs.NNSensor(N=64, seed=42)
+    >>> G = graphs.Sensor(N=64, seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
     >>> _ = G.plot(ax=axes[1])
 
     >>> import matplotlib.pyplot as plt
-    >>> G = graphs.NNSensor(N=64, distributed=True, seed=42)
+    >>> G = graphs.Sensor(N=64, distributed=True, seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
     >>> _ = G.plot(ax=axes[1])
@@ -69,9 +69,9 @@ class NNSensor(NNGraph):
 
             coords = rs.uniform(0, 1, (N, 2))
 
-        super(NNSensor, self).__init__(Xin=coords, k=k,
-                                       rescale=False, center=False,
-                                       plotting=plotting, **kwargs)
+        super(Sensor, self).__init__(Xin=coords, k=k,
+                                     rescale=False, center=False,
+                                     plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         return {'k': self.k,

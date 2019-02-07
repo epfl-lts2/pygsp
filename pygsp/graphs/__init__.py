@@ -117,7 +117,6 @@ Graph models
     RandomRegular
     RandomRing
     Ring
-    Sensor
     StochasticBlockModel
     SwissRoll
     Torus
@@ -132,7 +131,7 @@ Nearest-neighbors graphs constructed from point clouds
     Cube
     ImgPatches
     Grid2dImgPatches
-    SensorLarge
+    Sensor
     Sphere
     TwoMoons
 
@@ -157,7 +156,6 @@ _GRAPHS = [
     'RandomRegular',
     'RandomRing',
     'Ring',
-    'Sensor',
     'StochasticBlockModel',
     'SwissRoll',
     'Torus'
@@ -166,9 +164,9 @@ _NNGRAPHS = [
     'NNGraph',
     'Bunny',
     'Cube',
-    'NNSensor',
     'ImgPatches',
     'Grid2dImgPatches',
+    'Sensor',
     'Sphere',
     'TwoMoons'
 ]

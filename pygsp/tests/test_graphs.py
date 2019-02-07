@@ -353,20 +353,12 @@ class TestCase(unittest.TestCase):
         graphs.Minnesota()
 
     def test_sensor(self):
-        graphs.Sensor(regular=True)
-        graphs.Sensor(regular=False)
-        graphs.Sensor(distributed=True)
-        graphs.Sensor(distributed=False)
-        graphs.Sensor(connected=True, n_try=100)
-        graphs.Sensor(connected=False)
-
-    def test_nnsensor(self):
-        graphs.NNSensor(3000)
-        graphs.NNSensor(N=100, distributed=True)
-        self.assertRaises(ValueError, graphs.NNSensor, N=101, distributed=True)
-        graphs.NNSensor(N=101, distributed=False)
-        graphs.NNSensor(seed=10)
-        graphs.NNSensor(k=20)
+        graphs.Sensor(3000)
+        graphs.Sensor(N=100, distributed=True)
+        self.assertRaises(ValueError, graphs.Sensor, N=101, distributed=True)
+        graphs.Sensor(N=101, distributed=False)
+        graphs.Sensor(seed=10)
+        graphs.Sensor(k=20)
 
     def test_stochasticblockmodel(self):
         graphs.StochasticBlockModel(N=100, directed=True)
