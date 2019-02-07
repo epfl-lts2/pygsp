@@ -21,7 +21,16 @@ be inferred.
 import numpy as np
 import scipy
 
-from pyunlocbox import functions, solvers
+
+def _import_pyunlocbox():
+    try:
+        from pyunlocbox import functions, solvers
+    except Exception as e:
+        raise ImportError('Cannot import pyunlocbox, which is needed to solve '
+                          'this optimization problem. Try to install it with '
+                          'pip (or conda) install pyunlocbox. '
+                          'Original exception: {}'.format(e))
+    return functions, solvers
 
 
 def classification_tik_simplex(G, y, M, tau=0.1, **kwargs):
@@ -92,6 +101,8 @@ def classification_tik_simplex(G, y, M, tau=0.1, **kwargs):
 
     """
     assert(tau > 0)
+
+    functions, solvers = _import_pyunlocbox()
 
     def to_logits(x):
         l = np.zeros([len(x), np.max(x)+1])
