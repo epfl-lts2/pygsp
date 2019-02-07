@@ -17,19 +17,9 @@ autodoc_member_order = 'groupwise'  # alphabetical, groupwise, bysource
 extensions.append('sphinx.ext.intersphinx')
 intersphinx_mapping = {
     'pyunlocbox': ('https://pyunlocbox.readthedocs.io/en/stable', None),
-<<<<<<< HEAD
     'numpy': ('https://docs.scipy.org/doc/numpy', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
     'matplotlib': ('https://matplotlib.org', None),
-=======
-    'networkx': ('https://networkx.github.io/documentation/stable', None),
-<<<<<<< HEAD
-    'graph_tool': ('https://graph-tool.skewed.de/static/doc', None)
->>>>>>> Make use of intersphinx
-=======
-    'graph_tool': ('https://graph-tool.skewed.de/static/doc', None),
-    'numpy': ('https://www.numpy.org/devdocs', None)
->>>>>>> Move the dict for type conversion into utils.
 }
 
 extensions.append('numpydoc')
