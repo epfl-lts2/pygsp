@@ -228,7 +228,7 @@ class TestCase(unittest.TestCase):
         f2 = filters.Gabor(self._G, f)
         s1 = f1.filter(self._signal)
         s2 = f2.filter(self._signal)
-        np.testing.assert_allclose(s1, s2, atol=1e-5)
+        np.testing.assert_allclose(s1, -s2, atol=1e-5)
 
     def test_halfcosine(self):
         f = filters.HalfCosine(self._G, Nf=4)

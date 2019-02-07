@@ -78,7 +78,7 @@ class GraphFourier(object):
         >>> graph.compute_fourier_basis()
         >>> minimum = 1 / np.sqrt(graph.n_vertices)
         >>> print('{:.2f} in [{:.2f}, 1]'.format(graph.coherence, minimum))
-        0.97 in [0.12, 1]
+        0.88 in [0.12, 1]
         >>>
         >>> # Plot the most localized eigenvector.
         >>> import matplotlib.pyplot as plt
@@ -176,13 +176,12 @@ class GraphFourier(object):
 
         # Smallest eigenvalue should be zero: correct numerical errors.
         # Eigensolver might sometimes return small negative values, which
-        # filter's implementations may not anticipate. Better for plotting
-        # too.
-        assert -1e-12 < self._e[0] < 1e-12
+        # filter's implementations may not anticipate. Better for plotting too.
+        assert -1e-5 < self._e[0] < 1e-5
         self._e[0] = 0
 
         # Bounded spectrum.
-        assert self._e[-1] <= self._get_upper_bound() + 1e-12
+        assert self._e[-1] <= self._get_upper_bound() + 1e-5
 
         assert np.max(self._e) == self._e[-1]
         if n_eigenvectors == self.N:

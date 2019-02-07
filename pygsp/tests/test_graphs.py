@@ -11,6 +11,7 @@ import unittest
 
 import numpy as np
 import scipy.linalg
+from scipy import sparse
 import networkx as nx
 from skimage import data, img_as_float
 
@@ -306,6 +307,30 @@ class TestCase(unittest.TestCase):
             self.assertEqual(nx.normalized_laplacian_matrix(G).nnz, 0)
             self.assertEqual(nx.incidence_matrix(G).nnz, 0)
 
+    def test_adjacency_types(self, n_vertices=10):
+
+        rs = np.random.RandomState(42)
+        W = 10 * np.abs(rs.normal(size=(n_vertices, n_vertices)))
+        W = W + W.T
+        W = W - np.diag(np.diag(W))
+
+        def test(adjacency):
+            G = graphs.Graph(adjacency)
+            G.compute_laplacian('combinatorial')
+            G.compute_laplacian('normalized')
+            G.estimate_lmax()
+            G.compute_fourier_basis()
+            G.compute_differential_operator()
+
+        test(W)
+        test(W.astype(np.float32))
+        test(W.astype(np.int))
+        test(sparse.csr_matrix(W))
+        test(sparse.csr_matrix(W, dtype=np.float32))
+        test(sparse.csr_matrix(W, dtype=np.int))
+        test(sparse.csc_matrix(W))
+        test(sparse.coo_matrix(W))
+
     def test_set_coordinates(self):
         G = graphs.FullConnected()
         coords = self._rs.uniform(size=(G.N, 2))
@@ -323,8 +348,9 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('community2D')
         self.assertRaises(ValueError, G.set_coordinates, 'invalid')
 
-    def test_nngraph(self):
-        Xin = np.arange(90).reshape(30, 3)
+    def test_nngraph(self, n_vertices=30):
+        rs = np.random.RandomState(42)
+        Xin = rs.normal(size=(n_vertices, 3))
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
 
         for dist_type in dist_types:
@@ -383,12 +409,12 @@ class TestCase(unittest.TestCase):
         graphs.Minnesota()
 
     def test_sensor(self):
-        graphs.Sensor(regular=True)
-        graphs.Sensor(regular=False)
-        graphs.Sensor(distributed=True)
-        graphs.Sensor(distributed=False)
-        graphs.Sensor(connected=True, n_try=100)
-        graphs.Sensor(connected=False)
+        graphs.Sensor(3000)
+        graphs.Sensor(N=100, distributed=True)
+        self.assertRaises(ValueError, graphs.Sensor, N=101, distributed=True)
+        graphs.Sensor(N=101, distributed=False)
+        graphs.Sensor(seed=10)
+        graphs.Sensor(k=20)
 
     def test_stochasticblockmodel(self):
         graphs.StochasticBlockModel(N=100, directed=True)

@@ -10,6 +10,7 @@ Reference guide
     graphs
     filters
     plotting
+    learning
     reduction
     features
     optimization
