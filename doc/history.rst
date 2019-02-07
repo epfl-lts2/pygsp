@@ -3,15 +3,6 @@ History
 =======
 
 
-0.x.x (xxxx-xx-xx)
-------------------
-
-New features:
-
-* A learning module with three functions to solve classification and regression
- semi-supervised learning problems.
-* A new graph called NNSensor that scales (contrarily to the current Sensor graph)
-
 0.6.0 (xxxx-xx-xx)
 ------------------
 
@@ -31,6 +22,9 @@ New features:
 * ``g.complement()`` returns the filter that makes the frame tight.
 * Wave filter bank which application simulates the propagation of a wave.
 * Drop support of Python 3.4 and test with 3.7. Last version to support 2.7.
+* New implementation of the Sensor graph that is simpler and scales better.
+* A new learning module with three functions to solve standard semi-supervised
+  classification and regression problems.
 
 Experimental filter API (to be tested and validated):
 
