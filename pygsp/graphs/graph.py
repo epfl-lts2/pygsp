@@ -287,7 +287,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return graph
 
     @classmethod
-    def load(cls, path, fmt='auto', lib='networkx'):
+    def load(cls, path, fmt='auto', backend='networkx'):
         r"""Load a graph from a file using networkx for import.
         The format is guessed from path, or can be specified by fmt
 
@@ -297,7 +297,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             Where the file is located on the disk.
         fmt : {'graphml', 'gml', 'gexf', 'dot', 'auto'}
             Format in which the graph is encoded.
-        lib : String
+        backend : String
             Python library used in background to load the graph.
             Supported library are networkx and graph_tool
 
@@ -305,29 +305,36 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         -------
             graph : :class:`~pygsp.graphs.Graph`
         """
+
+        def load_networkx(saved_path, format):
+            import networkx as nx
+            load = getattr(nx, 'read_' + format)
+            return cls.from_networkx(load(saved_path))
+
+        def load_graph_tool(saved_path, format):
+            import graph_tool as gt
+            graph_gt = gt.load_graph(saved_path, fmt=format)
+            return cls.from_graphtool(graph_gt)
+
         if fmt == 'auto':
             fmt = path.split('.')[-1]
+
+        if backend == 'auto':
+            if fmt in ['graphml', 'gml', 'gexf']:
+                backend = 'networkx'
+            else:
+                backend = 'graph_tool'
 
         if fmt not in ['graphml', 'gml', 'gexf', 'dot']:
             raise ValueError('Unsupported format {}.'.format(fmt))
 
-        if fmt in ['graphml', 'gml', 'gexf']:
-            try:
-                import networkx as nx
-                load = getattr(nx, 'read_' + fmt)
-                return cls.from_networkx(load(path))
-            except ModuleNotFoundError:
-                pass
-        if fmt in ['graphml', 'gml', 'dot']:
-            try:
-                import graph_tool as gt
-                graph_gt = gt.load_graph(path, fmt=fmt)
-                return cls.from_graphtool(graph_gt)
-            except ModuleNotFoundError:
-                pass
-        raise ModuleNotFoundError("Please install either networkx or graph_tool")
+        if backend not in ['networkx', 'graph_tool']:
+            raise ValueError('Unsupported backend specified {}.'.format(backend))
 
-    def save(self, path, fmt='auto', lib='networkx'):
+
+        return locals()['load_' + backend](path, fmt)
+
+    def save(self, path, fmt='auto', backend='auto'):
         r"""Save the graph into a file
 
         Parameters
@@ -339,33 +346,36 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             the `path` extention when fmt is set to 'auto'
             Currently supported format are:
             GML and gpickle.
-        lib : String
+        backend : String
             Python library used in background to save the graph.
             Supported library are networkx and graph_tool
         """
+        def save_networkx(graph, save_path):
+            import networkx as nx
+            graph_nx = graph.to_networkx()
+            save = getattr(nx, 'write_' + fmt)
+            save(graph_nx, save_path)
+
+        def save_graph_tool(graph, save_path):
+            graph_gt = self.to_graphtool()
+            graph_gt.save(path, fmt=fmt)
+
         if fmt == 'auto':
             fmt = path.split('.')[-1]
+
+        if backend == 'auto':
+            if fmt in ['graphml', 'gml', 'gexf']:
+                backend = 'networkx'
+            else:
+                backend = 'graph_tool'
 
         if fmt not in ['graphml', 'gml', 'gexf', 'dot']:
             raise ValueError('Unsupported format {}.'.format(fmt))
 
-        if fmt in ['graphml', 'gml', 'gexf']:
-            try:
-                import networkx as nx
-                graph_nx = self.to_networkx()
-                save = getattr(nx, 'write_' + fmt)
-                save(graph_nx, path)
-                return None
-            except ModuleNotFoundError:
-                pass
-        if fmt in ['graphml', 'gml', 'dot']:
-            try:
-                graph_gt = self.to_graphtool()
-                graph_gt.save(path, fmt=fmt)
-                return None
-            except ModuleNotFoundError:
-                pass
-        raise ModuleNotFoundError("Please install either networkx or graph_tool")
+        if backend not in ['networkx', 'graph_tool']:
+            raise ValueError('Unsupported backend specified {}.'.format(backend))
+
+        locals()['save_' + backend](self, path)
 
     def set_signal(self, signal, name):
         r"""
