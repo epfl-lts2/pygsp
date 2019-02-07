@@ -9,6 +9,7 @@ import unittest
 
 import numpy as np
 import scipy.linalg
+from scipy import sparse
 import networkx as nx
 from skimage import data, img_as_float
 
@@ -203,7 +204,6 @@ class TestCase(unittest.TestCase):
                       graphs.ErdosRenyi(n_vertices, directed=False, seed=42),
                       graphs.ErdosRenyi(n_vertices, directed=True, seed=42)]:
             for lap_type in ['combinatorial', 'normalized']:
-                print(lap_type, graph)
                 graph.compute_laplacian(lap_type)
                 graph.compute_differential_operator()
                 L = graph.D.dot(graph.D.T)
@@ -259,22 +259,30 @@ class TestCase(unittest.TestCase):
             self.assertEqual(nx.laplacian_matrix(G).nnz, 0)
             self.assertEqual(nx.normalized_laplacian_matrix(G).nnz, 0)
             self.assertEqual(nx.incidence_matrix(G).nnz, 0)
-    def test_other_laptype(self):
-        W = 10*np.abs(np.random.randn(10,10))
+
+    def test_adjacency_types(self, n_vertices=10):
+
+        rs = np.random.RandomState(42)
+        W = 10 * np.abs(rs.normal(size=(n_vertices, n_vertices)))
         W = W + W.T
         W = W - np.diag(np.diag(W))
 
-        G = graphs.Graph(W)
-        G.estimate_lmax()
-        G.compute_fourier_basis()
+        def test(adjacency):
+            G = graphs.Graph(adjacency)
+            G.compute_laplacian('combinatorial')
+            G.compute_laplacian('normalized')
+            G.estimate_lmax()
+            G.compute_fourier_basis()
+            G.compute_differential_operator()
 
-        G = graphs.Graph(W.astype(np.float32))
-        G.estimate_lmax()
-        G.compute_fourier_basis()
-
-        G = graphs.Graph(W.astype(np.int))
-        G.estimate_lmax()
-        G.compute_fourier_basis()
+        test(W)
+        test(W.astype(np.float32))
+        test(W.astype(np.int))
+        test(sparse.csr_matrix(W))
+        test(sparse.csr_matrix(W, dtype=np.float32))
+        test(sparse.csr_matrix(W, dtype=np.int))
+        test(sparse.csc_matrix(W))
+        test(sparse.coo_matrix(W))
 
     def test_set_coordinates(self):
         G = graphs.FullConnected()
