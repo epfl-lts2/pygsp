@@ -11,6 +11,9 @@ addons:
     packages:
     - python3-graph-tool
 
+virtualenv:
+  system_site_packages: true
+
 language: python
 
 python:
