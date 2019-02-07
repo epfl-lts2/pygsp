@@ -8,10 +8,10 @@ from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
 
 class Sensor(NNGraph):
-    r"""Random sensor graph based on a NNgraph.
+    r"""Random sensor graph.
 
-    When creating large graphs, it is more computationally efficient than the
-    Sensor graph. Nevertheless, it has also less options.
+    The sensor graph is built by randomly picking ``N`` points on the [0, 1] x
+    [0, 1] plane and connecting each to its ``k`` nearest neighbors.
 
     Parameters
     ----------
@@ -28,6 +28,12 @@ class Sensor(NNGraph):
         Seed for the random number generator (for reproducible graphs).
     **kwargs :
         Additional keyword arguments for :class:`NNGraph`.
+
+    Notes
+    -----
+
+    The definition of this graph changed in February 2019.
+    See the `GitHub PR <https://github.com/epfl-lts2/pygsp/pull/19>`_.
 
     Examples
     --------
