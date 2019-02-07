@@ -16,7 +16,6 @@ from pygsp.tests import test_plotting
 from pygsp.tests import test_learning
 
 
-
 suites = []
 suites.append(test_graphs.suite)
 suites.append(test_filters.suite)

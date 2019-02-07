@@ -177,15 +177,11 @@ class GraphFourier(object):
         # Smallest eigenvalue should be zero: correct numerical errors.
         # Eigensolver might sometimes return small negative values, which
         # filter's implementations may not anticipate. Better for plotting too.
-        # Nati: Shall we make a difference for float32?
-        if np.dtype(self.L) == 'float32':
-            assert -1e-5 < self._e[0] < 1e-5
-        else:
-            assert -1e-12 < self._e[0] < 1e-12
+        assert -1e-5 < self._e[0] < 1e-5
         self._e[0] = 0
 
         # Bounded spectrum.
-        assert self._e[-1] <= self._get_upper_bound() + 1e-12
+        assert self._e[-1] <= self._get_upper_bound() + 1e-5
 
         assert np.max(self._e) == self._e[-1]
         if n_eigenvectors == self.N:

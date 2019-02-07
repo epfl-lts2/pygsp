@@ -38,9 +38,10 @@ class Itersine(Filter):
 
     """
 
-    def __init__(self, G, Nf=6, overlap=2, **kwargs):
+    def __init__(self, G, Nf=6, overlap=2):
 
         self.overlap = overlap
+        self.mu = np.linspace(0, G.lmax, num=Nf)
 
         scales = G.lmax / (Nf - overlap + 1) * overlap
 
@@ -51,15 +52,14 @@ class Itersine(Filter):
 
         kernels = []
         for i in range(1, Nf + 1):
+
             def kernel_centered(x, i=i):
                 y = kernel(x / scales - (i - overlap / 2) / overlap)
                 return y * np.sqrt(2 / overlap)
 
             kernels.append(kernel_centered)
 
-        super(Itersine, self).__init__(G, kernels, **kwargs)
-        self.mu = np.linspace(0, G.lmax, num=Nf)
-        self.overlap = overlap
+        super(Itersine, self).__init__(G, kernels)
 
     def _get_extra_repr(self):
         return dict(overlap='{:.2f}'.format(self.overlap))

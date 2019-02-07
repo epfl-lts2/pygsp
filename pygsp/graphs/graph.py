@@ -510,9 +510,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Combinatorial and normalized Laplacians of an undirected graph.
 
         >>> adjacency = np.array([
-        ...     [0., 2., 0.],
-        ...     [2., 0., 1.],
-        ...     [0., 1., 0.],
+        ...     [0, 2, 0],
+        ...     [2, 0, 1],
+        ...     [0, 1, 0],
         ... ])
         >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
@@ -567,24 +567,23 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         True
 
         """
+
         self.lap_type = lap_type
+
         if not self.is_directed():
             W = self.W
         else:
             W = utils.symmetrize(self.W, method='average')
-        dtype = np.dtype(W)
 
         if lap_type == 'combinatorial':
-            D = sparse.diags(self.dw, dtype=dtype)
+            D = sparse.diags(self.dw)
             self.L = D - W
         elif lap_type == 'normalized':
-            if dtype==int:
-                dtype = np.float
-            d = np.zeros(self.n_vertices, dtype=dtype)
+            d = np.zeros(self.n_vertices)
             disconnected = (self.dw == 0)
             np.power(self.dw, -0.5, where=~disconnected, out=d)
-            D = sparse.diags(d, dtype=dtype)
-            self.L = sparse.identity(self.n_vertices, dtype=dtype) - D * W * D
+            D = sparse.diags(d)
+            self.L = sparse.identity(self.n_vertices) - D * W * D
             self.L[disconnected, disconnected] = 0
             self.L.eliminate_zeros()
         else:
@@ -769,8 +768,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         if method == 'lanczos':
             try:
-                # We need to cast the matrix L as a supported type...
-                # This is probably not good in term of memory
+                # We need to cast the matrix L to a supported type.
+                # TODO: not good for memory. Cast earlier?
                 lmax = sparse.linalg.eigsh(self.L.asfptype(), k=1, tol=5e-3,
                                            ncv=min(self.N, 10),
                                            return_eigenvectors=False)

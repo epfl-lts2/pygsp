@@ -301,8 +301,9 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('community2D')
         self.assertRaises(ValueError, G.set_coordinates, 'invalid')
 
-    def test_nngraph(self):
-        Xin = np.arange(90).reshape(30, 3)
+    def test_nngraph(self, n_vertices=30):
+        rs = np.random.RandomState(42)
+        Xin = rs.normal(size=(n_vertices, 3))
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
 
         for dist_type in dist_types:

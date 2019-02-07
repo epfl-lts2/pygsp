@@ -44,8 +44,8 @@ class NNGraph(Graph):
     k : int, optional
         Number of neighbors for knn (default is 10)
     sigma : float, optional
-        Width parameter of the similarity kernel (default is None, sigma is set
-        to the average of the nearest neighboor distance).
+        Width of the similarity kernel.
+        By default, it is set to the average of the nearest neighbor distance.
     epsilon : float, optional
         Radius for the epsilon-neighborhood search (default is 0.01)
     plotting : dict, optional
@@ -137,8 +137,7 @@ class NNGraph(Graph):
                                   p=dist_translation[dist_type])
 
             if self.sigma is None:
-                # Note that we discard distance to self.
-                self.sigma = np.mean(D[:, 1:])
+                self.sigma = np.mean(D[:, 1:])  # Discard distance to self.
 
             for i in range(N):
                 spi[i * k:(i + 1) * k] = np.kron(np.ones((k)), i)
@@ -152,7 +151,7 @@ class NNGraph(Graph):
             D, NN = kdt.query(Xout, k=None, distance_upper_bound=epsilon,
                               p=dist_translation[dist_type])
             if self.sigma is None:
-                # Note that we discard distance to self.
+                # Discard distance to self.
                 self.sigma = np.mean([np.mean(d[1:]) for d in D])
             count = 0
             for i in range(N):
