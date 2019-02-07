@@ -7,6 +7,7 @@ addons:
   apt:
     sources:
     - sourceline: 'deb https://downloads.skewed.de/apt/xenial xenial universe'
+      key_url: 'https://pgp.skewed.de/pks/lookup?op=get&search=0x612DEFB798507F25'
     - sourceline: 'deb-src http://downloads.skewed.de/apt/xenial xenial universe'
       key_url: 'https://pgp.skewed.de/pks/lookup?op=get&search=0x612DEFB798507F25'
     packages:
