@@ -11,6 +11,7 @@ Moreover, the following modules provide additional functionality:
 * :mod:`.plotting` to plot,
 * :mod:`.reduction` to reduce a graph while keeping its structure,
 * :mod:`.features` to compute features on graphs,
+* :mod:`.learning` to solve learning problems,
 * :mod:`.optimization` to help solving convex optimization problems,
 * :mod:`.utils` for various utilities.
 

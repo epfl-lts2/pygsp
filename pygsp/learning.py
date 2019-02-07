@@ -1,25 +1,25 @@
 # -*- coding: utf-8 -*-
 
 r"""
-The :mod:`pygsp.learning` module implements functions to solve learning
-problems.
+The :mod:`pygsp.learning` module provides functions to solve learning problems.
 
 Semi-supervized learning
 ========================
 
-Those functions help to solve a semi-supervized learning problem, i.e. a
+Those functions help to solve a semi-supervized learning problem, i.e., a
 problem where only some values of a graph signal are known and the others shall
 be inferred.
 
 .. autosummary::
 
-    regression_tik
-    classification_tik
+    regression_tikhonov
+    classification_tikhonov
+    classification_tikhonov_simplex
 
 """
 
 import numpy as np
-import scipy
+from scipy import sparse
 
 
 def _import_pyunlocbox():
@@ -33,27 +33,39 @@ def _import_pyunlocbox():
     return functions, solvers
 
 
-def classification_tik_simplex(G, y, M, tau=0.1, **kwargs):
-    r"""Solve a classification problem on graph via Tikhonov minimization 
+def _to_logits(x):
+    logits = np.zeros([len(x), np.max(x)+1])
+    logits[range(len(x)), x] = 1
+    return logits
+
+
+def classification_tikhonov_simplex(G, y, M, tau=0.1, **kwargs):
+    r"""Solve a classification problem on graph via Tikhonov minimization
     with simple constraints.
 
-    The function first transform :math:`y` in logits :math:`Y`. It then solves
+    The function first transforms :math:`y` in logits :math:`Y`, then solves
 
-    .. math:: \operatorname*{arg min}_X \| M X - Y \|_2^2 + \tau \ tr(X^T L X) 
-                                        s.t. sum(Y) = 1 and Y>=0
+    .. math:: \operatorname*{arg min}_X \| M X - Y \|_2^2 + \tau \ tr(X^T L X)
+              \text{ s.t. } sum(X) = 1 \text{ and } X >= 0,
 
-    otherwise, where :math:`X` and :math:`Y` are logits. The function returns
-    the logits.
+    where :math:`X` and :math:`Y` are logits.
 
     Parameters
     ----------
-    G : Graph
-    y : array of length G.N
-        Measurements
-    M : array of boolean, length G.N
+    G : :class:`pygsp.graphs.Graph`
+    y : array, length G.n_vertices
+        Measurements.
+    M : array of boolean, length G.n_vertices
         Masking vector.
     tau : float
         Regularization parameter.
+    kwargs : dict
+        Parameters for :func:`pyunlocbox.solvers.solve`.
+
+    Returns
+    -------
+    logits : array, length G.n_vertices
+        The logits :math:`X`.
 
     Examples
     --------
@@ -65,51 +77,44 @@ def classification_tik_simplex(G, y, M, tau=0.1, **kwargs):
 
     Create a ground truth signal:
 
-    >>> signal = np.zeros(G.N)
+    >>> signal = np.zeros(G.n_vertices)
     >>> signal[G.info['idx_s']] = 1
     >>> signal[G.info['idx_p']] = 2
 
-    Construct a measurements signal from a binary mask:
+    Construct a measurement signal from a binary mask:
 
     >>> rs = np.random.RandomState(42)
-    >>> mask = rs.uniform(0, 1, G.N) > 0.5
-    >>> measurements = signal.copy()
-    >>> measurements[~mask] = np.nan
+    >>> mask = rs.uniform(0, 1, G.n_vertices) > 0.5
+    >>> measures = signal.copy()
+    >>> measures[~mask] = np.nan
 
     Solve the classification problem by reconstructing the signal:
 
-    >>> recovery = learning.classification_tik_simplex(G, measurements, mask, tau=0.1, verbosity='NONE')
+    >>> recovery = learning.classification_tikhonov_simplex(
+    ...     G, measures, mask, tau=0.1, verbosity='NONE')
 
-    Plot the results. Note that recovery gives the logits, we recover the class
-    using `np.argmax(recovery, axis=1)`
+    Plot the results.
+    Note that we recover the class with ``np.argmax(recovery, axis=1)``.
 
+    >>> prediction = np.argmax(recovery, axis=1)
     >>> fig, ax = plt.subplots(2, 3, sharey=True, figsize=(10, 6))
-    >>> (ax1, ax2, ax3), (ax4, ax5, ax6)  = ax
-    >>> _ = G.plot_signal(signal, ax=ax1)
-    >>> _ = ax1.set_title('Ground truth')
-    >>> _ = G.plot_signal(measurements, ax=ax2)
-    >>> _ = ax2.set_title('Measurements')
-    >>> _ = G.plot_signal(np.argmax(recovery, axis=1), ax=ax3)
-    >>> _ = ax3.set_title('Max logit')
-    >>> _ = G.plot_signal(recovery[:,0], ax=ax4)
-    >>> _ = ax4.set_title('Logit 0')
-    >>> _ = G.plot_signal(recovery[:,1], ax=ax5)
-    >>> _ = ax5.set_title('Logit 1')
-    >>> _ = G.plot_signal(recovery[:,2], ax=ax6)
-    >>> _ = ax6.set_title('Logit 2')
+    >>> _ = G.plot_signal(signal, ax=ax[0, 0], title='Ground truth')
+    >>> _ = G.plot_signal(measures, ax=ax[0, 1], title='Measurements')
+    >>> _ = G.plot_signal(prediction, ax=ax[0, 2], title='Recovered class')
+    >>> _ = G.plot_signal(recovery[:, 0], ax=ax[1, 0], title='Logit 0')
+    >>> _ = G.plot_signal(recovery[:, 1], ax=ax[1, 1], title='Logit 1')
+    >>> _ = G.plot_signal(recovery[:, 2], ax=ax[1, 2], title='Logit 2')
     >>> _ = fig.tight_layout()
 
     """
-    assert(tau > 0)
 
     functions, solvers = _import_pyunlocbox()
 
-    def to_logits(x):
-        l = np.zeros([len(x), np.max(x)+1])
-        l[range(len(x)), x] = 1
-        return l
+    if tau <= 0:
+        raise ValueError('Tau should be greater than 0.')
+
     y[M == False] = 0
-    Y = to_logits(y.astype(np.int))
+    Y = _to_logits(y.astype(np.int))
     Y[M == False, :] = 0
 
     def proj_simplex(y):
@@ -129,7 +134,7 @@ def classification_tik_simplex(G, y, M, tau=0.1, **kwargs):
                 return idxL
 
             while (idxH-idxL) > 1:
-                iMid = int((idxL+idxH)/2)
+                iMid = int((idxL + idxH) / 2)
                 M = evalpL(y, iMid, idx)
 
                 if M > 0:
@@ -141,65 +146,67 @@ def classification_tik_simplex(G, y, M, tau=0.1, **kwargs):
 
         def proj(idx, y):
             k = bisectsearch(idx, y)
-            lam = (np.sum(y[idx[k:]])-1)/(d-k)
-            return np.maximum(0, y-lam)
-        x = np.zeros(y.shape)
+            lam = (np.sum(y[idx[k:]]) - 1) / (d - k)
+            return np.maximum(0, y - lam)
+
+        x = np.empty_like(y)
         for i in range(len(y)):
             x[i] = proj(idx[i], y[i])
-        # x = np.stack(map(proj,idx,y))
+        # x = np.stack(map(proj, idx, y))
 
         return x
 
-    f1 = functions.func()
-
     def smooth_eval(x):
         xTLx = np.sum(x * (G.L.dot(x)))
-        e = M*((M*x.T)-Y.T)
-        l2 = np.sum(e*e)
-        return tau*xTLx + l2
+        e = M * ((M * x.T) - Y.T)
+        l2 = np.sum(e * e)
+        return tau * xTLx + l2
 
     def smooth_grad(x):
-        return 2*((M*(M*x.T-Y.T)).T + tau*G.L*x)
+        return 2 * ((M * (M * x.T - Y.T)).T + tau * G.L * x)
+
+    f1 = functions.func()
     f1._eval = smooth_eval
     f1._grad = smooth_grad
 
     f2 = functions.func()
-    f2._eval = lambda x: 0        # Indicator functions evaluate to zero.
+    f2._eval = lambda x: 0  # Indicator functions evaluate to zero.
+    f2._prox = lambda x, step: proj_simplex(x)
 
-    def prox(x, step):
-        return proj_simplex(x)
-    f2._prox = prox
-
-    step = 1/(2*(1+tau*G.lmax))
+    step = 0.5 / (1 + tau * G.lmax)
     solver = solvers.forward_backward(step=step)
-
     ret = solvers.solve([f1, f2], Y.copy(), solver, **kwargs)
     return ret['sol']
 
 
-def classification_tik(G, y, M, tau=0):
+def classification_tikhonov(G, y, M, tau=0):
     r"""Solve a classification problem on graph via Tikhonov minimization.
 
-    The function first transform :math:`y` in logits :math:`Y`. It then solves
+    The function first transforms :math:`y` in logits :math:`Y`, then solves
 
     .. math:: \operatorname*{arg min}_X \| M X - Y \|_2^2 + \tau \ tr(X^T L X)
 
-    if :math:`\tau > 0` and
+    if :math:`\tau > 0`, and
 
     .. math:: \operatorname*{arg min}_X tr(X^T L X) \ \text{ s. t. } \ Y = M X
 
-    otherwise, where :math:`X` and :math:`Y` are logits. The function return
-    the maximum of the logits.
+    otherwise, where :math:`X` and :math:`Y` are logits.
+    The function returns the maximum of the logits.
 
     Parameters
     ----------
-    G : Graph
-    y : array of length G.N
-        Measurements
-    M : array of boolean, length G.N
+    G : :class:`pygsp.graphs.Graph`
+    y : array, length G.n_vertices
+        Measurements.
+    M : array of boolean, length G.n_vertices
         Masking vector.
     tau : float
         Regularization parameter.
+
+    Returns
+    -------
+    logits : array, length G.n_vertices
+        The logits :math:`X`.
 
     Examples
     --------
@@ -210,65 +217,67 @@ def classification_tik(G, y, M, tau=0):
 
     Create a ground truth signal:
 
-    >>> signal = np.zeros(G.N)
+    >>> signal = np.zeros(G.n_vertices)
     >>> signal[G.info['idx_s']] = 1
     >>> signal[G.info['idx_p']] = 2
 
-    Construct a measurements signal from a binary mask:
+    Construct a measurement signal from a binary mask:
 
     >>> rs = np.random.RandomState(42)
-    >>> mask = rs.uniform(0, 1, G.N) > 0.5
-    >>> measurements = signal.copy()
-    >>> measurements[~mask] = np.nan
+    >>> mask = rs.uniform(0, 1, G.n_vertices) > 0.5
+    >>> measures = signal.copy()
+    >>> measures[~mask] = np.nan
 
     Solve the classification problem by reconstructing the signal:
 
-    >>> recovery = learning.classification_tik(G, measurements, mask, tau=0)
+    >>> recovery = learning.classification_tikhonov(G, measures, mask, tau=0)
 
-    Plot the results:
+    Plot the results.
+    Note that we recover the class with ``np.argmax(recovery, axis=1)``.
 
-    >>> fig, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(10, 3))
-    >>> _ = G.plot_signal(signal, ax=ax1)
-    >>> _ = ax1.set_title('Ground truth')
-    >>> _ = G.plot_signal(measurements, ax=ax2)
-    >>> _ = ax2.set_title('Measurements')
-    >>> _ = G.plot_signal(recovery, ax=ax3)
-    >>> _ = ax3.set_title('Recovery')
+    >>> prediction = np.argmax(recovery, axis=1)
+    >>> fig, ax = plt.subplots(2, 3, sharey=True, figsize=(10, 6))
+    >>> _ = G.plot_signal(signal, ax=ax[0, 0], title='Ground truth')
+    >>> _ = G.plot_signal(measures, ax=ax[0, 1], title='Measurements')
+    >>> _ = G.plot_signal(prediction, ax=ax[0, 2], title='Recovered class')
+    >>> _ = G.plot_signal(recovery[:, 0], ax=ax[1, 0], title='Logit 0')
+    >>> _ = G.plot_signal(recovery[:, 1], ax=ax[1, 1], title='Logit 1')
+    >>> _ = G.plot_signal(recovery[:, 2], ax=ax[1, 2], title='Logit 2')
     >>> _ = fig.tight_layout()
 
     """
-
-    def to_logits(x):
-        l = np.zeros([len(x), np.max(x)+1])
-        l[range(len(x)), x] = 1
-        return l
     y[M == False] = 0
-    Y = to_logits(y.astype(np.int))
-    X = regression_tik(G, Y, M, tau)
-
-    return np.argmax(X, axis=1)
+    Y = _to_logits(y.astype(np.int))
+    return regression_tikhonov(G, Y, M, tau)
 
 
-def regression_tik(G, y, M, tau=0):
+def regression_tikhonov(G, y, M, tau=0):
     r"""Solve a regression problem on graph via Tikhonov minimization.
 
-    If :math:`\tau > 0`:
+    The function solves
 
     .. math:: \operatorname*{arg min}_x \| M x - y \|_2^2 + \tau \ x^T L x
 
-    else:
+    if :math:`\tau > 0`, and
 
     .. math:: \operatorname*{arg min}_x x^T L x \ \text{ s. t. } \ y = M x
 
+    otherwise.
+
     Parameters
     ----------
-    G : Graph
-    y : array of length G.N
-        Measurements
-    M : array of boolean, length G.N
+    G : :class:`pygsp.graphs.Graph`
+    y : array, length G.n_vertices
+        Measurements.
+    M : array of boolean, length G.n_vertices
         Masking vector.
     tau : float
         Regularization parameter.
+
+    Returns
+    -------
+    x : array, length G.n_vertices
+        Recovered values :math:`x`.
 
     Examples
     --------
@@ -281,73 +290,77 @@ def regression_tik(G, y, M, tau=0):
     Create a smooth ground truth signal:
 
     >>> filt = lambda x: 1 / (1 + 10*x)
-    >>> g_filt = filters.Filter(G, filt)
+    >>> filt = filters.Filter(G, filt)
     >>> rs = np.random.RandomState(42)
-    >>> signal = g_filt.analyze(rs.randn(G.N))
+    >>> signal = filt.analyze(rs.normal(size=G.n_vertices))
 
-    Construct a measurements signal from a binary mask:
+    Construct a measurement signal from a binary mask:
 
-    >>> mask = rs.uniform(0, 1, G.N) > 0.5
-    >>> measurements = signal.copy()
-    >>> measurements[~mask] = np.nan
+    >>> mask = rs.uniform(0, 1, G.n_vertices) > 0.5
+    >>> measures = signal.copy()
+    >>> measures[~mask] = np.nan
 
     Solve the regression problem by reconstructing the signal:
 
-    >>> recovery = learning.regression_tik(G, measurements, mask, tau=0)
+    >>> recovery = learning.regression_tikhonov(G, measures, mask, tau=0)
 
     Plot the results:
 
-    >>> f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(10, 3))
-    >>> c = [signal.min(), signal.max()]
-    >>> _ = G.plot_signal(signal, ax=ax1, limits=c)
-    >>> _ = ax1.set_title('Ground truth')
-    >>> _ = G.plot_signal(measurements, ax=ax2, limits=c)
-    >>> _ = ax2.set_title('Measurements')
-    >>> _ = G.plot_signal(recovery, ax=ax3, limits=c)
-    >>> _ = ax3.set_title('Recovery')
+    >>> fig, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(10, 3))
+    >>> limits = [signal.min(), signal.max()]
+    >>> _ = G.plot_signal(signal, ax=ax1, limits=limits, title='Ground truth')
+    >>> _ = G.plot_signal(measures, ax=ax2, limits=limits, title='Measures')
+    >>> _ = G.plot_signal(recovery, ax=ax3, limits=limits, title='Recovery')
     >>> _ = fig.tight_layout()
 
     """
 
     if tau > 0:
+
         y[M == False] = 0
-        # Creating this matrix may be problematic in term of memory.
-        # Consider using an operator instead...
-        if type(G.L).__module__ == np.__name__:
-            LinearOp = np.diag(M*1) + tau * G.L
-        else:
+
+        if sparse.issparse(G.L):
+
             def Op(x):
                 return (M * x.T).T + tau * (G.L.dot(x))
-            LinearOp = scipy.sparse.linalg.LinearOperator([G.N, G.N], Op)
 
-        if type(G.L).__module__ == np.__name__:
-            sol = np.linalg.solve(LinearOp, M * y)
-        else:
-            if len(y.shape) > 1:
-                sol = np.zeros(shape=y.shape)
-                res = np.zeros(shape=y.shape[1])
+            LinearOp = sparse.linalg.LinearOperator([G.N, G.N], Op)
+
+            if y.ndim > 1:
+                sol = np.empty(shape=y.shape)
+                res = np.empty(shape=y.shape[1])
                 for i in range(y.shape[1]):
-                    sol[:, i], res[i] = scipy.sparse.linalg.cg(
+                    sol[:, i], res[i] = sparse.linalg.cg(
                         LinearOp, y[:, i])
             else:
-                sol, res = scipy.sparse.linalg.cg(LinearOp, y)
-            # Do something with the residual...
-        return sol
+                sol, res = sparse.linalg.cg(LinearOp, y)
+
+            # TODO: do something with the residual...
+            return sol
+
+        else:
+
+            # Creating this matrix may be problematic in term of memory.
+            # Consider using an operator instead...
+            if type(G.L).__module__ == np.__name__:
+                LinearOp = np.diag(M*1) + tau * G.L
+            return np.linalg.solve(LinearOp, M * y)
 
     else:
 
-        if np.prod(M.shape) != G.N:
-            raise ValueError("M should be of size [G.N,]")
+        if np.prod(M.shape) != G.n_vertices:
+            raise ValueError("M should be of size [G.n_vertices,]")
 
         indl = M
-        indu = M == False
+        indu = (M == False)
 
         Luu = G.L[indu, :][:, indu]
         Wul = - G.L[indu, :][:, indl]
-        if type(Luu).__module__ == np.__name__:
-            sol_part = np.linalg.solve(Luu, np.matmul(Wul, y[indl]))
+
+        if sparse.issparse(G.L):
+            sol_part = sparse.linalg.spsolve(Luu, Wul.dot(y[indl]))
         else:
-            sol_part = scipy.sparse.linalg.spsolve(Luu, Wul.dot(y[indl]))
+            sol_part = np.linalg.solve(Luu, np.matmul(Wul, y[indl]))
 
         sol = y.copy()
         sol[indu] = sol_part
