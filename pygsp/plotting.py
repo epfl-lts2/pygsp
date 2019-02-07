@@ -395,7 +395,7 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
             raise ValueError(txt)
         if (not many) and (signal.ndim != 1):
             txt = '{}: can plot only one signal (not {}).'
-            txt = txt.format(signal.shape[1])
+            txt = txt.format(name, signal.shape[1])
             raise ValueError(txt)
 
     def normalize(x):

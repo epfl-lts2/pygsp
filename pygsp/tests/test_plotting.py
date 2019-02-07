@@ -119,7 +119,7 @@ class TestCase(unittest.TestCase):
                           np.random.RandomState(42).uniform(size=length)]:
                 params = {param: value}
                 G.plot(**params)
-            for value in [10, (0.5, 0.5), np.ones([2, length]),
+            for value in [10, (0.5, 0.5), np.ones([length, 2]),
                           np.ones([2, length, 3])]:
                 params = {param: value}
                 self.assertRaises(ValueError, G.plot, **params)
