@@ -25,6 +25,7 @@ matrix:
       cache: pip  # avoid PySide wheel build
 
 before_install:
+  - mkdir -p $(python -m site --user-site)
   - ln -s /usr/lib/python3/dist-packages/graph_tool $(python -m site --user-site)
 
 install:
