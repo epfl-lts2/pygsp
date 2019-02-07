@@ -24,14 +24,6 @@ matrix:
     - python: 2.7
       dist: trusty  # "cannot import name QtOpenGL" with xenial
       cache: pip  # avoid PySide wheel build
-    addons:
-      apt:
-        sources:
-        - sourceline: 'deb https://downloads.skewed.de/apt/xenial xenial universe'
-        - sourceline: 'deb-src http://downloads.skewed.de/apt/xenial xenial universe'
-          key_url: 'https://pgp.skewed.de/pks/lookup?op=get&search=0x612DEFB798507F25'
-        packages:
-        - python-graph-tool
 
 install:
   - pip install -U --upgrade-strategy eager .[alldeps,test,doc]
