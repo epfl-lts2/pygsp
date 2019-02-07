@@ -1,14 +1,38 @@
-sudo: false
+# Needed as trusty (the default) doesn't support python 3.7.
+# Remove once xenial is made default.
+# https://github.com/travis-ci/travis-ci/issues/9815
+dist: xenial
+
+addons:
+  apt:
+    sources:
+    - sourceline: 'deb https://downloads.skewed.de/apt/xenial xenial universe'
+      key_url: 'https://pgp.skewed.de/pks/lookup?op=get&search=0x612DEFB798507F25'
+    packages:
+    - python-graph-tool
+    - python3-graph-tool
 
 language: python
-services:
-  - docker
+
+python:
+  - 3.5
+  - 3.6
+  - 3.7
+
+matrix:
+  include:
+    - python: 2.7
+      dist: trusty  # "cannot import name QtOpenGL" with xenial
+      cache: pip  # avoid PySide wheel build
+
+install:
+  - pip install -U --upgrade-strategy eager .[alldeps,test,doc]
+  # Update dependencies (e.g. numpy formatting changed in v1.14).
 
 script:
 # - make lint
-#  - make test
-# - make doc
-  - docker run -v `pwd`:/opt/pygsp cgallay/pygsp make test
+  - make test
+  - make doc
 
 after_success:
   - coveralls
