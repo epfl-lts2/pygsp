@@ -9,9 +9,9 @@ addons:
     - sourceline: 'deb https://downloads.skewed.de/apt/xenial xenial universe'
       key_url: 'https://pgp.skewed.de/pks/lookup?op=get&search=0x612DEFB798507F25'
     - sourceline: 'deb https://downloads.skewed.de/apt/trusty trusty universe'
-      key_url: 'https://pgp.skewed.de/pks/lookup?op=get&search=0x612DEFB798507F25'
+      key_url: 'https://pgp.skewed.de/pks/lookup?op=get&search=0x98507F25'
     - sourceline: 'deb-src https://downloads.skewed.de/apt/trusty trusty universe'
-      key_url: 'https://pgp.skewed.de/pks/lookup?op=get&search=0x612DEFB798507F25'
+      key_url: 'https://pgp.skewed.de/pks/lookup?op=get&search=0x98507F25'
     packages:
     - python-graph-tool
     - python3-graph-tool
