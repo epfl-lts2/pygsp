@@ -318,7 +318,9 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
         Edge color is given by `graph.plotting['edge_color']` and transparency
         ranges from 0.2 to 0.9.
         If None, edge color is set to `graph.plotting['edge_color']`.
-        Alternatively, a color can be set in any format accepted by matplotlib.
+        Alternatively, a color can be set in any format accepted by matplotlib,
+        Each edge color can by specified by an RGB(A) array of dimension
+        `n_edges` x 3 (or 4).
         Only available with the matplotlib backend.
     edge_width : array-like or int
         Signal to plot as edge width (length is the number of edges).
@@ -413,6 +415,15 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
             # No support (yet) for single color with pyqtgraph.
             return False
 
+    def is_rgba_array(colors):
+        if backend == 'matplotlib':
+            if colors.shape[0] != G.n_edges:
+                return False
+            mpl, _, _ = _import_plt()
+            return all(map(mpl.colors.is_color_like, colors))
+        elif backend == 'pyqtgraph':
+            return False
+
     if vertex_color is None:
         limits = [0, 0]
         colorbar = False
@@ -438,7 +449,7 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
 
     if edge_color is None:
         edge_color = (G.plotting['edge_color'],)
-    elif not is_single_color(edge_color):
+    elif not is_single_color(edge_color) and not is_rgba_array(edge_color):
         edge_color = np.array(edge_color).squeeze()
         check_shape(edge_color, 'Edge color', G.n_edges)
         edge_color = 0.9 * normalize(edge_color)
