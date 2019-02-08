@@ -407,21 +407,20 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
             return np.full(x.shape, 0.5)
         return 0.75 * (x - x.min()) / ptp + 0.25
 
-    def is_single_color(color):
+    def is_color_signal(color, length):
         if backend == 'matplotlib':
             mpl, _, _ = _import_plt()
-            return mpl.colors.is_color_like(color)
-        elif backend == 'pyqtgraph':
-            # No support (yet) for single color with pyqtgraph.
-            return False
-
-    def is_rgba_array(colors):
-        if backend == 'matplotlib':
-            if colors.shape[0] != G.n_edges:
+            if mpl.colors.is_color_like(color):  # single color
+                return True
+            try:
+                # iterator of colors
+                if len(color) != length:
+                    return False
+                return all(map(mpl.colors.is_color_like, color))
+            except TypeError:
                 return False
-            mpl, _, _ = _import_plt()
-            return all(map(mpl.colors.is_color_like, colors))
         elif backend == 'pyqtgraph':
+            # No support (yet) for pyqtgraph.
             return False
 
     if vertex_color is None:
@@ -429,7 +428,7 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
         colorbar = False
         if backend == 'matplotlib':
             vertex_color = (G.plotting['vertex_color'],)
-    elif is_single_color(vertex_color):
+    elif is_color_signal(vertex_color, G.n_vertices):
         limits = [0, 0]
         colorbar = False
     else:
@@ -449,7 +448,7 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
 
     if edge_color is None:
         edge_color = (G.plotting['edge_color'],)
-    elif not is_single_color(edge_color) and not is_rgba_array(edge_color):
+    elif not is_color_signal(edge_color, G.n_edges):
         edge_color = np.array(edge_color).squeeze()
         check_shape(edge_color, 'Edge color', G.n_edges)
         edge_color = 0.9 * normalize(edge_color)
