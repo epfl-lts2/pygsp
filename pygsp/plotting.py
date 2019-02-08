@@ -412,6 +412,16 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
             mpl, _, _ = _import_plt()
             if mpl.colors.is_color_like(color):  # single color
                 return True
+
+            # check if one dimensional signal, then not color signal
+            try:
+                if check_shape(color, "", length):
+                    return False
+            except ValueError:
+                pass
+            except AttributeError:
+                pass
+
             try:
                 # iterator of colors
                 if len(color) != length:
