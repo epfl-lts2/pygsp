@@ -299,6 +299,8 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
         Signal to plot as vertex color (length is the number of vertices).
         If None, vertex color is set to `graph.plotting['vertex_color']`.
         Alternatively, a color can be set in any format accepted by matplotlib.
+        Each vertex color can by specified by an RGB(A) array of dimension
+        `n_vertices` x 3 (or 4).
     vertex_size : array-like or int
         Signal to plot as vertex size (length is the number of vertices).
         Vertex size ranges from 0.5 to 2 times `graph.plotting['vertex_size']`.
@@ -318,7 +320,7 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
         Edge color is given by `graph.plotting['edge_color']` and transparency
         ranges from 0.2 to 0.9.
         If None, edge color is set to `graph.plotting['edge_color']`.
-        Alternatively, a color can be set in any format accepted by matplotlib,
+        Alternatively, a color can be set in any format accepted by matplotlib.
         Each edge color can by specified by an RGB(A) array of dimension
         `n_edges` x 3 (or 4).
         Only available with the matplotlib backend.
