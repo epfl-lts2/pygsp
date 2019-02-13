@@ -19,6 +19,7 @@ matrix:
 addons:
   apt:
     packages:
+      - libqt5gui5  # pyqt5>5.11 otherwise cannot load the xcb platform plugin
       - libflann-dev
 
 install:
