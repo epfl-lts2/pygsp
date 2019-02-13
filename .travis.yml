@@ -16,6 +16,11 @@ matrix:
       dist: trusty  # "cannot import name QtOpenGL" with xenial
       cache: pip  # avoid PySide wheel build
 
+addons:
+  apt:
+    packages:
+    - libqt5gui5  # pyqt5>5.11 fails to load the xcb platform plugin without it
+
 install:
   - pip install -U --upgrade-strategy eager .[alldeps,test,doc]
   # Update dependencies (e.g. numpy formatting changed in v1.14).
