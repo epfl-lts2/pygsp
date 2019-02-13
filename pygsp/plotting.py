@@ -409,38 +409,26 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
             return np.full(x.shape, 0.5)
         return 0.75 * (x - x.min()) / ptp + 0.25
 
-    def is_color_signal(color, length):
+    def is_color(color):
+
         if backend == 'matplotlib':
             mpl, _, _ = _import_plt()
-            # check if one dimensional signal, then not color signal
+            if mpl.colors.is_color_like(color):
+                return True  # single color
             try:
-                if check_shape(color, "", length):
-                    return False
-            except ValueError:
-                pass
-            except AttributeError:
-                pass
-
-            if mpl.colors.is_color_like(color):  # single color
-                return True
-
-            try:
-                # iterator of colors
-                if len(color) != length:
-                    return False
-                return all(map(mpl.colors.is_color_like, color))
+                return all(map(mpl.colors.is_color_like, color))  # color list
             except TypeError:
-                return False
-        elif backend == 'pyqtgraph':
-            # No support (yet) for pyqtgraph.
-            return False
+                return False  # e.g., color is an int
+
+        else:
+            return False  # No support for pyqtgraph (yet).
 
     if vertex_color is None:
         limits = [0, 0]
         colorbar = False
         if backend == 'matplotlib':
             vertex_color = (G.plotting['vertex_color'],)
-    elif is_color_signal(vertex_color, G.n_vertices):
+    elif is_color(vertex_color):
         limits = [0, 0]
         colorbar = False
     else:
@@ -460,8 +448,8 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
 
     if edge_color is None:
         edge_color = (G.plotting['edge_color'],)
-    elif not is_color_signal(edge_color, G.n_edges):
-        edge_color = np.array(edge_color).squeeze()
+    elif not is_color(edge_color):
+        edge_color = np.asarray(edge_color).squeeze()
         check_shape(edge_color, 'Edge color', G.n_edges)
         edge_color = 0.9 * normalize(edge_color)
         edge_color = [
