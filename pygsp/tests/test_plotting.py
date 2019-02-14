@@ -50,8 +50,8 @@ class TestCase(unittest.TestCase):
 
             # Classes who require parameters.
             if classname == 'NNGraph':
-                Xin = np.arange(90).reshape(30, 3)
-                Gs.append(Graph(Xin))
+                features = np.random.RandomState(42).normal(size=(30, 3))
+                Gs.append(Graph(features))
             elif classname in ['ImgPatches', 'Grid2dImgPatches']:
                 Gs.append(Graph(img=self._img, patch_shape=(3, 3)))
             else:

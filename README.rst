@@ -37,7 +37,7 @@ The documentation is available on
 `Read the Docs <https://pygsp.readthedocs.io>`_
 and development takes place on
 `GitHub <https://github.com/epfl-lts2/pygsp>`_.
-(A (mostly unmaintained) `Matlab version <https://epfl-lts2.github.io/gspbox-html>`_ exists.)
+A (mostly unmaintained) `Matlab version <https://epfl-lts2.github.io/gspbox-html>`_ exists.
 
 The PyGSP facilitates a wide variety of operations on graphs, like computing
 their Fourier basis, filtering or interpolating signals, plotting graphs,

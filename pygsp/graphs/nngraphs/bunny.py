@@ -34,7 +34,7 @@ class Bunny(NNGraph):
             'distance': 8,
         }
 
-        super(Bunny, self).__init__(Xin=data['bunny'],
-                                    epsilon=0.02, NNtype='radius',
+        super(Bunny, self).__init__(data['bunny'],
                                     center=False, rescale=False,
+                                    kind='radius', radius=0.02,
                                     plotting=plotting, **kwargs)

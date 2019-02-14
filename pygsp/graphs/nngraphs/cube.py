@@ -89,7 +89,7 @@ class Cube(NNGraph):
             'distance': 9,
         }
 
-        super(Cube, self).__init__(Xin=pts, k=10,
+        super(Cube, self).__init__(pts, k=10,
                                    center=False, rescale=False,
                                    plotting=plotting, **kwargs)
 

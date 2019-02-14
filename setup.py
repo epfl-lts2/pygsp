@@ -39,7 +39,6 @@ setup(
             'scikit-image',
             # Approximate nearest neighbors for kNN graphs.
             'cyflann',
-            'pybind11',
             'nmslib',
             # Convex optimization on graph.
             'pyunlocbox',
@@ -69,7 +68,7 @@ setup(
         # Dependencies to build and upload packages.
         'pkg': [
             'wheel',
-            'twine'
+            'twine',
         ],
     },
     license="BSD",
