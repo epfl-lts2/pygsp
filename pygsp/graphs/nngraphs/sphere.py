@@ -64,7 +64,7 @@ class Sphere(NNGraph):
             'vertex_size': 80,
         }
 
-        super(Sphere, self).__init__(Xin=pts, k=10,
+        super(Sphere, self).__init__(pts, k=10,
                                      center=False, rescale=False,
                                      plotting=plotting, **kwargs)
 
