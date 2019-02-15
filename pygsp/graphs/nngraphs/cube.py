@@ -89,9 +89,7 @@ class Cube(NNGraph):
             'distance': 9,
         }
 
-        super(Cube, self).__init__(pts, k=10,
-                                   center=False, rescale=False,
-                                   plotting=plotting, **kwargs)
+        super(Cube, self).__init__(pts, k=10, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         attrs = {'radius': '{:.2f}'.format(self.radius),

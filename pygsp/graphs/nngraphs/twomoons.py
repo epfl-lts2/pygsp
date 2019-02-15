@@ -97,7 +97,6 @@ class TwoMoons(NNGraph):
         }
 
         super(TwoMoons, self).__init__(coords, kernel_width=kernel_width, k=5,
-                                       center=False, rescale=False,
                                        plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
