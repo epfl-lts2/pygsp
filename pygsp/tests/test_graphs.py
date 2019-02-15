@@ -530,6 +530,8 @@ class TestCase(unittest.TestCase):
                           backend='invalid')
         self.assertRaises(ValueError, graphs.NNGraph, features,
                           kind='knn', k=n_vertices+1)
+        self.assertRaises(ValueError, graphs.NNGraph, features,
+                          kind='radius', radius=0)
 
     def test_nngraph_consistency(self):
         features = np.arange(90).reshape(30, 3)
