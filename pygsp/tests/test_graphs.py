@@ -358,19 +358,26 @@ class TestCase(unittest.TestCase):
         for backend in backends:
             for metric in metrics:
                 for kind in ['knn', 'radius']:
-                    params = dict(features=features, metric=metric,
-                                  order=order, kind=kind, backend=backend)
                     # Unsupported combinations.
                     if backend == 'flann' and metric == 'max_dist':
-                        self.assertRaises(ValueError, graphs.NNGraph, **params)
+                        self.assertRaises(ValueError, graphs.NNGraph, features,
+                                          metric=metric, backend=backend)
                     elif backend == 'nmslib' and metric == 'minkowski':
-                        self.assertRaises(ValueError, graphs.NNGraph, **params)
+                        self.assertRaises(ValueError, graphs.NNGraph, features,
+                                          metric=metric, backend=backend)
                     elif backend == 'nmslib' and kind == 'radius':
-                        self.assertRaises(ValueError, graphs.NNGraph, **params)
+                        self.assertRaises(ValueError, graphs.NNGraph, features,
+                                          kind=kind, backend=backend)
                     else:
-                        graphs.NNGraph(**params, center=False)
-                        graphs.NNGraph(**params, rescale=False)
-                        graphs.NNGraph(**params, center=False, rescale=False)
+                        graphs.NNGraph(features, metric=metric, order=order,
+                                       kind=kind, backend=backend,
+                                       center=False)
+                        graphs.NNGraph(features, metric=metric, order=order,
+                                       kind=kind, backend=backend,
+                                       rescale=False)
+                        graphs.NNGraph(features, metric=metric, order=order,
+                                       kind=kind, backend=backend,
+                                       center=False, rescale=False)
 
         # Invalid parameters.
         self.assertRaises(ValueError, graphs.NNGraph, features,
