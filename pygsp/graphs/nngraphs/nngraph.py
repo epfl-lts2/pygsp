@@ -285,7 +285,7 @@ class NNGraph(Graph):
     """
 
     def __init__(self, features, center=True, rescale=True,
-                 metric='euclidean', order=0,
+                 metric='euclidean', order=3,
                  kind='knn', k=10, radius=0.01,
                  kernel_width=None,
                  backend='scipy-ckdtree',

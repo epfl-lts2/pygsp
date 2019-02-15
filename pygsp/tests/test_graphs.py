@@ -353,7 +353,6 @@ class TestCase(unittest.TestCase):
         metrics = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
         backends = ['scipy-kdtree', 'scipy-ckdtree', 'scipy-pdist', 'nmslib',
                     'flann']
-        order = 3  # for minkowski, FLANN only accepts integer orders
 
         for backend in backends:
             for metric in metrics:
@@ -369,13 +368,13 @@ class TestCase(unittest.TestCase):
                         self.assertRaises(ValueError, graphs.NNGraph, features,
                                           kind=kind, backend=backend)
                     else:
-                        graphs.NNGraph(features, metric=metric, order=order,
-                                       kind=kind, backend=backend,
+                        graphs.NNGraph(features, metric=metric, kind=kind,
+                                       backend=backend,
                                        center=False)
-                        graphs.NNGraph(features, metric=metric, order=order,
+                        graphs.NNGraph(features, metric=metric,
                                        kind=kind, backend=backend,
                                        rescale=False)
-                        graphs.NNGraph(features, metric=metric, order=order,
+                        graphs.NNGraph(features, metric=metric,
                                        kind=kind, backend=backend,
                                        center=False, rescale=False)
 
