@@ -332,6 +332,9 @@ class NNGraph(Graph):
             raise ValueError('The number of neighbors (k={}) must be smaller '
                              'than the number of vertices ({}).'.format(k, N))
 
+        if kind == 'radius' and radius <= 0:
+            raise ValueError('The radius must be greater than 0.')
+
         if center:
             features = center_features(features)
 
@@ -348,13 +351,25 @@ class NNGraph(Graph):
             NN, D = _nn_functions[kind][backend](features, radius,
                                                  metric, order)
             if self.kernel_width is None:
-                # Discard distance to self.
-                self.kernel_width = np.mean([np.mean(d[1:]) for d in D])
+                # Discard distance to self and deal with disconnected vertices.
+                means = []
+                for distance in D:
+                    if len(distance) > 1:
+                        means.append(np.mean(distance[1:]))
+                self.kernel_width = np.mean(means) if len(means) > 0 else 0
 
         n_edges = [len(x) - 1 for x in NN]  # remove distance to self
         value = np.empty(sum(n_edges), dtype=np.float)
         row = np.empty_like(value, dtype=np.int)
         col = np.empty_like(value, dtype=np.int)
+
+        if kind == 'radius':
+            n_disconnected = np.sum(np.asarray(n_edges) == 0)
+            if n_disconnected > 0:
+                logger = utils.build_logger(__name__)
+                logger.warning('{} vertices (out of {}) are disconnected. '
+                               'Consider increasing the radius or setting '
+                               'kind=knn.'.format(n_disconnected, N))
 
         start = 0
         for vertex in range(N):
