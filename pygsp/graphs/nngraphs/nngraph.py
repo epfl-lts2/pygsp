@@ -123,9 +123,13 @@ def _radius_sp_ckdtree(features, radius, metric, order):
 
 
 def _knn_sp_pdist(features, num_neighbors, metric, order):
-    p = spatial.distance.pdist(features,
-                               metric=_metrics['scipy-pdist'][metric],
-                               p=order)
+    if metric == 'minkowski':
+        p = spatial.distance.pdist(features,
+                                   metric=_metrics['scipy-pdist'][metric],
+                                   p=order)
+    else:
+        p = spatial.distance.pdist(features,
+                                   metric=_metrics['scipy-pdist'][metric])
     pd = spatial.distance.squareform(p)
     pds = np.sort(pd)[:, :num_neighbors+1]
     pdi = pd.argsort()[:, :num_neighbors+1]
@@ -148,10 +152,14 @@ def _knn_nmslib(features, num_neighbors, metric, _):
 
 
 def _radius_sp_pdist(features, radius, metric, order):
-    n_vertices, _ = np.shape(features)
-    p = spatial.distance.pdist(features,
-                               metric=_metrics['scipy-pdist'][metric],
-                               p=order)
+    n_vertices, _ = features.shape
+    if metric == 'minkowski':
+        p = spatial.distance.pdist(features,
+                                   metric=_metrics['scipy-pdist'][metric],
+                                   p=order)
+    else:
+        p = spatial.distance.pdist(features,
+                                   metric=_metrics['scipy-pdist'][metric])
     pd = spatial.distance.squareform(p)
     pdf = pd < radius
     D = []
@@ -162,7 +170,6 @@ def _radius_sp_pdist(features, radius, metric, order):
         # use the same conventions as in scipy.distance.kdtree
         NN.append(d[0:len(v)])
         D.append(np.sort(v))
-
     return NN, D
 
 
