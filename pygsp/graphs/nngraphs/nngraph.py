@@ -302,7 +302,7 @@ class NNGraph(Graph):
                  backend='scipy-ckdtree',
                  **kwargs):
 
-        self.features = features  # stored in coords, but scaled and centered
+        # features is stored in coords, potentially standardized
         self.center = center
         self.rescale = rescale
         self.metric = metric
