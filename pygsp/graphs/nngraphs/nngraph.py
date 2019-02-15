@@ -210,8 +210,7 @@ _nn_functions = {
 
 
 def center_features(features):
-    n_vertices, _ = features.shape
-    return features - np.kron(np.ones((n_vertices, 1)), np.mean(features, 0))
+    return features - np.mean(features, axis=0)
 
 
 def rescale_features(features):
@@ -298,67 +297,52 @@ class NNGraph(Graph):
                  backend='scipy-ckdtree',
                  **kwargs):
 
-        # features is stored in coords, potentially standardized
-        self.center = center
-        self.rescale = rescale
-        self.metric = metric
-        self.order = order
-        self.kind = kind
-        self.k = k
-        self.radius = radius
-        self.kernel_width = kernel_width
-        self.backend = backend
-
-        N, d = np.shape(features)
-
-        if _nn_functions.get(kind) is None:
-            raise ValueError('Invalid kind "{}".'.format(kind))
-
-        if backend not in _metrics.keys():
-            raise ValueError('Invalid backend "{}".'.format(backend))
+        n_vertices, _ = features.shape
 
         if _metrics['scipy-pdist'].get(metric) is None:
             raise ValueError('Invalid metric "{}".'.format(metric))
-
-        if _nn_functions[kind].get(backend) is None:
-            raise ValueError('{} does not support kind "{}".'.format(
-                backend, kind))
-
+        if _nn_functions.get(kind) is None:
+            raise ValueError('Invalid kind "{}".'.format(kind))
+        if backend not in _metrics.keys():
+            raise ValueError('Invalid backend "{}".'.format(backend))
         if _metrics[backend].get(metric) is None:
-            raise ValueError('{} does not support the {} metric.'.format(
+            raise ValueError('{} does not support metric="{}".'.format(
                 backend, metric))
-
-        if kind == 'knn' and k >= N:
+        if _nn_functions[kind].get(backend) is None:
+            raise ValueError('{} does not support kind="{}".'.format(
+                backend, kind))
+        if kind == 'knn' and k >= n_vertices:
             raise ValueError('The number of neighbors (k={}) must be smaller '
-                             'than the number of vertices ({}).'.format(k, N))
-
-        if kind == 'radius' and radius <= 0:
+                             'than the number of vertices ({}).'.format(
+                                 k, n_vertices))
+        if kind == 'radius' and radius is not None and radius <= 0:
             raise ValueError('The radius must be greater than 0.')
 
         if center:
             features = center_features(features)
-
         if rescale:
             features = rescale_features(features)
 
+        nn_function = _nn_functions[kind][backend]
         if kind == 'knn':
-            NN, D = _nn_functions[kind][backend](features, k, metric, order)
-            if self.kernel_width is None:
-                # Discard distance to self.
-                self.kernel_width = np.mean(D[:, 1:])
-
+            neighbors, distances = nn_function(features, k, metric, order)
         elif kind == 'radius':
-            NN, D = _nn_functions[kind][backend](features, radius,
-                                                 metric, order)
-            if self.kernel_width is None:
-                # Discard distance to self and deal with disconnected vertices.
+            neighbors, distances = nn_function(features, radius, metric, order)
+
+        if kernel_width is None:
+            # Discard distance to self and deal with disconnected vertices.
+            if kind == 'knn':
+                kernel_width = np.mean(distances[:, 1:])
+            elif kind == 'radius':
                 means = []
-                for distance in D:
+                for distance in distances:
                     if len(distance) > 1:
                         means.append(np.mean(distance[1:]))
-                self.kernel_width = np.mean(means) if len(means) > 0 else 0
+                kernel_width = np.mean(means) if len(means) > 0 else 0
+                # Alternative: kernel_width = radius / 2
+                # Alternative: kernel_width = radius / np.log(2)
 
-        n_edges = [len(x) - 1 for x in NN]  # remove distance to self
+        n_edges = [len(n) - 1 for n in neighbors]  # remove distance to self
         value = np.empty(sum(n_edges), dtype=np.float)
         row = np.empty_like(value, dtype=np.int)
         col = np.empty_like(value, dtype=np.int)
@@ -369,24 +353,35 @@ class NNGraph(Graph):
                 logger = utils.build_logger(__name__)
                 logger.warning('{} vertices (out of {}) are disconnected. '
                                'Consider increasing the radius or setting '
-                               'kind=knn.'.format(n_disconnected, N))
+                               'kind=knn.'.format(n_disconnected, n_vertices))
 
         start = 0
-        for vertex in range(N):
+        for vertex in range(n_vertices):
             if kind == 'knn':
                 assert n_edges[vertex] == k
             end = start + n_edges[vertex]
-            distance = np.power(D[vertex][1:], 2)
-            value[start:end] = np.exp(-distance / self.kernel_width)
+            distance = np.power(distances[vertex][1:], 2)
+            value[start:end] = np.exp(-distance / kernel_width)
             row[start:end] = np.full(n_edges[vertex], vertex)
-            col[start:end] = NN[vertex][1:]
+            col[start:end] = neighbors[vertex][1:]
             start = end
 
-        W = sparse.csc_matrix((value, (row, col)), shape=(N, N))
+        W = sparse.csr_matrix((value, (row, col)), (n_vertices, n_vertices))
 
         # Enforce symmetry. May have been broken by k-NN. Checking symmetry
         # with np.abs(W - W.T).sum() is as costly as the symmetrization itself.
         W = utils.symmetrize(W, method='average')
+
+        # features is stored in coords, potentially standardized
+        self.center = center
+        self.rescale = rescale
+        self.metric = metric
+        self.order = order
+        self.kind = kind
+        self.radius = radius
+        self.kernel_width = kernel_width
+        self.k = k
+        self.backend = backend
 
         super(NNGraph, self).__init__(W=W, coords=features, **kwargs)
 
