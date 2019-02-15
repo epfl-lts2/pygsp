@@ -491,6 +491,7 @@ class TestCase(unittest.TestCase):
         self.assertEqual(graph.plotting, self._G.plotting)
 
     def test_nngraph(self, n_vertices=30):
+        """Test all the combinations of metric, kind, backend."""
         features = np.random.RandomState(42).normal(size=(n_vertices, 3))
         metrics = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
         backends = ['scipy-kdtree', 'scipy-ckdtree', 'scipy-pdist', 'nmslib',
@@ -499,46 +500,30 @@ class TestCase(unittest.TestCase):
 
         for backend in backends:
             for metric in metrics:
-                if ((backend == 'flann' and metric == 'max_dist') or
-                    (backend == 'nmslib' and metric == 'minkowski')):
-                    self.assertRaises(ValueError, graphs.NNGraph, features,
-                                      kind='knn', backend=backend,
-                                      metric=metric)
-                    self.assertRaises(ValueError, graphs.NNGraph, features,
-                                      kind='radius', backend=backend,
-                                      metric=metric)
-                else:
-                    if backend == 'nmslib':
-                        self.assertRaises(ValueError, graphs.NNGraph, features,
-                                          kind='radius', backend=backend,
-                                          metric=metric, order=order)
+                for kind in ['knn', 'radius']:
+                    params = dict(features=features, metric=metric,
+                                  order=order, kind=kind, backend=backend)
+                    # Unsupported combinations.
+                    if backend == 'flann' and metric == 'max_dist':
+                        self.assertRaises(ValueError, graphs.NNGraph, **params)
+                    elif backend == 'nmslib' and metric == 'minkowski':
+                        self.assertRaises(ValueError, graphs.NNGraph, **params)
+                    elif backend == 'nmslib' and kind == 'radius':
+                        self.assertRaises(ValueError, graphs.NNGraph, **params)
                     else:
-                        graphs.NNGraph(features, kind='radius',
-                                       backend=backend,
-                                       metric=metric, order=order)
-                        graphs.NNGraph(features, kind='knn',
-                                       backend=backend,
-                                       metric=metric, order=order)
-                        graphs.NNGraph(features, kind='knn',
-                                       backend=backend,
-                                       metric=metric, order=order,
-                                       center=False)
-                        graphs.NNGraph(features, kind='knn',
-                                       backend=backend,
-                                       metric=metric, order=order,
-                                       rescale=False)
-                        graphs.NNGraph(features, kind='knn',
-                                       backend=backend,
-                                       metric=metric, order=order,
-                                       rescale=False, center=False)
+                        graphs.NNGraph(**params, center=False)
+                        graphs.NNGraph(**params, rescale=False)
+                        graphs.NNGraph(**params, center=False, rescale=False)
+
+        # Invalid parameters.
         self.assertRaises(ValueError, graphs.NNGraph, features,
-                                      kind='invalid', backend=backend,
-                                      metric=metric)
+                          metric='invalid')
         self.assertRaises(ValueError, graphs.NNGraph, features,
-                                      kind='knn', backend='invalid',
-                                      metric=metric)
+                          kind='invalid')
         self.assertRaises(ValueError, graphs.NNGraph, features,
-                                      kind='knn', k=n_vertices+1)
+                          backend='invalid')
+        self.assertRaises(ValueError, graphs.NNGraph, features,
+                          kind='knn', k=n_vertices+1)
 
     def test_nngraph_consistency(self):
         features = np.arange(90).reshape(30, 3)
