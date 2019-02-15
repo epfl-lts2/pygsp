@@ -64,9 +64,7 @@ class Sphere(NNGraph):
             'vertex_size': 80,
         }
 
-        super(Sphere, self).__init__(pts, k=10,
-                                     center=False, rescale=False,
-                                     plotting=plotting, **kwargs)
+        super(Sphere, self).__init__(pts, k=10, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         attrs = {'radius': '{:.2f}'.format(self.radius),

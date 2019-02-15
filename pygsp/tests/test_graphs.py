@@ -511,15 +511,10 @@ class TestCase(unittest.TestCase):
                         self.assertRaises(ValueError, graphs.NNGraph, features,
                                           kind=kind, backend=backend)
                     else:
-                        graphs.NNGraph(features, metric=metric, kind=kind,
-                                       backend=backend,
-                                       center=False)
-                        graphs.NNGraph(features, metric=metric,
-                                       kind=kind, backend=backend,
-                                       rescale=False)
-                        graphs.NNGraph(features, metric=metric,
-                                       kind=kind, backend=backend,
-                                       center=False, rescale=False)
+                        for standardize in [True, False]:
+                            graphs.NNGraph(features, standardize=standardize,
+                                           metric=metric, kind=kind,
+                                           backend=backend)
 
         # Invalid parameters.
         self.assertRaises(ValueError, graphs.NNGraph, features,

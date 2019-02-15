@@ -213,18 +213,6 @@ _nn_functions = {
 }
 
 
-def center_features(features):
-    return features - np.mean(features, axis=0)
-
-
-def rescale_features(features):
-    n_vertices, dimensionality = features.shape
-    bounding_radius = 0.5 * np.linalg.norm(np.amax(features, axis=0) -
-                                           np.amin(features, axis=0), 2)
-    scale = np.power(n_vertices, 1 / min(dimensionality, 3)) / 10
-    return features * scale / bounding_radius
-
-
 class NNGraph(Graph):
     r"""Nearest-neighbor graph.
 
@@ -248,10 +236,9 @@ class NNGraph(Graph):
     features : ndarray
         An `N`-by-`d` matrix, where `N` is the number of nodes in the graph and
         `d` is the number of features.
-    center : bool, optional
-        Whether to center the features to have zero mean.
-    rescale : bool, optional
-        Whether to scale the features so that they lie in an l2-ball.
+    standardize : bool, optional
+        Whether to rescale the features so that each feature has a mean of 0
+        and standard deviation of 1 (unit variance).
     metric : {'euclidean', 'manhattan', 'minkowski', 'max_dist'}, optional
         Metric used to compute pairwise distances.
     order : float, optional
@@ -294,7 +281,7 @@ class NNGraph(Graph):
 
     """
 
-    def __init__(self, features, center=True, rescale=True,
+    def __init__(self, features, standardize=False,
                  metric='euclidean', order=3,
                  kind='knn', k=10, radius=0.01,
                  kernel_width=None,
@@ -322,10 +309,10 @@ class NNGraph(Graph):
         if kind == 'radius' and radius is not None and radius <= 0:
             raise ValueError('The radius must be greater than 0.')
 
-        if center:
-            features = center_features(features)
-        if rescale:
-            features = rescale_features(features)
+        if standardize:
+            # Don't alter the original data (users would be surprised).
+            features = features - np.mean(features, axis=0)
+            features /= np.std(features, axis=0)
 
         nn_function = _nn_functions[kind][backend]
         if kind == 'knn':
@@ -377,8 +364,7 @@ class NNGraph(Graph):
         W = utils.symmetrize(W, method='average')
 
         # features is stored in coords, potentially standardized
-        self.center = center
-        self.rescale = rescale
+        self.standardize = standardize
         self.metric = metric
         self.order = order
         self.kind = kind
@@ -391,8 +377,7 @@ class NNGraph(Graph):
 
     def _get_extra_repr(self):
         return {
-            'center': self.center,
-            'rescale': self.rescale,
+            'standardize': self.standardize,
             'metric': self.metric,
             'order': self.order,
             'kind': self.kind,
