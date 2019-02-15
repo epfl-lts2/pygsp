@@ -344,22 +344,23 @@ class NNGraph(Graph):
                 # Discard distance to self.
                 self.kernel_width = np.mean([np.mean(d[1:]) for d in D])
 
-        countV = list(map(len, NN))
-        count = sum(countV)
-        spi = np.zeros((count))
-        spj = np.zeros((count))
-        spv = np.zeros((count))
+        n_edges = [len(x) - 1 for x in NN]  # remove distance to self
+        value = np.empty(sum(n_edges), dtype=np.float)
+        row = np.empty_like(value, dtype=np.int)
+        col = np.empty_like(value, dtype=np.int)
 
         start = 0
-        for i in range(N):
-            length = countV[i] - 1
-            distance = np.power(D[i][1:], 2)
-            spi[start:start + length] = np.kron(np.ones((length)), i)
-            spj[start:start + length] = NN[i][1:]
-            spv[start:start + length] = np.exp(-distance / self.kernel_width)
-            start = start + length
+        for vertex in range(N):
+            if kind == 'knn':
+                assert n_edges[vertex] == k
+            end = start + n_edges[vertex]
+            distance = np.power(D[vertex][1:], 2)
+            value[start:end] = np.exp(-distance / self.kernel_width)
+            row[start:end] = np.full(n_edges[vertex], vertex)
+            col[start:end] = NN[vertex][1:]
+            start = end
 
-        W = sparse.csc_matrix((spv, (spi, spj)), shape=(N, N))
+        W = sparse.csc_matrix((value, (row, col)), shape=(N, N))
 
         # Enforce symmetry. May have been broken by k-NN. Checking symmetry
         # with np.abs(W - W.T).sum() is as costly as the symmetrization itself.
