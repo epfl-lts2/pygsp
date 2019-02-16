@@ -7,10 +7,12 @@ Test suite for the graphs module of the pygsp package.
 
 from __future__ import division
 
+
 import os
 import random
 import sys
 import unittest
+
 import numpy as np
 import scipy.linalg
 from scipy import sparse
@@ -531,13 +533,14 @@ class TestCase(unittest.TestCase):
                           kind='radius', radius=0)
 
         # Empty graph.
-        for backend in backends:
-            if backend == 'nmslib':
-                continue
-            with self.assertLogs(level='WARNING'):
-                graph = graphs.NNGraph(features, kind='radius', radius=1e-9,
-                                       backend=backend)
-            self.assertEqual(graph.n_edges, 0)
+        if sys.version_info > (3, 4):  # no assertLogs in python 2.7
+            for backend in backends:
+                if backend == 'nmslib':
+                    continue
+                with self.assertLogs(level='WARNING'):
+                    graph = graphs.NNGraph(features, kind='radius',
+                                           radius=1e-9, backend=backend)
+                self.assertEqual(graph.n_edges, 0)
 
     def test_nngraph_consistency(self):
         features = np.arange(90).reshape(30, 3)
