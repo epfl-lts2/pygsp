@@ -381,9 +381,20 @@ class TestCase(unittest.TestCase):
         self.assertRaises(ValueError, graphs.NNGraph, features,
                           backend='invalid')
         self.assertRaises(ValueError, graphs.NNGraph, features,
-                          kind='knn', k=n_vertices+1)
+                          kind='knn', k=0)
+        self.assertRaises(ValueError, graphs.NNGraph, features,
+                          kind='knn', k=n_vertices)
         self.assertRaises(ValueError, graphs.NNGraph, features,
                           kind='radius', radius=0)
+
+        # Empty graph.
+        for backend in backends:
+            if backend == 'nmslib':
+                continue
+            with self.assertLogs(level='WARNING'):
+                graph = graphs.NNGraph(features, kind='radius', radius=1e-9,
+                                       backend=backend)
+            self.assertEqual(graph.n_edges, 0)
 
     def test_nngraph_consistency(self):
         features = np.arange(90).reshape(30, 3)
