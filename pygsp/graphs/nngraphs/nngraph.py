@@ -107,19 +107,16 @@ def _radius_sp_kdtree(features, radius, metric, order):
 def _radius_sp_ckdtree(features, radius, metric, order):
     p = order if metric == 'minkowski' else _metrics['scipy-ckdtree'][metric]
     n_vertices, _ = features.shape
-    kdt = spatial.cKDTree(features)
-    nn = kdt.query_ball_point(features, r=radius, p=p, n_jobs=-1)
-    D = []
-    NN = []
-    for k in range(n_vertices):
-        x = np.tile(features[k, :], (len(nn[k]), 1))
-        d = np.linalg.norm(x - features[nn[k], :],
-                           ord=_metrics['scipy-ckdtree'][metric],
-                           axis=1)
-        nidx = d.argsort()
-        NN.append(np.take(nn[k], nidx))
-        D.append(np.sort(d))
-    return NN, D
+    tree = spatial.cKDTree(features)
+    D, NN = tree.query(features, k=n_vertices, distance_upper_bound=radius,
+                       p=p, n_jobs=-1)
+    distances = []
+    neighbors = []
+    for d, n in zip(D, NN):
+        mask = (d != np.inf)
+        distances.append(d[mask])
+        neighbors.append(n[mask])
+    return neighbors, distances
 
 
 def _knn_sp_pdist(features, num_neighbors, metric, order):
