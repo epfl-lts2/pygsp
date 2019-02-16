@@ -85,7 +85,7 @@ We start with the graph TV regularization. We will use the :class:`pyunlocbox.so
     >>> prob1 = pyunlocbox.solvers.solve([d, r, f], solver=solver,
     ...                                  x0=x0, rtol=0, maxit=1000)
     Solution found after 1000 iterations:
-        objective function f(sol) = 2.250584e+02
+        objective function f(sol) = 2.138668e+02
         stopping criterion: MAXIT
     >>>
     >>> fig, ax = G.plot(prob1['sol'])
@@ -107,7 +107,7 @@ This figure shows the label signal recovered by graph total variation regulariza
     >>> prob2 = pyunlocbox.solvers.solve([r, f], solver=solver,
     ...                                  x0=x0, rtol=0, maxit=1000)
     Solution found after 1000 iterations:
-        objective function f(sol) = 6.504290e+01
+        objective function f(sol) = 7.413918e+01
         stopping criterion: MAXIT
     >>>
     >>> fig, ax = G.plot(prob2['sol'])
