@@ -302,11 +302,11 @@ class NNGraph(Graph):
         if _nn_functions[kind].get(backend) is None:
             raise ValueError('{} does not support kind="{}".'.format(
                 backend, kind))
-        if kind == 'knn' and k >= n_vertices:
-            raise ValueError('The number of neighbors (k={}) must be smaller '
-                             'than the number of vertices ({}).'.format(
-                                 k, n_vertices))
-        if kind == 'radius' and radius is not None and radius <= 0:
+        if not (1 <= k < n_vertices):
+            raise ValueError('The number of neighbors (k={}) must be greater '
+                             'than 0 and smaller than the number of vertices '
+                             '({}).'.format(k, n_vertices))
+        if (radius is not None) and (radius <= 0):
             raise ValueError('The radius must be greater than 0.')
 
         if standardize:
