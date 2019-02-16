@@ -340,6 +340,10 @@ class NNGraph(Graph):
             start = end
         W = sparse.csr_matrix((value, (row, col)), (n_vertices, n_vertices))
 
+        # Enforce symmetry. May have been broken by k-NN. Checking symmetry
+        # with np.abs(W - W.T).sum() is as costly as the symmetrization itself.
+        W = utils.symmetrize(W, method='fill')
+
         if kernel_width is None:
             kernel_width = np.mean(W.data) if W.nnz > 0 else np.nan
             # Alternative: kernel_width = radius / 2 or radius / np.log(2).
@@ -349,10 +353,6 @@ class NNGraph(Graph):
             return np.exp(-distance**2 / width)
 
         W.data = kernel(W.data, kernel_width)
-
-        # Enforce symmetry. May have been broken by k-NN. Checking symmetry
-        # with np.abs(W - W.T).sum() is as costly as the symmetrization itself.
-        W = utils.symmetrize(W, method='average')
 
         # features is stored in coords, potentially standardized
         self.standardize = standardize
