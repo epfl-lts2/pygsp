@@ -316,23 +316,7 @@ class NNGraph(Graph):
         elif kind == 'radius':
             neighbors, distances = nn_function(features, radius, metric, order)
 
-        if kernel_width is None:
-            # Discard distance to self and deal with disconnected vertices.
-            if kind == 'knn':
-                kernel_width = np.mean(distances[:, 1:])
-            elif kind == 'radius':
-                means = []
-                for distance in distances:
-                    if len(distance) > 1:
-                        means.append(np.mean(distance[1:]))
-                kernel_width = np.mean(means) if len(means) > 0 else 0
-                # Alternative: kernel_width = radius / 2
-                # Alternative: kernel_width = radius / np.log(2)
-
         n_edges = [len(n) - 1 for n in neighbors]  # remove distance to self
-        value = np.empty(sum(n_edges), dtype=np.float)
-        row = np.empty_like(value, dtype=np.int)
-        col = np.empty_like(value, dtype=np.int)
 
         if kind == 'radius':
             n_disconnected = np.sum(np.asarray(n_edges) == 0)
@@ -342,18 +326,29 @@ class NNGraph(Graph):
                                'Consider increasing the radius or setting '
                                'kind=knn.'.format(n_disconnected, n_vertices))
 
+        value = np.empty(sum(n_edges), dtype=np.float)
+        row = np.empty_like(value, dtype=np.int)
+        col = np.empty_like(value, dtype=np.int)
         start = 0
         for vertex in range(n_vertices):
             if kind == 'knn':
                 assert n_edges[vertex] == k
             end = start + n_edges[vertex]
-            distance = np.power(distances[vertex][1:], 2)
-            value[start:end] = np.exp(-distance / kernel_width)
+            value[start:end] = distances[vertex][1:]
             row[start:end] = np.full(n_edges[vertex], vertex)
             col[start:end] = neighbors[vertex][1:]
             start = end
-
         W = sparse.csr_matrix((value, (row, col)), (n_vertices, n_vertices))
+
+        if kernel_width is None:
+            kernel_width = np.mean(W.data) if W.nnz > 0 else np.nan
+            # Alternative: kernel_width = radius / 2 or radius / np.log(2).
+            # Users can easily do the above.
+
+        def kernel(distance, width):
+            return np.exp(-distance**2 / width)
+
+        W.data = kernel(W.data, kernel_width)
 
         # Enforce symmetry. May have been broken by k-NN. Checking symmetry
         # with np.abs(W - W.T).sum() is as costly as the symmetrization itself.
