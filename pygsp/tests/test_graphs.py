@@ -11,6 +11,7 @@ import sys
 import unittest
 import random
 import os
+import sys
 
 import numpy as np
 import scipy.linalg
@@ -813,14 +814,15 @@ class TestCaseImportExport(unittest.TestCase):
 
     def test_save_load(self):
         g = graphs.Bunny()
-        tested_fmt = ["gml", "gexf"]  # "dot", "graphml"
-        for fmt in tested_fmt:
-            g.save("bunny." + fmt)
+        tested_fmt = ["gml", "gexf", "graphml"]
+        if sys.version_info > (3, 5):
+            for fmt in tested_fmt:
+                g.save("bunny." + fmt)
 
-        for fmt in tested_fmt:
-            graph_loaded = graphs.Graph.load("bunny." + fmt)
-            np.testing.assert_array_equal(g.W.todense(), graph_loaded.W.todense())
-            os.remove("bunny." + fmt)
+            for fmt in tested_fmt:
+                graph_loaded = graphs.Graph.load("bunny." + fmt)
+                np.testing.assert_array_equal(g.W.todense(), graph_loaded.W.todense())
+                os.remove("bunny." + fmt)
 
 
 suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestCaseImportExport)

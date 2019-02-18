@@ -333,7 +333,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         return graph
 
     @classmethod
-    def load(cls, path, fmt='auto', backend='networkx'):
+    def load(cls, path, fmt='auto', backend='auto'):
         r"""Load a graph from a file using networkx for import.
         The format is guessed from path, or can be specified by fmt
 
@@ -376,7 +376,6 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         if backend not in ['networkx', 'graph_tool']:
             raise ValueError('Unsupported backend specified {}.'.format(backend))
-
 
         return locals()['load_' + backend](path, fmt)
 
