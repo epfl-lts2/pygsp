@@ -287,7 +287,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return graph
 
     @classmethod
-    def load(cls, path, fmt='auto', backend='networkx'):
+    def load(cls, path, fmt='auto', backend='auto'):
         r"""Load a graph from a file using networkx for import.
         The format is guessed from path, or can be specified by fmt
 
@@ -330,7 +330,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         if backend not in ['networkx', 'graph_tool']:
             raise ValueError('Unsupported backend specified {}.'.format(backend))
-
 
         return locals()['load_' + backend](path, fmt)
 
