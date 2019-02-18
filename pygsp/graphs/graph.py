@@ -255,12 +255,10 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         nb_edges = graph_gt.num_edges()
         weights = np.zeros(shape=(nb_vertex, nb_vertex))
 
-        props_names = graph_gt.edge_properties.keys()
         if 'vertex_name' in graph_gt.vertex_properties.keys():
             vertex_name = graph_gt.vertex_properties['vertex_name']
             scalar_vertex = graph_gt.new_vertex_property('int')
             gt.map_property_values(vertex_name, scalar_vertex, lambda x: int(x))
-            # graph_gt.vertex_properties['vertex_name'] = scalar_vertex
             graph_gt = gt.Graph(graph_gt, vorder=scalar_vertex)
 
         try:
