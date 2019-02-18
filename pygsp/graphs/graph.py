@@ -728,7 +728,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         # indices = [] # Assigned but never used
 
         while not visited.all():
-            stack = set(np.nonzero(~visited)[0])
+            # pick a node not visted yet
+            stack = set(np.nonzero(~visited)[0][[0]])
             comp = []
 
             while len(stack):
@@ -1045,7 +1046,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         if method == 'lanczos':
             try:
-                lmax = sparse.linalg.eigsh(self.L, k=1, tol=5e-3,
+                # We need to cast the matrix L to a supported type.
+                # TODO: not good for memory. Cast earlier?
+                lmax = sparse.linalg.eigsh(self.L.asfptype(), k=1, tol=5e-3,
                                            ncv=min(self.N, 10),
                                            return_eigenvectors=False)
                 lmax = lmax[0]

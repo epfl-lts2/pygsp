@@ -16,6 +16,7 @@ addons:
     packages:
     - python-graph-tool
     - python3-graph-tool
+    - libqt5gui5  # pyqt5>5.11 fails to load the xcb platform plugin without it
 
 language: python
 

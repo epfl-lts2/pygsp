@@ -8,9 +8,9 @@ To start open a python shell (IPython is recommended here) and import the requir
 >>> import numpy as np
 >>> from pygsp import graphs, reduction
 
-For this demo we will be using a sensor graph with 512 nodes.
+For this demo we will be using a sensor graph with 400 nodes.
 
->>> G = graphs.Sensor(512, distributed=True)
+>>> G = graphs.Sensor(400, distributed=True)
 >>> G.compute_fourier_basis()
 
 The function graph_multiresolution computes the graph pyramid for you:

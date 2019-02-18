@@ -116,11 +116,14 @@ class TestCase(unittest.TestCase):
         G.plot()
         def test_color(param, length):
             for value in ['r', 4*(.5,), length*(2,), np.ones([1, length]),
-                          np.random.RandomState(42).uniform(size=length)]:
+                          np.random.RandomState(42).uniform(size=length),
+                          np.ones([length, 3]), ["red"] * length,
+                          np.random.RandomState(42).rand(length, 4)]:
                 params = {param: value}
                 G.plot(**params)
-            for value in [10, (0.5, 0.5), np.ones([2, length]),
-                          np.ones([2, length, 3])]:
+            for value in [10, (0.5, 0.5), np.ones([length, 2]),
+                          np.ones([2, length, 3]),
+                          np.ones([length, 3]) * 1.1]:
                 params = {param: value}
                 self.assertRaises(ValueError, G.plot, **params)
             for value in ['r', 4*(.5)]:
