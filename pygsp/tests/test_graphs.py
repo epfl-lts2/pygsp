@@ -16,7 +16,6 @@ import numpy as np
 import scipy.linalg
 import networkx as nx
 import graph_tool as gt
-import graph_tool.topology
 from skimage import data, img_as_float
 
 from pygsp import graphs
