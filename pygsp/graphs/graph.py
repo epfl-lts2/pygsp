@@ -451,7 +451,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         # indices = [] # Assigned but never used
 
         while not visited.all():
-            stack = set(np.nonzero(~visited)[0])
+            # pick a node not visted yet
+            stack = set(np.nonzero(~visited)[0][[0]])
             comp = []
 
             while len(stack):
