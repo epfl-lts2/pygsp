@@ -11,7 +11,6 @@ import sys
 import unittest
 import random
 import os
-import sys
 
 import numpy as np
 import scipy.linalg
@@ -813,16 +812,32 @@ class TestCaseImportExport(unittest.TestCase):
                              nx.get_node_attributes(g_nx, "signal1")[node])
 
     def test_save_load(self):
-        g = graphs.Bunny()
+        g = graphs.Sensor(seed=42)
         tested_fmt = ["gml", "gexf", "graphml"]
+        filename = "graph."
         if sys.version_info > (3, 5):
             for fmt in tested_fmt:
-                g.save("bunny." + fmt)
+                g.save(filename + fmt)
 
             for fmt in tested_fmt:
-                graph_loaded = graphs.Graph.load("bunny." + fmt)
+                graph_loaded = graphs.Graph.load(filename + fmt)
                 np.testing.assert_array_equal(g.W.todense(), graph_loaded.W.todense())
-                os.remove("bunny." + fmt)
+                os.remove(filename + fmt)
+
+            fmt = "gml"
+
+            g.save(filename + fmt, backend='graph_tool')
+            graph_loaded = graphs.Graph.load(filename + fmt, backend='graph_tool')
+            np.testing.assert_allclose(g.W.todense(), graph_loaded.W.todense(), atol=0.000001)
+            os.remove(filename + fmt)
+
+            fmt = 'dot'
+            g = graphs.Sensor(seed=42)
+            g.save(filename + fmt, backend='graph_tool')
+            graph_loaded = graphs.Graph.load(filename + fmt, backend='graph_tool')
+            g = graphs.Sensor(seed=42)
+            np.testing.assert_allclose(g.W.todense(), graph_loaded.W.todense(), atol=0.000001)
+            os.remove(filename + fmt)
 
 
 suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestCaseImportExport)
