@@ -710,10 +710,10 @@ class TestCaseImportExport(unittest.TestCase):
                              nx.get_node_attributes(g_nx, "signal1")[node])
 
     def test_save_load(self):
-        g = graphs.Sensor(seed=42)
-        tested_fmt = ["gml", "gexf", "graphml"]
-        filename = "graph."
-        if sys.version_info > (3, 5):
+        if sys.version_info >= (3, 6):
+            g = graphs.Sensor(seed=42)
+            tested_fmt = ["gml", "gexf", "graphml"]
+            filename = "graph."
             for fmt in tested_fmt:
                 g.save(filename + fmt)
 
