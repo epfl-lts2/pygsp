@@ -250,15 +250,24 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         graph : :class:`~pygsp.graphs.Graph`
             The weight of the graph are loaded from the edge property named ``edge_prop_name``
         """
+        import graph_tool as gt
         nb_vertex = graph_gt.num_vertices()
         nb_edges = graph_gt.num_edges()
         weights = np.zeros(shape=(nb_vertex, nb_vertex))
 
         props_names = graph_gt.edge_properties.keys()
+        if 'vertex_name' in graph_gt.vertex_properties.keys():
+            vertex_name = graph_gt.vertex_properties['vertex_name']
+            scalar_vertex = graph_gt.new_vertex_property('int')
+            gt.map_property_values(vertex_name, scalar_vertex, lambda x: int(x))
+            # graph_gt.vertex_properties['vertex_name'] = scalar_vertex
+            graph_gt = gt.Graph(graph_gt, vorder=scalar_vertex)
 
         try:
             prop = graph_gt.edge_properties[weight]
-            edge_weight = prop.get_array()
+            scalar_prop = graph_gt.new_edge_property('double')
+            gt.map_property_values(prop, scalar_prop, lambda x: float(x))
+            edge_weight = scalar_prop.get_array()
             if edge_weight is None:
                 warnings.warn("edge_prop_name refered to a non scalar property, a weight of 1.0 is given to each edge")
                 edge_weight = np.ones(nb_edges)
@@ -348,6 +357,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         backend : String
             Python library used in background to save the graph.
             Supported library are networkx and graph_tool
+            WARNING: when using graph_tool as backend the weight of the edges precision is truncated to E-06.
         """
         def save_networkx(graph, save_path):
             import networkx as nx
