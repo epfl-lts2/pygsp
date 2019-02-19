@@ -691,12 +691,16 @@ class TestCaseImportExport(unittest.TestCase):
     def test_graphtool_export_import(self):
         # Export to graph tool and reimport to PyGSP directly
         # The exported graph is a simple one without an associated Signal
+        if sys.version_info < (3, 0):
+            return None  # skip test for python 2.7
         g = graphs.Bunny()
         g_gt = g.to_graphtool()
         g2 = graphs.Graph.from_graphtool(g_gt)
         np.testing.assert_array_equal(g.W.todense(), g2.W.todense())
 
     def test_graphtool_multiedge_import(self):
+        if sys.version_info < (3, 0):
+            return None  # skip test for python2.7
         # Manualy create a graph with multiple edges
         g_gt = gt.Graph()
         g_gt.add_vertex(10)
@@ -720,6 +724,8 @@ class TestCaseImportExport(unittest.TestCase):
     def test_graphtool_import_export(self):
         # Import to PyGSP and export again to graph tool directly
         # create a random graphTool graph that does not contain multiple edges and no signal
+        if sys.version_info < (3, 0):
+            return None  # skip test for python2.7
         graph_gt = gt.generation.random_graph(100, lambda : (np.random.poisson(4), np.random.poisson(4)))
 
         eprop_double = graph_gt.new_edge_property("double")
@@ -766,6 +772,8 @@ class TestCaseImportExport(unittest.TestCase):
             self.assertEqual(g_gt.vertex_properties["signal2"][v], s2[i])
 
     def test_graphtool_signal_import(self):
+        if sys.version_info < (3, 0):
+            return None  # skip test for python2.7
         g_gt = gt.Graph()
         g_gt.add_vertex(10)
 
