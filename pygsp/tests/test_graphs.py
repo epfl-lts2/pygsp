@@ -351,7 +351,8 @@ class TestCase(unittest.TestCase):
 
     def test_nngraph(self, n_vertices=30):
         """Test all the combinations of metric, kind, backend."""
-        features = np.random.RandomState(42).normal(size=(n_vertices, 3))
+        Graph = graphs.NNGraph
+        data = np.random.RandomState(42).normal(size=(n_vertices, 3))
         metrics = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
         backends = ['scipy-kdtree', 'scipy-ckdtree', 'scipy-pdist', 'nmslib',
                     'flann']
@@ -361,42 +362,35 @@ class TestCase(unittest.TestCase):
                 for kind in ['knn', 'radius']:
                     # Unsupported combinations.
                     if backend == 'flann' and metric == 'max_dist':
-                        self.assertRaises(ValueError, graphs.NNGraph, features,
+                        self.assertRaises(ValueError, Graph, data,
                                           metric=metric, backend=backend)
                     elif backend == 'nmslib' and metric == 'minkowski':
-                        self.assertRaises(ValueError, graphs.NNGraph, features,
+                        self.assertRaises(ValueError, Graph, data,
                                           metric=metric, backend=backend)
                     elif backend == 'nmslib' and kind == 'radius':
-                        self.assertRaises(ValueError, graphs.NNGraph, features,
+                        self.assertRaises(ValueError, Graph, data,
                                           kind=kind, backend=backend)
                     else:
                         for standardize in [True, False]:
-                            graphs.NNGraph(features, standardize=standardize,
-                                           metric=metric, kind=kind,
-                                           backend=backend)
+                            Graph(data, standardize=standardize, metric=metric,
+                                  kind=kind, backend=backend)
 
         # Invalid parameters.
-        self.assertRaises(ValueError, graphs.NNGraph, features,
-                          metric='invalid')
-        self.assertRaises(ValueError, graphs.NNGraph, features,
-                          kind='invalid')
-        self.assertRaises(ValueError, graphs.NNGraph, features,
-                          backend='invalid')
-        self.assertRaises(ValueError, graphs.NNGraph, features,
-                          kind='knn', k=0)
-        self.assertRaises(ValueError, graphs.NNGraph, features,
-                          kind='knn', k=n_vertices)
-        self.assertRaises(ValueError, graphs.NNGraph, features,
-                          kind='radius', radius=0)
+        self.assertRaises(ValueError, Graph, data, metric='invalid')
+        self.assertRaises(ValueError, Graph, data, kind='invalid')
+        self.assertRaises(ValueError, Graph, data, backend='invalid')
+        self.assertRaises(ValueError, Graph, data, kind='knn', k=0)
+        self.assertRaises(ValueError, Graph, data, kind='knn', k=n_vertices)
+        self.assertRaises(ValueError, Graph, data, kind='radius', radius=0)
 
         # Empty graph.
         if sys.version_info > (3, 4):  # no assertLogs in python 2.7
             for backend in backends:
                 if backend == 'nmslib':
-                    continue
+                    continue  # nmslib doesn't support radius
                 with self.assertLogs(level='WARNING'):
-                    graph = graphs.NNGraph(features, kind='radius',
-                                           radius=1e-9, backend=backend)
+                    graph = Graph(data, kind='radius', radius=1e-9,
+                                  backend=backend)
                 self.assertEqual(graph.n_edges, 0)
 
     def test_nngraph_consistency(self):
