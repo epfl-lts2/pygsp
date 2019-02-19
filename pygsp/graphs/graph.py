@@ -176,7 +176,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
     def to_networkx(self):
         r"""Export the graph to an `Networkx <https://networkx.github.io>`_ object
 
-        The weight are stored as an edge attribute under named `weight`
+        The weights are stored as an edge attribute under the name `weight`.
         The signals are stored as node attributes under the name given when
         adding them with :meth:`set_signal`.
 
