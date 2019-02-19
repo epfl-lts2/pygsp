@@ -349,17 +349,19 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('community2D')
         self.assertRaises(ValueError, G.set_coordinates, 'invalid')
 
-    def test_nngraph(self, n_vertices=30):
+    def test_nngraph(self, n_vertices=25):
         """Test all the combinations of metric, kind, backend."""
         Graph = graphs.NNGraph
-        data = np.random.RandomState(42).normal(size=(n_vertices, 3))
+        data = np.random.RandomState(42).uniform(size=(n_vertices, 3))
         metrics = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-        backends = ['scipy-kdtree', 'scipy-ckdtree', 'scipy-pdist', 'nmslib',
-                    'flann']
+        backends = ['scipy-kdtree', 'scipy-ckdtree', 'flann', 'nmslib']
 
-        for backend in backends:
-            for metric in metrics:
-                for kind in ['knn', 'radius']:
+        for metric in metrics:
+            for kind in ['knn', 'radius']:
+                params = dict(features=data, metric=metric, kind=kind,
+                              radius=0.8)
+                ref = Graph(**params, backend='scipy-pdist')
+                for backend in backends:
                     # Unsupported combinations.
                     if backend == 'flann' and metric == 'max_dist':
                         self.assertRaises(ValueError, Graph, data,
@@ -371,9 +373,16 @@ class TestCase(unittest.TestCase):
                         self.assertRaises(ValueError, Graph, data,
                                           kind=kind, backend=backend)
                     else:
-                        for standardize in [True, False]:
-                            Graph(data, standardize=standardize, metric=metric,
-                                  kind=kind, backend=backend)
+                        params['backend'] = backend
+                        if backend == 'flann':
+                            graph = Graph(**params, random_seed=42)
+                        else:
+                            graph = Graph(**params)
+                        np.testing.assert_allclose(graph.W.toarray(),
+                                                   ref.W.toarray(), rtol=1e-5)
+
+        Graph(data, standardize=False)
+        Graph(data, standardize=True)
 
         # Invalid parameters.
         self.assertRaises(ValueError, Graph, data, metric='invalid')
@@ -385,7 +394,7 @@ class TestCase(unittest.TestCase):
 
         # Empty graph.
         if sys.version_info > (3, 4):  # no assertLogs in python 2.7
-            for backend in backends:
+            for backend in backends + ['scipy-pdist']:
                 if backend == 'nmslib':
                     continue  # nmslib doesn't support radius
                 with self.assertLogs(level='WARNING'):
@@ -405,40 +414,6 @@ class TestCase(unittest.TestCase):
             for kind in ['knn', 'radius']:
                 Graph(data, backend=backend, kind=kind, eps=1e-2)
                 Graph(data, backend=backend, kind=kind, leafsize=9)
-
-    def test_nngraph_consistency(self):
-        features = np.arange(90).reshape(30, 3)
-        metrics = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-        backends = ['scipy-kdtree', 'scipy-ckdtree', 'flann', 'nmslib']
-        num_neighbors = 4
-        radius = 0.1
-
-        G = graphs.NNGraph(features, kind='knn',
-                           backend='scipy-pdist', k=num_neighbors)
-        for backend in backends:
-            for metric in metrics:
-                if backend == 'flann' and metric == 'max_dist':
-                    continue
-                if backend == 'nmslib' and metric == 'minkowski':
-                    continue
-                Gt = graphs.NNGraph(features, kind='knn',
-                                    backend=backend, k=num_neighbors)
-                d = sparse.linalg.norm(G.W - Gt.W)
-                self.assertTrue(d < 0.01, 'Graphs (knn {}/{}) are not identical error={}'.format(backend, metric, d))
-
-        G = graphs.NNGraph(features, kind='radius',
-                           backend='scipy-pdist', radius=radius)
-        for backend in backends:
-            for metric in metrics:
-                if backend == 'flann' and metric == 'max_dist':
-                    continue
-                if backend == 'nmslib':
-                    continue
-                Gt = graphs.NNGraph(features, kind='radius',
-                                    backend=backend, radius=radius)
-                d = sparse.linalg.norm(G.W - Gt.W, ord=1)
-                self.assertTrue(d < 0.01,
-                                'Graphs (radius {}/{}) are not identical error={}'.format(backend, metric, d))
 
     def test_bunny(self):
         graphs.Bunny()
