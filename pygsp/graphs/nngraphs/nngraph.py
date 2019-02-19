@@ -68,48 +68,53 @@ def _import_nmslib():
     return nms
 
 
-def _knn_sp_kdtree(features, num_neighbors, metric, order):
+def _knn_sp_kdtree(features, k, metric, order, params):
     p = order if metric == 'minkowski' else _metrics['scipy-kdtree'][metric]
-    kdt = spatial.KDTree(features)
-    D, NN = kdt.query(features, k=(num_neighbors + 1), p=p)
-    return NN, D
+    eps = params.pop('eps', 0)
+    tree = spatial.KDTree(features, **params)
+    distances, neighbors = tree.query(features, k=k+1, p=p, eps=eps)
+    return neighbors, distances
 
 
-def _knn_sp_ckdtree(features, num_neighbors, metric, order):
+def _knn_sp_ckdtree(features, k, metric, order, params):
     p = order if metric == 'minkowski' else _metrics['scipy-ckdtree'][metric]
-    kdt = spatial.cKDTree(features)
-    D, NN = kdt.query(features, k=(num_neighbors + 1), p=p, n_jobs=-1)
-    return NN, D
+    eps = params.pop('eps', 0)
+    kdt = spatial.cKDTree(features, **params)
+    distances, neighbors = kdt.query(features, k=k+1, p=p, eps=eps, n_jobs=-1)
+    return neighbors, distances
 
 
-def _knn_flann(features, num_neighbors, metric, order):
+def _knn_flann(features, k, metric, order, params):
     cfl = _import_cfl()
     cfl.set_distance_type(metric, order=order)
-    c = cfl.FLANNIndex(algorithm='kdtree')
-    c.build_index(features)
+    index = cfl.FLANNIndex()
+    index.build_index(features, **params)
     # Default FLANN parameters (I tried changing the algorithm and
     # testing performance on huge matrices, but the default one
     # seems to work best).
-    NN, D = c.nn_index(features, num_neighbors + 1)
-    c.free_index()
+    neighbors, distances = index.nn_index(features, k+1)
+    index.free_index()
     if metric == 'euclidean':  # flann returns squared distances
-        return NN, np.sqrt(D)
-    return NN, D
+        np.sqrt(distances, out=distances)
+    return neighbors, distances
 
 
-def _radius_sp_kdtree(features, radius, metric, order):
+def _radius_sp_kdtree(features, radius, metric, order, params):
     p = order if metric == 'minkowski' else _metrics['scipy-kdtree'][metric]
-    kdt = spatial.KDTree(features)
-    D, NN = kdt.query(features, k=None, distance_upper_bound=radius, p=p)
-    return NN, D
+    eps = params.pop('eps', 0)
+    tree = spatial.KDTree(features, **params)
+    distances, neighbors = tree.query(features, p=p, eps=eps, k=None,
+                                      distance_upper_bound=radius)
+    return neighbors, distances
 
 
-def _radius_sp_ckdtree(features, radius, metric, order):
+def _radius_sp_ckdtree(features, radius, metric, order, params):
     p = order if metric == 'minkowski' else _metrics['scipy-ckdtree'][metric]
     n_vertices, _ = features.shape
-    tree = spatial.cKDTree(features)
+    eps = params.pop('eps', 0)
+    tree = spatial.cKDTree(features, **params)
     D, NN = tree.query(features, k=n_vertices, distance_upper_bound=radius,
-                       p=p, n_jobs=-1)
+                       p=p, eps=eps, n_jobs=-1)
     distances = []
     neighbors = []
     for d, n in zip(D, NN):
@@ -119,7 +124,7 @@ def _radius_sp_ckdtree(features, radius, metric, order):
     return neighbors, distances
 
 
-def _knn_sp_pdist(features, num_neighbors, metric, order):
+def _knn_sp_pdist(features, num_neighbors, metric, order, _):
     if metric == 'minkowski':
         p = spatial.distance.pdist(features,
                                    metric=_metrics['scipy-pdist'][metric],
@@ -133,22 +138,26 @@ def _knn_sp_pdist(features, num_neighbors, metric, order):
     return pdi, pds
 
 
-def _knn_nmslib(features, num_neighbors, metric, _):
+def _knn_nmslib(features, num_neighbors, metric, _, params):
     n_vertices, _ = features.shape
     ncpu = multiprocessing.cpu_count()
     nms = _import_nmslib()
-    nmsidx = nms.init(space=_metrics['nmslib'][metric])
-    nmsidx.addDataPointBatch(features)
-    nmsidx.createIndex()
-    q = nmsidx.knnQueryBatch(features, k=num_neighbors+1,
-                             num_threads=int(ncpu/2))
+    params_index = params.pop('index', None)
+    params_query = params.pop('query', None)
+    index = nms.init(space=_metrics['nmslib'][metric], **params)
+    index.addDataPointBatch(features)
+    index.createIndex(params_index)
+    if params_query is not None:
+        index.setQueryTimeParams(params_query)
+    q = index.knnQueryBatch(features, k=num_neighbors+1,
+                            num_threads=int(ncpu/2))
     nn, d = zip(*q)
     D = np.concatenate(d).reshape(n_vertices, num_neighbors+1)
     NN = np.concatenate(nn).reshape(n_vertices, num_neighbors+1)
     return NN, D
 
 
-def _radius_sp_pdist(features, radius, metric, order):
+def _radius_sp_pdist(features, radius, metric, order, _):
     n_vertices, _ = features.shape
     if metric == 'minkowski':
         p = spatial.distance.pdist(features,
@@ -170,19 +179,19 @@ def _radius_sp_pdist(features, radius, metric, order):
     return NN, D
 
 
-def _radius_flann(features, radius, metric, order):
+def _radius_flann(features, radius, metric, order, params):
     n_vertices, _ = features.shape
     cfl = _import_cfl()
     cfl.set_distance_type(metric, order=order)
-    c = cfl.FLANNIndex(algorithm='kdtree')
-    c.build_index(features)
+    index = cfl.FLANNIndex()
+    index.build_index(features, **params)
     D = []
     NN = []
     for k in range(n_vertices):
-        nn, d = c.nn_radius(features[k, :], radius**2)
+        nn, d = index.nn_radius(features[k, :], radius**2)
         D.append(d)
         NN.append(nn)
-    c.free_index()
+    index.free_index()
     if metric == 'euclidean':
         # Flann returns squared distances.
         D = list(map(np.sqrt, D))
@@ -263,6 +272,10 @@ class NNGraph(Graph):
           <https://github.com/nmslib/nmslib>`_. That method is an
           approximation. It should be the fastest in high-dimensional spaces.
 
+    kwargs : dict
+        Parameters to be passed to the :class:`Graph` constructor or the
+        backend library.
+
     Examples
     --------
     >>> import matplotlib.pyplot as plt
@@ -282,6 +295,13 @@ class NNGraph(Graph):
                  **kwargs):
 
         n_vertices, _ = features.shape
+
+        params_graph = dict()
+        for key in ['lap_type', 'plotting']:
+            try:
+                params_graph[key] = kwargs.pop(key)
+            except KeyError:
+                pass
 
         if _metrics['scipy-pdist'].get(metric) is None:
             raise ValueError('Invalid metric "{}".'.format(metric))
@@ -309,9 +329,9 @@ class NNGraph(Graph):
 
         nn_function = _nn_functions[kind][backend]
         if kind == 'knn':
-            neighbors, distances = nn_function(features, k, metric, order)
+            neighbors, distances = nn_function(features, k, metric, order, kwargs)
         elif kind == 'radius':
-            neighbors, distances = nn_function(features, radius, metric, order)
+            neighbors, distances = nn_function(features, radius, metric, order, kwargs)
 
         n_edges = [len(n) - 1 for n in neighbors]  # remove distance to self
 
@@ -361,7 +381,7 @@ class NNGraph(Graph):
         self.k = k
         self.backend = backend
 
-        super(NNGraph, self).__init__(W=W, coords=features, **kwargs)
+        super(NNGraph, self).__init__(W=W, coords=features, **params_graph)
 
     def _get_extra_repr(self):
         return {

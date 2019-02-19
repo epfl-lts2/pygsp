@@ -393,6 +393,19 @@ class TestCase(unittest.TestCase):
                                   backend=backend)
                 self.assertEqual(graph.n_edges, 0)
 
+        # Backend parameters.
+        Graph(data, lap_type='normalized')
+        Graph(data, plotting=dict(vertex_size=10))
+        Graph(data, backend='flann', kind='knn', algorithm='kmeans')
+        Graph(data, backend='flann', kind='radius', random_seed=0)
+        Graph(data, backend='nmslib', method='vptree')
+        Graph(data, backend='nmslib', index=dict(post=2))
+        Graph(data, backend='nmslib', query=dict(efSearch=10))
+        for backend in ['scipy-kdtree', 'scipy-ckdtree']:
+            for kind in ['knn', 'radius']:
+                Graph(data, backend=backend, kind=kind, eps=1e-2)
+                Graph(data, backend=backend, kind=kind, leafsize=9)
+
     def test_nngraph_consistency(self):
         features = np.arange(90).reshape(30, 3)
         metrics = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
