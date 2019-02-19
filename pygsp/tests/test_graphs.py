@@ -414,6 +414,7 @@ class TestCase(unittest.TestCase):
             for kind in ['knn', 'radius']:
                 Graph(data, backend=backend, kind=kind, eps=1e-2)
                 Graph(data, backend=backend, kind=kind, leafsize=9)
+        self.assertRaises(ValueError, Graph, data, backend='scipy-pdist', a=0)
 
     def test_bunny(self):
         graphs.Bunny()

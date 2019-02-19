@@ -126,7 +126,9 @@ def _radius_sp_ckdtree(features, radius, metric, order, params):
     return neighbors, distances
 
 
-def _knn_sp_pdist(features, num_neighbors, metric, order, _):
+def _knn_sp_pdist(features, num_neighbors, metric, order, params):
+    if params:
+        raise ValueError('unexpected parameters {}'.format(params))
     if metric == 'minkowski':
         p = spatial.distance.pdist(features,
                                    metric=_metrics['scipy-pdist'][metric],
