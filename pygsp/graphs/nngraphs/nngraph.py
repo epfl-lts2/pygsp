@@ -98,8 +98,10 @@ def _knn_flann(features, k, metric, order, params):
     # seems to work best).
     neighbors, distances = index.nn_index(features, k+1)
     index.free_index()
-    if metric == 'euclidean':  # flann returns squared distances
+    if metric == 'euclidean':
         np.sqrt(distances, out=distances)
+    elif metric == 'minkowski':
+        np.power(distances, 1/order, out=distances)
     return neighbors, distances
 
 
@@ -189,17 +191,22 @@ def _radius_flann(features, radius, metric, order, params):
     cfl.set_distance_type(metric, order=order)
     index = cfl.FLANNIndex()
     index.build_index(features, **params)
-    D = []
-    NN = []
-    for k in range(n_vertices):
-        nn, d = index.nn_radius(features[k, :], radius**2)
-        D.append(d)
-        NN.append(nn)
+    distances = []
+    neighbors = []
+    if metric == 'euclidean':
+        radius = radius**2
+    elif metric == 'minkowski':
+        radius = radius**order
+    for vertex in range(n_vertices):
+        neighbor, distance = index.nn_radius(features[vertex, :], radius)
+        distances.append(distance)
+        neighbors.append(neighbor)
     index.free_index()
     if metric == 'euclidean':
-        # Flann returns squared distances.
-        D = list(map(np.sqrt, D))
-    return NN, D
+        distances = list(map(np.sqrt, distances))
+    elif metric == 'minkowski':
+        distances = list(map(lambda d: np.power(d, 1/order), distances))
+    return neighbors, distances
 
 
 _nn_functions = {
