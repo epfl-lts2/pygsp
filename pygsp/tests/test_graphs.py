@@ -360,7 +360,7 @@ class TestCase(unittest.TestCase):
             for kind in ['knn', 'radius']:
                 params = dict(features=data, metric=metric, kind=kind,
                               radius=0.8)
-                ref = Graph(**params, backend='scipy-pdist')
+                ref = Graph(backend='scipy-pdist', **params)
                 for backend in backends:
                     # Unsupported combinations.
                     if backend == 'flann' and metric == 'max_dist':
@@ -375,7 +375,7 @@ class TestCase(unittest.TestCase):
                     else:
                         params['backend'] = backend
                         if backend == 'flann':
-                            graph = Graph(**params, random_seed=42)
+                            graph = Graph(random_seed=42, **params)
                         else:
                             graph = Graph(**params)
                         np.testing.assert_allclose(graph.W.toarray(),
