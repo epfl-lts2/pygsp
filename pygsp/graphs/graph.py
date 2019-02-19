@@ -145,7 +145,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             edge_attribute='weight')
 
         for name, signal in self.signals.items():
-            signal_dict = {i: signal[i] for i in range(self.N)}
+            signal_dict = {i: float(signal[i]) for i in range(self.N)}
             nx.set_node_attributes(graph_nx, signal_dict, name)
         return graph_nx
 
@@ -217,7 +217,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             # Add signal previously not present in the dict of signal
             # Set to zero the value of the signal when not present for a node
             # in Networkx
-            for signal in  set(signals_name) - set(signals.keys()):
+            for signal in set(signals_name) - set(signals.keys()):
                 signals[signal] = np.zeros(len(nodelist))
 
             # Set the value of the signal
