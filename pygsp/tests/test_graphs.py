@@ -497,7 +497,6 @@ class TestCaseImportExport(unittest.TestCase):
         g_nx = nx.gnm_random_graph(100, 50)  # Generate a random graph
         g = graphs.Graph.from_networkx(g_nx).to_networkx()
 
-        self.assertTrue(nx.is_isomorphic(g_nx, g))
         np.testing.assert_array_equal(nx.adjacency_matrix(g_nx).todense(),
                                       nx.adjacency_matrix(g).todense())
 
