@@ -178,7 +178,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         The weight are stored as an edge attribute under named `weight`
         The signals are stored as node attributes under the same name as define in PyGSP
-        :func:`~pygsp.graphs.Graph.set_signal`.
+        adding them with :meth:`set_signal`.
 
         Returns
         -------
