@@ -17,6 +17,7 @@ import scipy.linalg
 from scipy import sparse
 import networkx as nx
 import graph_tool as gt
+import graph_tool.generation
 from skimage import data, img_as_float
 
 from pygsp import graphs
@@ -532,15 +533,9 @@ class TestCaseImportExport(unittest.TestCase):
     def test_graphtool_import_export(self):
         # Import to PyGSP and export again to graph tool directly
         # create a random graphTool graph that does not contain multiple edges and no signal
-        graph_gt = gt.Graph()
-        graph_gt.add_vertex(100)
+        graph_gt = gt.generation.random_graph(100, lambda : (np.random.poisson(4), np.random.poisson(4)))
 
-        # insert single random links
         eprop_double = graph_gt.new_edge_property("double")
-        for s, t in set(zip(np.random.randint(0, 100, 100),
-                        np.random.randint(0, 100, 100))):
-            graph_gt.add_edge(graph_gt.vertex(s), graph_gt.vertex(t))
-
         for e in graph_gt.edges():
             eprop_double[e] = random.random()
         graph_gt.edge_properties["weight"] = eprop_double
