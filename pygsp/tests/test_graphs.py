@@ -704,30 +704,34 @@ class TestCaseImportExport(unittest.TestCase):
 
     def test_save_load(self):
         if sys.version_info >= (3, 6):
-            g = graphs.Sensor(seed=42)
+            graph = graphs.Sensor(seed=42)
+            np.random.seed(42)
+            signal = np.random.random(graph.N)
+            graph.set_signal(signal, "signal")
             tested_fmt = ["gml", "gexf", "graphml"]
             filename = "graph."
             for fmt in tested_fmt:
-                g.save(filename + fmt)
+                graph.save(filename + fmt)
 
             for fmt in tested_fmt:
                 graph_loaded = graphs.Graph.load(filename + fmt)
-                np.testing.assert_array_equal(g.W.todense(), graph_loaded.W.todense())
+                np.testing.assert_array_equal(graph.W.todense(), graph_loaded.W.todense())
+                np.testing.assert_array_equal(signal, graph_loaded.signals['signal'])
                 os.remove(filename + fmt)
 
             fmt = "gml"
 
-            g.save(filename + fmt, backend='graph_tool')
+            graph.save(filename + fmt, backend='graph_tool')
             graph_loaded = graphs.Graph.load(filename + fmt, backend='graph_tool')
-            np.testing.assert_allclose(g.W.todense(), graph_loaded.W.todense(), atol=0.000001)
+            np.testing.assert_allclose(graph.W.todense(), graph_loaded.W.todense(), atol=0.000001)
             os.remove(filename + fmt)
 
             fmt = 'dot'
-            g = graphs.Sensor(seed=42)
-            g.save(filename + fmt, backend='graph_tool')
+            graph = graphs.Sensor(seed=42)
+            graph.save(filename + fmt, backend='graph_tool')
             graph_loaded = graphs.Graph.load(filename + fmt, backend='graph_tool')
-            g = graphs.Sensor(seed=42)
-            np.testing.assert_allclose(g.W.todense(), graph_loaded.W.todense(), atol=0.000001)
+            graph = graphs.Sensor(seed=42)
+            np.testing.assert_allclose(graph.W.todense(), graph_loaded.W.todense(), atol=0.000001)
             os.remove(filename + fmt)
 
 
