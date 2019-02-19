@@ -131,7 +131,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         r"""Export the graph to an `Networkx <https://networkx.github.io>`_ object
 
         The weight are stored as an edge attribute under named `weight`
-        The signals are stored as node attributes under the same name as define in PyGSP
+        The signals are stored as node attributes under the name given when
         adding them with :meth:`set_signal`.
 
         Returns
