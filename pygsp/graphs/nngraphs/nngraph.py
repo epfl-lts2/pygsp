@@ -2,9 +2,6 @@
 
 from __future__ import division
 
-import multiprocessing
-import traceback
-
 import numpy as np
 from scipy import sparse
 import scipy.spatial as sps
@@ -152,9 +149,8 @@ def _nmslib(features, metric, order, kind, k, _, params):
     index.createIndex(params_index)
     if params_query is not None:
         index.setQueryTimeParams(params_query)
-    ncpu = multiprocessing.cpu_count()
-    q = index.knnQueryBatch(features, k=k+1, num_threads=int(ncpu/2))
-    neighbors, distances = zip(*q)
+    results = index.knnQueryBatch(features, k=k+1)
+    neighbors, distances = zip(*results)
     distances = np.concatenate(distances).reshape(n_vertices, k+1)
     neighbors = np.concatenate(neighbors).reshape(n_vertices, k+1)
     return neighbors, distances
