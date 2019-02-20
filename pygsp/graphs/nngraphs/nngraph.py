@@ -231,14 +231,16 @@ class NNGraph(Graph):
             except KeyError:
                 pass
 
-        if kind not in ['knn', 'radius']:
+        if kind == 'knn':
+            if not 1 <= k < n_vertices:
+                raise ValueError('The number of neighbors (k={}) must be '
+                                 'greater than 0 and smaller than the number '
+                                 'of vertices ({}).'.format(k, n_vertices))
+        elif kind == 'radius':
+            if (radius is not None) and (radius <= 0):
+                raise ValueError('The radius must be greater than 0.')
+        else:
             raise ValueError('Invalid kind "{}".'.format(kind))
-        if (kind == 'knn') and not (1 <= k < n_vertices):
-            raise ValueError('The number of neighbors (k={}) must be greater '
-                             'than 0 and smaller than the number of vertices '
-                             '({}).'.format(k, n_vertices))
-        if (radius is not None) and (radius <= 0):
-            raise ValueError('The radius must be greater than 0.')
 
         # Order consistent with metric (used by kdtree and ckdtree).
         _orders = {
