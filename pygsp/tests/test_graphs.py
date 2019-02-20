@@ -716,31 +716,31 @@ class TestCaseImportExport(unittest.TestCase):
             np.random.seed(42)
             signal = np.random.random(graph.N)
             graph.set_signal(signal, "signal")
-            tested_fmt = ["gml", "gexf", "graphml"]
-            filename = "graph."
-            for fmt in tested_fmt:
-                graph.save(filename + fmt)
 
-            for fmt in tested_fmt:
-                graph_loaded = graphs.Graph.load(filename + fmt)
-                np.testing.assert_array_equal(graph.W.todense(), graph_loaded.W.todense())
-                np.testing.assert_array_equal(signal, graph_loaded.signals['signal'])
-                os.remove(filename + fmt)
+            # save
+            nx_gt = ['gml', 'graphml']
+            all_files = []
+            for fmt in nx_gt:
+                all_files += ["graph_gt.{}".format(fmt), "graph_nx.{}".format(fmt)]
+                graph.save("graph_gt.{}".format(fmt), backend='graph_tool')
+                graph.save("graph_nx.{}".format(fmt), backend='networkx')
+            graph.save("graph_nx.{}".format('gexf'), backend='networkx')
+            all_files += ["graph_nx.{}".format('gexf')]
 
-            fmt = "gml"
+            # load
+            for filename in all_files:
+                if not "_gt" in filename:
+                    graph_loaded_nx = graphs.Graph.load(filename, backend='networkx')
+                    np.testing.assert_array_equal(graph.W.todense(), graph_loaded_nx.W.todense())
+                    np.testing.assert_array_equal(signal, graph_loaded_nx.signals['signal'])
+                if not ".gexf" in filename:
+                    graph_loaded_gt = graphs.Graph.load(filename, backend='graph_tool')
+                    np.testing.assert_allclose(graph.W.todense(), graph_loaded_gt.W.todense(), atol=0.000001)
+                    np.testing.assert_allclose(signal, graph_loaded_gt.signals['signal'], atol=0.000001)
 
-            graph.save(filename + fmt, backend='graph_tool')
-            graph_loaded = graphs.Graph.load(filename + fmt, backend='graph_tool')
-            np.testing.assert_allclose(graph.W.todense(), graph_loaded.W.todense(), atol=0.000001)
-            os.remove(filename + fmt)
-
-            fmt = 'dot'
-            graph = graphs.Sensor(seed=42)
-            graph.save(filename + fmt, backend='graph_tool')
-            graph_loaded = graphs.Graph.load(filename + fmt, backend='graph_tool')
-            graph = graphs.Sensor(seed=42)
-            np.testing.assert_allclose(graph.W.todense(), graph_loaded.W.todense(), atol=0.000001)
-            os.remove(filename + fmt)
+            # clean
+            for filename in all_files:
+                os.remove(filename)
 
 
 suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestCaseImportExport)
