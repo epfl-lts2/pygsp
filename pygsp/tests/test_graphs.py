@@ -399,8 +399,9 @@ class TestCase(unittest.TestCase):
                               kernel_width=1, backend=backend)
                 np.testing.assert_allclose(graph.W.toarray(), adjacency)
 
-        Graph(data, standardize=False)
-        Graph(data, standardize=True)
+        graph = Graph(data, standardize=True)
+        np.testing.assert_allclose(np.mean(graph.coords, axis=0), 0, atol=1e-7)
+        np.testing.assert_allclose(np.std(graph.coords, axis=0), 1)
 
         # Invalid parameters.
         self.assertRaises(ValueError, Graph, data, metric='invalid')
