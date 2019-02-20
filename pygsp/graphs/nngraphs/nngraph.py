@@ -13,19 +13,6 @@ from pygsp import utils
 from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
 
 
-def _metric_kdtree(metric, order):
-    _metrics = {
-        'euclidean': 2,
-        'manhattan': 1,
-        'max_dist': np.inf,
-        'minkowski': order,
-    }
-    try:
-        return _metrics[metric]
-    except KeyError:
-        raise ValueError('unknown metric {} for scipy-kdtree'.format(metric))
-
-
 def _scipy_pdist(features, metric, order, kind, k, radius, params):
     if params:
         raise ValueError('unexpected parameters {}'.format(params))
@@ -49,11 +36,12 @@ def _scipy_pdist(features, metric, order, kind, k, radius, params):
     return neighbors, distances
 
 
-def _scipy_kdtree(features, metric, order, kind, k, radius, params):
-    metric = _metric_kdtree(metric, order)
+def _scipy_kdtree(features, _, order, kind, k, radius, params):
+    if order is None:
+        raise ValueError('invalid metric for scipy-kdtree')
     eps = params.pop('eps', 0)
     tree = spatial.KDTree(features, **params)
-    params = dict(p=metric, eps=eps)
+    params = dict(p=order, eps=eps)
     if kind == 'knn':
         params['k'] = k + 1
     elif kind == 'radius':
@@ -63,11 +51,12 @@ def _scipy_kdtree(features, metric, order, kind, k, radius, params):
     return neighbors, distances
 
 
-def _scipy_ckdtree(features, metric, order, kind, k, radius, params):
-    metric = _metric_kdtree(metric, order)
+def _scipy_ckdtree(features, _, order, kind, k, radius, params):
+    if order is None:
+        raise ValueError('invalid metric for scipy-kdtree')
     eps = params.pop('eps', 0)
     tree = spatial.cKDTree(features, **params)
-    params = dict(p=metric, eps=eps, n_jobs=-1)
+    params = dict(p=order, eps=eps, n_jobs=-1)
     if kind == 'knn':
         params['k'] = k + 1
     elif kind == 'radius':
@@ -254,6 +243,15 @@ class NNGraph(Graph):
                              '({}).'.format(k, n_vertices))
         if (radius is not None) and (radius <= 0):
             raise ValueError('The radius must be greater than 0.')
+
+        # Order consistent with metric (used by kdtree and ckdtree).
+        _orders = {
+            'euclidean': 2,
+            'manhattan': 1,
+            'max_dist': np.inf,
+            'minkowski': order,
+        }
+        order = _orders.pop(metric, None)
 
         if standardize:
             # Don't alter the original data (users would be surprised).
