@@ -449,7 +449,6 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('community2D')
         self.assertRaises(ValueError, G.set_coordinates, 'invalid')
 
-<<<<<<< HEAD
     def test_line_graph(self):
         adjacency = [
             [0, 1, 1, 3],
@@ -493,7 +492,8 @@ class TestCase(unittest.TestCase):
         self.assertIs(graph.lap_type, self._G.lap_type)
         self.assertEqual(graph.plotting, self._G.plotting)
 
-    def test_nngraph(self, n_vertices=25):
+    def test_nngraph(self, n_vertices=24):
+
         """Test all the combinations of metric, kind, backend."""
         Graph = graphs.NNGraph
         data = np.random.RandomState(42).uniform(size=(n_vertices, 3))
@@ -502,8 +502,7 @@ class TestCase(unittest.TestCase):
 
         for metric in metrics:
             for kind in ['knn', 'radius']:
-                params = dict(features=data, metric=metric, kind=kind,
-                              radius=0.8)
+                params = dict(features=data, metric=metric, kind=kind)
                 ref = Graph(backend='scipy-pdist', **params)
                 for backend in backends:
                     # Unsupported combinations.
@@ -519,7 +518,7 @@ class TestCase(unittest.TestCase):
                     else:
                         params['backend'] = backend
                         if backend == 'flann':
-                            graph = Graph(random_seed=42, **params)
+                            graph = Graph(random_seed=0, **params)
                         else:
                             graph = Graph(**params)
                         np.testing.assert_allclose(graph.W.toarray(),
@@ -534,14 +533,19 @@ class TestCase(unittest.TestCase):
         column[1] = weight
         column[-1] = weight
         adjacency = scipy.linalg.circulant(column)
+        data = graphs.Ring(n_vertices).coords
         for kind in ['knn', 'radius']:
             for backend in backends + ['scipy-pdist']:
                 if backend == 'nmslib' and kind == 'radius':
                     continue  # unsupported
-                data = graphs.Ring(n_vertices).coords
                 graph = Graph(data, kind=kind, k=2, radius=1.01*distance,
                               kernel_width=1, backend=backend)
                 np.testing.assert_allclose(graph.W.toarray(), adjacency)
+
+        graph = Graph(data, kind='radius', radius='estimate')
+        np.testing.assert_allclose(graph.radius, np.sqrt(8 / n_vertices))
+        graph = Graph(data, kind='radius', k=2, radius='estimate-knn')
+        np.testing.assert_allclose(graph.radius, distance)
 
         graph = Graph(data, standardize=True)
         np.testing.assert_allclose(np.mean(graph.coords, axis=0), 0, atol=1e-7)
