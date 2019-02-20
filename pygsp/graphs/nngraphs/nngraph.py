@@ -179,8 +179,17 @@ class NNGraph(Graph):
     k : int, optional
         Number of neighbors considered when building a k-NN graph with
         ``type='knn'``.
-    radius : float, optional
+    radius : float or {'estimate', 'estimate-knn'}, optional
         Radius of the ball when building a radius graph with ``type='radius'``.
+        It is hard to set an optimal radius. If too small, some vertices won't
+        be connected to any other vertex. If too high, vertices will be
+        connected to many other vertices and the graph won't be sparse (high
+        average degree).  If no good radius is known a priori, we can estimate
+        one. ``'estimate'`` sets the radius as the expected average distance
+        between vertices for a uniform sampling of the ambient space.
+        ``'estimate-knn'`` first builds a knn graph and sets the radius to the
+        average distance. ``'estimate-knn'`` usually gives a better estimation
+        but is more costly. ``'estimate'`` can be better in low dimension.
     kernel_width : float, optional
         Width of the Gaussian kernel. By default, it is set to the average of
         the distances of neighboring vertices.
@@ -217,12 +226,12 @@ class NNGraph(Graph):
 
     def __init__(self, features, standardize=False,
                  metric='euclidean', order=3,
-                 kind='knn', k=10, radius=0.01,
+                 kind='knn', k=10, radius='estimate-knn',
                  kernel_width=None,
                  backend='scipy-ckdtree',
                  **kwargs):
 
-        n_vertices, _ = features.shape
+        n_vertices, dimensionality = features.shape
 
         params_graph = dict()
         for key in ['lap_type', 'plotting']:
@@ -231,16 +240,10 @@ class NNGraph(Graph):
             except KeyError:
                 pass
 
-        if kind == 'knn':
-            if not 1 <= k < n_vertices:
-                raise ValueError('The number of neighbors (k={}) must be '
-                                 'greater than 0 and smaller than the number '
-                                 'of vertices ({}).'.format(k, n_vertices))
-        elif kind == 'radius':
-            if (radius is not None) and (radius <= 0):
-                raise ValueError('The radius must be greater than 0.')
-        else:
-            raise ValueError('Invalid kind "{}".'.format(kind))
+        if standardize:
+            # Don't alter the original data (users would be surprised).
+            features = features - np.mean(features, axis=0)
+            features /= np.std(features, axis=0)
 
         # Order consistent with metric (used by kdtree and ckdtree).
         _orders = {
@@ -251,10 +254,28 @@ class NNGraph(Graph):
         }
         order = _orders.pop(metric, None)
 
-        if standardize:
-            # Don't alter the original data (users would be surprised).
-            features = features - np.mean(features, axis=0)
-            features /= np.std(features, axis=0)
+        if kind == 'knn':
+            if not 1 <= k < n_vertices:
+                raise ValueError('The number of neighbors (k={}) must be '
+                                 'greater than 0 and smaller than the number '
+                                 'of vertices ({}).'.format(k, n_vertices))
+            radius = None
+        elif kind == 'radius':
+            if radius == 'estimate':
+                maximums = np.amax(features, axis=0)
+                minimums = np.amin(features, axis=0)
+                distance_max = np.linalg.norm(maximums - minimums, order)
+                radius = distance_max / np.power(n_vertices, 1/dimensionality)
+            elif radius == 'estimate-knn':
+                graph = NNGraph(features, standardize=standardize,
+                                metric=metric, order=order, kind='knn', k=k,
+                                kernel_width=None, backend=backend, **kwargs)
+                radius = graph.kernel_width
+            elif radius <= 0:
+                raise ValueError('The radius must be greater than 0.')
+            k = None
+        else:
+            raise ValueError('Invalid kind "{}".'.format(kind))
 
         try:
             function = globals()['_' + backend.replace('-', '_')]
@@ -314,13 +335,18 @@ class NNGraph(Graph):
         super(NNGraph, self).__init__(W=W, coords=features, **params_graph)
 
     def _get_extra_repr(self):
-        return {
+        attrs = {
             'standardize': self.standardize,
             'metric': self.metric,
             'order': self.order,
             'kind': self.kind,
-            'k': self.k,
-            'radius': '{:.2f}'.format(self.radius),
-            'kernel_width': '{:.2f}'.format(self.kernel_width),
-            'backend': self.backend,
         }
+        if self.k is not None:
+            attrs['k'] = self.k
+        if self.radius is not None:
+            attrs['radius'] = '{:.2e}'.format(self.radius)
+        attrs.update({
+            'kernel_width': '{:.2e}'.format(self.kernel_width),
+            'backend': self.backend,
+        })
+        return attrs
