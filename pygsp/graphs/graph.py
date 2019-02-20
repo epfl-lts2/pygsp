@@ -191,6 +191,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             edge_attribute='weight')
 
         for name, signal in self.signals.items():
+            # networkx can't work with numpy floats so we convert the singal into python float
             signal_dict = {i: float(signal[i]) for i in range(self.N)}
             nx.set_node_attributes(graph_nx, signal_dict, name)
         return graph_nx
@@ -301,17 +302,9 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         nb_edges = graph_gt.num_edges()
         weights = np.zeros(shape=(nb_vertex, nb_vertex))
 
-        if 'vertex_name' in graph_gt.vertex_properties.keys():
-            vertex_name = graph_gt.vertex_properties['vertex_name']
-            scalar_vertex = graph_gt.new_vertex_property('int')
-            gt.map_property_values(vertex_name, scalar_vertex, lambda x: int(x))
-            graph_gt = gt.Graph(graph_gt, vorder=scalar_vertex)
-
         try:
             prop = graph_gt.edge_properties[weight]
-            scalar_prop = graph_gt.new_edge_property('double')
-            gt.map_property_values(prop, scalar_prop, lambda x: float(x))
-            edge_weight = scalar_prop.get_array()
+            edge_weight = prop.get_array()
             if edge_weight is None:
                 warnings.warn("edge_prop_name refered to a non scalar property, a weight of 1.0 is given to each edge")
                 edge_weight = np.ones(nb_edges)
@@ -348,7 +341,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         ----------
         path : String
             Where the file is located on the disk.
-        fmt : {'graphml', 'gml', 'gexf', 'dot', 'auto'}
+        fmt : {'graphml', 'gml', 'gexf', 'auto'}
             Format in which the graph is encoded.
         backend : String
             Python library used in background to load the graph.
@@ -378,11 +371,13 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             else:
                 backend = 'graph_tool'
 
-        if fmt not in ['graphml', 'gml', 'gexf', 'dot']:
-            raise ValueError('Unsupported format {}.'.format(fmt))
+        supported_format = ['graphml', 'gml', 'gexf']
+        if fmt not in supported_format:
+            raise ValueError('Unsupported format {}. Please use a format from {}'.format(fmt, supported_format))
 
         if backend not in ['networkx', 'graph_tool']:
-            raise ValueError('Unsupported backend specified {}.'.format(backend))
+            raise ValueError(
+                'Unsupported backend specified {} Please use either networkx or graph_tool.'.format(backend))
 
         return locals()['load_' + backend](path, fmt)
 
@@ -397,7 +392,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             Format in which the graph will be encoded. The format is guessed from
             the `path` extention when fmt is set to 'auto'
             Currently supported format are:
-            GML and gpickle.
+            ['graphml', 'gml', 'gexf']
         backend : String
             Python library used in background to save the graph.
             Supported library are networkx and graph_tool
@@ -410,8 +405,8 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             save(graph_nx, save_path)
 
         def save_graph_tool(graph, save_path):
-            graph_gt = self.to_graphtool()
-            graph_gt.save(path, fmt=fmt)
+            graph_gt = graph.to_graphtool()
+            graph_gt.save(save_path, fmt=fmt)
 
         if fmt == 'auto':
             fmt = path.split('.')[-1]
@@ -422,11 +417,12 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             else:
                 backend = 'graph_tool'
 
-        if fmt not in ['graphml', 'gml', 'gexf', 'dot']:
-            raise ValueError('Unsupported format {}.'.format(fmt))
+        supported_format = ['graphml', 'gml', 'gexf']
+        if fmt not in supported_format:
+            raise ValueError('Unsupported format {}. Please use a format from {}'.format(fmt, supported_format))
 
         if backend not in ['networkx', 'graph_tool']:
-            raise ValueError('Unsupported backend specified {}.'.format(backend))
+            raise ValueError('Unsupported backend specified {} Please use either networkx or graph_tool.'.format(backend))
 
         locals()['save_' + backend](self, path)
 
