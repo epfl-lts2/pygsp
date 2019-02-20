@@ -525,6 +525,24 @@ class TestCase(unittest.TestCase):
                         np.testing.assert_allclose(graph.W.toarray(),
                                                    ref.W.toarray(), rtol=1e-5)
 
+        # Distances between points on a circle.
+        angles = [0, 2 * np.pi / n_vertices]
+        points = np.stack([np.cos(angles), np.sin(angles)], axis=1)
+        distance = np.linalg.norm(points[0] - points[1])
+        weight = np.exp(-distance**2)
+        column = np.zeros(n_vertices)
+        column[1] = weight
+        column[-1] = weight
+        adjacency = scipy.linalg.circulant(column)
+        for kind in ['knn', 'radius']:
+            for backend in backends + ['scipy-pdist']:
+                if backend == 'nmslib' and kind == 'radius':
+                    continue  # unsupported
+                data = graphs.Ring(n_vertices).coords
+                graph = Graph(data, kind=kind, k=2, radius=1.01*distance,
+                              kernel_width=1, backend=backend)
+                np.testing.assert_allclose(graph.W.toarray(), adjacency)
+
         Graph(data, standardize=False)
         Graph(data, standardize=True)
 
