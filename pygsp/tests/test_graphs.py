@@ -423,15 +423,13 @@ class TestCase(unittest.TestCase):
         # Backend parameters.
         Graph(data, lap_type='normalized')
         Graph(data, plotting=dict(vertex_size=10))
-        Graph(data, backend='flann', kind='knn', algorithm='kmeans')
-        Graph(data, backend='flann', kind='radius', random_seed=0)
+        Graph(data, backend='flann', algorithm='kmeans')
         Graph(data, backend='nmslib', method='vptree')
         Graph(data, backend='nmslib', index=dict(post=2))
         Graph(data, backend='nmslib', query=dict(efSearch=10))
         for backend in ['scipy-kdtree', 'scipy-ckdtree']:
-            for kind in ['knn', 'radius']:
-                Graph(data, backend=backend, kind=kind, eps=1e-2)
-                Graph(data, backend=backend, kind=kind, leafsize=9)
+            Graph(data, backend=backend, eps=1e-2)
+            Graph(data, backend=backend, leafsize=9)
         self.assertRaises(ValueError, Graph, data, backend='scipy-pdist', a=0)
 
     def test_bunny(self):
