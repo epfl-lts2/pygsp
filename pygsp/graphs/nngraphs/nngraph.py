@@ -130,20 +130,18 @@ def _radius_sp_ckdtree(features, radius, metric, order, params):
     return neighbors, distances
 
 
-def _knn_sp_pdist(features, num_neighbors, metric, order, params):
+def _knn_sp_pdist(features, k, metric, order, params):
     if params:
         raise ValueError('unexpected parameters {}'.format(params))
     if metric == 'minkowski':
-        p = spatial.distance.pdist(features,
-                                   metric=_metrics['scipy-pdist'][metric],
-                                   p=order)
+        distances = spatial.distance.pdist(features, metric='minkowski', p=order)
     else:
-        p = spatial.distance.pdist(features,
-                                   metric=_metrics['scipy-pdist'][metric])
-    pd = spatial.distance.squareform(p)
-    pds = np.sort(pd)[:, :num_neighbors+1]
-    pdi = pd.argsort()[:, :num_neighbors+1]
-    return pdi, pds
+        distances = spatial.distance.pdist(
+            features, metric=_metrics['scipy-pdist'][metric])
+    distances = spatial.distance.squareform(distances)
+    neighbors = np.argsort(distances)[:, :k+1]
+    distances = np.take_along_axis(distances, neighbors, axis=-1)
+    return neighbors, distances
 
 
 def _knn_nmslib(features, num_neighbors, metric, _, params):
