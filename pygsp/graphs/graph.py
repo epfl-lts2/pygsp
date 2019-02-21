@@ -298,33 +298,10 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             The weight of the graph are loaded from the edge property named ``edge_prop_name``
         """
         import graph_tool as gt
-        nb_vertex = graph_gt.num_vertices()
-        nb_edges = graph_gt.num_edges()
-        weights = np.zeros(shape=(nb_vertex, nb_vertex))
-
-        try:
-            prop = graph_gt.edge_properties[weight]
-            edge_weight = prop.get_array()
-            if edge_weight is None:
-                warnings.warn("edge_prop_name refered to a non scalar property, a weight of 1.0 is given to each edge")
-                edge_weight = np.ones(nb_edges)
-
-        except KeyError:
-            warnings.warn("""As the property {} is not found in the graph, a weight of 1.0 is given to each edge"""
-                          .format(weight))
-            edge_weight = np.ones(nb_edges)
-
-        # merging multi-edge
-        merged_edge_weight = []
-        for k, grp in groupby(graph_gt.get_edges(), key=lambda e: (e[0], e[1])):
-            merged_edge_weight.append((k[0], k[1], sum([edge_weight[e[2]] for e in grp])))
-        for e in merged_edge_weight:
-            weights[e[0], e[1]] = e[2]
-        # When the graph is not directed the opposit edge as to be added too.
-        if not graph_gt.is_directed():
-            for e in merged_edge_weight:
-                weights[e[1], e[0]] = e[2]
-        graph = cls(weights)
+        import graph_tool.spectral
+        
+        weight_property = graph_gt.edge_properties.get(weight, None)
+        graph = cls(gt.spectral.adjacency(graph_gt, weight=weight_property).todense().T)
 
         # Adding signals
         for signal_name, signal_gt in graph_gt.vertex_properties.items():
@@ -370,7 +347,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
                 backend = 'networkx'
             else:
                 backend = 'graph_tool'
-
+    
         supported_format = ['graphml', 'gml', 'gexf']
         if fmt not in supported_format:
             raise ValueError('Unsupported format {}. Please use a format from {}'.format(fmt, supported_format))
