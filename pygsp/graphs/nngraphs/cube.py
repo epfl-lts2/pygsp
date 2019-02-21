@@ -10,12 +10,12 @@ class Cube(NNGraph):
 
     Parameters
     ----------
-    radius : float
-        Edge lenght (default = 1)
     nb_pts : int
         Number of vertices (default = 300)
     nb_dim : int
         Dimension (default = 3)
+    length : float
+        Edge length (default = 1)
     sampling : string
         Variance of the distance kernel (default = 'random')
         (Can now only be 'random')
@@ -35,19 +35,22 @@ class Cube(NNGraph):
     """
 
     def __init__(self,
-                 radius=1,
                  nb_pts=300,
                  nb_dim=3,
+                 length=1,
                  sampling='random',
                  seed=None,
                  **kwargs):
 
-        self.radius = radius
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
+        self.length = length
         self.sampling = sampling
         self.seed = seed
         rs = np.random.RandomState(seed)
+
+        if length != 1:
+            raise NotImplementedError('Only length=1 is implemented.')
 
         if self.nb_dim > 3:
             raise NotImplementedError("Dimension > 3 not supported yet!")
@@ -92,7 +95,7 @@ class Cube(NNGraph):
         super(Cube, self).__init__(pts, k=10, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
-        attrs = {'radius': '{:.2f}'.format(self.radius),
+        attrs = {'length': '{:.2e}'.format(self.length),
                  'nb_pts': self.nb_pts,
                  'nb_dim': self.nb_dim,
                  'sampling': self.sampling,

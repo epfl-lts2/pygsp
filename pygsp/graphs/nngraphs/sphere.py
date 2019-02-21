@@ -10,12 +10,12 @@ class Sphere(NNGraph):
 
     Parameters
     ----------
-    radius : float
-        Radius of the sphere (default = 1)
     nb_pts : int
         Number of vertices (default = 300)
     nb_dim : int
         Dimension (default = 3)
+    diameter : float
+        Radius of the sphere (default = 2)
     sampling : string
         Variance of the distance kernel (default = 'random')
         (Can now only be 'random')
@@ -35,14 +35,14 @@ class Sphere(NNGraph):
     """
 
     def __init__(self,
-                 radius=1,
                  nb_pts=300,
                  nb_dim=3,
+                 diameter=2,
                  sampling='random',
                  seed=None,
                  **kwargs):
 
-        self.radius = radius
+        self.diameter = diameter
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
         self.sampling = sampling
@@ -55,6 +55,7 @@ class Sphere(NNGraph):
 
             for i in range(self.nb_pts):
                 pts[i] /= np.linalg.norm(pts[i])
+                pts[i] *= (diameter / 2)
 
         else:
 
@@ -67,7 +68,7 @@ class Sphere(NNGraph):
         super(Sphere, self).__init__(pts, k=10, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
-        attrs = {'radius': '{:.2f}'.format(self.radius),
+        attrs = {'diameter': '{:.2e}'.format(self.diameter),
                  'nb_pts': self.nb_pts,
                  'nb_dim': self.nb_dim,
                  'sampling': self.sampling,
