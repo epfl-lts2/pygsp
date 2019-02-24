@@ -552,6 +552,8 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(np.std(graph.coords, axis=0), 1)
 
         # Invalid parameters.
+        self.assertRaises(ValueError, Graph, np.ones(n_vertices))
+        self.assertRaises(ValueError, Graph, np.ones((n_vertices, 3, 4)))
         self.assertRaises(ValueError, Graph, data, metric='invalid')
         self.assertRaises(ValueError, Graph, data, kind='invalid')
         self.assertRaises(ValueError, Graph, data, backend='invalid')
