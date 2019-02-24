@@ -2,6 +2,8 @@
 
 from __future__ import division
 
+from functools import partial
+
 import numpy as np
 from scipy import sparse
 import scipy.spatial as sps
@@ -151,13 +153,17 @@ class NNGraph(Graph):
     The nearest-neighbor graph is built from a set of features, where the edge
     weight between vertices :math:`v_i` and :math:`v_j` is given by
 
-    .. math:: A(i,j) = \exp \left( -\frac{d^2(v_i, v_j)}{\sigma^2} \right),
+    .. math:: A(i,j) = k \left( \frac{d(v_i, v_j)}{\sigma} \right),
 
     where :math:`d(v_i, v_j)` is a distance measure between some representation
-    (the features) of :math:`v_i` and :math:`v_j`. For example, the features
-    might be the 3D coordinates of points in a point cloud. Then, if
-    ``metric='euclidean'``, :math:`d(v_i, v_j) = \| x_i - x_j \|_2`, where
-    :math:`x_i` is the 3D position of vertex :math:`v_i`.
+    (the features) of :math:`v_i` and :math:`v_j`, :math:`k` is a kernel
+    function that transforms a distance in :math:`[0, \infty]` to a similarity
+    measure in :math:`[0, 1]`, and :math:`\sigma` is the kernel width.
+
+    For example, the features might be the 3D coordinates of points in a point
+    cloud. Then, if ``metric='euclidean'`` and ``kernel='gaussian'`` (the
+    defaults), :math:`A(i,j) = \exp(-\log(2) \| x_i - x_j \|_2^2 / \sigma^2)`,
+    where :math:`x_i` is the 3D position of vertex :math:`v_i`.
 
     The similarity matrix :math:`A` is sparsified by either keeping the ``k``
     closest vertices for each vertex (if ``type='knn'``), or by setting to zero
@@ -194,9 +200,30 @@ class NNGraph(Graph):
         ``'estimate-knn'`` first builds a knn graph and sets the radius to the
         average distance. ``'estimate-knn'`` usually gives a better estimation
         but is more costly. ``'estimate'`` can be better in low dimension.
+    kernel : string or function
+        The function :math:`k` that transforms a distance to a similarity.
+        The following kernels are pre-defined.
+
+        * ``'gaussian'`` defines the Gaussian, also known as the radial basis
+          function (RBF), kernel :math:`k(d) = \exp(-\log(2) d^2)`.
+        * ``'exponential'`` defines the kernel :math:`k(d) = \exp(-\log(2) d)`.
+        * ``'rectangular'`` returns 1 if :math:`d < 1` and 0 otherwise.
+        * ``'triangular'`` defines the kernel :math:`k(d) = \max(1 - d/2, 0)`.
+        * Other kernels are ``'tricube'``, ``'triweight'``, ``'quartic'``,
+          ``'epanechnikov'``, ``'logistic'``, and ``'sigmoid'``.
+          See `Wikipedia <https://en.wikipedia.org/wiki/Kernel_(statistics)>`_.
+
+        Another option is to pass a function that takes a vector of pairwise
+        distances and returns the similarities. All the predefined kernels
+        return a similarity of 0.5 when the distance is one.
+        An example of custom kernel is ``kernel=lambda d: d.min() / d``.
     kernel_width : float, optional
-        Width of the Gaussian kernel. By default, it is set to the average of
-        the distances of neighboring vertices.
+        Control the width, also known as the bandwidth, :math:`\sigma` of the
+        kernel by scaling the distances as ``distances / kernel_width`` before
+        calling the kernel function.
+        By default, it is set to the average of all computed distances.
+        When building a radius graph, it's common to set it as a function of
+        the radius, such as ``radius / 2``.
     backend : string, optional
         * ``'scipy-pdist'`` uses :func:`scipy.spatial.distance.pdist` to
           compute pairwise distances. The method is brute force and computes
@@ -226,14 +253,33 @@ class NNGraph(Graph):
     >>> _ = axes[0].spy(G.W, markersize=5)
     >>> _ = G.plot(ax=axes[1])
 
+    Plot all the pre-defined kernels.
+
+    >>> width = 0.3
+    >>> distances = np.linspace(0, 1, 200)
+    >>> fig, ax = plt.subplots()
+    >>> for name, kernel in graphs.NNGraph._kernels.items():
+    ...     _ = ax.plot(distances, kernel(distances / width), label=name)
+    >>> _ = ax.set_xlabel('distance [0, inf]')
+    >>> _ = ax.set_ylabel('similarity [0, 1]')
+    >>> _ = ax.legend(loc='upper right')
+
     """
 
     def __init__(self, features, standardize=False,
                  metric='euclidean', order=3,
                  kind='knn', k=10, radius='estimate-knn',
-                 kernel_width=None,
+                 kernel='gaussian', kernel_width=None,
                  backend='scipy-ckdtree',
                  **kwargs):
+
+        # features is stored in coords, potentially standardized
+        self.standardize = standardize
+        self.metric = metric
+        self.kind = kind
+        self.kernel = kernel
+        self.k = k
+        self.backend = backend
 
         features = np.asanyarray(features)
         if features.ndim != 2:
@@ -321,23 +367,21 @@ class NNGraph(Graph):
 
         if kernel_width is None:
             kernel_width = np.mean(W.data) if W.nnz > 0 else np.nan
-            # Alternative: kernel_width = radius / 2 or radius / np.log(2).
-            # Users can easily do the above.
 
-        def kernel(distance, width):
-            return np.exp(-distance**2 / width**2)
+        if not callable(kernel):
+            try:
+                kernel = self._kernels[kernel]
+            except KeyError:
+                raise ValueError('Unknown kernel {}.'.format(kernel))
 
-        W.data = kernel(W.data, kernel_width)
+        assert np.all(W.data >= 0), 'Distance must be in [0, inf].'
+        W.data = kernel(W.data / kernel_width)
+        if not np.all((W.data >= 0) & (W.data <= 1)):
+            raise ValueError('Kernel returned similarity not in [0, 1].')
 
-        # features is stored in coords, potentially standardized
-        self.standardize = standardize
-        self.metric = metric
         self.order = order
-        self.kind = kind
         self.radius = radius
         self.kernel_width = kernel_width
-        self.k = k
-        self.backend = backend
 
         super(NNGraph, self).__init__(W=W, coords=features, **params_graph)
 
@@ -353,7 +397,58 @@ class NNGraph(Graph):
         if self.radius is not None:
             attrs['radius'] = '{:.2e}'.format(self.radius)
         attrs.update({
+            'kernel': '{}'.format(self.kernel),
             'kernel_width': '{:.2e}'.format(self.kernel_width),
             'backend': self.backend,
         })
         return attrs
+
+    @staticmethod
+    def _kernel_rectangular(distance):
+        return (distance < 1).astype(np.float)
+
+    @staticmethod
+    def _kernel_triangular(distance, value_at_one=0.5):
+        distance = value_at_one * distance
+        return np.maximum(1 - distance, 0)
+
+    @staticmethod
+    def _kernel_exponential(distance, power=1, value_at_one=0.5):
+        cst = np.log(value_at_one)
+        return np.exp(cst * distance**power)
+
+    @staticmethod
+    def _kernel_powers(distance, pow1, pow2, value_at_one=0.5):
+        cst = (1 - value_at_one**(1/pow2))**(1/pow1)
+        distance = np.clip(cst * distance, 0, 1)
+        return (1 - distance**pow1)**pow2
+
+    @staticmethod
+    def _kernel_logistic(distance, value_at_one=0.5):
+        cst = 4 / value_at_one - 2
+        cst = np.log(0.5 * (cst + np.sqrt(cst**2 - 4)))
+        distance = cst * distance
+        return 4 / (np.exp(distance) + 2 + np.exp(-distance))
+
+    @staticmethod
+    def _kernel_sigmoid(distance, value_at_one=0.5):
+        cst = 2 / value_at_one
+        cst = np.log(0.5 * (cst + np.sqrt(cst**2 - 4)))
+        distance = cst * distance
+        return 2 / (np.exp(distance) + np.exp(-distance))
+
+    _kernels = {
+        'rectangular': _kernel_rectangular.__func__,
+        'triangular': _kernel_triangular.__func__,
+
+        'exponential': _kernel_exponential.__func__,
+        'gaussian': partial(_kernel_exponential.__func__, power=2),
+
+        'tricube': partial(_kernel_powers.__func__, pow1=3, pow2=3),
+        'triweight': partial(_kernel_powers.__func__, pow1=2, pow2=3),
+        'quartic': partial(_kernel_powers.__func__, pow1=2, pow2=2),
+        'epanechnikov': partial(_kernel_powers.__func__, pow1=2, pow2=1),
+
+        'logistic': _kernel_logistic.__func__,
+        'sigmoid': _kernel_sigmoid.__func__,
+    }

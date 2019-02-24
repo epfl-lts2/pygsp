@@ -528,7 +528,7 @@ class TestCase(unittest.TestCase):
         angles = [0, 2 * np.pi / n_vertices]
         points = np.stack([np.cos(angles), np.sin(angles)], axis=1)
         distance = np.linalg.norm(points[0] - points[1])
-        weight = np.exp(-distance**2)
+        weight = np.exp(-np.log(2) * distance**2)
         column = np.zeros(n_vertices)
         column[1] = weight
         column[-1] = weight
@@ -556,6 +556,7 @@ class TestCase(unittest.TestCase):
         self.assertRaises(ValueError, Graph, np.ones((n_vertices, 3, 4)))
         self.assertRaises(ValueError, Graph, data, metric='invalid')
         self.assertRaises(ValueError, Graph, data, kind='invalid')
+        self.assertRaises(ValueError, Graph, data, kernel='invalid')
         self.assertRaises(ValueError, Graph, data, backend='invalid')
         self.assertRaises(ValueError, Graph, data, kind='knn', k=0)
         self.assertRaises(ValueError, Graph, data, kind='knn', k=n_vertices)
@@ -582,6 +583,14 @@ class TestCase(unittest.TestCase):
             Graph(data, backend=backend, eps=1e-2)
             Graph(data, backend=backend, leafsize=9)
         self.assertRaises(ValueError, Graph, data, backend='scipy-pdist', a=0)
+
+        # Kernels.
+        for name, kernel in graphs.NNGraph._kernels.items():
+            similarity = 0 if name == 'rectangular' else 0.5
+            np.testing.assert_allclose(kernel(np.ones(10)), similarity)
+            np.testing.assert_allclose(kernel(np.zeros(10)), 1)
+        Graph(data, kernel=lambda d: d.min()/d)
+        self.assertRaises(ValueError, Graph, data, kernel=lambda d: 1/d)
 
     def test_bunny(self):
         graphs.Bunny()
