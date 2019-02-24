@@ -231,6 +231,9 @@ class NNGraph(Graph):
                  backend='scipy-ckdtree',
                  **kwargs):
 
+        features = np.asanyarray(features)
+        if features.ndim != 2:
+            raise ValueError('features should be #vertices x dimensionality')
         n_vertices, dimensionality = features.shape
 
         params_graph = dict()
