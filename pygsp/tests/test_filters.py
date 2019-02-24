@@ -149,7 +149,7 @@ class TestCase(unittest.TestCase):
         def get_frame(freq_response):
             return self._G.U.dot(np.diag(freq_response).dot(self._G.U.T))
         gL = np.concatenate([get_frame(gl) for gl in g.evaluate(self._G.e)])
-        np.testing.assert_allclose(gL1, gL)
+        np.testing.assert_allclose(gL1, gL, atol=1e-10)
         np.testing.assert_allclose(gL2, gL, atol=1e-10)
 
     def test_complement(self, frame_bound=2.5):
@@ -227,7 +227,7 @@ class TestCase(unittest.TestCase):
         f2 = filters.Gabor(self._G, f)
         s1 = f1.filter(self._signal)
         s2 = f2.filter(self._signal)
-        np.testing.assert_allclose(s1, s2, atol=1e-5)
+        np.testing.assert_allclose(s1, -s2, atol=1e-5)
 
     def test_halfcosine(self):
         f = filters.HalfCosine(self._G, Nf=4)

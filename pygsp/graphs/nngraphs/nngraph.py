@@ -325,7 +325,7 @@ class NNGraph(Graph):
             # Users can easily do the above.
 
         def kernel(distance, width):
-            return np.exp(-distance**2 / width)
+            return np.exp(-distance**2 / width**2)
 
         W.data = kernel(W.data, kernel_width)
 
