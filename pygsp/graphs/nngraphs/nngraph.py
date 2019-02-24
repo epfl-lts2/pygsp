@@ -219,11 +219,10 @@ class NNGraph(Graph):
         An example of custom kernel is ``kernel=lambda d: d.min() / d``.
     kernel_width : float, optional
         Control the width, also known as the bandwidth, :math:`\sigma` of the
-        kernel by scaling the distances as ``distances / kernel_width`` before
+        kernel. It scales the distances as ``distances / kernel_width`` before
         calling the kernel function.
-        By default, it is set to the average of all computed distances.
-        When building a radius graph, it's common to set it as a function of
-        the radius, such as ``radius / 2``.
+        By default, it is set to the average of all computed distances for
+        ``kind='knn'`` and to half the radius for ``kind='radius'``.
     backend : string, optional
         * ``'scipy-pdist'`` uses :func:`scipy.spatial.distance.pdist` to
           compute pairwise distances. The method is brute force and computes
@@ -366,7 +365,10 @@ class NNGraph(Graph):
         W = utils.symmetrize(W, method='fill')
 
         if kernel_width is None:
-            kernel_width = np.mean(W.data) if W.nnz > 0 else np.nan
+            if kind == 'knn':
+                kernel_width = np.mean(W.data) if W.nnz > 0 else np.nan
+            elif kind == 'radius':
+                kernel_width = radius / 2
 
         if not callable(kernel):
             try:

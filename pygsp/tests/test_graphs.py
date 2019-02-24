@@ -518,7 +518,7 @@ class TestCase(unittest.TestCase):
                     else:
                         params['backend'] = backend
                         if backend == 'flann':
-                            graph = Graph(random_seed=0, **params)
+                            graph = Graph(random_seed=40, **params)
                         else:
                             graph = Graph(**params)
                         np.testing.assert_allclose(graph.W.toarray(),
