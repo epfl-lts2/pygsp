@@ -434,7 +434,7 @@ class TestCase(unittest.TestCase):
         Graph(data, backend='flann', algorithm='kmeans')
         Graph(data, backend='nmslib', method='vptree')
         Graph(data, backend='nmslib', index=dict(post=2))
-        Graph(data, backend='nmslib', query=dict(efSearch=10))
+        Graph(data, backend='nmslib', query=dict(efSearch=100))
         for backend in ['scipy-kdtree', 'scipy-ckdtree']:
             Graph(data, backend=backend, eps=1e-2)
             Graph(data, backend=backend, leafsize=9)
