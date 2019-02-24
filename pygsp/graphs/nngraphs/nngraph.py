@@ -322,7 +322,7 @@ class NNGraph(Graph):
                 radius = graph.kernel_width
             elif radius <= 0:
                 raise ValueError('The radius must be greater than 0.')
-            k = None
+            self.k = None
         else:
             raise ValueError('Invalid kind "{}".'.format(kind))
 

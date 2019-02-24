@@ -448,6 +448,10 @@ class TestCase(unittest.TestCase):
         Graph(data, kernel=lambda d: d.min()/d)
         self.assertRaises(ValueError, Graph, data, kernel=lambda d: 1/d)
 
+        # Attributes.
+        self.assertEqual(Graph(data, kind='knn').radius, None)
+        self.assertEqual(Graph(data, kind='radius').k, None)
+
     def test_bunny(self):
         graphs.Bunny()
 
