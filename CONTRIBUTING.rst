@@ -14,7 +14,7 @@ The package can be set up (ideally in a virtual environment) for local
 development with the following::
 
     $ git clone https://github.com/epfl-lts2/pygsp.git
-    $ pip install -U -e pygsp[alldeps,test,doc,pkg]
+    $ pip install -U -e pygsp[dev]
 
 You can improve or add functionality in the ``pygsp`` folder, along with
 corresponding unit tests in ``pygsp/tests/test_*.py`` (with reasonable

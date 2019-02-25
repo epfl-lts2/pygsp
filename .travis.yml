@@ -22,8 +22,8 @@ addons:
     - libqt5gui5  # pyqt5>5.11 fails to load the xcb platform plugin without it
 
 install:
-  - pip install -U --upgrade-strategy eager .[alldeps,test,doc]
-  # Update dependencies (e.g. numpy formatting changed in v1.14).
+  - pip install --upgrade --upgrade-strategy eager .[dev]
+  # Upgrade to test with the latest version of our dependencies.
 
 script:
 # - make lint

@@ -24,6 +24,7 @@ History
 * New implementation of the Sensor graph that is simpler and scales better.
 * A new learning module with three functions to solve standard semi-supervised
   classification and regression problems.
+* Merged all the extra requirements in a single dev requirement.
 
 Experimental filter API (to be tested and validated):
 
