@@ -175,6 +175,18 @@ class NNGraph(Graph):
         and standard deviation of 1 (unit variance).
     metric : {'euclidean', 'manhattan', 'minkowski', 'max_dist'}, optional
         Metric used to compute pairwise distances.
+
+        * ``'euclidean'`` defines pairwise distances as
+          :math:`d(v_i, v_j) = \| x_i - x_j \|_2`.
+        * ``'manhattan'`` defines pairwise distances as
+          :math:`d(v_i, v_j) = \| x_i - x_j \|_1`.
+        * ``'minkowski'`` generalizes the above and defines distances as
+          :math:`d(v_i, v_j) = \| x_i - x_j \|_p`
+          where :math:`p` is the ``order`` of the norm.
+        * ``'max_dist'`` defines pairwise distances as
+          :math:`d(v_i, v_j) = \| x_i - x_j \|_\infty = \max(x_i - x_j)`, where
+          the maximum is taken over the elements of the vector.
+
         More metrics may be supported for some backends.
         Please refer to the documentation of the chosen backend.
     order : float, optional
@@ -225,9 +237,10 @@ class NNGraph(Graph):
           all distances. That is the slowest method.
         * ``'scipy-kdtree'`` uses :class:`scipy.spatial.KDTree`. The method
           builds a k-d tree to prune the number of pairwise distances it has to
-          compute.
+          compute. That is an efficient strategy for low-dimensional spaces.
         * ``'scipy-ckdtree'`` uses :class:`scipy.spatial.cKDTree`. The same as
           ``'scipy-kdtree'`` but with C bindings, which should be faster.
+          That is the default.
         * ``'flann'`` uses the `Fast Library for Approximate Nearest Neighbors
           (FLANN) <https://github.com/mariusmuja/flann>`_. That method is an
           approximation.
@@ -235,29 +248,124 @@ class NNGraph(Graph):
           <https://github.com/nmslib/nmslib>`_. That method is an
           approximation. It should be the fastest in high-dimensional spaces.
 
+        You can look at this `benchmark
+        <https://github.com/erikbern/ann-benchmarks>`_ to get an idea of the
+        relative performance of those backends. It's nonetheless wise to run
+        some tests on your own data.
     kwargs : dict
         Parameters to be passed to the :class:`Graph` constructor or the
         backend library.
 
     Examples
     --------
+
+    Construction of a graph from a set of features.
+
     >>> import matplotlib.pyplot as plt
-    >>> features = np.random.RandomState(42).uniform(size=(30, 2))
+    >>> rs = np.random.RandomState(42)
+    >>> features = rs.uniform(size=(30, 2))
     >>> G = graphs.NNGraph(features)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=5)
     >>> _ = G.plot(ax=axes[1])
 
-    Plot all the pre-defined kernels.
+    Radius versus knn graph.
 
+    >>> features = rs.uniform(size=(100, 3))
+    >>> fig, ax = plt.subplots()
+    >>> G = graphs.NNGraph(features, kind='radius', radius=0.2964)
+    >>> label = 'radius graph ({} edges)'.format(G.n_edges)
+    >>> _ = ax.hist(G.W.data, bins=20, label=label, alpha=0.5)
+    >>> G = graphs.NNGraph(features, kind='knn', k=6)
+    >>> label = 'knn graph ({} edges)'.format(G.n_edges)
+    >>> _ = ax.hist(G.W.data, bins=20, label=label, alpha=0.5)
+    >>> _ = ax.legend()
+    >>> _ = ax.set_title('edge weights')
+
+    Control of the sparsity of knn and radius graphs.
+
+    >>> features = rs.uniform(size=(100, 3))
+    >>> n_edges = dict(knn=[], radius=[])
+    >>> n_neighbors = np.arange(1, 100, 5)
+    >>> radiuses = np.arange(0.05, 1.5, 0.05)
+    >>> for k in n_neighbors:
+    ...     G = graphs.NNGraph(features, kind='knn', k=k)
+    ...     n_edges['knn'].append(G.n_edges)
+    >>> for radius in radiuses:
+    ...     G = graphs.NNGraph(features, kind='radius', radius=radius)
+    ...     n_edges['radius'].append(G.n_edges)
+    >>> fig, axes = plt.subplots(1, 2, sharey=True)
+    >>> _ = axes[0].plot(n_neighbors, n_edges['knn'])
+    >>> _ = axes[1].plot(radiuses, n_edges['radius'])
+    >>> _ = axes[0].set_ylabel('number of edges')
+    >>> _ = axes[0].set_xlabel('number of neighbors (knn graph)')
+    >>> _ = axes[1].set_xlabel('radius (radius graph)')
+    >>> _ = fig.suptitle('Sparsity')
+
+    Choice of metric and the curse of dimensionality.
+
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> for dim, ax in zip([3, 30], axes):
+    ...     features = rs.uniform(size=(100, dim))
+    ...     for metric in ['euclidean', 'manhattan', 'max_dist', 'cosine']:
+    ...         G = graphs.NNGraph(features, metric=metric,
+    ...                            backend='scipy-pdist')
+    ...         _ = ax.hist(G.W.data, bins=20, label=metric, alpha=0.5)
+    ...     _ = ax.legend()
+    ...     _ = ax.set_title('edge weights, {} dimensions'.format(dim))
+
+    Choice of kernel.
+
+    >>> fig, axes = plt.subplots(1, 2)
     >>> width = 0.3
     >>> distances = np.linspace(0, 1, 200)
-    >>> fig, ax = plt.subplots()
     >>> for name, kernel in graphs.NNGraph._kernels.items():
-    ...     _ = ax.plot(distances, kernel(distances / width), label=name)
-    >>> _ = ax.set_xlabel('distance [0, inf]')
-    >>> _ = ax.set_ylabel('similarity [0, 1]')
-    >>> _ = ax.legend(loc='upper right')
+    ...     _ = axes[0].plot(distances, kernel(distances / width), label=name)
+    >>> _ = axes[0].set_xlabel('distance [0, inf]')
+    >>> _ = axes[0].set_ylabel('similarity [0, 1]')
+    >>> _ = axes[0].legend(loc='upper right')
+    >>> features = rs.uniform(size=(100, 3))
+    >>> for kernel in ['gaussian', 'triangular', 'tricube', 'exponential']:
+    ...     G = graphs.NNGraph(features, kernel=kernel)
+    ...     _ = axes[1].hist(G.W.data, bins=20, label=kernel, alpha=0.5)
+    >>> _ = axes[1].legend()
+    >>> _ = axes[1].set_title('edge weights')
+
+    Choice of kernel width.
+
+    >>> fig, axes = plt.subplots()
+    >>> for width in [.2, .3, .4, .6, .8, None]:
+    ...     G = graphs.NNGraph(features, kernel_width=width)
+    ...     label = 'width = {:.2f}'.format(G.kernel_width)
+    ...     _ = axes.hist(G.W.data, bins=20, label=label, alpha=0.5)
+    >>> _ = axes.legend(loc='upper left')
+    >>> _ = axes.set_title('edge weights')
+
+    Choice of backend. Compare on your data!
+
+    >>> import time
+    >>> sizes = [300, 1000, 3000]
+    >>> dims = [3, 100]
+    >>> backends = ['scipy-pdist', 'scipy-kdtree', 'scipy-ckdtree', 'flann',
+    ...             'nmslib']
+    >>> times = np.full((len(sizes), len(dims), len(backends)), np.nan)
+    >>> for i, size in enumerate(sizes):
+    ...     for j, dim in enumerate(dims):
+    ...         for k, backend in enumerate(backends):
+    ...             if (size * dim) > 1e4 and backend == 'scipy-kdtree':
+    ...                 continue  # too slow
+    ...             features = rs.uniform(size=(size, dim))
+    ...             start = time.time()
+    ...             _ = graphs.NNGraph(features, backend=backend)
+    ...             times[i][j][k] = time.time() - start
+    >>> fig, axes = plt.subplots(1, 2, sharey=True)
+    >>> for j, (dim, ax) in enumerate(zip(dims, axes)):
+    ...     for k, backend in enumerate(backends):
+    ...         _ = ax.loglog(sizes, times[:, j, k], '.-', label=backend)
+    ...         _ = ax.set_title('{} dimensions'.format(dim))
+    ...         _ = ax.set_xlabel('number of vertices')
+    >>> _ = axes[0].set_ylabel('execution time [s]')
+    >>> _ = axes[1].legend(loc='upper left')
 
     """
 
