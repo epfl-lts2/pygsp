@@ -35,6 +35,10 @@ Unreleased
   taste of what the library can do, and to start working from a code snippet.
 * Merged all the extra requirements in a single dev requirement.
 * New star graph (implemented as a comet without a tail).
+* A much improved, fixed, documented, and tested NNGraph. The user can now
+  select the backend and similarity kernel. The radius can be estimated and
+  features standardized. (PR #43)
+
 
 Experimental filter API (to be tested and validated):
 
