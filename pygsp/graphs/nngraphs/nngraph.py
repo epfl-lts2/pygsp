@@ -158,7 +158,7 @@ class NNGraph(Graph):
     where :math:`d(v_i, v_j)` is a distance measure between some representation
     (the features) of :math:`v_i` and :math:`v_j`, :math:`k` is a kernel
     function that transforms a distance in :math:`[0, \infty]` to a similarity
-    measure in :math:`[0, 1]`, and :math:`\sigma` is the kernel width.
+    measure generally in :math:`[0, 1]`, and :math:`\sigma` is the kernel width.
 
     For example, the features might be the 3D coordinates of points in a point
     cloud. Then, if ``metric='euclidean'`` and ``kernel='gaussian'`` (the
@@ -167,7 +167,7 @@ class NNGraph(Graph):
 
     The similarity matrix :math:`A` is sparsified by either keeping the ``k``
     closest vertices for each vertex (if ``type='knn'``), or by setting to zero
-    any distance greater than ``radius`` (if ``type='radius'``).
+    the similarity when the distance is greater than ``radius`` (if ``type='radius'``).
 
     Parameters
     ----------
