@@ -35,20 +35,9 @@ class RandomRing(Graph):
 
         self.seed = seed
 
-        if angles is None:
-            rs = np.random.RandomState(seed)
-            angles = np.sort(rs.uniform(0, 2*np.pi, size=N), axis=0)
-        else:
-            angles = np.asanyarray(angles)
-            angles.sort()  # Need to be sorted to take the difference.
-            N = len(angles)
-            if np.any(angles < 0) or np.any(angles >= 2*np.pi):
-                raise ValueError('Angles should be in [0, 2 pi]')
+        rs = np.random.RandomState(seed)
+        angles = np.sort(rs.uniform(0, 2*np.pi, size=N), axis=0)
         self.angles = angles
-
-        if N < 3:
-            # Asymmetric graph needed for 2 as 2 distances connect them.
-            raise ValueError('There should be at least 3 vertices.')
 
         rows = range(0, N-1)
         cols = range(1, N)
@@ -62,16 +51,19 @@ class RandomRing(Graph):
         W = sparse.coo_matrix((weights, (rows, cols)), shape=(N, N))
         W = utils.symmetrize(W, method='triu')
 
+        # Width as the expected angle. All angles are equal to that value when
+        # the ring is uniformly sampled.
+        width = 2 * np.pi / N
+        assert (W.data.mean() - width) < 1e-10
         # TODO: why this kernel ? It empirically produces eigenvectors closer
         # to the sines and cosines.
-        W.data = 1 / W.data
+        W.data = width / W.data
 
-        angle = position * 2 * np.pi
-        coords = np.stack([np.cos(angle), np.sin(angle)], axis=1)
+        coords = np.stack([np.cos(angles), np.sin(angles)], axis=1)
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
         # TODO: save angle and 2D position as graph signals
-        super(RandomRing, self).__init__(W, coords=coords, plotting=plotting,
+        super(RandomRing, self).__init__(W=W, coords=coords, plotting=plotting,
                                          **kwargs)
 
     def _get_extra_repr(self):
