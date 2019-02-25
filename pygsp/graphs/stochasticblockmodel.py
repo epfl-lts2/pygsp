@@ -133,7 +133,8 @@ class StochasticBlockModel(Graph):
 
             if not connected:
                 break
-            if Graph(W).is_connected():
+            self.W = W
+            if self.is_connected(recompute=True):
                 break
             if n_try is not None:
                 n_try -= 1
