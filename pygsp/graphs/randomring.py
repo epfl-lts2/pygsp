@@ -62,15 +62,12 @@ class RandomRing(Graph):
         W = sparse.coo_matrix((weights, (rows, cols)), shape=(N, N))
         W = utils.symmetrize(W, method='triu')
 
-        # Width as the expected angle. All angles are equal to that value when
-        # the ring is uniformly sampled.
-        width = 2 * np.pi / N
-        assert (W.data.mean() - width) < 1e-10
         # TODO: why this kernel ? It empirically produces eigenvectors closer
         # to the sines and cosines.
-        W.data = width / W.data
+        W.data = 1 / W.data
 
-        coords = np.stack([np.cos(angles), np.sin(angles)], axis=1)
+        angle = position * 2 * np.pi
+        coords = np.stack([np.cos(angle), np.sin(angle)], axis=1)
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
         # TODO: save angle and 2D position as graph signals
