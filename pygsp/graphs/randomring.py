@@ -47,6 +47,10 @@ class RandomRing(Graph):
         W[0, N-1] = weight_end
         W = utils.symmetrize(W, method='triu')
 
+        # TODO: why this kernel ? It empirically produces eigenvectors closer
+        # to the sines and cosines.
+        W.data = 1 / W.data
+
         angle = position * 2 * np.pi
         coords = np.stack([np.cos(angle), np.sin(angle)], axis=1)
         plotting = {'limits': np.array([-1, 1, -1, 1])}
