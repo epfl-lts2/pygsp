@@ -8,7 +8,7 @@ from . import Graph  # prevent circular import in Python < 3.5
 
 
 class RandomRing(Graph):
-    r"""Ring graph with randomly sampled nodes.
+    r"""Ring graph with randomly sampled vertices.
 
     Parameters
     ----------
@@ -34,27 +34,33 @@ class RandomRing(Graph):
         self.seed = seed
 
         rs = np.random.RandomState(seed)
-        position = np.sort(rs.uniform(size=N), axis=0)
+        angles = np.sort(rs.uniform(0, 2*np.pi, size=N), axis=0)
+        self.angles = angles
 
-        weight = N * np.diff(position)
-        weight_end = N * (1 + position[0] - position[-1])
+        rows = range(0, N-1)
+        cols = range(1, N)
+        weights = np.diff(angles)
 
-        inds_i = np.arange(0, N-1)
-        inds_j = np.arange(1, N)
+        # Close the loop.
+        rows = np.concatenate((rows, [0]))
+        cols = np.concatenate((cols, [N-1]))
+        weights = np.concatenate((weights, [2*np.pi + angles[0] - angles[-1]]))
 
-        W = sparse.csc_matrix((weight, (inds_i, inds_j)), shape=(N, N))
-        W = W.tolil()
-        W[0, N-1] = weight_end
+        W = sparse.coo_matrix((weights, (rows, cols)), shape=(N, N))
         W = utils.symmetrize(W, method='triu')
 
+        # Width as the expected angle. All angles are equal to that value when
+        # the ring is uniformly sampled.
+        width = 2 * np.pi / N
+        assert (W.data.mean() - width) < 1e-10
         # TODO: why this kernel ? It empirically produces eigenvectors closer
         # to the sines and cosines.
-        W.data = 1 / W.data
+        W.data = width / W.data
 
-        angle = position * 2 * np.pi
-        coords = np.stack([np.cos(angle), np.sin(angle)], axis=1)
+        coords = np.stack([np.cos(angles), np.sin(angles)], axis=1)
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
+        # TODO: save angle and 2D position as graph signals
         super(RandomRing, self).__init__(W=W, coords=coords, plotting=plotting,
                                          **kwargs)
 
