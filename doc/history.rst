@@ -24,6 +24,9 @@ History
 * New implementation of the Sensor graph that is simpler and scales better.
 * A new learning module with three functions to solve standard semi-supervised
   classification and regression problems.
+* A much improved, fixed, documented, and tested NNGraph. The user can now
+  select the backend and similarity kernel. The radius can be estimated and
+  features standardized. (PR #43)
 
 Experimental filter API (to be tested and validated):
 
