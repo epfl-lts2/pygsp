@@ -183,6 +183,13 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         Returns
         -------
         graph_nx : :py:class:`networkx.Graph`
+
+        Examples
+        --------
+        >>> graph = graphs.Logo()
+        >>> nx_graph = graph.to_networkx()
+        >>> nx_graph.number_of_nodes()
+        1130
         """
         import networkx as nx
         graph_nx = nx.from_scipy_sparse_matrix(
@@ -205,6 +212,12 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         Returns
         -------
         graph_gt : :py:class:`graph_tool.Graph`
+
+        Examples
+        --------
+        >>> graph = graphs.Logo()
+        >>> gt_graph = graph.to_graphtool()
+        >>> weight_property = gt_graph.edge_properties["weight"]
         """
         import graph_tool
         graph_gt = graph_tool.Graph(directed=self.is_directed())
@@ -250,6 +263,12 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         Returns
         -------
         graph : :class:`~pygsp.graphs.Graph`
+
+        Examples
+        --------
+        >>> import networkx as nx
+        >>> nx_graph = nx.random_geometric_graph(200, 0.125)
+        >>> graph = graphs.Graph.from_networkx(nx_graph)
         """
         import networkx as nx
         # keep a consistent order of nodes for the agency matrix and the signal array
@@ -296,10 +315,16 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         -------
         graph : :class:`~pygsp.graphs.Graph`
             The weight of the graph are loaded from the edge property named ``edge_prop_name``
+
+        Examples
+        --------
+        >>> from graph_tool.all import Graph
+        >>> gt_graph = Graph()
+        >>> graph = graphs.Graph.from_graphtool(gt_graph)
         """
         import graph_tool as gt
         import graph_tool.spectral
-        
+
         weight_property = graph_gt.edge_properties.get(weight, None)
         graph = cls(gt.spectral.adjacency(graph_gt, weight=weight_property).todense().T)
 
@@ -327,6 +352,10 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         Returns
         -------
             graph : :class:`~pygsp.graphs.Graph`
+
+        Examples
+        --------
+        >>> graph = graphs.Graph.load('logo.graphml')
         """
 
         def load_networkx(saved_path, format):
@@ -347,7 +376,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
                 backend = 'networkx'
             else:
                 backend = 'graph_tool'
-    
+
         supported_format = ['graphml', 'gml', 'gexf']
         if fmt not in supported_format:
             raise ValueError('Unsupported format {}. Please use a format from {}'.format(fmt, supported_format))
@@ -374,6 +403,11 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             Python library used in background to save the graph.
             Supported library are networkx and graph_tool
             WARNING: when using graph_tool as backend the weight of the edges precision is truncated to E-06.
+
+        Examples
+        --------
+        >>> graph = graphs.Logo()
+        >>> graph.save('logo.graphml')
         """
         def save_networkx(graph, save_path):
             import networkx as nx
@@ -413,6 +447,14 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             An array mapping from node to his value. For example the value of the signal at node i is signal[i]
         name : String
             Name associated to the signal.
+
+        Examples
+        --------
+        >>> graph = graphs.Logo()
+        >>> DELTAS = [20, 30, 1090]
+        >>> signal = np.zeros(graph.N)
+        >>> signal[DELTAS] = 1
+        >>> graph.set_signal(signal, 'diffusion')
         """
         if len(signal) != self.N:
             raise ValueError("A value must be attached to every vertex in the graph")
