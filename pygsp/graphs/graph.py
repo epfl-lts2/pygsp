@@ -277,7 +277,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         --------
         >>> from graph_tool.all import Graph
         >>> gt_graph = Graph()
-        >>> gt_graph.add_vertex(10)
+        >>> _ = gt_graph.add_vertex(10)
         >>> graph = graphs.Graph.from_graphtool(gt_graph)
 
         """
