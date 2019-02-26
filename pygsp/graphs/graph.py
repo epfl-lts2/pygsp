@@ -142,8 +142,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         --------
         >>> graph = graphs.Logo()
         >>> nx_graph = graph.to_networkx()
-        >>> nx_graph.number_of_nodes()
+        >>> print(nx_graph.number_of_nodes())
         1130
+
         """
         import networkx as nx
         graph_nx = nx.from_scipy_sparse_matrix(
@@ -172,6 +173,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> graph = graphs.Logo()
         >>> gt_graph = graph.to_graphtool()
         >>> weight_property = gt_graph.edge_properties["weight"]
+
         """
         import graph_tool
         graph_gt = graph_tool.Graph(directed=self.is_directed())
@@ -221,8 +223,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Examples
         --------
         >>> import networkx as nx
-        >>> nx_graph = nx.random_geometric_graph(200, 0.125)
+        >>> nx_graph = nx.star_graph(200)
         >>> graph = graphs.Graph.from_networkx(nx_graph)
+
         """
         import networkx as nx
         # keep a consistent order of nodes for the agency matrix and the signal array
@@ -274,7 +277,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         --------
         >>> from graph_tool.all import Graph
         >>> gt_graph = Graph()
+        >>> gt_graph.add_vertex(10)
         >>> graph = graphs.Graph.from_graphtool(gt_graph)
+
         """
         import graph_tool as gt
         import graph_tool.spectral
@@ -309,7 +314,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
+        >>> graphs.Logo().save('logo.graphml')
         >>> graph = graphs.Graph.load('logo.graphml')
+
         """
 
         def load_networkx(saved_path, format):
@@ -362,6 +369,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         --------
         >>> graph = graphs.Logo()
         >>> graph.save('logo.graphml')
+
         """
         def save_networkx(graph, save_path):
             import networkx as nx
@@ -409,6 +417,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> signal = np.zeros(graph.N)
         >>> signal[DELTAS] = 1
         >>> graph.set_signal(signal, 'diffusion')
+
         """
         if len(signal) != self.N:
             raise ValueError("A value must be attached to every vertex in the graph")
