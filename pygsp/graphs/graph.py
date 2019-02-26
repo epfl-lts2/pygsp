@@ -323,7 +323,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         --------
         >>> from graph_tool.all import Graph
         >>> gt_graph = Graph()
-        >>> gt_graph.add_vertex(10)
+        >>> _ = gt_graph.add_vertex(10)
         >>> graph = graphs.Graph.from_graphtool(gt_graph)
 
         """
