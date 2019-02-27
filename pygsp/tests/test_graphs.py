@@ -398,6 +398,8 @@ class TestCase(unittest.TestCase):
     def test_ring(self):
         graphs.Ring()
         graphs.Ring(N=32, k=16)
+        self.assertRaises(ValueError, graphs.Ring, 2)
+        self.assertRaises(ValueError, graphs.Ring, 5, k=3)
 
     def test_community(self):
         graphs.Community()
@@ -453,6 +455,8 @@ class TestCase(unittest.TestCase):
 
     def test_randomring(self):
         graphs.RandomRing()
+        self.assertRaises(ValueError, graphs.RandomRing, 2)
+        self.assertRaises(ValueError, graphs.RandomRing, angles=[0, 2])
 
     def test_swissroll(self):
         graphs.SwissRoll(srtype='uniform')

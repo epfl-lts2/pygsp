@@ -30,6 +30,10 @@ class Ring(Graph):
 
         self.k = k
 
+        if N < 3:
+            # Asymmetric graph needed for 2 as 2 distances connect them.
+            raise ValueError('There should be at least 3 vertices.')
+
         if 2*k > N:
             raise ValueError('Too many neighbors requested.')
 
