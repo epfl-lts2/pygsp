@@ -14,7 +14,7 @@ class RandomRing(Graph):
     ----------
     N : int
         Number of vertices.
-    angles : array_like, optional
+    angles : array-like, optional
         The angular coordinate, in :math:`[0, 2\pi]`, of the vertices.
     seed : int
         Seed for the random number generator (for reproducible graphs).
@@ -35,8 +35,15 @@ class RandomRing(Graph):
 
         self.seed = seed
 
-        rs = np.random.RandomState(seed)
-        angles = np.sort(rs.uniform(0, 2*np.pi, size=N), axis=0)
+        if angles is None:
+            rs = np.random.RandomState(seed)
+            angles = np.sort(rs.uniform(0, 2*np.pi, size=N), axis=0)
+        else:
+            angles = np.asanyarray(angles)
+            angles.sort()  # Need to be sorted to take the difference.
+            N = len(angles)
+            if np.any(angles < 0) or np.any(angles >= 2*np.pi):
+                raise ValueError('Angles should be in [0, 2 pi]')
         self.angles = angles
 
         if N < 3:
