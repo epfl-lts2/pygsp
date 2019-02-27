@@ -37,6 +37,10 @@ class RandomRing(Graph):
         angles = np.sort(rs.uniform(0, 2*np.pi, size=N), axis=0)
         self.angles = angles
 
+        if N < 3:
+            # Asymmetric graph needed for 2 as 2 distances connect them.
+            raise ValueError('There should be at least 3 vertices.')
+
         rows = range(0, N-1)
         cols = range(1, N)
         weights = np.diff(angles)
