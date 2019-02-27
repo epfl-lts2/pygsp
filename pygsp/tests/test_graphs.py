@@ -640,12 +640,8 @@ class TestCase(unittest.TestCase):
 
     def test_randomring(self):
         graphs.RandomRing()
-        G = graphs.RandomRing(angles=[0, 2, 1])
-        self.assertEqual(G.N, 3)
         self.assertRaises(ValueError, graphs.RandomRing, 2)
         self.assertRaises(ValueError, graphs.RandomRing, angles=[0, 2])
-        self.assertRaises(ValueError, graphs.RandomRing, angles=[0, 2, 7])
-        self.assertRaises(ValueError, graphs.RandomRing, angles=[0, 2, -1])
 
     def test_swissroll(self):
         graphs.SwissRoll(srtype='uniform')
