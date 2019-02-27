@@ -100,9 +100,6 @@ The PyGSP is available on PyPI::
 
     $ pip install pygsp
 
-Note that you will need a recent version of ``pip`` and ``setuptools``. Please
-run ``pip install --upgrade pip setuptools`` if you get any installation error.
-
 The PyGSP is available on `conda-forge <https://github.com/conda-forge/pygsp-feedstock>`_::
 
     $ conda install -c conda-forge pygsp
