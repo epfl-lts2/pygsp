@@ -613,7 +613,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             return self._connected
 
         adjacencies = [self.W]
-        if self.is_directed():
+        if self.is_directed(recompute=recompute):
             adjacencies.append(self.W.T)
 
         for adjacency in adjacencies:
