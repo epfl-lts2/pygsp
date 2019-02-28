@@ -104,6 +104,12 @@ The PyGSP is available on `conda-forge <https://github.com/conda-forge/pygsp-fee
 
     $ conda install -c conda-forge pygsp
 
+The PyGSP is available in the `Arch User Repository <https://aur.archlinux.org/packages/python-pygsp>`_::
+
+   $ git clone https://aur.archlinux.org/python-pygsp.git
+   $ cd python-pygsp
+   $ makepkg -csi
+
 Contributing
 ------------
 
