@@ -302,15 +302,10 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return Graph(sub_W)
 
     def is_connected(self, recompute=False):
-        r"""Check the strong connectivity of the graph (cached).
+        r"""Check if the graph is connected (cached).
 
-        It uses DFS travelling on graph to ensure that each node is visited.
-        For undirected graphs, starting at any vertex and trying to access all
-        others is enough.
-        For directed graphs, one needs to check that a random vertex is
-        accessible by all others
-        and can access all others. Thus, we can transpose the adjacency matrix
-        and compute again with the same starting point in both phases.
+        A graph is connected if and only if there exists a (directed) path
+        between any two vertices.
 
         Parameters
         ----------
@@ -320,40 +315,67 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Returns
         -------
         connected : bool
-            True if the graph is connected.
+            True if the graph is connected, False otherwise.
+
+        Notes
+        -----
+
+        For undirected graphs, starting at a vertex and trying to visit all the
+        others is enough.
+        For directed graphs, one needs to check that a vertex can both be
+        visited by all the others and visit all the others.
 
         Examples
         --------
-        >>> from scipy import sparse
-        >>> W = sparse.rand(10, 10, 0.2)
-        >>> G = graphs.Graph(W=W)
-        >>> connected = G.is_connected()
+
+        Connected graph:
+
+        >>> adjacency = np.array([
+        ...     [0, 3, 0, 0],
+        ...     [3, 0, 4, 0],
+        ...     [0, 4, 0, 2],
+        ...     [0, 0, 2, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph.is_connected()
+        True
+
+        Disconnected graph:
+
+        >>> adjacency = np.array([
+        ...     [0, 3, 0, 0],
+        ...     [3, 0, 4, 0],
+        ...     [0, 0, 0, 2],
+        ...     [0, 0, 2, 0],
+        ... ])
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph.is_connected()
+        False
+
 
         """
         if hasattr(self, '_connected') and not recompute:
             return self._connected
 
+        adjacencies = [self.W]
         if self.is_directed(recompute=recompute):
-            adj_matrices = [self.A, self.A.T]
-        else:
-            adj_matrices = [self.A]
+            adjacencies.append(self.W.T)
 
-        for adj_matrix in adj_matrices:
-            visited = np.zeros(self.A.shape[0], dtype=bool)
+        for adjacency in adjacencies:
+            visited = np.zeros(self.n_vertices, dtype=np.bool)
             stack = set([0])
 
-            while len(stack):
-                v = stack.pop()
-                if not visited[v]:
-                    visited[v] = True
+            while stack:
+                vertex = stack.pop()
 
-                    # Add indices of nodes not visited yet and accessible from
-                    # v
-                    stack.update(set([idx
-                                      for idx in adj_matrix[v, :].nonzero()[1]
-                                      if not visited[idx]]))
+                if visited[vertex]:
+                    continue
+                visited[vertex] = True
 
-            if not visited.all():
+                neighbors = adjacency[vertex].nonzero()[1]
+                stack.update(neighbors)
+
+            if not np.all(visited):
                 self._connected = False
                 return self._connected
 
