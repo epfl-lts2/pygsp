@@ -59,6 +59,36 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(G.d, 3 * np.ones([4]))
         np.testing.assert_allclose(G.dw, 3 * 0.3)
 
+    def test_is_connected(self):
+        graph = graphs.Graph([
+            [0, 1, 0],
+            [1, 0, 2],
+            [0, 2, 0],
+        ])
+        self.assertEqual(graph.is_directed(), False)
+        self.assertEqual(graph.is_connected(), True)
+        graph = graphs.Graph([
+            [0, 1, 0],
+            [1, 0, 0],
+            [0, 2, 0],
+        ])
+        self.assertEqual(graph.is_directed(), True)
+        self.assertEqual(graph.is_connected(), False)
+        graph = graphs.Graph([
+            [0, 1, 0],
+            [1, 0, 0],
+            [0, 0, 0],
+        ])
+        self.assertEqual(graph.is_directed(), False)
+        self.assertEqual(graph.is_connected(), False)
+        graph = graphs.Graph([
+            [0, 1, 0],
+            [0, 0, 2],
+            [3, 0, 0],
+        ])
+        self.assertEqual(graph.is_directed(), True)
+        self.assertEqual(graph.is_connected(), True)
+
     def test_laplacian(self):
 
         adjacency = np.array([
