@@ -295,13 +295,13 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
 
     Parameters
     ----------
-    vertex_color : array-like or color
+    vertex_color : array_like or color
         Signal to plot as vertex color (length is the number of vertices).
         If None, vertex color is set to `graph.plotting['vertex_color']`.
         Alternatively, a color can be set in any format accepted by matplotlib.
         Each vertex color can by specified by an RGB(A) array of dimension
         `n_vertices` x 3 (or 4).
-    vertex_size : array-like or int
+    vertex_size : array_like or int
         Signal to plot as vertex size (length is the number of vertices).
         Vertex size ranges from 0.5 to 2 times `graph.plotting['vertex_size']`.
         If None, vertex size is set to `graph.plotting['vertex_size']`.
@@ -315,7 +315,7 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
         Whether to draw edges in addition to vertices.
         Default to True if less than 10,000 edges to draw.
         Note that drawing many edges can be slow.
-    edge_color : array-like or color
+    edge_color : array_like or color
         Signal to plot as edge color (length is the number of edges).
         Edge color is given by `graph.plotting['edge_color']` and transparency
         ranges from 0.2 to 0.9.
@@ -324,7 +324,7 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
         Each edge color can by specified by an RGB(A) array of dimension
         `n_edges` x 3 (or 4).
         Only available with the matplotlib backend.
-    edge_width : array-like or int
+    edge_width : array_like or int
         Signal to plot as edge width (length is the number of edges).
         Edge width ranges from 0.5 to 2 times `graph.plotting['edge_width']`.
         If None, edge width is set to `graph.plotting['edge_width']`.
