@@ -121,16 +121,16 @@ def cheby_rect(G, bounds, signal, **kwargs):
     Parameters
     ----------
     G : Graph
-    bounds : array-like
+    bounds : array_like
         The bounds of the pass-band filter
-    signal : array-like
+    signal : array_like
         Signal to filter
     order : int (optional)
         Order of the Chebyshev polynomial (default: 30)
 
     Returns
     -------
-    r : array-like
+    r : array_like
         Result of the filtering
 
     """

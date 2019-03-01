@@ -14,7 +14,7 @@ class RandomRing(Graph):
     ----------
     N : int
         Number of vertices.
-    angles : array-like, optional
+    angles : array_like, optional
         The angular coordinate, in :math:`[0, 2\pi]`, of the vertices.
     seed : int
         Seed for the random number generator (for reproducible graphs).

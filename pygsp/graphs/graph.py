@@ -184,7 +184,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Parameters
         ----------
-        kind : string or array-like
+        kind : string or array_like
             Kind of coordinates to generate. It controls the position of the
             nodes when plotting the graph. Can either pass an array of size Nx2
             or Nx3 to set the coordinates manually or the name of a layout
