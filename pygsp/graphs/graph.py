@@ -590,13 +590,12 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> adjacency = [
+        >>> graph = graphs.Graph([
         ...     [0, 3, 0, 0],
         ...     [3, 0, 4, 0],
         ...     [0, 4, 0, 2],
         ...     [0, 0, 2, 0],
-        ... ]
-        >>> graph = graphs.Graph(adjacency)
+        ... ])
         >>> graph = graph.subgraph([0, 2, 1])
         >>> graph.W.toarray()
         array([[0, 0, 3],
@@ -640,25 +639,23 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Connected graph:
 
-        >>> adjacency = [
+        >>> graph = graphs.Graph([
         ...     [0, 3, 0, 0],
         ...     [3, 0, 4, 0],
         ...     [0, 4, 0, 2],
         ...     [0, 0, 2, 0],
-        ... ]
-        >>> graph = graphs.Graph(adjacency)
+        ... ])
         >>> graph.is_connected()
         True
 
         Disconnected graph:
 
-        >>> adjacency = [
+        >>> graph = graphs.Graph([
         ...     [0, 3, 0, 0],
         ...     [3, 0, 4, 0],
         ...     [0, 0, 0, 2],
         ...     [0, 0, 2, 0],
-        ... ]
-        >>> graph = graphs.Graph(adjacency)
+        ... ])
         >>> graph.is_connected()
         False
 
@@ -713,23 +710,21 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Directed graph:
 
-        >>> adjacency = [
+        >>> graph = graphs.Graph([
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 0, 0],
-        ... ]
-        >>> graph = graphs.Graph(adjacency)
+        ... ])
         >>> graph.is_directed()
         True
 
         Undirected graph:
 
-        >>> adjacency = [
+        >>> graph = graphs.Graph([
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 4, 0],
-        ... ]
-        >>> graph = graphs.Graph(adjacency)
+        ... ])
         >>> graph.is_directed()
         False
 
@@ -838,12 +833,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Combinatorial and normalized Laplacians of an undirected graph.
 
-        >>> adjacency = [
+        >>> graph = graphs.Graph([
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 1, 0],
-        ... ]
-        >>> graph = graphs.Graph(adjacency)
+        ... ])
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.L.toarray()
         array([[ 2., -2.,  0.],
@@ -857,12 +851,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Combinatorial and normalized Laplacians of a directed graph.
 
-        >>> adjacency = [
+        >>> graph = graphs.Graph([
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 0, 0],
-        ... ]
-        >>> graph = graphs.Graph(adjacency)
+        ... ])
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.L.toarray()
         array([[ 2. , -2. ,  0. ],
@@ -1190,24 +1183,22 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Edge list of a directed graph.
 
-        >>> adjacency = [
+        >>> graph = graphs.Graph([
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 0, 0],
-        ... ]
-        >>> graph = graphs.Graph(adjacency)
+        ... ])
         >>> sources, targets, weights = graph.get_edge_list()
         >>> list(sources), list(targets), list(weights)
         ([0, 1, 1], [1, 0, 2], [3, 3, 4])
 
         Edge list of an undirected graph.
 
-        >>> adjacency = [
+        >>> graph = graphs.Graph([
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 4, 0],
-        ... ]
-        >>> graph = graphs.Graph(adjacency)
+        ... ])
         >>> sources, targets, weights = graph.get_edge_list()
         >>> list(sources), list(targets), list(weights)
         ([0, 1], [1, 2], [3, 4])
