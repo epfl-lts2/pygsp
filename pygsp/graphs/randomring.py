@@ -74,7 +74,7 @@ class RandomRing(Graph):
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
         # TODO: save angle and 2D position as graph signals
-        super(RandomRing, self).__init__(W=W, coords=coords, plotting=plotting,
+        super(RandomRing, self).__init__(W, coords=coords, plotting=plotting,
                                          **kwargs)
 
     def _get_extra_repr(self):
