@@ -63,7 +63,7 @@ class BarabasiAlbert(Graph):
                 W[elem, i] = 1
                 W[i, elem] = 1
 
-        super(BarabasiAlbert, self).__init__(W=W, **kwargs)
+        super(BarabasiAlbert, self).__init__(W, **kwargs)
 
     def _get_extra_repr(self):
         return dict(m0=self.m0, m=self.m, seed=self.seed)

@@ -14,78 +14,115 @@ from . import fourier, difference  # prevent circular import in Python < 3.5
 class Graph(fourier.GraphFourier, difference.GraphDifference):
     r"""Base graph class.
 
-    * Provide a common interface (and implementation) to graph objects.
-    * Can be instantiated to construct custom graphs from a weight matrix.
+    * Instantiate it to construct a graph from a (weighted) adjacency matrix.
+    * Provide a common interface (and implementation) for graph objects.
     * Initialize attributes for derived classes.
 
     Parameters
     ----------
-    W : sparse matrix or ndarray
-        The weight matrix which encodes the graph.
-    lap_type : 'combinatorial', 'normalized'
-        The type of Laplacian to be computed by :func:`compute_laplacian`
-        (default is 'combinatorial').
-    coords : ndarray
-        Vertices coordinates (default is None).
+    adjacency : sparse matrix or array_like
+        The (weighted) adjacency matrix of size n_vertices by n_vertices that
+        encodes the graph.
+        The data is copied except if it is a sparse matrix in CSR format.
+    lap_type : {'combinatorial', 'normalized'}
+        The kind of Laplacian to be computed by :meth:`compute_laplacian`.
+    coords : array_like
+        A matrix of size n_vertices by d that represents the coordinates of the
+        vertices in a d-dimensional embedding space.
     plotting : dict
         Plotting parameters.
 
     Attributes
     ----------
-    N : int
-        the number of nodes / vertices in the graph.
-    Ne : int
-        the number of edges / links in the graph, i.e. connections between
-        nodes.
-    W : sparse matrix
-        the weight matrix which contains the weights of the connections.
-        It is represented as an N-by-N matrix of floats.
-        :math:`W_{i,j} = 0` means that there is no direct connection from
-        i to j.
-    L : sparse matrix
-        the graph Laplacian, an N-by-N matrix computed from W.
+    n_vertices or N : int
+        The number of vertices (nodes) in the graph.
+    n_edges or Ne : int
+        The number of edges (links) in the graph.
+    W : :class:`scipy.sparse.csr_matrix`
+        The adjacency matrix that contains the weights of the edges.
+        It is represented as an n_vertices by n_vertices matrix, where
+        :math:`W_{i,j}` is the weight of the edge :math:`(v_i, v_j)` from
+        vertex :math:`v_i` to vertex :math:`v_j`. :math:`W_{i,j} = 0` means
+        that there is no direct connection.
+    L : :class:`scipy.sparse.csr_matrix`
+        The graph Laplacian, an N-by-N matrix computed from W.
     lap_type : 'normalized', 'combinatorial'
-        the kind of Laplacian that was computed by :func:`compute_laplacian`.
-    coords : ndarray
-        vertices coordinates in 2D or 3D space. Used for plotting only. Default
-        is None.
+        The kind of Laplacian that was computed by :func:`compute_laplacian`.
+    coords : :class:`numpy.ndarray`
+        Vertices coordinates in 2D or 3D space. Used for plotting only.
     plotting : dict
-        plotting parameters.
-    signals : dict (String -> numpy.array)
-        Signals attached to the graph.
+        Plotting parameters.
 
     Examples
     --------
-    >>> W = np.arange(4).reshape(2, 2)
-    >>> G = graphs.Graph(W)
+
+    Define a simple graph.
+
+    >>> graph = graphs.Graph([
+    ...     [0., 2., 0.],
+    ...     [2., 0., 5.],
+    ...     [0., 5., 0.],
+    ... ])
+    >>> graph
+    Graph(n_vertices=3, n_edges=2)
+    >>> graph.n_vertices, graph.n_edges
+    (3, 2)
+    >>> graph.W.toarray()
+    array([[0., 2., 0.],
+           [2., 0., 5.],
+           [0., 5., 0.]])
+    >>> graph.d
+    array([1, 2, 1])
+    >>> graph.dw
+    array([2., 7., 5.])
+    >>> graph.L.toarray()
+    array([[ 2., -2.,  0.],
+           [-2.,  7., -5.],
+           [ 0., -5.,  5.]])
+
+    Add some coordinates to plot it.
+
+    >>> import matplotlib.pyplot as plt
+    >>> graph.set_coordinates([
+    ...     [0, 0],
+    ...     [0, 1],
+    ...     [1, 0],
+    ... ])
+    >>> fig, ax = graph.plot()
 
     """
 
-    def __init__(self, W, lap_type='combinatorial', coords=None, plotting={}):
+    def __init__(self, adjacency, lap_type='combinatorial', coords=None,
+                 plotting={}):
 
         self.logger = utils.build_logger(__name__)
 
+        if not sparse.isspmatrix(adjacency):
+            adjacency = np.asanyarray(adjacency)
+
+        if (adjacency.ndim != 2) or (adjacency.shape[0] != adjacency.shape[1]):
+            raise ValueError('Adjacency: must be a square matrix.')
+
         # CSR sparse matrices are the most efficient for matrix multiplication.
         # They are the sole sparse matrix type to support eliminate_zeros().
-        if sparse.isspmatrix_csr(W):
-            self.W = W
-        elif sparse.isspmatrix(W):
-            self.W = W.tocsr()
-        else:
-            self.W = sparse.csr_matrix(np.asanyarray(W))
+        self.W = sparse.csr_matrix(adjacency, copy=False)
 
-        if len(self.W.shape) != 2 or self.W.shape[0] != self.W.shape[1]:
-            raise ValueError('W has incorrect shape {}'.format(self.W.shape))
+        if np.isnan(self.W.sum()):
+            raise ValueError('Adjacency: there is a Not a Number (NaN).')
+        if np.isinf(self.W.sum()):
+            raise ValueError('Adjacency: there is an infinite value.')
+        if self.has_loops():
+            self.logger.warning('Adjacency: there are self-loops '
+                                '(non-zeros on the diagonal). '
+                                'The Laplacian will not see them.')
+        if (self.W < 0).nnz != 0:
+            self.logger.warning('Adjacency: there are negative edge weights.')
 
         self.n_vertices = self.W.shape[0]
 
-        # Don't keep edges of 0 weight. Otherwise Ne will not correspond to the
-        # real number of edges. Problematic when e.g. plotting.
+        # Don't keep edges of 0 weight. Otherwise n_edges will not correspond
+        # to the real number of edges. Problematic when plotting.
         self.W.eliminate_zeros()
-
-        # TODO: why would we ever want this?
-        # For large matrices it slows the graph construction by a factor 100.
-        # self.W = sparse.lil_matrix(self.W)
 
         # Don't count edges two times if undirected.
         # Be consistent with the size of the differential operator.
@@ -96,12 +133,10 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             off_diagonal = self.W.nnz - diagonal
             self.n_edges = off_diagonal // 2 + diagonal
 
-        self.check_weights()
-
         self.compute_laplacian(lap_type)
 
         if coords is not None:
-            self.coords = coords
+            self.coords = np.asanyarray(coords)
 
         self.plotting = {'vertex_size': 100,
                          'vertex_color': (0.12, 0.47, 0.71, 0.5),
@@ -129,301 +164,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             s += '{}={}, '.format(key, value)
         return '{}({})'.format(self.__class__.__name__, s[:-2])
 
-    def to_networkx(self):
-        r"""Export the graph to an `Networkx <https://networkx.github.io>`_ object
-
-        The weights are stored as an edge attribute under the name `weight`.
-        The signals are stored as node attributes under the name given when
-        adding them with :meth:`set_signal`.
-
-        Returns
-        -------
-        graph_nx : :py:class:`networkx.Graph`
-
-        Examples
-        --------
-        >>> graph = graphs.Logo()
-        >>> nx_graph = graph.to_networkx()
-        >>> print(nx_graph.number_of_nodes())
-        1130
-
-        """
-        import networkx as nx
-        graph_nx = nx.from_scipy_sparse_matrix(
-            self.W, create_using=nx.DiGraph()
-            if self.is_directed() else nx.Graph(),
-            edge_attribute='weight')
-
-        for name, signal in self.signals.items():
-            # networkx can't work with numpy floats so we convert the singal into python float
-            signal_dict = {i: float(signal[i]) for i in range(self.N)}
-            nx.set_node_attributes(graph_nx, signal_dict, name)
-        return graph_nx
-
-    def to_graphtool(self):
-        r"""Export the graph to an `Graph tool <https://graph-tool.skewed.de/>`_ object
-
-        The weights of the graph are stored in a `property maps <https://graph-tool.skewed.de/static/doc/
-        quickstart.html#internal-property-maps>`_ under the name `weight`
-
-        Returns
-        -------
-        graph_gt : :py:class:`graph_tool.Graph`
-
-        Examples
-        --------
-        >>> graph = graphs.Logo()
-        >>> gt_graph = graph.to_graphtool()
-        >>> weight_property = gt_graph.edge_properties["weight"]
-
-        """
-        import graph_tool
-        graph_gt = graph_tool.Graph(directed=self.is_directed())
-        v_in, v_out, weights = self.get_edge_list()
-        graph_gt.add_edge_list(np.asarray((v_in, v_out)).T)
-        weight_type_str = utils.numpy2graph_tool_type(weights.dtype)
-        if weight_type_str is None:
-            raise ValueError("Type {} for the weights is not supported"
-                             .format(str(weights.dtype)))
-        edge_weight = graph_gt.new_edge_property(weight_type_str)
-        edge_weight.a = weights
-        graph_gt.edge_properties['weight'] = edge_weight
-        for name in self.signals:
-            edge_type_str = utils.numpy2graph_tool_type(weights.dtype)
-            if edge_type_str is None:
-                raise ValueError("Type {} from signal {} is not supported"
-                                 .format(str(self.signals[name].dtype), name))
-            vprop_double = graph_gt.new_vertex_property(edge_type_str)
-            vprop_double.get_array()[:] = self.signals[name]
-            graph_gt.vertex_properties[name] = vprop_double
-        return graph_gt
-
-    @classmethod
-    def from_networkx(cls, graph_nx, weight='weight'):
-        r"""Build a graph from a Networkx object.
-
-        The nodes are ordered according to method `nodes()` from networkx
-
-        When a node attribute is not present for node a value of zero is assign
-        to the corresponding signal on that node.
-
-        When the networkx graph is an instance of :py:class:`networkx.MultiGraph`,
-        multiple edge are aggregated by summation.
-
-        Parameters
-        ----------
-        graph_nx : :py:class:`networkx.Graph`
-            A networkx instance of a graph
-        weight : (string or None optional (default=’weight’))
-            The edge attribute that holds the numerical value used for the edge weight.
-            If None then all edge weights are 1.
-
-        Returns
-        -------
-        graph : :class:`~pygsp.graphs.Graph`
-
-        Examples
-        --------
-        >>> import networkx as nx
-        >>> nx_graph = nx.star_graph(200)
-        >>> graph = graphs.Graph.from_networkx(nx_graph)
-
-        """
-        import networkx as nx
-        # keep a consistent order of nodes for the agency matrix and the signal array
-        nodelist = graph_nx.nodes()
-        adjacency = nx.to_scipy_sparse_matrix(graph_nx, nodelist, weight=weight)
-        graph = cls(adjacency)
-        # Adding the signals
-        signals = dict()
-        for i, node in enumerate(nodelist):
-            signals_name = graph_nx.nodes[node].keys()
-
-            # Add signal previously not present in the dict of signal
-            # Set to zero the value of the signal when not present for a node
-            # in Networkx
-            for signal in set(signals_name) - set(signals.keys()):
-                signals[signal] = np.zeros(len(nodelist))
-
-            # Set the value of the signal
-            for signal in signals_name:
-                signals[signal][i] = graph_nx.nodes[node][signal]
-
-        graph.signals = signals
-        return graph
-
-    @classmethod
-    def from_graphtool(cls, graph_gt, weight='weight'):
-        r"""Build a graph from a graph tool object.
-
-        When the graph as multiple edge connecting the same two nodes a sum over the edges is taken to merge them.
-
-        Parameters
-        ----------
-        graph_gt : :py:class:`graph_tool.Graph`
-            Graph tool object
-        weight : string
-            Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_
-            to be loaded as weight for the graph. If the property is not found a graph with default weight set to 1 is created.
-            On the other hand if the property is found but not set for a specific edge the weight of zero will be set
-            therefore for single edge this will result in a none existing edge. If you want to set to a default value please
-            use `set_value <https://graph-tool.skewed.de/static/doc/graph_tool.html?highlight=propertyarray#graph_tool.PropertyMap.set_value>`_
-            from the graph_tool object.
-
-        Returns
-        -------
-        graph : :class:`~pygsp.graphs.Graph`
-            The weight of the graph are loaded from the edge property named ``edge_prop_name``
-
-        Examples
-        --------
-        >>> from graph_tool.all import Graph
-        >>> gt_graph = Graph()
-        >>> _ = gt_graph.add_vertex(10)
-        >>> graph = graphs.Graph.from_graphtool(gt_graph)
-
-        """
-        import graph_tool as gt
-        import graph_tool.spectral
-
-        weight_property = graph_gt.edge_properties.get(weight, None)
-        graph = cls(gt.spectral.adjacency(graph_gt, weight=weight_property).todense().T)
-
-        # Adding signals
-        for signal_name, signal_gt in graph_gt.vertex_properties.items():
-            signal = np.array([signal_gt[vertex] for vertex in graph_gt.vertices()])
-            graph.set_signal(signal, signal_name)
-        return graph
-
-    @classmethod
-    def load(cls, path, fmt='auto', backend='auto'):
-        r"""Load a graph from a file using networkx for import.
-        The format is guessed from path, or can be specified by fmt
-
-        Parameters
-        ----------
-        path : String
-            Where the file is located on the disk.
-        fmt : {'graphml', 'gml', 'gexf', 'auto'}
-            Format in which the graph is encoded.
-        backend : String
-            Python library used in background to load the graph.
-            Supported library are networkx and graph_tool
-
-        Returns
-        -------
-            graph : :class:`~pygsp.graphs.Graph`
-
-        Examples
-        --------
-        >>> graphs.Logo().save('logo.graphml')
-        >>> graph = graphs.Graph.load('logo.graphml')
-
-        """
-
-        def load_networkx(saved_path, format):
-            import networkx as nx
-            load = getattr(nx, 'read_' + format)
-            return cls.from_networkx(load(saved_path))
-
-        def load_graph_tool(saved_path, format):
-            import graph_tool as gt
-            graph_gt = gt.load_graph(saved_path, fmt=format)
-            return cls.from_graphtool(graph_gt)
-
-        if fmt == 'auto':
-            fmt = path.split('.')[-1]
-
-        if backend == 'auto':
-            if fmt in ['graphml', 'gml', 'gexf']:
-                backend = 'networkx'
-            else:
-                backend = 'graph_tool'
-
-        supported_format = ['graphml', 'gml', 'gexf']
-        if fmt not in supported_format:
-            raise ValueError('Unsupported format {}. Please use a format from {}'.format(fmt, supported_format))
-
-        if backend not in ['networkx', 'graph_tool']:
-            raise ValueError(
-                'Unsupported backend specified {} Please use either networkx or graph_tool.'.format(backend))
-
-        return locals()['load_' + backend](path, fmt)
-
-    def save(self, path, fmt='auto', backend='auto'):
-        r"""Save the graph into a file
-
-        Parameters
-        ----------
-        path : String
-            Where to save file on the disk.
-        fmt : String
-            Format in which the graph will be encoded. The format is guessed from
-            the `path` extention when fmt is set to 'auto'
-            Currently supported format are:
-            ['graphml', 'gml', 'gexf']
-        backend : String
-            Python library used in background to save the graph.
-            Supported library are networkx and graph_tool
-            WARNING: when using graph_tool as backend the weight of the edges precision is truncated to E-06.
-
-        Examples
-        --------
-        >>> graph = graphs.Logo()
-        >>> graph.save('logo.graphml')
-
-        """
-        def save_networkx(graph, save_path):
-            import networkx as nx
-            graph_nx = graph.to_networkx()
-            save = getattr(nx, 'write_' + fmt)
-            save(graph_nx, save_path)
-
-        def save_graph_tool(graph, save_path):
-            graph_gt = graph.to_graphtool()
-            graph_gt.save(save_path, fmt=fmt)
-
-        if fmt == 'auto':
-            fmt = path.split('.')[-1]
-
-        if backend == 'auto':
-            if fmt in ['graphml', 'gml', 'gexf']:
-                backend = 'networkx'
-            else:
-                backend = 'graph_tool'
-
-        supported_format = ['graphml', 'gml', 'gexf']
-        if fmt not in supported_format:
-            raise ValueError('Unsupported format {}. Please use a format from {}'.format(fmt, supported_format))
-
-        if backend not in ['networkx', 'graph_tool']:
-            raise ValueError('Unsupported backend specified {} Please use either networkx or graph_tool.'.format(backend))
-
-        locals()['save_' + backend](self, path)
-
-    def set_signal(self, signal, name):
-        r"""
-        Add or modify a signal to the graph
-
-        Parameters
-        ----------
-        signal : numpy.array
-            An array mapping from node to his value. For example the value of the signal at node i is signal[i]
-        name : String
-            Name associated to the signal.
-
-        Examples
-        --------
-        >>> graph = graphs.Logo()
-        >>> DELTAS = [20, 30, 1090]
-        >>> signal = np.zeros(graph.N)
-        >>> signal[DELTAS] = 1
-        >>> graph.set_signal(signal, 'diffusion')
-
-        """
-        if len(signal) != self.N:
-            raise ValueError("A value must be attached to every vertex in the graph")
-        self.signals[name] = np.asarray(signal)
 
     def check_weights(self):
         r"""Check the characteristics of the weights matrix.
@@ -703,7 +443,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Returns
         -------
         directed : bool
-            True if the graph is directed.
+            True if the graph is directed, False otherwise.
 
         Examples
         --------
@@ -735,6 +475,43 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         self._directed = (self.W != self.W.T).nnz != 0
         return self._directed
 
+    def has_loops(self):
+        r"""Check if any vertex is connected to itself.
+
+        A graph has self-loops if and only if the diagonal entries of its
+        adjacency matrix are not all zero.
+
+        Returns
+        -------
+        loops : bool
+            True if the graph has self-loops, False otherwise.
+
+        Examples
+        --------
+
+        Without self-loops:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 3, 0],
+        ...     [3, 0, 4],
+        ...     [0, 0, 0],
+        ... ])
+        >>> graph.has_loops()
+        False
+
+        With a self-loop:
+
+        >>> graph = graphs.Graph([
+        ...     [1, 3, 0],
+        ...     [3, 0, 4],
+        ...     [0, 0, 0],
+        ... ])
+        >>> graph.has_loops()
+        True
+
+        """
+        return np.any(self.W.diagonal() != 0)
+
     def extract_components(self):
         r"""Split the graph into connected components.
 
@@ -754,7 +531,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> from scipy import sparse
         >>> W = sparse.rand(10, 10, 0.2)
         >>> W = utils.symmetrize(W)
-        >>> G = graphs.Graph(W=W)
+        >>> G = graphs.Graph(W)
         >>> components = G.extract_components()
         >>> has_sinks = 'sink' in components[0].info
         >>> sinks_0 = components[0].info['sink'] if has_sinks else []
@@ -826,7 +603,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Parameters
         ----------
         lap_type : {'combinatorial', 'normalized'}
-            The type of Laplacian to compute. Default is combinatorial.
+            The kind of Laplacian to compute. Default is combinatorial.
 
         Examples
         --------

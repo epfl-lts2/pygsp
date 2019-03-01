@@ -147,7 +147,7 @@ class StochasticBlockModel(Graph):
         self.info = {'node_com': z, 'comm_sizes': np.bincount(z),
                      'world_rad': np.sqrt(N)}
 
-        super(StochasticBlockModel, self).__init__(W=W, **kwargs)
+        super(StochasticBlockModel, self).__init__(W, **kwargs)
 
     def _get_extra_repr(self):
         attrs = {'k': self.k}

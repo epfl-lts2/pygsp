@@ -492,7 +492,12 @@ class NNGraph(Graph):
         self.radius = radius
         self.kernel_width = kernel_width
 
+<<<<<<< HEAD
         super(NNGraph, self).__init__(W=W, coords=features, **params_graph)
+=======
+        super(NNGraph, self).__init__(W, plotting=plotting,
+                                      coords=Xout, **kwargs)
+>>>>>>> improve graph construction from adjacency
 
     def _get_extra_repr(self):
         attrs = {

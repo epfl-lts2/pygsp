@@ -39,17 +39,46 @@ class TestCase(unittest.TestCase):
         pass
 
     def test_graph(self):
-        W = np.arange(16).reshape(4, 4)
-        G = graphs.Graph(W)
-        np.testing.assert_allclose(G.W.A, W)
-        np.testing.assert_allclose(G.A.A, G.W.A > 0)
-        self.assertEqual(G.N, 4)
-        np.testing.assert_allclose(G.d, np.array([3, 4, 4, 4]))
-        self.assertEqual(G.Ne, 15)
-        self.assertTrue(G.is_directed())
-        ki, kj = np.nonzero(G.A)
-        self.assertEqual(ki.shape[0], G.Ne)
-        self.assertEqual(kj.shape[0], G.Ne)
+        adjacency = [
+            [0., 3., 0., 2.],
+            [3., 0., 4., 0.],
+            [0., 4., 0., 5.],
+            [2., 0., 5., 0.],
+        ]
+
+        # Input types.
+        G = graphs.Graph(adjacency)
+        self.assertIs(type(G.W), sparse.csr_matrix)
+        adjacency = np.array(adjacency)
+        G = graphs.Graph(adjacency)
+        self.assertIs(type(G.W), sparse.csr_matrix)
+        adjacency = sparse.coo_matrix(adjacency)
+        G = graphs.Graph(adjacency)
+        self.assertIs(type(G.W), sparse.csr_matrix)
+        adjacency = sparse.csr_matrix(adjacency)
+        # G = graphs.Graph(adjacency)
+        # self.assertIs(G.W, adjacency)  # Not copied if already CSR.
+
+        # Attributes.
+        np.testing.assert_allclose(G.W.toarray(), adjacency.toarray())
+        np.testing.assert_allclose(G.A.toarray(), G.W.toarray() > 0)
+        np.testing.assert_allclose(G.d, np.array([2, 2, 2, 2]))
+        np.testing.assert_allclose(G.dw, np.array([5, 7, 9, 7]))
+        self.assertEqual(G.n_vertices, 4)
+        self.assertIs(G.N, G.n_vertices)
+        self.assertEqual(G.n_edges, 4)
+        self.assertIs(G.Ne, G.n_edges)
+
+        # Errors and warnings.
+        self.assertRaises(ValueError, graphs.Graph, np.ones((3, 4)))
+        self.assertRaises(ValueError, graphs.Graph, np.ones((3, 3, 4)))
+        self.assertRaises(ValueError, graphs.Graph, [[0, np.nan], [0, 0]])
+        self.assertRaises(ValueError, graphs.Graph, [[0, np.inf], [0, 0]])
+        if sys.version_info > (3, 4):  # no assertLogs in python 2.7
+            with self.assertLogs(level='WARNING'):
+                graphs.Graph([[0, -1], [-1, 0]])
+            with self.assertLogs(level='WARNING'):
+                graphs.Graph([[1, 1], [1, 0]])
 
     def test_degree(self):
         W = 0.3 * (np.ones((4, 4)) - np.diag(4 * [1]))
