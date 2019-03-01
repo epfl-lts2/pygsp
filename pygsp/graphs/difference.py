@@ -95,11 +95,11 @@ class GraphDifference(object):
         The difference operator is an incidence matrix.
         Example with a undirected graph.
 
-        >>> adjacency = np.array([
+        >>> adjacency = [
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 1, 0],
-        ... ])
+        ... ]
         >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.compute_differential_operator()
@@ -116,11 +116,11 @@ class GraphDifference(object):
 
         Example with a directed graph.
 
-        >>> adjacency = np.array([
+        >>> adjacency = [
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 0, 0],
-        ... ])
+        ... ]
         >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.compute_differential_operator()

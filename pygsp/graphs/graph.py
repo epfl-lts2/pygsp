@@ -61,21 +61,23 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         self.logger = utils.build_logger(__name__)
 
-        if len(W.shape) != 2 or W.shape[0] != W.shape[1]:
-            raise ValueError('W has incorrect shape {}'.format(W.shape))
-
         # CSR sparse matrices are the most efficient for matrix multiplication.
         # They are the sole sparse matrix type to support eliminate_zeros().
         if sparse.isspmatrix_csr(W):
             self.W = W
+        elif sparse.isspmatrix(W):
+            self.W = W.tocsr()
         else:
-            self.W = sparse.csr_matrix(W)
+            self.W = sparse.csr_matrix(np.asanyarray(W))
+
+        if len(self.W.shape) != 2 or self.W.shape[0] != self.W.shape[1]:
+            raise ValueError('W has incorrect shape {}'.format(self.W.shape))
+
+        self.n_vertices = self.W.shape[0]
 
         # Don't keep edges of 0 weight. Otherwise Ne will not correspond to the
         # real number of edges. Problematic when e.g. plotting.
         self.W.eliminate_zeros()
-
-        self.n_vertices = W.shape[0]
 
         # TODO: why would we ever want this?
         # For large matrices it slows the graph construction by a factor 100.
@@ -330,24 +332,24 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Connected graph:
 
-        >>> adjacency = np.array([
+        >>> adjacency = [
         ...     [0, 3, 0, 0],
         ...     [3, 0, 4, 0],
         ...     [0, 4, 0, 2],
         ...     [0, 0, 2, 0],
-        ... ])
+        ... ]
         >>> graph = graphs.Graph(adjacency)
         >>> graph.is_connected()
         True
 
         Disconnected graph:
 
-        >>> adjacency = np.array([
+        >>> adjacency = [
         ...     [0, 3, 0, 0],
         ...     [3, 0, 4, 0],
         ...     [0, 0, 0, 2],
         ...     [0, 0, 2, 0],
-        ... ])
+        ... ]
         >>> graph = graphs.Graph(adjacency)
         >>> graph.is_connected()
         False
@@ -407,22 +409,22 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Directed graph:
 
-        >>> adjacency = np.array([
+        >>> adjacency = [
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 0, 0],
-        ... ])
+        ... ]
         >>> graph = graphs.Graph(adjacency)
         >>> graph.is_directed()
         True
 
         Undirected graph:
 
-        >>> adjacency = np.array([
+        >>> adjacency = [
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 4, 0],
-        ... ])
+        ... ]
         >>> graph = graphs.Graph(adjacency)
         >>> graph.is_directed()
         False
@@ -532,11 +534,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Combinatorial and normalized Laplacians of an undirected graph.
 
-        >>> adjacency = np.array([
+        >>> adjacency = [
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 1, 0],
-        ... ])
+        ... ]
         >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.L.toarray()
@@ -551,11 +553,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Combinatorial and normalized Laplacians of a directed graph.
 
-        >>> adjacency = np.array([
+        >>> adjacency = [
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 0, 0],
-        ... ])
+        ... ]
         >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.L.toarray()
@@ -875,11 +877,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Edge list of a directed graph.
 
-        >>> adjacency = np.array([
+        >>> adjacency = [
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 0, 0],
-        ... ])
+        ... ]
         >>> graph = graphs.Graph(adjacency)
         >>> sources, targets, weights = graph.get_edge_list()
         >>> list(sources), list(targets), list(weights)
@@ -887,11 +889,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Edge list of an undirected graph.
 
-        >>> adjacency = np.array([
+        >>> adjacency = [
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 4, 0],
-        ... ])
+        ... ]
         >>> graph = graphs.Graph(adjacency)
         >>> sources, targets, weights = graph.get_edge_list()
         >>> list(sources), list(targets), list(weights)
