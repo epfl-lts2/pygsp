@@ -614,6 +614,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         else:
             raise ValueError('Unknown Laplacian type {}'.format(lap_type))
 
+    def _check_signal(self, s):
+        r"""Check if signal is valid."""
+        s = np.asanyarray(s)
+        if s.shape[0] != self.N:
+            raise ValueError('First dimension must be the number of vertices '
+                             'G.N = {}, got {}.'.format(self.N, s.shape))
+        return s
+
     def dirichlet_energy(self, x):
         r"""Compute the Dirichlet energy of a signal defined on the vertices.
 
@@ -650,7 +658,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Examples
         --------
         >>> graph = graphs.Path(5, directed=False)
-        >>> signal = np.array([0, 2, 2, 4, 4])
+        >>> signal = [0, 2, 2, 4, 4]
         >>> graph.dirichlet_energy(signal)
         8.0
         >>> # The Dirichlet energy is indeed the squared norm of the gradient.
@@ -659,7 +667,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         array([2., 0., 2., 0.])
 
         >>> graph = graphs.Path(5, directed=True)
-        >>> signal = np.array([0, 2, 2, 4, 4])
+        >>> signal = [0, 2, 2, 4, 4]
         >>> graph.dirichlet_energy(signal)
         4.0
         >>> # The Dirichlet energy is indeed the squared norm of the gradient.
@@ -668,6 +676,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         array([1.41421356, 0.        , 1.41421356, 0.        ])
 
         """
+        x = self._check_signal(x)
         return x.T.dot(self.L.dot(x))
 
     @property
