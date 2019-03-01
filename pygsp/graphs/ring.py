@@ -61,7 +61,7 @@ class Ring(Graph):
 
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
-        super(Ring, self).__init__(W=W, plotting=plotting, **kwargs)
+        super(Ring, self).__init__(W, plotting=plotting, **kwargs)
 
         self.set_coordinates('ring2D')
 

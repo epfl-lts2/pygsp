@@ -92,7 +92,7 @@ class Torus(Graph):
             'limits': np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])
         }
 
-        super(Torus, self).__init__(W=W, coords=coords,
+        super(Torus, self).__init__(W, coords=coords,
                                     plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):

@@ -57,7 +57,7 @@ class Grid2d(Graph):
         plotting = {"limits": np.array([-1. / N2, 1 + 1. / N2,
                                         1. / N1, 1 + 1. / N1])}
 
-        super(Grid2d, self).__init__(W=W, coords=coords,
+        super(Grid2d, self).__init__(W, coords=coords,
                                      plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
