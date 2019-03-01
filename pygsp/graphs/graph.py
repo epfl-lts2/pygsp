@@ -736,10 +736,15 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         In this framework, we consider that a graph is directed if and
         only if its weight matrix is not symmetric.
 
+        Parameters
+        ----------
+        recompute : bool
+            Force to recompute the directedness if already known.
+
         Returns
         -------
         directed : bool
-            True if the graph is directed, False otherwise.
+            True if the graph is directed.
 
         Examples
         --------
@@ -767,8 +772,10 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         False
 
         """
-        if self._directed is None:
-            self._directed = (self.W != self.W.T).nnz != 0
+        if hasattr(self, '_directed') and not recompute:
+            return self._directed
+
+        self._directed = (self.W != self.W.T).nnz != 0
         return self._directed
 
     def has_loops(self):
