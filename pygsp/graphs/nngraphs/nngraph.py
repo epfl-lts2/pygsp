@@ -11,6 +11,9 @@ from pygsp import utils
 from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
 
 
+_logger = utils.build_logger(__name__)
+
+
 def _scipy_pdist(features, metric, order, kind, k, radius, params):
     if params:
         raise ValueError('unexpected parameters {}'.format(params))
@@ -445,10 +448,9 @@ class NNGraph(Graph):
         if kind == 'radius':
             n_disconnected = np.sum(np.asarray(n_edges) == 0)
             if n_disconnected > 0:
-                logger = utils.build_logger(__name__)
-                logger.warning('{} vertices (out of {}) are disconnected. '
-                               'Consider increasing the radius or setting '
-                               'kind=knn.'.format(n_disconnected, n_vertices))
+                _logger.warning('{} vertices (out of {}) are disconnected. '
+                                'Consider increasing the radius or setting '
+                                'kind=knn.'.format(n_disconnected, n_vertices))
 
         value = np.empty(sum(n_edges), dtype=np.float)
         row = np.empty_like(value, dtype=np.int)
@@ -483,7 +485,7 @@ class NNGraph(Graph):
         assert np.all(W.data >= 0), 'Distance must be in [0, inf].'
         W.data = kernel(W.data / kernel_width)
         if not np.all((W.data >= 0) & (W.data <= 1)):
-            raise ValueError('Kernel returned similarity not in [0, 1].')
+            _logger.warning('Kernel returned similarity not in [0, 1].')
 
         self.order = order
         self.radius = radius
