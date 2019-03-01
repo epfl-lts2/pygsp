@@ -378,6 +378,13 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('community2D')
         self.assertRaises(ValueError, G.set_coordinates, 'invalid')
 
+    def test_subgraph(self, n_vertices=100):
+        graph = self._G.subgraph(range(n_vertices))
+        self.assertEqual(graph.n_vertices, n_vertices)
+        self.assertEqual(graph.coords.shape, (n_vertices, 2))
+        self.assertIs(graph.lap_type, self._G.lap_type)
+        self.assertEqual(graph.plotting, self._G.plotting)
+
     def test_nngraph(self, n_vertices=30):
         rs = np.random.RandomState(42)
         Xin = rs.normal(size=(n_vertices, 3))

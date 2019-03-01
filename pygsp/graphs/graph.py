@@ -274,34 +274,41 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         else:
             raise ValueError('Unexpected argument kind={}.'.format(kind))
 
-    def subgraph(self, ind):
-        r"""Create a subgraph given indices.
+    def subgraph(self, vertices):
+        r"""Create a subgraph from a list of vertices.
 
         Parameters
         ----------
-        ind : list
-            Nodes to keep
+        vertices : list
+            List of vertices to keep.
 
         Returns
         -------
-        sub_G : Graph
-            Subgraph
+        subgraph : :class:`Graph`
+            Subgraph.
 
         Examples
         --------
-        >>> W = np.arange(16).reshape(4, 4)
-        >>> G = graphs.Graph(W)
-        >>> ind = [1, 3]
-        >>> sub_G = G.subgraph(ind)
+        >>> adjacency = [
+        ...     [0, 3, 0, 0],
+        ...     [3, 0, 4, 0],
+        ...     [0, 4, 0, 2],
+        ...     [0, 0, 2, 0],
+        ... ]
+        >>> graph = graphs.Graph(adjacency)
+        >>> graph = graph.subgraph([0, 2, 1])
+        >>> graph.W.toarray()
+        array([[0, 0, 3],
+               [0, 0, 4],
+               [3, 4, 0]], dtype=int64)
 
         """
-        if not isinstance(ind, list) and not isinstance(ind, np.ndarray):
-            raise TypeError('The indices must be a list or a ndarray.')
-
-        # N = len(ind) # Assigned but never used
-
-        sub_W = self.W.tocsr()[ind, :].tocsc()[:, ind]
-        return Graph(sub_W)
+        adjacency = self.W[vertices, :][:, vertices]
+        try:
+            coords = self.coords[vertices]
+        except AttributeError:
+            coords = None
+        return Graph(adjacency, self.lap_type, coords, self.plotting)
 
     def is_connected(self, recompute=False):
         r"""Check if the graph is connected (cached).
