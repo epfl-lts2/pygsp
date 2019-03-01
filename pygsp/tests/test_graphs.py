@@ -476,6 +476,7 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('community2D')
         self.assertRaises(ValueError, G.set_coordinates, 'invalid')
 
+<<<<<<< HEAD
     def test_nngraph(self, n_vertices=24):
         """Test all the combinations of metric, kind, backend."""
         Graph = graphs.NNGraph
@@ -580,6 +581,32 @@ class TestCase(unittest.TestCase):
         # Attributes.
         self.assertEqual(Graph(data, kind='knn').radius, None)
         self.assertEqual(Graph(data, kind='radius').k, None)
+=======
+    def test_subgraph(self, n_vertices=100):
+        graph = self._G.subgraph(range(n_vertices))
+        self.assertEqual(graph.n_vertices, n_vertices)
+        self.assertEqual(graph.coords.shape, (n_vertices, 2))
+        self.assertIs(graph.lap_type, self._G.lap_type)
+        self.assertEqual(graph.plotting, self._G.plotting)
+
+    def test_nngraph(self, n_vertices=30):
+        rs = np.random.RandomState(42)
+        Xin = rs.normal(size=(n_vertices, 3))
+        dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
+
+        for dist_type in dist_types:
+
+            # Only p-norms with 1<=p<=infinity permitted.
+            if dist_type != 'minkowski':
+                graphs.NNGraph(Xin, NNtype='radius', dist_type=dist_type)
+                graphs.NNGraph(Xin, NNtype='knn', dist_type=dist_type)
+
+            # Distance type unsupported in the C bindings,
+            # use the C++ bindings instead.
+            if dist_type != 'max_dist':
+                graphs.NNGraph(Xin, use_flann=True, NNtype='knn',
+                               dist_type=dist_type)
+>>>>>>> improve and test subgraph
 
     def test_bunny(self):
         graphs.Bunny()

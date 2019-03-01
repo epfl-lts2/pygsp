@@ -618,14 +618,13 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         else:
             raise ValueError('Unexpected argument kind={}.'.format(kind))
 
-    def subgraph(self, ind):
-        r"""Create a subgraph given indices.
+    def subgraph(self, vertices):
+        r"""Create a subgraph from a list of vertices.
 
         Parameters
         ----------
         vertices : list
-            Vertices to keep.
-            Either a list of indices or an indicator function.
+            List of vertices to keep.
 
         Returns
         -------
@@ -634,17 +633,18 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         Examples
         --------
-        >>> graph = graphs.Graph([
-        ...     [0., 3., 0., 0.],
-        ...     [3., 0., 4., 0.],
-        ...     [0., 4., 0., 2.],
-        ...     [0., 0., 2., 0.],
-        ... ])
+        >>> adjacency = [
+        ...     [0, 3, 0, 0],
+        ...     [3, 0, 4, 0],
+        ...     [0, 4, 0, 2],
+        ...     [0, 0, 2, 0],
+        ... ]
+        >>> graph = graphs.Graph(adjacency)
         >>> graph = graph.subgraph([0, 2, 1])
         >>> graph.W.toarray()
-        array([[0., 0., 3.],
-               [0., 0., 4.],
-               [3., 4., 0.]])
+        array([[0, 0, 3],
+               [0, 0, 4],
+               [3, 4, 0]], dtype=int64)
 
         """
         adjacency = self.W[vertices, :][:, vertices]
@@ -652,10 +652,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             coords = self.coords[vertices]
         except AttributeError:
             coords = None
-        graph = Graph(adjacency, self.lap_type, coords, self.plotting)
-        for name, signal in self.signals.items():
-            graph.set_signal(signal[vertices], name)
-        return graph
+        return Graph(adjacency, self.lap_type, coords, self.plotting)
 
     def is_connected(self):
         r"""Check if the graph is connected (cached).
