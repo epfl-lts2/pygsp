@@ -395,7 +395,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         r"""Check if the graph has directed edges (cached).
 
         In this framework, we consider that a graph is directed if and
-        only if its weight matrix is non symmetric.
+        only if its weight matrix is not symmetric.
 
         Parameters
         ----------
@@ -406,10 +406,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         -------
         directed : bool
             True if the graph is directed.
-
-        Notes
-        -----
-        Can also be used to check if a matrix is symmetrical
 
         Examples
         --------
@@ -440,7 +436,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         if hasattr(self, '_directed') and not recompute:
             return self._directed
 
-        self._directed = np.abs(self.W - self.W.T).sum() != 0
+        self._directed = (self.W != self.W.T).nnz != 0
         return self._directed
 
     def extract_components(self):
