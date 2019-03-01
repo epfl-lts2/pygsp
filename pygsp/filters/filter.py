@@ -179,7 +179,7 @@ class Filter(object):
 
         Parameters
         ----------
-        s : ndarray
+        s : array_like
             Graph signals, a tensor of shape ``(N_NODES, N_SIGNALS,
             N_FEATURES)``, where ``N_NODES`` is the number of nodes in the
             graph, ``N_SIGNALS`` the number of independent signals you want to
@@ -265,9 +265,7 @@ class Filter(object):
         True
 
         """
-        if s.shape[0] != self.G.N:
-            raise ValueError('First dimension should be the number of nodes '
-                             'G.N = {}, got {}.'.format(self.G.N, s.shape))
+        s = self.G._check_signal(s)
 
         # TODO: not in self.Nin (Nf = Nin x Nout).
         if s.ndim == 1 or s.shape[-1] not in [1, self.Nf]:

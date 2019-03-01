@@ -199,7 +199,7 @@ class GraphDifference(object):
 
         Parameters
         ----------
-        x : ndarray
+        x : array_like
             Signal of length :attr:`n_vertices` living on the vertices.
 
         Returns
@@ -217,27 +217,26 @@ class GraphDifference(object):
         --------
         >>> graph = graphs.Path(4, directed=False, lap_type='combinatorial')
         >>> graph.compute_differential_operator()
-        >>> graph.grad(np.array([0, 2, 4, 2]))
+        >>> graph.grad([0, 2, 4, 2])
         array([ 2.,  2., -2.])
 
         >>> graph = graphs.Path(4, directed=True, lap_type='combinatorial')
         >>> graph.compute_differential_operator()
-        >>> graph.grad(np.array([0, 2, 4, 2]))
+        >>> graph.grad([0, 2, 4, 2])
         array([ 1.41421356,  1.41421356, -1.41421356])
 
         >>> graph = graphs.Path(4, directed=False, lap_type='normalized')
         >>> graph.compute_differential_operator()
-        >>> graph.grad(np.array([0, 2, 4, 2]))
+        >>> graph.grad([0, 2, 4, 2])
         array([ 1.41421356,  1.41421356, -0.82842712])
 
         >>> graph = graphs.Path(4, directed=True, lap_type='normalized')
         >>> graph.compute_differential_operator()
-        >>> graph.grad(np.array([0, 2, 4, 2]))
+        >>> graph.grad([0, 2, 4, 2])
         array([ 1.41421356,  1.41421356, -0.82842712])
 
         """
-        if self.N != x.shape[0]:
-            raise ValueError('Signal length should be the number of nodes.')
+        x = self._check_signal(x)
         return self.D.T.dot(x)
 
     def div(self, y):
@@ -273,7 +272,7 @@ class GraphDifference(object):
 
         Parameters
         ----------
-        y : ndarray
+        y : array_like
             Signal of length :attr:`n_edges` living on the edges.
 
         Returns
@@ -291,25 +290,27 @@ class GraphDifference(object):
         --------
         >>> graph = graphs.Path(4, directed=False, lap_type='combinatorial')
         >>> graph.compute_differential_operator()
-        >>> graph.div(np.array([2, -2, 0]))
+        >>> graph.div([2, -2, 0])
         array([-2.,  4., -2.,  0.])
 
         >>> graph = graphs.Path(4, directed=True, lap_type='combinatorial')
         >>> graph.compute_differential_operator()
-        >>> graph.div(np.array([2, -2, 0]))
+        >>> graph.div([2, -2, 0])
         array([-1.41421356,  2.82842712, -1.41421356,  0.        ])
 
         >>> graph = graphs.Path(4, directed=False, lap_type='normalized')
         >>> graph.compute_differential_operator()
-        >>> graph.div(np.array([2, -2, 0]))
+        >>> graph.div([2, -2, 0])
         array([-2.        ,  2.82842712, -1.41421356,  0.        ])
 
         >>> graph = graphs.Path(4, directed=True, lap_type='normalized')
         >>> graph.compute_differential_operator()
-        >>> graph.div(np.array([2, -2, 0]))
+        >>> graph.div([2, -2, 0])
         array([-2.        ,  2.82842712, -1.41421356,  0.        ])
 
         """
-        if self.Ne != y.shape[0]:
-            raise ValueError('Signal length should be the number of edges.')
+        y = np.asanyarray(y)
+        if y.shape[0] != self.Ne:
+            raise ValueError('First dimension must be the number of edges '
+                             'G.Ne = {}, got {}.'.format(self.Ne, y.shape))
         return self.D.dot(y)
