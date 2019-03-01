@@ -167,22 +167,22 @@ class TestCase(unittest.TestCase):
         check_lmax(graph, lmax=value*n_nodes)
 
         # Regular bipartite graph (bound is tight).
-        adjacency = np.array([
+        adjacency = [
             [0, 0, 1, 1],
             [0, 0, 1, 1],
             [1, 1, 0, 0],
             [1, 1, 0, 0],
-        ])
+        ]
         graph = graphs.Graph(adjacency, lap_type='combinatorial')
         check_lmax(graph, lmax=4)
 
         # Bipartite graph (bound is tight).
-        adjacency = np.array([
+        adjacency = [
             [0, 0, 1, 1],
             [0, 0, 1, 0],
             [1, 1, 0, 0],
             [1, 0, 0, 0],
-        ])
+        ]
         graph = graphs.Graph(adjacency, lap_type='normalized')
         check_lmax(graph, lmax=2)
 
@@ -280,8 +280,8 @@ class TestCase(unittest.TestCase):
             np.testing.assert_equal(incidence_pg, incidence_nx.toarray())
         for graph in [graphs.Graph(np.zeros((n_vertices, n_vertices))),
                       graphs.Graph(np.identity(n_vertices)),
-                      graphs.Graph(np.array([[0, 0.8], [0.8, 0]])),
-                      graphs.Graph(np.array([[1.3, 0], [0.4, 0.5]])),
+                      graphs.Graph([[0, 0.8], [0.8, 0]]),
+                      graphs.Graph([[1.3, 0], [0.4, 0.5]]),
                       graphs.ErdosRenyi(n_vertices, directed=False, seed=42),
                       graphs.ErdosRenyi(n_vertices, directed=True, seed=42)]:
             for lap_type in ['combinatorial', 'normalized']:
