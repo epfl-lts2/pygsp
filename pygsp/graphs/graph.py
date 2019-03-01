@@ -505,7 +505,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         """
 
         if not isinstance(kind, str):
-            coords = np.asarray(kind).squeeze()
+            coords = np.asanyarray(kind).squeeze()
             check_1d = (coords.ndim == 1)
             check_2d_3d = (coords.ndim == 2) and (2 <= coords.shape[1] <= 3)
             if coords.shape[0] != self.N or not (check_1d or check_2d_3d):
@@ -1267,7 +1267,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             pos_arr = np.random.RandomState(seed).uniform(size=(self.N, dim))
             pos_arr = pos_arr * dom_size + center
             for i in range(self.N):
-                pos_arr[i] = np.asarray(pos[i])
+                pos_arr[i] = np.asanyarray(pos[i])
 
         if k is None and len(fixed) > 0:
             # We must adjust k by domain size for layouts that are not near 1x1
@@ -1319,7 +1319,7 @@ def _sparse_fruchterman_reingold(A, dim, k, pos, fixed, iterations, seed):
             # enforce minimum distance of 0.01
             distance = np.where(distance < 0.01, 0.01, distance)
             # the adjacency matrix row
-            Ai = np.asarray(A[i, :].toarray())
+            Ai = A[i, :].toarray()
             # displacement "force"
             displacement[:, i] += \
                 (delta * (k * k / distance**2 - Ai * distance / k)).sum(axis=1)

@@ -432,14 +432,14 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
         limits = [0, 0]
         colorbar = False
     else:
-        vertex_color = np.asarray(vertex_color).squeeze()
+        vertex_color = np.asanyarray(vertex_color).squeeze()
         check_shape(vertex_color, 'Vertex color', G.n_vertices,
                     many=(G.coords.ndim == 1))
 
     if vertex_size is None:
         vertex_size = G.plotting['vertex_size']
     elif not np.isscalar(vertex_size):
-        vertex_size = np.asarray(vertex_size).squeeze()
+        vertex_size = np.asanyarray(vertex_size).squeeze()
         check_shape(vertex_size, 'Vertex size', G.n_vertices)
         vertex_size = G.plotting['vertex_size'] * 4 * normalize(vertex_size)**2
 
@@ -449,7 +449,7 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
     if edge_color is None:
         edge_color = (G.plotting['edge_color'],)
     elif not is_color(edge_color):
-        edge_color = np.asarray(edge_color).squeeze()
+        edge_color = np.asanyarray(edge_color).squeeze()
         check_shape(edge_color, 'Edge color', G.n_edges)
         edge_color = 0.9 * normalize(edge_color)
         edge_color = [

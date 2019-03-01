@@ -115,7 +115,7 @@ class Wave(Filter):
                 raise ValueError('If both parameters are iterable, '
                                  'they should have the same length.')
 
-        if np.any(np.asarray(speed) >= 2):
+        if np.any(np.asanyarray(speed) >= 2):
             raise ValueError('The wave propagation speed should be in [0, 2[')
 
         def kernel(x, time, speed):
