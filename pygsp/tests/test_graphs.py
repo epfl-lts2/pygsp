@@ -103,7 +103,7 @@ class TestCase(unittest.TestCase):
 
     def test_laplacian(self):
 
-        adjacency = np.array([
+        G = graphs.Graph([
             [0, 3, 0, 1],
             [3, 0, 1, 0],
             [0, 1, 0, 3],
@@ -115,20 +115,18 @@ class TestCase(unittest.TestCase):
             [+0, -1, +4, -3],
             [-1, +0, -3, +4],
         ])
-        G = graphs.Graph(adjacency)
         self.assertFalse(G.is_directed())
         G.compute_laplacian('combinatorial')
         np.testing.assert_allclose(G.L.toarray(), laplacian)
         G.compute_laplacian('normalized')
         np.testing.assert_allclose(G.L.toarray(), laplacian/4)
 
-        adjacency = np.array([
+        G = graphs.Graph([
             [0, 6, 0, 1],
             [0, 0, 0, 0],
             [0, 2, 0, 3],
             [1, 0, 3, 0],
         ])
-        G = graphs.Graph(adjacency)
         self.assertTrue(G.is_directed())
         G.compute_laplacian('combinatorial')
         np.testing.assert_allclose(G.L.toarray(), laplacian)
