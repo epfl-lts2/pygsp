@@ -944,7 +944,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Parameters
         ----------
-        x : ndarray
+        x : array_like
             Signal of length :attr:`n_vertices` living on the vertices.
 
         Returns
