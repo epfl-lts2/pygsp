@@ -590,7 +590,9 @@ class TestCase(unittest.TestCase):
             np.testing.assert_allclose(kernel(np.ones(10)), similarity)
             np.testing.assert_allclose(kernel(np.zeros(10)), 1)
         Graph(data, kernel=lambda d: d.min()/d)
-        self.assertRaises(ValueError, Graph, data, kernel=lambda d: 1/d)
+        if sys.version_info > (3, 4):  # no assertLogs in python 2.7
+            with self.assertLogs(level='WARNING'):
+                Graph(data, kernel=lambda d: 1/d)
 
         # Attributes.
         self.assertEqual(Graph(data, kind='knn').radius, None)
