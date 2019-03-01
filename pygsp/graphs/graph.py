@@ -591,16 +591,16 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Examples
         --------
         >>> graph = graphs.Graph([
-        ...     [0, 3, 0, 0],
-        ...     [3, 0, 4, 0],
-        ...     [0, 4, 0, 2],
-        ...     [0, 0, 2, 0],
+        ...     [0., 3., 0., 0.],
+        ...     [3., 0., 4., 0.],
+        ...     [0., 4., 0., 2.],
+        ...     [0., 0., 2., 0.],
         ... ])
         >>> graph = graph.subgraph([0, 2, 1])
         >>> graph.W.toarray()
-        array([[0, 0, 3],
-               [0, 0, 4],
-               [3, 4, 0]], dtype=int64)
+        array([[0., 0., 3.],
+               [0., 0., 4.],
+               [3., 4., 0.]])
 
         """
         adjacency = self.W[vertices, :][:, vertices]
