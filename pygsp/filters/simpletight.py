@@ -19,7 +19,7 @@ class SimpleTight(Filter):
     G : graph
     Nf : int
         Number of filters to cover the interval [0, lmax].
-    scales : array-like
+    scales : array_like
         Scales to be used. Defaults to log scale.
 
     Examples

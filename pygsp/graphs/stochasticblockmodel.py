@@ -80,7 +80,7 @@ class StochasticBlockModel(Graph):
         if M is None:
 
             self.p = p
-            p = np.asarray(p)
+            p = np.asanyarray(p)
             if p.size == 1:
                 p = p * np.ones(k)
             if p.shape != (k,):
@@ -90,7 +90,7 @@ class StochasticBlockModel(Graph):
             if q is None:
                 q = 0.3 / k
             self.q = q
-            q = np.asarray(q)
+            q = np.asanyarray(q)
             if q.size == 1:
                 q = q * np.ones((k, k))
             if q.shape != (k, k):
@@ -134,6 +134,7 @@ class StochasticBlockModel(Graph):
             if not connected:
                 break
             self.W = W
+            self.n_vertices = W.shape[0]
             if self.is_connected(recompute=True):
                 break
             if n_try is not None:
@@ -146,7 +147,7 @@ class StochasticBlockModel(Graph):
         self.info = {'node_com': z, 'comm_sizes': np.bincount(z),
                      'world_rad': np.sqrt(N)}
 
-        super(StochasticBlockModel, self).__init__(W=W, **kwargs)
+        super(StochasticBlockModel, self).__init__(W, **kwargs)
 
     def _get_extra_repr(self):
         attrs = {'k': self.k}

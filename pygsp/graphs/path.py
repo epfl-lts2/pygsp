@@ -44,7 +44,7 @@ class Path(Graph):
         W = sparse.csr_matrix((weights, (sources, targets)), shape=(N, N))
         plotting = {"limits": np.array([-1, N, -1, 1])}
 
-        super(Path, self).__init__(W=W, plotting=plotting, **kwargs)
+        super(Path, self).__init__(W, plotting=plotting, **kwargs)
 
         self.set_coordinates('line2D')
 

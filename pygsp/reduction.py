@@ -122,7 +122,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
         sparserW = sparserW + sparserW.T
         sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
 
-        if graphs.Graph(W=sparserW).is_connected():
+        if graphs.Graph(sparserW).is_connected():
             break
         elif i == maxiter - 1:
             logger.warning('Despite attempts to reduce epsilon, sparsified graph is disconnected')
@@ -134,7 +134,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
         if not M.is_directed():
             sparserW = (sparserW + sparserW.T) / 2.
 
-        Mnew = graphs.Graph(W=sparserW)
+        Mnew = graphs.Graph(sparserW)
         #M.copy_graph_attributes(Mnew)
     else:
         Mnew = sparse.lil_matrix(sparserL)
@@ -360,7 +360,7 @@ def kron_reduction(G, ind):
         Wnew = Wnew - Wnew.diagonal()
 
         coords = G.coords[ind, :] if len(G.coords.shape) else np.ndarray(None)
-        Gnew = graphs.Graph(W=Wnew, coords=coords, lap_type=G.lap_type,
+        Gnew = graphs.Graph(Wnew, coords=coords, lap_type=G.lap_type,
                             plotting=G.plotting)
     else:
         Gnew = Lnew

@@ -34,5 +34,5 @@ class Airfoil(Graph):
                     "limits": np.array([-1e-4, 1.01*data['x'].max(),
                                         -1e-4, 1.01*data['y'].max()])}
 
-        super(Airfoil, self).__init__(W=W, coords=coords, plotting=plotting,
+        super(Airfoil, self).__init__(W, coords=coords, plotting=plotting,
                                       **kwargs)

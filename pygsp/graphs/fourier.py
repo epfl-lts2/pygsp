@@ -200,7 +200,7 @@ class GraphFourier(object):
 
         Parameters
         ----------
-        s : ndarray
+        s : array_like
             Graph signal in the vertex domain.
 
         Returns
@@ -219,9 +219,7 @@ class GraphFourier(object):
         True
 
         """
-        if s.shape[0] != self.N:
-            raise ValueError('First dimension should be the number of nodes '
-                             'G.N = {}, got {}.'.format(self.N, s.shape))
+        s = self._check_signal(s)
         U = np.conjugate(self.U)  # True Hermitian. (Although U is often real.)
         return np.tensordot(U, s, ([0], [0]))
 
@@ -237,7 +235,7 @@ class GraphFourier(object):
 
         Parameters
         ----------
-        s_hat : ndarray
+        s_hat : array_like
             Graph signal in the Fourier domain.
 
         Returns
@@ -256,7 +254,5 @@ class GraphFourier(object):
         True
 
         """
-        if s_hat.shape[0] != self.N:
-            raise ValueError('First dimension should be the number of nodes '
-                             'G.N = {}, got {}.'.format(self.N, s_hat.shape))
+        s_hat = self._check_signal(s_hat)
         return np.tensordot(self.U, s_hat, ([1], [0]))

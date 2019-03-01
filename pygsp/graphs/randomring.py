@@ -14,7 +14,7 @@ class RandomRing(Graph):
     ----------
     N : int
         Number of vertices.
-    angles : array-like, optional
+    angles : array_like, optional
         The angular coordinate, in :math:`[0, 2\pi]`, of the vertices.
     seed : int
         Seed for the random number generator (for reproducible graphs).
@@ -74,7 +74,7 @@ class RandomRing(Graph):
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
         # TODO: save angle and 2D position as graph signals
-        super(RandomRing, self).__init__(W=W, coords=coords, plotting=plotting,
+        super(RandomRing, self).__init__(W, coords=coords, plotting=plotting,
                                          **kwargs)
 
     def _get_extra_repr(self):

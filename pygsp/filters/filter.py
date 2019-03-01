@@ -116,7 +116,7 @@ class Filter(object):
 
         Parameters
         ----------
-        x : ndarray
+        x : array_like
             Graph frequencies at which to evaluate the filter.
 
         Returns
@@ -138,6 +138,7 @@ class Filter(object):
         [<matplotlib.lines.Line2D object at ...>]
 
         """
+        x = np.asanyarray(x)
         # Avoid to copy data as with np.array([g(x) for g in self._kernels]).
         y = np.empty([self.Nf] + list(x.shape))
         for i, kernel in enumerate(self._kernels):
@@ -179,7 +180,7 @@ class Filter(object):
 
         Parameters
         ----------
-        s : ndarray
+        s : array_like
             Graph signals, a tensor of shape ``(N_NODES, N_SIGNALS,
             N_FEATURES)``, where ``N_NODES`` is the number of nodes in the
             graph, ``N_SIGNALS`` the number of independent signals you want to
@@ -265,9 +266,7 @@ class Filter(object):
         True
 
         """
-        if s.shape[0] != self.G.N:
-            raise ValueError('First dimension should be the number of nodes '
-                             'G.N = {}, got {}.'.format(self.G.N, s.shape))
+        s = self.G._check_signal(s)
 
         # TODO: not in self.Nin (Nf = Nin x Nout).
         if s.ndim == 1 or s.shape[-1] not in [1, self.Nf]:
@@ -412,7 +411,7 @@ class Filter(object):
 
         Parameters
         ----------
-        x : ndarray
+        x : array_like
             Graph frequencies at which to evaluate the filter bank `g(x)`.
             The default is `x = np.linspace(0, G.lmax, 1000)`.
             The exact bounds are given by evaluating the filter bank at the
@@ -499,6 +498,8 @@ class Filter(object):
         """
         if x is None:
             x = np.linspace(0, self.G.lmax, 1000)
+        else:
+            x = np.asanyarray(x)
 
         sum_filters = np.sum(self.evaluate(x)**2, axis=0)
 

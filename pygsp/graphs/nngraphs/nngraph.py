@@ -183,7 +183,7 @@ class NNGraph(Graph):
         # np.abs(W - W.T).sum() is as costly as the symmetrization itself.
         W = utils.symmetrize(W, method=symmetrize_type)
 
-        super(NNGraph, self).__init__(W=W, plotting=plotting,
+        super(NNGraph, self).__init__(W, plotting=plotting,
                                       coords=Xout, **kwargs)
 
     def _get_extra_repr(self):

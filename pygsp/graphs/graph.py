@@ -12,74 +12,115 @@ from . import fourier, difference  # prevent circular import in Python < 3.5
 class Graph(fourier.GraphFourier, difference.GraphDifference):
     r"""Base graph class.
 
-    * Provide a common interface (and implementation) to graph objects.
-    * Can be instantiated to construct custom graphs from a weight matrix.
+    * Instantiate it to construct a graph from a (weighted) adjacency matrix.
+    * Provide a common interface (and implementation) for graph objects.
     * Initialize attributes for derived classes.
 
     Parameters
     ----------
-    W : sparse matrix or ndarray
-        The weight matrix which encodes the graph.
-    lap_type : 'combinatorial', 'normalized'
-        The type of Laplacian to be computed by :func:`compute_laplacian`
-        (default is 'combinatorial').
-    coords : ndarray
-        Vertices coordinates (default is None).
+    adjacency : sparse matrix or array_like
+        The (weighted) adjacency matrix of size n_vertices by n_vertices that
+        encodes the graph.
+        The data is copied except if it is a sparse matrix in CSR format.
+    lap_type : {'combinatorial', 'normalized'}
+        The kind of Laplacian to be computed by :meth:`compute_laplacian`.
+    coords : array_like
+        A matrix of size n_vertices by d that represents the coordinates of the
+        vertices in a d-dimensional embedding space.
     plotting : dict
         Plotting parameters.
 
     Attributes
     ----------
-    N : int
-        the number of nodes / vertices in the graph.
-    Ne : int
-        the number of edges / links in the graph, i.e. connections between
-        nodes.
-    W : sparse matrix
-        the weight matrix which contains the weights of the connections.
-        It is represented as an N-by-N matrix of floats.
-        :math:`W_{i,j} = 0` means that there is no direct connection from
-        i to j.
-    L : sparse matrix
-        the graph Laplacian, an N-by-N matrix computed from W.
+    n_vertices or N : int
+        The number of vertices (nodes) in the graph.
+    n_edges or Ne : int
+        The number of edges (links) in the graph.
+    W : :class:`scipy.sparse.csr_matrix`
+        The adjacency matrix that contains the weights of the edges.
+        It is represented as an n_vertices by n_vertices matrix, where
+        :math:`W_{i,j}` is the weight of the edge :math:`(v_i, v_j)` from
+        vertex :math:`v_i` to vertex :math:`v_j`. :math:`W_{i,j} = 0` means
+        that there is no direct connection.
+    L : :class:`scipy.sparse.csr_matrix`
+        The graph Laplacian, an N-by-N matrix computed from W.
     lap_type : 'normalized', 'combinatorial'
-        the kind of Laplacian that was computed by :func:`compute_laplacian`.
-    coords : ndarray
-        vertices coordinates in 2D or 3D space. Used for plotting only. Default
-        is None.
+        The kind of Laplacian that was computed by :func:`compute_laplacian`.
+    coords : :class:`numpy.ndarray`
+        Vertices coordinates in 2D or 3D space. Used for plotting only.
     plotting : dict
-        plotting parameters.
+        Plotting parameters.
 
     Examples
     --------
-    >>> W = np.arange(4).reshape(2, 2)
-    >>> G = graphs.Graph(W)
+
+    Define a simple graph.
+
+    >>> graph = graphs.Graph([
+    ...     [0., 2., 0.],
+    ...     [2., 0., 5.],
+    ...     [0., 5., 0.],
+    ... ])
+    >>> graph
+    Graph(n_vertices=3, n_edges=2)
+    >>> graph.n_vertices, graph.n_edges
+    (3, 2)
+    >>> graph.W.toarray()
+    array([[0., 2., 0.],
+           [2., 0., 5.],
+           [0., 5., 0.]])
+    >>> graph.d
+    array([1, 2, 1])
+    >>> graph.dw
+    array([2., 7., 5.])
+    >>> graph.L.toarray()
+    array([[ 2., -2.,  0.],
+           [-2.,  7., -5.],
+           [ 0., -5.,  5.]])
+
+    Add some coordinates to plot it.
+
+    >>> import matplotlib.pyplot as plt
+    >>> graph.set_coordinates([
+    ...     [0, 0],
+    ...     [0, 1],
+    ...     [1, 0],
+    ... ])
+    >>> fig, ax = graph.plot()
 
     """
 
-    def __init__(self, W, lap_type='combinatorial', coords=None, plotting={}):
+    def __init__(self, adjacency, lap_type='combinatorial', coords=None,
+                 plotting={}):
 
         self.logger = utils.build_logger(__name__)
 
-        if len(W.shape) != 2 or W.shape[0] != W.shape[1]:
-            raise ValueError('W has incorrect shape {}'.format(W.shape))
+        if not sparse.isspmatrix(adjacency):
+            adjacency = np.asanyarray(adjacency)
+
+        if (adjacency.ndim != 2) or (adjacency.shape[0] != adjacency.shape[1]):
+            raise ValueError('Adjacency: must be a square matrix.')
 
         # CSR sparse matrices are the most efficient for matrix multiplication.
         # They are the sole sparse matrix type to support eliminate_zeros().
-        if sparse.isspmatrix_csr(W):
-            self.W = W
-        else:
-            self.W = sparse.csr_matrix(W)
+        self.W = sparse.csr_matrix(adjacency, copy=False)
 
-        # Don't keep edges of 0 weight. Otherwise Ne will not correspond to the
-        # real number of edges. Problematic when e.g. plotting.
+        if np.isnan(self.W.sum()):
+            raise ValueError('Adjacency: there is a Not a Number (NaN).')
+        if np.isinf(self.W.sum()):
+            raise ValueError('Adjacency: there is an infinite value.')
+        if self.has_loops():
+            self.logger.warning('Adjacency: there are self-loops '
+                                '(non-zeros on the diagonal). '
+                                'The Laplacian will not see them.')
+        if (self.W < 0).nnz != 0:
+            self.logger.warning('Adjacency: there are negative edge weights.')
+
+        self.n_vertices = self.W.shape[0]
+
+        # Don't keep edges of 0 weight. Otherwise n_edges will not correspond
+        # to the real number of edges. Problematic when plotting.
         self.W.eliminate_zeros()
-
-        self.n_vertices = W.shape[0]
-
-        # TODO: why would we ever want this?
-        # For large matrices it slows the graph construction by a factor 100.
-        # self.W = sparse.lil_matrix(self.W)
 
         # Don't count edges two times if undirected.
         # Be consistent with the size of the differential operator.
@@ -90,12 +131,10 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             off_diagonal = self.W.nnz - diagonal
             self.n_edges = off_diagonal // 2 + diagonal
 
-        self.check_weights()
-
         self.compute_laplacian(lap_type)
 
         if coords is not None:
-            self.coords = coords
+            self.coords = np.asanyarray(coords)
 
         self.plotting = {'vertex_size': 100,
                          'vertex_color': (0.12, 0.47, 0.71, 0.5),
@@ -122,67 +161,12 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             s += '{}={}, '.format(key, value)
         return '{}({})'.format(self.__class__.__name__, s[:-2])
 
-    def check_weights(self):
-        r"""Check the characteristics of the weights matrix.
-
-        Returns
-        -------
-        A dict of bools containing informations about the matrix
-
-        has_inf_val : bool
-            True if the matrix has infinite values else false
-        has_nan_value : bool
-            True if the matrix has a "not a number" value else false
-        is_not_square : bool
-            True if the matrix is not square else false
-        diag_is_not_zero : bool
-            True if the matrix diagonal has not only zeros else false
-
-        Examples
-        --------
-        >>> W = np.arange(4).reshape(2, 2)
-        >>> G = graphs.Graph(W)
-        >>> cw = G.check_weights()
-        >>> cw == {'has_inf_val': False, 'has_nan_value': False,
-        ...        'is_not_square': False, 'diag_is_not_zero': True}
-        True
-
-        """
-
-        has_inf_val = False
-        diag_is_not_zero = False
-        is_not_square = False
-        has_nan_value = False
-
-        if np.isinf(self.W.sum()):
-            self.logger.warning('There is an infinite '
-                                'value in the weight matrix!')
-            has_inf_val = True
-
-        if abs(self.W.diagonal()).sum() != 0:
-            self.logger.warning('The main diagonal of '
-                                'the weight matrix is not 0!')
-            diag_is_not_zero = True
-
-        if self.W.get_shape()[0] != self.W.get_shape()[1]:
-            self.logger.warning('The weight matrix is not square!')
-            is_not_square = True
-
-        if np.isnan(self.W.sum()):
-            self.logger.warning('There is a NaN value in the weight matrix!')
-            has_nan_value = True
-
-        return {'has_inf_val': has_inf_val,
-                'has_nan_value': has_nan_value,
-                'is_not_square': is_not_square,
-                'diag_is_not_zero': diag_is_not_zero}
-
     def set_coordinates(self, kind='spring', **kwargs):
         r"""Set node's coordinates (their position when plotting).
 
         Parameters
         ----------
-        kind : string or array-like
+        kind : string or array_like
             Kind of coordinates to generate. It controls the position of the
             nodes when plotting the graph. Can either pass an array of size Nx2
             or Nx3 to set the coordinates manually or the name of a layout
@@ -202,7 +186,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         """
 
         if not isinstance(kind, str):
-            coords = np.asarray(kind).squeeze()
+            coords = np.asanyarray(kind).squeeze()
             check_1d = (coords.ndim == 1)
             check_2d_3d = (coords.ndim == 2) and (2 <= coords.shape[1] <= 3)
             if coords.shape[0] != self.N or not (check_1d or check_2d_3d):
@@ -272,45 +256,46 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         else:
             raise ValueError('Unexpected argument kind={}.'.format(kind))
 
-    def subgraph(self, ind):
-        r"""Create a subgraph given indices.
+    def subgraph(self, vertices):
+        r"""Create a subgraph from a list of vertices.
 
         Parameters
         ----------
-        ind : list
-            Nodes to keep
+        vertices : list
+            List of vertices to keep.
 
         Returns
         -------
-        sub_G : Graph
-            Subgraph
+        subgraph : :class:`Graph`
+            Subgraph.
 
         Examples
         --------
-        >>> W = np.arange(16).reshape(4, 4)
-        >>> G = graphs.Graph(W)
-        >>> ind = [1, 3]
-        >>> sub_G = G.subgraph(ind)
+        >>> graph = graphs.Graph([
+        ...     [0., 3., 0., 0.],
+        ...     [3., 0., 4., 0.],
+        ...     [0., 4., 0., 2.],
+        ...     [0., 0., 2., 0.],
+        ... ])
+        >>> graph = graph.subgraph([0, 2, 1])
+        >>> graph.W.toarray()
+        array([[0., 0., 3.],
+               [0., 0., 4.],
+               [3., 4., 0.]])
 
         """
-        if not isinstance(ind, list) and not isinstance(ind, np.ndarray):
-            raise TypeError('The indices must be a list or a ndarray.')
-
-        # N = len(ind) # Assigned but never used
-
-        sub_W = self.W.tocsr()[ind, :].tocsc()[:, ind]
-        return Graph(sub_W)
+        adjacency = self.W[vertices, :][:, vertices]
+        try:
+            coords = self.coords[vertices]
+        except AttributeError:
+            coords = None
+        return Graph(adjacency, self.lap_type, coords, self.plotting)
 
     def is_connected(self, recompute=False):
-        r"""Check the strong connectivity of the graph (cached).
+        r"""Check if the graph is connected (cached).
 
-        It uses DFS travelling on graph to ensure that each node is visited.
-        For undirected graphs, starting at any vertex and trying to access all
-        others is enough.
-        For directed graphs, one needs to check that a random vertex is
-        accessible by all others
-        and can access all others. Thus, we can transpose the adjacency matrix
-        and compute again with the same starting point in both phases.
+        A graph is connected if and only if there exists a (directed) path
+        between any two vertices.
 
         Parameters
         ----------
@@ -320,40 +305,65 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Returns
         -------
         connected : bool
-            True if the graph is connected.
+            True if the graph is connected, False otherwise.
+
+        Notes
+        -----
+
+        For undirected graphs, starting at a vertex and trying to visit all the
+        others is enough.
+        For directed graphs, one needs to check that a vertex can both be
+        visited by all the others and visit all the others.
 
         Examples
         --------
-        >>> from scipy import sparse
-        >>> W = sparse.rand(10, 10, 0.2)
-        >>> G = graphs.Graph(W=W)
-        >>> connected = G.is_connected()
+
+        Connected graph:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 3, 0, 0],
+        ...     [3, 0, 4, 0],
+        ...     [0, 4, 0, 2],
+        ...     [0, 0, 2, 0],
+        ... ])
+        >>> graph.is_connected()
+        True
+
+        Disconnected graph:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 3, 0, 0],
+        ...     [3, 0, 4, 0],
+        ...     [0, 0, 0, 2],
+        ...     [0, 0, 2, 0],
+        ... ])
+        >>> graph.is_connected()
+        False
+
 
         """
         if hasattr(self, '_connected') and not recompute:
             return self._connected
 
+        adjacencies = [self.W]
         if self.is_directed(recompute=recompute):
-            adj_matrices = [self.A, self.A.T]
-        else:
-            adj_matrices = [self.A]
+            adjacencies.append(self.W.T)
 
-        for adj_matrix in adj_matrices:
-            visited = np.zeros(self.A.shape[0], dtype=bool)
+        for adjacency in adjacencies:
+            visited = np.zeros(self.n_vertices, dtype=np.bool)
             stack = set([0])
 
-            while len(stack):
-                v = stack.pop()
-                if not visited[v]:
-                    visited[v] = True
+            while stack:
+                vertex = stack.pop()
 
-                    # Add indices of nodes not visited yet and accessible from
-                    # v
-                    stack.update(set([idx
-                                      for idx in adj_matrix[v, :].nonzero()[1]
-                                      if not visited[idx]]))
+                if visited[vertex]:
+                    continue
+                visited[vertex] = True
 
-            if not visited.all():
+                neighbors = adjacency[vertex].nonzero()[1]
+                stack.update(neighbors)
+
+            if not np.all(visited):
                 self._connected = False
                 return self._connected
 
@@ -364,7 +374,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         r"""Check if the graph has directed edges (cached).
 
         In this framework, we consider that a graph is directed if and
-        only if its weight matrix is non symmetric.
+        only if its weight matrix is not symmetric.
 
         Parameters
         ----------
@@ -374,34 +384,28 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Returns
         -------
         directed : bool
-            True if the graph is directed.
-
-        Notes
-        -----
-        Can also be used to check if a matrix is symmetrical
+            True if the graph is directed, False otherwise.
 
         Examples
         --------
 
         Directed graph:
 
-        >>> adjacency = np.array([
+        >>> graph = graphs.Graph([
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 0, 0],
         ... ])
-        >>> graph = graphs.Graph(adjacency)
         >>> graph.is_directed()
         True
 
         Undirected graph:
 
-        >>> adjacency = np.array([
+        >>> graph = graphs.Graph([
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 4, 0],
         ... ])
-        >>> graph = graphs.Graph(adjacency)
         >>> graph.is_directed()
         False
 
@@ -409,8 +413,45 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         if hasattr(self, '_directed') and not recompute:
             return self._directed
 
-        self._directed = np.abs(self.W - self.W.T).sum() != 0
+        self._directed = (self.W != self.W.T).nnz != 0
         return self._directed
+
+    def has_loops(self):
+        r"""Check if any vertex is connected to itself.
+
+        A graph has self-loops if and only if the diagonal entries of its
+        adjacency matrix are not all zero.
+
+        Returns
+        -------
+        loops : bool
+            True if the graph has self-loops, False otherwise.
+
+        Examples
+        --------
+
+        Without self-loops:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 3, 0],
+        ...     [3, 0, 4],
+        ...     [0, 0, 0],
+        ... ])
+        >>> graph.has_loops()
+        False
+
+        With a self-loop:
+
+        >>> graph = graphs.Graph([
+        ...     [1, 3, 0],
+        ...     [3, 0, 4],
+        ...     [0, 0, 0],
+        ... ])
+        >>> graph.has_loops()
+        True
+
+        """
+        return np.any(self.W.diagonal() != 0)
 
     def extract_components(self):
         r"""Split the graph into connected components.
@@ -431,7 +472,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> from scipy import sparse
         >>> W = sparse.rand(10, 10, 0.2)
         >>> W = utils.symmetrize(W)
-        >>> G = graphs.Graph(W=W)
+        >>> G = graphs.Graph(W)
         >>> components = G.extract_components()
         >>> has_sinks = 'sink' in components[0].info
         >>> sinks_0 = components[0].info['sink'] if has_sinks else []
@@ -503,19 +544,18 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Parameters
         ----------
         lap_type : {'combinatorial', 'normalized'}
-            The type of Laplacian to compute. Default is combinatorial.
+            The kind of Laplacian to compute. Default is combinatorial.
 
         Examples
         --------
 
         Combinatorial and normalized Laplacians of an undirected graph.
 
-        >>> adjacency = np.array([
+        >>> graph = graphs.Graph([
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 1, 0],
         ... ])
-        >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.L.toarray()
         array([[ 2., -2.,  0.],
@@ -529,12 +569,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Combinatorial and normalized Laplacians of a directed graph.
 
-        >>> adjacency = np.array([
+        >>> graph = graphs.Graph([
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 0, 0],
         ... ])
-        >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.L.toarray()
         array([[ 2. , -2. ,  0. ],
@@ -590,6 +629,14 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         else:
             raise ValueError('Unknown Laplacian type {}'.format(lap_type))
 
+    def _check_signal(self, s):
+        r"""Check if signal is valid."""
+        s = np.asanyarray(s)
+        if s.shape[0] != self.N:
+            raise ValueError('First dimension must be the number of vertices '
+                             'G.N = {}, got {}.'.format(self.N, s.shape))
+        return s
+
     def dirichlet_energy(self, x):
         r"""Compute the Dirichlet energy of a signal defined on the vertices.
 
@@ -611,7 +658,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Parameters
         ----------
-        x : ndarray
+        x : array_like
             Signal of length :attr:`n_vertices` living on the vertices.
 
         Returns
@@ -626,7 +673,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Examples
         --------
         >>> graph = graphs.Path(5, directed=False)
-        >>> signal = np.array([0, 2, 2, 4, 4])
+        >>> signal = [0, 2, 2, 4, 4]
         >>> graph.dirichlet_energy(signal)
         8.0
         >>> # The Dirichlet energy is indeed the squared norm of the gradient.
@@ -635,7 +682,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         array([2., 0., 2., 0.])
 
         >>> graph = graphs.Path(5, directed=True)
-        >>> signal = np.array([0, 2, 2, 4, 4])
+        >>> signal = [0, 2, 2, 4, 4]
         >>> graph.dirichlet_energy(signal)
         4.0
         >>> # The Dirichlet energy is indeed the squared norm of the gradient.
@@ -644,6 +691,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         array([1.41421356, 0.        , 1.41421356, 0.        ])
 
         """
+        x = self._check_signal(x)
         return x.T.dot(self.L.dot(x))
 
     @property
@@ -853,24 +901,22 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Edge list of a directed graph.
 
-        >>> adjacency = np.array([
+        >>> graph = graphs.Graph([
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 0, 0],
         ... ])
-        >>> graph = graphs.Graph(adjacency)
         >>> sources, targets, weights = graph.get_edge_list()
         >>> list(sources), list(targets), list(weights)
         ([0, 1, 1], [1, 0, 2], [3, 3, 4])
 
         Edge list of an undirected graph.
 
-        >>> adjacency = np.array([
+        >>> graph = graphs.Graph([
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 4, 0],
         ... ])
-        >>> graph = graphs.Graph(adjacency)
         >>> sources, targets, weights = graph.get_edge_list()
         >>> list(sources), list(targets), list(weights)
         ([0, 1], [1, 2], [3, 4])
@@ -933,7 +979,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             pos_arr = np.random.RandomState(seed).uniform(size=(self.N, dim))
             pos_arr = pos_arr * dom_size + center
             for i in range(self.N):
-                pos_arr[i] = np.asarray(pos[i])
+                pos_arr[i] = np.asanyarray(pos[i])
 
         if k is None and len(fixed) > 0:
             # We must adjust k by domain size for layouts that are not near 1x1
@@ -985,7 +1031,7 @@ def _sparse_fruchterman_reingold(A, dim, k, pos, fixed, iterations, seed):
             # enforce minimum distance of 0.01
             distance = np.where(distance < 0.01, 0.01, distance)
             # the adjacency matrix row
-            Ai = np.asarray(A[i, :].toarray())
+            Ai = A[i, :].toarray()
             # displacement "force"
             displacement[:, i] += \
                 (delta * (k * k / distance**2 - Ai * distance / k)).sum(axis=1)

@@ -7,6 +7,7 @@ Test suite for the graphs module of the pygsp package.
 
 from __future__ import division
 
+import sys
 import unittest
 
 import numpy as np
@@ -35,17 +36,46 @@ class TestCase(unittest.TestCase):
         pass
 
     def test_graph(self):
-        W = np.arange(16).reshape(4, 4)
-        G = graphs.Graph(W)
-        np.testing.assert_allclose(G.W.A, W)
-        np.testing.assert_allclose(G.A.A, G.W.A > 0)
-        self.assertEqual(G.N, 4)
-        np.testing.assert_allclose(G.d, np.array([3, 4, 4, 4]))
-        self.assertEqual(G.Ne, 15)
-        self.assertTrue(G.is_directed())
-        ki, kj = np.nonzero(G.A)
-        self.assertEqual(ki.shape[0], G.Ne)
-        self.assertEqual(kj.shape[0], G.Ne)
+        adjacency = [
+            [0., 3., 0., 2.],
+            [3., 0., 4., 0.],
+            [0., 4., 0., 5.],
+            [2., 0., 5., 0.],
+        ]
+
+        # Input types.
+        G = graphs.Graph(adjacency)
+        self.assertIs(type(G.W), sparse.csr_matrix)
+        adjacency = np.array(adjacency)
+        G = graphs.Graph(adjacency)
+        self.assertIs(type(G.W), sparse.csr_matrix)
+        adjacency = sparse.coo_matrix(adjacency)
+        G = graphs.Graph(adjacency)
+        self.assertIs(type(G.W), sparse.csr_matrix)
+        adjacency = sparse.csr_matrix(adjacency)
+        # G = graphs.Graph(adjacency)
+        # self.assertIs(G.W, adjacency)  # Not copied if already CSR.
+
+        # Attributes.
+        np.testing.assert_allclose(G.W.toarray(), adjacency.toarray())
+        np.testing.assert_allclose(G.A.toarray(), G.W.toarray() > 0)
+        np.testing.assert_allclose(G.d, np.array([2, 2, 2, 2]))
+        np.testing.assert_allclose(G.dw, np.array([5, 7, 9, 7]))
+        self.assertEqual(G.n_vertices, 4)
+        self.assertIs(G.N, G.n_vertices)
+        self.assertEqual(G.n_edges, 4)
+        self.assertIs(G.Ne, G.n_edges)
+
+        # Errors and warnings.
+        self.assertRaises(ValueError, graphs.Graph, np.ones((3, 4)))
+        self.assertRaises(ValueError, graphs.Graph, np.ones((3, 3, 4)))
+        self.assertRaises(ValueError, graphs.Graph, [[0, np.nan], [0, 0]])
+        self.assertRaises(ValueError, graphs.Graph, [[0, np.inf], [0, 0]])
+        if sys.version_info > (3, 4):  # no assertLogs in python 2.7
+            with self.assertLogs(level='WARNING'):
+                graphs.Graph([[0, -1], [-1, 0]])
+            with self.assertLogs(level='WARNING'):
+                graphs.Graph([[1, 1], [1, 0]])
 
     def test_degree(self):
         W = 0.3 * (np.ones((4, 4)) - np.diag(4 * [1]))
@@ -55,9 +85,55 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(G.d, 3 * np.ones([4]))
         np.testing.assert_allclose(G.dw, 3 * 0.3)
 
+    def test_is_connected(self):
+        graph = graphs.Graph([
+            [0, 1, 0],
+            [1, 0, 2],
+            [0, 2, 0],
+        ])
+        self.assertEqual(graph.is_directed(), False)
+        self.assertEqual(graph.is_connected(), True)
+        graph = graphs.Graph([
+            [0, 1, 0],
+            [1, 0, 0],
+            [0, 2, 0],
+        ])
+        self.assertEqual(graph.is_directed(), True)
+        self.assertEqual(graph.is_connected(), False)
+        graph = graphs.Graph([
+            [0, 1, 0],
+            [1, 0, 0],
+            [0, 0, 0],
+        ])
+        self.assertEqual(graph.is_directed(), False)
+        self.assertEqual(graph.is_connected(), False)
+        graph = graphs.Graph([
+            [0, 1, 0],
+            [0, 0, 2],
+            [3, 0, 0],
+        ])
+        self.assertEqual(graph.is_directed(), True)
+        self.assertEqual(graph.is_connected(), True)
+
+    def test_is_directed(self):
+        graph = graphs.Graph([
+            [0, 3, 0, 0],
+            [3, 0, 4, 0],
+            [0, 4, 0, 2],
+            [0, 0, 2, 0],
+        ])
+        assert graph.W.nnz == 6
+        self.assertEqual(graph.is_directed(), False)
+        graph.W[0, 1] = 0
+        assert graph.W.nnz == 6
+        self.assertEqual(graph.is_directed(recompute=True), True)
+        graph.W[1, 0] = 0
+        assert graph.W.nnz == 6
+        self.assertEqual(graph.is_directed(recompute=True), False)
+
     def test_laplacian(self):
 
-        adjacency = np.array([
+        G = graphs.Graph([
             [0, 3, 0, 1],
             [3, 0, 1, 0],
             [0, 1, 0, 3],
@@ -69,20 +145,18 @@ class TestCase(unittest.TestCase):
             [+0, -1, +4, -3],
             [-1, +0, -3, +4],
         ])
-        G = graphs.Graph(adjacency)
         self.assertFalse(G.is_directed())
         G.compute_laplacian('combinatorial')
         np.testing.assert_allclose(G.L.toarray(), laplacian)
         G.compute_laplacian('normalized')
         np.testing.assert_allclose(G.L.toarray(), laplacian/4)
 
-        adjacency = np.array([
+        G = graphs.Graph([
             [0, 6, 0, 1],
             [0, 0, 0, 0],
             [0, 2, 0, 3],
             [1, 0, 3, 0],
         ])
-        G = graphs.Graph(adjacency)
         self.assertTrue(G.is_directed())
         G.compute_laplacian('combinatorial')
         np.testing.assert_allclose(G.L.toarray(), laplacian)
@@ -133,22 +207,22 @@ class TestCase(unittest.TestCase):
         check_lmax(graph, lmax=value*n_nodes)
 
         # Regular bipartite graph (bound is tight).
-        adjacency = np.array([
+        adjacency = [
             [0, 0, 1, 1],
             [0, 0, 1, 1],
             [1, 1, 0, 0],
             [1, 1, 0, 0],
-        ])
+        ]
         graph = graphs.Graph(adjacency, lap_type='combinatorial')
         check_lmax(graph, lmax=4)
 
         # Bipartite graph (bound is tight).
-        adjacency = np.array([
+        adjacency = [
             [0, 0, 1, 1],
             [0, 0, 1, 0],
             [1, 1, 0, 0],
             [1, 0, 0, 0],
-        ])
+        ]
         graph = graphs.Graph(adjacency, lap_type='normalized')
         check_lmax(graph, lmax=2)
 
@@ -246,8 +320,8 @@ class TestCase(unittest.TestCase):
             np.testing.assert_equal(incidence_pg, incidence_nx.toarray())
         for graph in [graphs.Graph(np.zeros((n_vertices, n_vertices))),
                       graphs.Graph(np.identity(n_vertices)),
-                      graphs.Graph(np.array([[0, 0.8], [0.8, 0]])),
-                      graphs.Graph(np.array([[1.3, 0], [0.4, 0.5]])),
+                      graphs.Graph([[0, 0.8], [0.8, 0]]),
+                      graphs.Graph([[1.3, 0], [0.4, 0.5]]),
                       graphs.ErdosRenyi(n_vertices, directed=False, seed=42),
                       graphs.ErdosRenyi(n_vertices, directed=True, seed=42)]:
             for lap_type in ['combinatorial', 'normalized']:
@@ -347,6 +421,13 @@ class TestCase(unittest.TestCase):
         G = graphs.Community()
         G.set_coordinates('community2D')
         self.assertRaises(ValueError, G.set_coordinates, 'invalid')
+
+    def test_subgraph(self, n_vertices=100):
+        graph = self._G.subgraph(range(n_vertices))
+        self.assertEqual(graph.n_vertices, n_vertices)
+        self.assertEqual(graph.coords.shape, (n_vertices, 2))
+        self.assertIs(graph.lap_type, self._G.lap_type)
+        self.assertEqual(graph.plotting, self._G.plotting)
 
     def test_nngraph(self, n_vertices=30):
         rs = np.random.RandomState(42)
