@@ -80,7 +80,7 @@ class StochasticBlockModel(Graph):
         if M is None:
 
             self.p = p
-            p = np.asarray(p)
+            p = np.asanyarray(p)
             if p.size == 1:
                 p = p * np.ones(k)
             if p.shape != (k,):
@@ -90,7 +90,7 @@ class StochasticBlockModel(Graph):
             if q is None:
                 q = 0.3 / k
             self.q = q
-            q = np.asarray(q)
+            q = np.asanyarray(q)
             if q.size == 1:
                 q = q * np.ones((k, k))
             if q.shape != (k, k):
