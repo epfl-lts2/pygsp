@@ -95,11 +95,12 @@ class DifferenceMixIn(object):
         The difference operator is an incidence matrix.
         Example with a undirected graph.
 
-        >>> graph = graphs.Graph([
+        >>> adjacency = [
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 1, 0],
-        ... ])
+        ... ]
+        >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.compute_differential_operator()
         >>> graph.D.toarray()
@@ -115,11 +116,12 @@ class DifferenceMixIn(object):
 
         Example with a directed graph.
 
-        >>> graph = graphs.Graph([
+        >>> adjacency = [
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 0, 0],
-        ... ])
+        ... ]
+        >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.compute_differential_operator()
         >>> graph.D.toarray()

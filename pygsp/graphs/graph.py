@@ -102,15 +102,19 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         self.logger = utils.build_logger(__name__)
 
-        if not sparse.isspmatrix(adjacency):
-            adjacency = np.asanyarray(adjacency)
-
-        if (adjacency.ndim != 2) or (adjacency.shape[0] != adjacency.shape[1]):
-            raise ValueError('Adjacency: must be a square matrix.')
-
         # CSR sparse matrices are the most efficient for matrix multiplication.
         # They are the sole sparse matrix type to support eliminate_zeros().
-        self._adjacency = sparse.csr_matrix(adjacency, copy=False)
+        if sparse.isspmatrix_csr(W):
+            self.W = W
+        elif sparse.isspmatrix(W):
+            self.W = W.tocsr()
+        else:
+            self.W = sparse.csr_matrix(np.asanyarray(W))
+
+        if len(self.W.shape) != 2 or self.W.shape[0] != self.W.shape[1]:
+            raise ValueError('W has incorrect shape {}'.format(self.W.shape))
+
+        self.n_vertices = self.W.shape[0]
 
         if np.isnan(self._adjacency.sum()):
             raise ValueError('Adjacency: there is a Not a Number (NaN).')
@@ -123,14 +127,9 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         if (self._adjacency < 0).nnz != 0:
             self.logger.warning('Adjacency: there are negative edge weights.')
 
-        self.n_vertices = self._adjacency.shape[0]
-
-        # Don't keep edges of 0 weight. Otherwise n_edges will not correspond
-        # to the real number of edges. Problematic when plotting.
-        self._adjacency.eliminate_zeros()
-
-        self._directed = None
-        self._connected = None
+        # TODO: why would we ever want this?
+        # For large matrices it slows the graph construction by a factor 100.
+        # self.W = sparse.lil_matrix(self.W)
 
         # Don't count edges two times if undirected.
         # Be consistent with the size of the differential operator.
@@ -587,23 +586,25 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         Connected graph:
 
-        >>> graph = graphs.Graph([
+        >>> adjacency = [
         ...     [0, 3, 0, 0],
         ...     [3, 0, 4, 0],
         ...     [0, 4, 0, 2],
         ...     [0, 0, 2, 0],
-        ... ])
+        ... ]
+        >>> graph = graphs.Graph(adjacency)
         >>> graph.is_connected()
         True
 
         Disconnected graph:
 
-        >>> graph = graphs.Graph([
+        >>> adjacency = [
         ...     [0, 3, 0, 0],
         ...     [3, 0, 4, 0],
         ...     [0, 0, 0, 2],
         ...     [0, 0, 2, 0],
-        ... ])
+        ... ]
+        >>> graph = graphs.Graph(adjacency)
         >>> graph.is_connected()
         False
 
@@ -653,21 +654,23 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         Directed graph:
 
-        >>> graph = graphs.Graph([
+        >>> adjacency = [
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 0, 0],
-        ... ])
+        ... ]
+        >>> graph = graphs.Graph(adjacency)
         >>> graph.is_directed()
         True
 
         Undirected graph:
 
-        >>> graph = graphs.Graph([
+        >>> adjacency = [
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 4, 0],
-        ... ])
+        ... ]
+        >>> graph = graphs.Graph(adjacency)
         >>> graph.is_directed()
         False
 
@@ -811,11 +814,12 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         Combinatorial and normalized Laplacians of an undirected graph.
 
-        >>> graph = graphs.Graph([
+        >>> adjacency = [
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 1, 0],
-        ... ])
+        ... ]
+        >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.L.toarray()
         array([[ 2., -2.,  0.],
@@ -829,11 +833,12 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         Combinatorial and normalized Laplacians of a directed graph.
 
-        >>> graph = graphs.Graph([
+        >>> adjacency = [
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 0, 0],
-        ... ])
+        ... ]
+        >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.L.toarray()
         array([[ 2. , -2. ,  0. ],
@@ -1253,22 +1258,24 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         Edge list of a directed graph.
 
-        >>> graph = graphs.Graph([
+        >>> adjacency = [
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 0, 0],
-        ... ])
+        ... ]
+        >>> graph = graphs.Graph(adjacency)
         >>> sources, targets, weights = graph.get_edge_list()
         >>> list(sources), list(targets), list(weights)
         ([0, 1, 1], [1, 0, 2], [3, 3, 4])
 
         Edge list of an undirected graph.
 
-        >>> graph = graphs.Graph([
+        >>> adjacency = [
         ...     [0, 3, 0],
         ...     [3, 0, 4],
         ...     [0, 4, 0],
-        ... ])
+        ... ]
+        >>> graph = graphs.Graph(adjacency)
         >>> sources, targets, weights = graph.get_edge_list()
         >>> list(sources), list(targets), list(weights)
         ([0, 1], [1, 2], [3, 4])
