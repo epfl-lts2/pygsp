@@ -403,11 +403,17 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
             raise ValueError(txt)
 
     def normalize(x):
-        """Scale values in [0.25, 1]. Return 0.5 if constant."""
+        """Scale values in [intercept, 1]. Return 0.5 if constant.
+
+        Set intercept value in G.plotting["normalize_intercept"]
+        with value in [0, 1], default is .25.
+        """
         ptp = x.ptp()
         if ptp == 0:
             return np.full(x.shape, 0.5)
-        return 0.75 * (x - x.min()) / ptp + 0.25
+        else:
+            intercept = G.plotting['normalize_intercept']
+            return (1. - intercept) * (x - x.min()) / ptp + intercept
 
     def is_color(color):
 
@@ -526,7 +532,8 @@ def _plt_plot_graph(G, vertex_color, vertex_size, highlight,
         ax.plot(G.coords, vertex_color, alpha=0.5)
         ax.set_ylim(limits)
         for coord_hl in coords_hl:
-            ax.axvline(x=coord_hl, color='C1', linewidth=2)
+            ax.axvline(x=coord_hl, color=G.plotting['highlight_color'],
+                       linewidth=2)
 
     else:
         sc = ax.scatter(*G.coords.T,
@@ -539,7 +546,8 @@ def _plt_plot_graph(G, vertex_color, vertex_size, highlight,
             size_hl = vertex_size[highlight]
         ax.scatter(*coords_hl.T,
                    s=2*size_hl, zorder=3,
-                   marker='o', c='None', edgecolors='C1', linewidths=2)
+                   marker='o', c='None',
+                   edgecolors=G.plotting['highlight_color'], linewidths=2)
 
         if G.coords.shape[1] == 3:
             try:
