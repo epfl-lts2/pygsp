@@ -133,8 +133,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             off_diagonal = self.W.nnz - diagonal
             self.n_edges = off_diagonal // 2 + diagonal
 
-        self.compute_laplacian(lap_type)
-
         if coords is not None:
             self.coords = np.asanyarray(coords)
 
@@ -145,6 +143,21 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                          'edge_style': '-'}
         self.plotting.update(plotting)
         self.signals = dict()
+
+        # Attributes that are lazily computed.
+        self._A = None
+        self._d = None
+        self._dw = None
+        self._lmax = None
+        self._U = None
+        self._e = None
+        self._coherence = None
+        self._D = None
+        # self._L = None
+
+        # TODO: what about Laplacian? Lazy as Fourier, or disallow change?
+        self.lap_type = lap_type
+        self.compute_laplacian(lap_type)
 
         # TODO: kept for backward compatibility.
         self.Ne = self.n_edges
@@ -667,6 +680,15 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         """
 
+        if lap_type != self.lap_type:
+            # Those attributes are invalidated when the Laplacian is changed.
+            # Alternative: don't allow the user to change the Laplacian.
+            self._lmax = None
+            self._U = None
+            self._e = None
+            self._coherence = None
+            self._D = None
+
         self.lap_type = lap_type
 
         if not self.is_directed():
@@ -761,7 +783,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         It is represented as an N-by-N matrix of booleans.
         :math:`A_{i,j}` is True if :math:`W_{i,j} > 0`.
         """
-        if not hasattr(self, '_A'):
+        if self._A is None:
             self._A = self.W > 0
         return self._A
 
@@ -808,7 +830,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         [0.5 2.5 2. ]
 
         """
-        if not hasattr(self, '_d'):
+        if self._d is None:
             if not self.is_directed():
                 # Shortcut for undirected graphs.
                 self._d = self.W.getnnz(axis=1)
@@ -866,7 +888,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         [0.5 2.5 2. ]
 
         """
-        if not hasattr(self, '_dw'):
+        if self._dw is None:
             if not self.is_directed():
                 # Shortcut for undirected graphs.
                 self._dw = np.ravel(self.W.sum(axis=0))
@@ -883,7 +905,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Can be exactly computed by :func:`compute_fourier_basis` or
         approximated by :func:`estimate_lmax`.
         """
-        if not hasattr(self, '_lmax'):
+        if self._lmax is None:
             self.logger.warning('The largest eigenvalue G.lmax is not '
                                 'available, we need to estimate it. '
                                 'Explicitly call G.estimate_lmax() or '
@@ -939,7 +961,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         18.58
 
         """
-        if hasattr(self, '_lmax') and not recompute:
+        if self._lmax is not None and not recompute:
             return
 
         if method == 'lanczos':

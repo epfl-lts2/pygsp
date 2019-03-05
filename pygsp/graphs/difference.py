@@ -19,7 +19,7 @@ class GraphDifference(object):
 
         Is computed by :func:`compute_differential_operator`.
         """
-        if not hasattr(self, '_D'):
+        if self._D is None:
             self.logger.warning('The differential operator G.D is not '
                                 'available, we need to compute it. Explicitly '
                                 'call G.compute_differential_operator() '
@@ -166,7 +166,7 @@ class GraphDifference(object):
 
         self._D = sparse.csc_matrix((values, (rows, columns)),
                                     shape=(self.n_vertices, self.n_edges))
-        self.D.eliminate_zeros()  # Self-loops introduce stored zeros.
+        self._D.eliminate_zeros()  # Self-loops introduce stored zeros.
 
     def grad(self, x):
         r"""Compute the gradient of a signal defined on the vertices.
