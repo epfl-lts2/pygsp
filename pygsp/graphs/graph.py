@@ -136,8 +136,6 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             off_diagonal = self._adjacency.nnz - diagonal
             self.n_edges = off_diagonal // 2 + diagonal
 
-        self.compute_laplacian(lap_type)
-
         if coords is not None:
             self.coords = np.asanyarray(coords)
 
@@ -150,6 +148,21 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
                          'normalize_intercept': .25}
         self.plotting.update(plotting)
         self.signals = dict()
+
+        # Attributes that are lazily computed.
+        self._A = None
+        self._d = None
+        self._dw = None
+        self._lmax = None
+        self._U = None
+        self._e = None
+        self._coherence = None
+        self._D = None
+        # self._L = None
+
+        # TODO: what about Laplacian? Lazy as Fourier, or disallow change?
+        self.lap_type = lap_type
+        self.compute_laplacian(lap_type)
 
         # TODO: kept for backward compatibility.
         self.Ne = self.n_edges
@@ -777,7 +790,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         [0.5 2.5 2. ]
 
         """
-        if not hasattr(self, '_d'):
+        if self._d is None:
             if not self.is_directed():
                 # Shortcut for undirected graphs.
                 self._d = self.W.getnnz(axis=1)
@@ -835,7 +848,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         [0.5 2.5 2. ]
 
         """
-        if not hasattr(self, '_dw'):
+        if self._dw is None:
             if not self.is_directed():
                 # Shortcut for undirected graphs.
                 self._dw = np.ravel(self.W.sum(axis=0))
@@ -906,7 +919,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         18.58
 
         """
-        if method == self._lmax_method:
+        if self._lmax is not None and not recompute:
             return
         self._lmax_method = method
 
