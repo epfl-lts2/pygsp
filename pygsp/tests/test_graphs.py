@@ -76,14 +76,28 @@ class TestCase(unittest.TestCase):
                 graphs.Graph([[0, -1], [-1, 0]])
             with self.assertLogs(level='WARNING'):
                 graphs.Graph([[1, 1], [1, 0]])
+        for attr in ['A', 'd', 'dw', 'lmax', 'U', 'e', 'coherence', 'D']:
+            # FIXME: The Laplacian L should be there as well.
+            self.assertRaises(AttributeError, setattr, G, attr, None)
+            self.assertRaises(AttributeError, delattr, G, attr)
 
     def test_degree(self):
-        W = 0.3 * (np.ones((4, 4)) - np.diag(4 * [1]))
-        G = graphs.Graph(W)
-        A = np.ones(W.shape) - np.diag(np.ones(4))
-        np.testing.assert_allclose(G.A.toarray(), A)
-        np.testing.assert_allclose(G.d, 3 * np.ones([4]))
-        np.testing.assert_allclose(G.dw, 3 * 0.3)
+        graph = graphs.Graph([
+            [0, 1, 0],
+            [1, 0, 2],
+            [0, 2, 0],
+        ])
+        self.assertEqual(graph.is_directed(), False)
+        np.testing.assert_allclose(graph.d, [1, 2, 1])
+        np.testing.assert_allclose(graph.dw, [1, 3, 2])
+        graph = graphs.Graph([
+            [0, 1, 0],
+            [0, 0, 2],
+            [0, 2, 0],
+        ])
+        self.assertEqual(graph.is_directed(), True)
+        np.testing.assert_allclose(graph.d, [0.5, 1.5, 1])
+        np.testing.assert_allclose(graph.dw, [0.5, 2.5, 2])
 
     def test_is_connected(self):
         graph = graphs.Graph([
@@ -124,12 +138,13 @@ class TestCase(unittest.TestCase):
         ])
         assert graph.W.nnz == 6
         self.assertEqual(graph.is_directed(), False)
-        graph.W[0, 1] = 0
-        assert graph.W.nnz == 6
-        self.assertEqual(graph.is_directed(recompute=True), True)
-        graph.W[1, 0] = 0
-        assert graph.W.nnz == 6
-        self.assertEqual(graph.is_directed(recompute=True), False)
+        # In-place modification is not allowed anymore.
+        # graph.W[0, 1] = 0
+        # assert graph.W.nnz == 6
+        # self.assertEqual(graph.is_directed(recompute=True), True)
+        # graph.W[1, 0] = 0
+        # assert graph.W.nnz == 6
+        # self.assertEqual(graph.is_directed(recompute=True), False)
 
     def test_laplacian(self):
 
@@ -193,9 +208,9 @@ class TestCase(unittest.TestCase):
         self.assertRaises(ValueError, graph.estimate_lmax, method='unk')
 
         def check_lmax(graph, lmax):
-            graph.estimate_lmax(method='bounds', recompute=True)
+            graph.estimate_lmax(method='bounds')
             np.testing.assert_allclose(graph.lmax, lmax)
-            graph.estimate_lmax(method='lanczos', recompute=True)
+            graph.estimate_lmax(method='lanczos')
             np.testing.assert_allclose(graph.lmax, lmax*1.01)
             graph.compute_fourier_basis()
             np.testing.assert_allclose(graph.lmax, lmax)

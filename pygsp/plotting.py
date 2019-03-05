@@ -237,7 +237,7 @@ def _plot_filter(filters, n, eigenvalues, sum, title, ax, **kwargs):
     """
 
     if eigenvalues is None:
-        eigenvalues = hasattr(filters.G, '_e')
+        eigenvalues = (filters.G._e is not None)
 
     if sum is None:
         sum = filters.n_filters > 1

@@ -12,7 +12,7 @@ logger = utils.build_logger(__name__)
 class GraphFourier(object):
 
     def _check_fourier_properties(self, name, desc):
-        if not hasattr(self, '_' + name):
+        if getattr(self, '_' + name) is None:
             self.logger.warning('The {} G.{} is not available, we need to '
                                 'compute the Fourier basis. Explicitly call '
                                 'G.compute_fourier_basis() once beforehand '
@@ -89,7 +89,7 @@ class GraphFourier(object):
         return self._check_fourier_properties('coherence',
                                               'Fourier basis coherence')
 
-    def compute_fourier_basis(self, n_eigenvectors=None, recompute=False):
+    def compute_fourier_basis(self, n_eigenvectors=None):
         r"""Compute the (partial) Fourier basis of the graph (cached).
 
         The result is cached and accessible by the :attr:`U`, :attr:`e`,
@@ -100,8 +100,6 @@ class GraphFourier(object):
         n_eigenvectors : int or `None`
             Number of eigenvectors to compute. If `None`, all eigenvectors
             are computed. (default: None)
-        recompute: bool
-            Force to recompute the Fourier basis if already existing.
 
         Notes
         -----
@@ -148,14 +146,13 @@ class GraphFourier(object):
 
         """
         if n_eigenvectors is None:
-            n_eigenvectors = self.N
+            n_eigenvectors = self.n_vertices
 
-        if (hasattr(self, '_e') and hasattr(self, '_U') and not recompute
-                and n_eigenvectors <= len(self.e)):
+        if (self._U is not None and n_eigenvectors <= len(self._e)):
             return
 
-        assert self.L.shape == (self.N, self.N)
-        if self.N**2 * n_eigenvectors > 3000**3:
+        assert self.L.shape == (self.n_vertices, self.n_vertices)
+        if self.n_vertices**2 * n_eigenvectors > 3000**3:
             self.logger.warning(
                 'Computing the {0} eigendecomposition of a large matrix ({1} x'
                 ' {1}) is expensive. Consider decreasing n_eigenvectors '
@@ -165,7 +162,7 @@ class GraphFourier(object):
                     self.N))
 
         # TODO: handle non-symmetric Laplacians. Test lap_type?
-        if n_eigenvectors == self.N:
+        if n_eigenvectors == self.n_vertices:
             self._e, self._U = np.linalg.eigh(self.L.toarray())
         else:
             # fast partial eigendecomposition of hermitian matrices
@@ -186,6 +183,7 @@ class GraphFourier(object):
         assert np.max(self._e) == self._e[-1]
         if n_eigenvectors == self.N:
             self._lmax = self._e[-1]
+            self._lmax_method = 'fourier'
             self._coherence = np.max(np.abs(self._U))
 
     def gft(self, s):

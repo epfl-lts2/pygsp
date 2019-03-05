@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 from collections import Counter
 
 import numpy as np
@@ -70,7 +72,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
            [2., 0., 5.],
            [0., 5., 0.]])
     >>> graph.d
-    array([1, 2, 1])
+    array([1, 2, 1], dtype=int32)
     >>> graph.dw
     array([2., 7., 5.])
     >>> graph.L.toarray()
@@ -103,37 +105,39 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         # CSR sparse matrices are the most efficient for matrix multiplication.
         # They are the sole sparse matrix type to support eliminate_zeros().
-        self.W = sparse.csr_matrix(adjacency, copy=False)
+        self._adjacency = sparse.csr_matrix(adjacency, copy=False)
 
-        if np.isnan(self.W.sum()):
+        if np.isnan(self._adjacency.sum()):
             raise ValueError('Adjacency: there is a Not a Number (NaN).')
-        if np.isinf(self.W.sum()):
+        if np.isinf(self._adjacency.sum()):
             raise ValueError('Adjacency: there is an infinite value.')
         if self.has_loops():
             self.logger.warning('Adjacency: there are self-loops '
                                 '(non-zeros on the diagonal). '
                                 'The Laplacian will not see them.')
-        if (self.W < 0).nnz != 0:
+        if (self._adjacency < 0).nnz != 0:
             self.logger.warning('Adjacency: there are negative edge weights.')
 
-        self.n_vertices = self.W.shape[0]
+        self.n_vertices = self._adjacency.shape[0]
 
         # Don't keep edges of 0 weight. Otherwise n_edges will not correspond
         # to the real number of edges. Problematic when plotting.
-        self.W.eliminate_zeros()
+        self._adjacency.eliminate_zeros()
+
+        self._directed = None
+        self._connected = None
 
         # Don't count edges two times if undirected.
         # Be consistent with the size of the differential operator.
         if self.is_directed():
-            self.n_edges = self.W.nnz
+            self.n_edges = self._adjacency.nnz
         else:
-            diagonal = np.count_nonzero(self.W.diagonal())
-            off_diagonal = self.W.nnz - diagonal
+            diagonal = np.count_nonzero(self._adjacency.diagonal())
+            off_diagonal = self._adjacency.nnz - diagonal
             self.n_edges = off_diagonal // 2 + diagonal
 
-        self.compute_laplacian(lap_type)
-
         if coords is not None:
+            # TODO: self.coords should be None if unset.
             self.coords = np.asanyarray(coords)
 
         self.plotting = {'vertex_size': 100,
@@ -142,6 +146,22 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                          'edge_width': 2,
                          'edge_style': '-'}
         self.plotting.update(plotting)
+
+        # Attributes that are lazily computed.
+        self._A = None
+        self._d = None
+        self._dw = None
+        self._lmax = None
+        self._lmax_method = None
+        self._U = None
+        self._e = None
+        self._coherence = None
+        self._D = None
+        # self._L = None
+
+        # TODO: what about Laplacian? Lazy as Fourier, or disallow change?
+        self.lap_type = lap_type
+        self.compute_laplacian(lap_type)
 
         # TODO: kept for backward compatibility.
         self.Ne = self.n_edges
@@ -291,16 +311,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             coords = None
         return Graph(adjacency, self.lap_type, coords, self.plotting)
 
-    def is_connected(self, recompute=False):
+    def is_connected(self):
         r"""Check if the graph is connected (cached).
 
         A graph is connected if and only if there exists a (directed) path
         between any two vertices.
-
-        Parameters
-        ----------
-        recompute: bool
-            Force to recompute the connectivity if already known.
 
         Returns
         -------
@@ -342,11 +357,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
 
         """
-        if hasattr(self, '_connected') and not recompute:
+        if self._connected is not None:
             return self._connected
 
         adjacencies = [self.W]
-        if self.is_directed(recompute=recompute):
+        if self.is_directed():
             adjacencies.append(self.W.T)
 
         for adjacency in adjacencies:
@@ -370,16 +385,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         self._connected = True
         return self._connected
 
-    def is_directed(self, recompute=False):
+    def is_directed(self):
         r"""Check if the graph has directed edges (cached).
 
         In this framework, we consider that a graph is directed if and
         only if its weight matrix is not symmetric.
-
-        Parameters
-        ----------
-        recompute : bool
-            Force to recompute the directedness if already known.
 
         Returns
         -------
@@ -410,10 +420,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         False
 
         """
-        if hasattr(self, '_directed') and not recompute:
-            return self._directed
-
-        self._directed = (self.W != self.W.T).nnz != 0
+        if self._directed is None:
+            self._directed = (self.W != self.W.T).nnz != 0
         return self._directed
 
     def has_loops(self):
@@ -602,11 +610,20 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> -1e-10 < G.e[0] < 1e-10 < G.e[-1] < 2*np.max(G.dw)
         True
         >>> G.compute_laplacian('normalized')
-        >>> G.compute_fourier_basis(recompute=True)
+        >>> G.compute_fourier_basis()
         >>> -1e-10 < G.e[0] < 1e-10 < G.e[-1] < 2
         True
 
         """
+
+        if lap_type != self.lap_type:
+            # Those attributes are invalidated when the Laplacian is changed.
+            # Alternative: don't allow the user to change the Laplacian.
+            self._lmax = None
+            self._U = None
+            self._e = None
+            self._coherence = None
+            self._D = None
 
         self.lap_type = lap_type
 
@@ -695,6 +712,17 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return x.T.dot(self.L.dot(x))
 
     @property
+    def W(self):
+        r"""Weighted adjacency matrix of the graph."""
+        return self._adjacency
+
+    @W.setter
+    def W(self, value):
+        # TODO: user can still do G.W[0, 0] = 1, or modify the passed W.
+        raise AttributeError('In-place modification of the graph is not '
+                             'supported. Create another Graph object.')
+
+    @property
     def A(self):
         r"""Graph adjacency matrix (the binary version of W).
 
@@ -702,20 +730,67 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         It is represented as an N-by-N matrix of booleans.
         :math:`A_{i,j}` is True if :math:`W_{i,j} > 0`.
         """
-        if not hasattr(self, '_A'):
+        if self._A is None:
             self._A = self.W > 0
         return self._A
 
     @property
     def d(self):
-        r"""The degree (the number of neighbors) of each node."""
-        if not hasattr(self, '_d'):
-            self._d = np.asarray(self.A.sum(axis=1)).squeeze()
+        r"""The degree (number of neighbors) of vertices.
+
+        For undirected graphs, the degree of a vertex is the number of vertices
+        it is connected to.
+        For directed graphs, the degree is the average of the in and out
+        degrees, where the in degree is the number of incoming edges, and the
+        out degree the number of outgoing edges.
+
+        In both cases, the degree of the vertex :math:`v_i` is the average
+        between the number of non-zero values in the :math:`i`-th column (the
+        in degree) and the :math:`i`-th row (the out degree) of the weighted
+        adjacency matrix :attr:`W`.
+
+        Examples
+        --------
+
+        Undirected graph:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 1, 0],
+        ...     [1, 0, 2],
+        ...     [0, 2, 0],
+        ... ])
+        >>> print(graph.d)  # Number of neighbors.
+        [1 2 1]
+        >>> print(graph.dw)  # Weighted degree.
+        [1 3 2]
+
+        Directed graph:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 1, 0],
+        ...     [0, 0, 2],
+        ...     [0, 2, 0],
+        ... ])
+        >>> print(graph.d)  # Number of neighbors.
+        [0.5 1.5 1. ]
+        >>> print(graph.dw)  # Weighted degree.
+        [0.5 2.5 2. ]
+
+        """
+        if self._d is None:
+            if not self.is_directed():
+                # Shortcut for undirected graphs.
+                self._d = self.W.getnnz(axis=1)
+                # axis=1 faster for CSR (https://stackoverflow.com/a/16391764)
+            else:
+                degree_in = self.W.getnnz(axis=0)
+                degree_out = self.W.getnnz(axis=1)
+                self._d = (degree_in + degree_out) / 2
         return self._d
 
     @property
     def dw(self):
-        r"""The weighted degree of nodes.
+        r"""The weighted degree of vertices.
 
         For undirected graphs, the weighted degree of the vertex :math:`v_i` is
         defined as
@@ -734,20 +809,40 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> graphs.Path(4, directed=False).dw
-        array([1., 2., 2., 1.])
-        >>> graphs.Path(4, directed=True).dw
-        array([0.5, 1. , 1. , 0.5])
+
+        Undirected graph:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 1, 0],
+        ...     [1, 0, 2],
+        ...     [0, 2, 0],
+        ... ])
+        >>> print(graph.d)  # Number of neighbors.
+        [1 2 1]
+        >>> print(graph.dw)  # Weighted degree.
+        [1 3 2]
+
+        Directed graph:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 1, 0],
+        ...     [0, 0, 2],
+        ...     [0, 2, 0],
+        ... ])
+        >>> print(graph.d)  # Number of neighbors.
+        [0.5 1.5 1. ]
+        >>> print(graph.dw)  # Weighted degree.
+        [0.5 2.5 2. ]
 
         """
-        if not hasattr(self, '_dw'):
+        if self._dw is None:
             if not self.is_directed():
                 # Shortcut for undirected graphs.
                 self._dw = np.ravel(self.W.sum(axis=0))
             else:
                 degree_in = np.ravel(self.W.sum(axis=0))
                 degree_out = np.ravel(self.W.sum(axis=1))
-                self._dw = 0.5 * (degree_in + degree_out)
+                self._dw = (degree_in + degree_out) / 2
         return self._dw
 
     @property
@@ -757,7 +852,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Can be exactly computed by :func:`compute_fourier_basis` or
         approximated by :func:`estimate_lmax`.
         """
-        if not hasattr(self, '_lmax'):
+        if self._lmax is None:
             self.logger.warning('The largest eigenvalue G.lmax is not '
                                 'available, we need to estimate it. '
                                 'Explicitly call G.estimate_lmax() or '
@@ -766,7 +861,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             self.estimate_lmax()
         return self._lmax
 
-    def estimate_lmax(self, method='lanczos', recompute=False):
+    def estimate_lmax(self, method='lanczos'):
         r"""Estimate the Laplacian's largest eigenvalue (cached).
 
         The result is cached and accessible by the :attr:`lmax` property.
@@ -781,8 +876,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             Whether to estimate the largest eigenvalue with the implicitly
             restarted Lanczos method, or to return an upper bound on the
             spectrum of the Laplacian.
-        recompute : boolean
-            Force to recompute the largest eigenvalue. Default is false.
 
         Notes
         -----
@@ -805,16 +898,17 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> G.compute_fourier_basis()  # True value.
         >>> print('{:.2f}'.format(G.lmax))
         13.78
-        >>> G.estimate_lmax(recompute=True)  # Estimate.
+        >>> G.estimate_lmax(method='lanczos')  # Estimate.
         >>> print('{:.2f}'.format(G.lmax))
         13.92
-        >>> G.estimate_lmax(method='bounds', recompute=True)  # Upper bound.
+        >>> G.estimate_lmax(method='bounds')  # Upper bound.
         >>> print('{:.2f}'.format(G.lmax))
         18.58
 
         """
-        if hasattr(self, '_lmax') and not recompute:
+        if method == self._lmax_method:
             return
+        self._lmax_method = method
 
         if method == 'lanczos':
             try:
