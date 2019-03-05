@@ -835,7 +835,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         [0.5 2.5 2. ]
 
         """
-        if self._dw is None:
+        if not hasattr(self, '_dw'):
             if not self.is_directed():
                 # Shortcut for undirected graphs.
                 self._dw = np.ravel(self.W.sum(axis=0))
