@@ -71,7 +71,6 @@ class TestCase(unittest.TestCase):
 
         for G in Gs:
             self.assertTrue(hasattr(G, 'coords'))
-            self.assertTrue(hasattr(G, 'A'))
             self.assertEqual(G.N, G.coords.shape[0])
 
             signal = np.arange(G.N) + 0.3
