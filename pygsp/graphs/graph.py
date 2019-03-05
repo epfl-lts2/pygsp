@@ -140,7 +140,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                          'vertex_color': (0.12, 0.47, 0.71, 0.5),
                          'edge_color': (0.5, 0.5, 0.5, 0.5),
                          'edge_width': 2,
-                         'edge_style': '-'}
+                         'edge_style': '-',
+                         'highlight_color': 'C1',
+                         'normalize_intercept': .25}
         self.plotting.update(plotting)
 
         # TODO: kept for backward compatibility.
