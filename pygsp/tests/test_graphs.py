@@ -76,6 +76,10 @@ class TestCase(unittest.TestCase):
                 graphs.Graph([[0, -1], [-1, 0]])
             with self.assertLogs(level='WARNING'):
                 graphs.Graph([[1, 1], [1, 0]])
+        for attr in ['A', 'd', 'dw', 'lmax', 'U', 'e', 'coherence', 'D']:
+            # FIXME: The Laplacian L should be there as well.
+            self.assertRaises(AttributeError, setattr, G, attr, None)
+            self.assertRaises(AttributeError, delattr, G, attr)
 
     def test_degree(self):
         graph = graphs.Graph([
@@ -134,12 +138,13 @@ class TestCase(unittest.TestCase):
         ])
         assert graph.W.nnz == 6
         self.assertEqual(graph.is_directed(), False)
-        graph.W[0, 1] = 0
-        assert graph.W.nnz == 6
-        self.assertEqual(graph.is_directed(recompute=True), True)
-        graph.W[1, 0] = 0
-        assert graph.W.nnz == 6
-        self.assertEqual(graph.is_directed(recompute=True), False)
+        # In-place modification is not allowed anymore.
+        # graph.W[0, 1] = 0
+        # assert graph.W.nnz == 6
+        # self.assertEqual(graph.is_directed(recompute=True), True)
+        # graph.W[1, 0] = 0
+        # assert graph.W.nnz == 6
+        # self.assertEqual(graph.is_directed(recompute=True), False)
 
     def test_laplacian(self):
 
@@ -203,9 +208,9 @@ class TestCase(unittest.TestCase):
         self.assertRaises(ValueError, graph.estimate_lmax, method='unk')
 
         def check_lmax(graph, lmax):
-            graph.estimate_lmax(method='bounds', recompute=True)
+            graph.estimate_lmax(method='bounds')
             np.testing.assert_allclose(graph.lmax, lmax)
-            graph.estimate_lmax(method='lanczos', recompute=True)
+            graph.estimate_lmax(method='lanczos')
             np.testing.assert_allclose(graph.lmax, lmax*1.01)
             graph.compute_fourier_basis()
             np.testing.assert_allclose(graph.lmax, lmax)

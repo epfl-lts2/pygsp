@@ -89,7 +89,7 @@ class GraphFourier(object):
         return self._check_fourier_properties('coherence',
                                               'Fourier basis coherence')
 
-    def compute_fourier_basis(self, n_eigenvectors=None, recompute=False):
+    def compute_fourier_basis(self, n_eigenvectors=None):
         r"""Compute the (partial) Fourier basis of the graph (cached).
 
         The result is cached and accessible by the :attr:`U`, :attr:`e`,
@@ -100,8 +100,6 @@ class GraphFourier(object):
         n_eigenvectors : int or `None`
             Number of eigenvectors to compute. If `None`, all eigenvectors
             are computed. (default: None)
-        recompute: bool
-            Force to recompute the Fourier basis if already existing.
 
         Notes
         -----
@@ -148,10 +146,9 @@ class GraphFourier(object):
 
         """
         if n_eigenvectors is None:
-            n_eigenvectors = self.N
+            n_eigenvectors = self.n_vertices
 
-        if (self._e is not None and self._U is not None and not recompute
-                and n_eigenvectors <= len(self._e)):
+        if (self._U is not None and n_eigenvectors <= len(self._e)):
             return
 
         assert self.L.shape == (self.n_vertices, self.n_vertices)
@@ -186,6 +183,7 @@ class GraphFourier(object):
         assert np.max(self._e) == self._e[-1]
         if n_eigenvectors == self.N:
             self._lmax = self._e[-1]
+            self._lmax_method = 'fourier'
             self._coherence = np.max(np.abs(self._U))
 
     def gft(self, s):

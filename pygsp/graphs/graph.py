@@ -105,35 +105,39 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         # CSR sparse matrices are the most efficient for matrix multiplication.
         # They are the sole sparse matrix type to support eliminate_zeros().
-        self.W = sparse.csr_matrix(adjacency, copy=False)
+        self._adjacency = sparse.csr_matrix(adjacency, copy=False)
 
-        if np.isnan(self.W.sum()):
+        if np.isnan(self._adjacency.sum()):
             raise ValueError('Adjacency: there is a Not a Number (NaN).')
-        if np.isinf(self.W.sum()):
+        if np.isinf(self._adjacency.sum()):
             raise ValueError('Adjacency: there is an infinite value.')
         if self.has_loops():
             self.logger.warning('Adjacency: there are self-loops '
                                 '(non-zeros on the diagonal). '
                                 'The Laplacian will not see them.')
-        if (self.W < 0).nnz != 0:
+        if (self._adjacency < 0).nnz != 0:
             self.logger.warning('Adjacency: there are negative edge weights.')
 
-        self.n_vertices = self.W.shape[0]
+        self.n_vertices = self._adjacency.shape[0]
 
         # Don't keep edges of 0 weight. Otherwise n_edges will not correspond
         # to the real number of edges. Problematic when plotting.
-        self.W.eliminate_zeros()
+        self._adjacency.eliminate_zeros()
+
+        self._directed = None
+        self._connected = None
 
         # Don't count edges two times if undirected.
         # Be consistent with the size of the differential operator.
         if self.is_directed():
-            self.n_edges = self.W.nnz
+            self.n_edges = self._adjacency.nnz
         else:
-            diagonal = np.count_nonzero(self.W.diagonal())
-            off_diagonal = self.W.nnz - diagonal
+            diagonal = np.count_nonzero(self._adjacency.diagonal())
+            off_diagonal = self._adjacency.nnz - diagonal
             self.n_edges = off_diagonal // 2 + diagonal
 
         if coords is not None:
+            # TODO: self.coords should be None if unset.
             self.coords = np.asanyarray(coords)
 
         self.plotting = {'vertex_size': 100,
@@ -148,6 +152,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         self._d = None
         self._dw = None
         self._lmax = None
+        self._lmax_method = None
         self._U = None
         self._e = None
         self._coherence = None
@@ -306,16 +311,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             coords = None
         return Graph(adjacency, self.lap_type, coords, self.plotting)
 
-    def is_connected(self, recompute=False):
+    def is_connected(self):
         r"""Check if the graph is connected (cached).
 
         A graph is connected if and only if there exists a (directed) path
         between any two vertices.
-
-        Parameters
-        ----------
-        recompute: bool
-            Force to recompute the connectivity if already known.
 
         Returns
         -------
@@ -357,11 +357,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
 
         """
-        if hasattr(self, '_connected') and not recompute:
+        if self._connected is not None:
             return self._connected
 
         adjacencies = [self.W]
-        if self.is_directed(recompute=recompute):
+        if self.is_directed():
             adjacencies.append(self.W.T)
 
         for adjacency in adjacencies:
@@ -385,16 +385,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         self._connected = True
         return self._connected
 
-    def is_directed(self, recompute=False):
+    def is_directed(self):
         r"""Check if the graph has directed edges (cached).
 
         In this framework, we consider that a graph is directed if and
         only if its weight matrix is not symmetric.
-
-        Parameters
-        ----------
-        recompute : bool
-            Force to recompute the directedness if already known.
 
         Returns
         -------
@@ -425,10 +420,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         False
 
         """
-        if hasattr(self, '_directed') and not recompute:
-            return self._directed
-
-        self._directed = (self.W != self.W.T).nnz != 0
+        if self._directed is None:
+            self._directed = (self.W != self.W.T).nnz != 0
         return self._directed
 
     def has_loops(self):
@@ -617,7 +610,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> -1e-10 < G.e[0] < 1e-10 < G.e[-1] < 2*np.max(G.dw)
         True
         >>> G.compute_laplacian('normalized')
-        >>> G.compute_fourier_basis(recompute=True)
+        >>> G.compute_fourier_basis()
         >>> -1e-10 < G.e[0] < 1e-10 < G.e[-1] < 2
         True
 
@@ -717,6 +710,17 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         """
         x = self._check_signal(x)
         return x.T.dot(self.L.dot(x))
+
+    @property
+    def W(self):
+        r"""Weighted adjacency matrix of the graph."""
+        return self._adjacency
+
+    @W.setter
+    def W(self, value):
+        # TODO: user can still do G.W[0, 0] = 1, or modify the passed W.
+        raise AttributeError('In-place modification of the graph is not '
+                             'supported. Create another Graph object.')
 
     @property
     def A(self):
@@ -857,7 +861,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             self.estimate_lmax()
         return self._lmax
 
-    def estimate_lmax(self, method='lanczos', recompute=False):
+    def estimate_lmax(self, method='lanczos'):
         r"""Estimate the Laplacian's largest eigenvalue (cached).
 
         The result is cached and accessible by the :attr:`lmax` property.
@@ -872,8 +876,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             Whether to estimate the largest eigenvalue with the implicitly
             restarted Lanczos method, or to return an upper bound on the
             spectrum of the Laplacian.
-        recompute : boolean
-            Force to recompute the largest eigenvalue. Default is false.
 
         Notes
         -----
@@ -896,16 +898,17 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> G.compute_fourier_basis()  # True value.
         >>> print('{:.2f}'.format(G.lmax))
         13.78
-        >>> G.estimate_lmax(recompute=True)  # Estimate.
+        >>> G.estimate_lmax(method='lanczos')  # Estimate.
         >>> print('{:.2f}'.format(G.lmax))
         13.92
-        >>> G.estimate_lmax(method='bounds', recompute=True)  # Upper bound.
+        >>> G.estimate_lmax(method='bounds')  # Upper bound.
         >>> print('{:.2f}'.format(G.lmax))
         18.58
 
         """
-        if self._lmax is not None and not recompute:
+        if method == self._lmax_method:
             return
+        self._lmax_method = method
 
         if method == 'lanczos':
             try:
