@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import warnings
-from itertools import groupby
+from __future__ import division
+
 from collections import Counter
 
 import numpy as np
@@ -72,7 +72,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
            [2., 0., 5.],
            [0., 5., 0.]])
     >>> graph.d
-    array([1, 2, 1])
+    array([1, 2, 1], dtype=int32)
     >>> graph.dw
     array([2., 7., 5.])
     >>> graph.L.toarray()
@@ -767,14 +767,61 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
     @property
     def d(self):
-        r"""The degree (the number of neighbors) of each node."""
+        r"""The degree (number of neighbors) of vertices.
+
+        For undirected graphs, the degree of a vertex is the number of vertices
+        it is connected to.
+        For directed graphs, the degree is the average of the in and out
+        degrees, where the in degree is the number of incoming edges, and the
+        out degree the number of outgoing edges.
+
+        In both cases, the degree of the vertex :math:`v_i` is the average
+        between the number of non-zero values in the :math:`i`-th column (the
+        in degree) and the :math:`i`-th row (the out degree) of the weighted
+        adjacency matrix :attr:`W`.
+
+        Examples
+        --------
+
+        Undirected graph:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 1, 0],
+        ...     [1, 0, 2],
+        ...     [0, 2, 0],
+        ... ])
+        >>> print(graph.d)  # Number of neighbors.
+        [1 2 1]
+        >>> print(graph.dw)  # Weighted degree.
+        [1 3 2]
+
+        Directed graph:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 1, 0],
+        ...     [0, 0, 2],
+        ...     [0, 2, 0],
+        ... ])
+        >>> print(graph.d)  # Number of neighbors.
+        [0.5 1.5 1. ]
+        >>> print(graph.dw)  # Weighted degree.
+        [0.5 2.5 2. ]
+
+        """
         if not hasattr(self, '_d'):
-            self._d = np.asarray(self.A.sum(axis=1)).squeeze()
+            if not self.is_directed():
+                # Shortcut for undirected graphs.
+                self._d = self.W.getnnz(axis=1)
+                # axis=1 faster for CSR (https://stackoverflow.com/a/16391764)
+            else:
+                degree_in = self.W.getnnz(axis=0)
+                degree_out = self.W.getnnz(axis=1)
+                self._d = (degree_in + degree_out) / 2
         return self._d
 
     @property
     def dw(self):
-        r"""The weighted degree of nodes.
+        r"""The weighted degree of vertices.
 
         For undirected graphs, the weighted degree of the vertex :math:`v_i` is
         defined as
@@ -793,10 +840,30 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
-        >>> graphs.Path(4, directed=False).dw
-        array([1., 2., 2., 1.])
-        >>> graphs.Path(4, directed=True).dw
-        array([0.5, 1. , 1. , 0.5])
+
+        Undirected graph:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 1, 0],
+        ...     [1, 0, 2],
+        ...     [0, 2, 0],
+        ... ])
+        >>> print(graph.d)  # Number of neighbors.
+        [1 2 1]
+        >>> print(graph.dw)  # Weighted degree.
+        [1 3 2]
+
+        Directed graph:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 1, 0],
+        ...     [0, 0, 2],
+        ...     [0, 2, 0],
+        ... ])
+        >>> print(graph.d)  # Number of neighbors.
+        [0.5 1.5 1. ]
+        >>> print(graph.dw)  # Weighted degree.
+        [0.5 2.5 2. ]
 
         """
         if not hasattr(self, '_dw'):
@@ -806,7 +873,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             else:
                 degree_in = np.ravel(self.W.sum(axis=0))
                 degree_out = np.ravel(self.W.sum(axis=1))
-                self._dw = 0.5 * (degree_in + degree_out)
+                self._dw = (degree_in + degree_out) / 2
         return self._dw
 
     @property
