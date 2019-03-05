@@ -800,7 +800,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         """
         if not hasattr(self, '_dw'):
-            if not self.is_directed:
+            if not self.is_directed():
+                # Shortcut for undirected graphs.
                 self._dw = np.ravel(self.W.sum(axis=0))
             else:
                 degree_in = np.ravel(self.W.sum(axis=0))
