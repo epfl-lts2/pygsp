@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import warnings
-from itertools import groupby
+from __future__ import division
+
 from collections import Counter
 
 import numpy as np
@@ -75,7 +75,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
            [2., 0., 5.],
            [0., 5., 0.]])
     >>> graph.d
-    array([1, 2, 1])
+    array([1, 2, 1], dtype=int32)
     >>> graph.dw
     array([2., 7., 5.])
     >>> graph.L.toarray()
@@ -777,7 +777,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         [0.5 2.5 2. ]
 
         """
-        if self._d is None:
+        if not hasattr(self, '_d'):
             if not self.is_directed():
                 # Shortcut for undirected graphs.
                 self._d = self.W.getnnz(axis=1)

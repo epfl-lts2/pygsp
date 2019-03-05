@@ -136,53 +136,6 @@ class TestCase(unittest.TestCase):
         ])
         assert graph.W.nnz == 6
         self.assertEqual(graph.is_directed(), False)
-        # In-place modification is not allowed anymore.
-        # graph.W[0, 1] = 0
-        # assert graph.W.nnz == 6
-        # self.assertEqual(graph.is_directed(recompute=True), True)
-        # graph.W[1, 0] = 0
-        # assert graph.W.nnz == 6
-        # self.assertEqual(graph.is_directed(recompute=True), False)
-
-    def test_is_connected(self):
-        graph = graphs.Graph([
-            [0, 1, 0],
-            [1, 0, 2],
-            [0, 2, 0],
-        ])
-        self.assertEqual(graph.is_directed(), False)
-        self.assertEqual(graph.is_connected(), True)
-        graph = graphs.Graph([
-            [0, 1, 0],
-            [1, 0, 0],
-            [0, 2, 0],
-        ])
-        self.assertEqual(graph.is_directed(), True)
-        self.assertEqual(graph.is_connected(), False)
-        graph = graphs.Graph([
-            [0, 1, 0],
-            [1, 0, 0],
-            [0, 0, 0],
-        ])
-        self.assertEqual(graph.is_directed(), False)
-        self.assertEqual(graph.is_connected(), False)
-        graph = graphs.Graph([
-            [0, 1, 0],
-            [0, 0, 2],
-            [3, 0, 0],
-        ])
-        self.assertEqual(graph.is_directed(), True)
-        self.assertEqual(graph.is_connected(), True)
-
-    def test_is_directed(self):
-        graph = graphs.Graph([
-            [0, 3, 0, 0],
-            [3, 0, 4, 0],
-            [0, 4, 0, 2],
-            [0, 0, 2, 0],
-        ])
-        assert graph.W.nnz == 6
-        self.assertEqual(graph.is_directed(), False)
         graph.W[0, 1] = 0
         assert graph.W.nnz == 6
         self.assertEqual(graph.is_directed(recompute=True), True)
