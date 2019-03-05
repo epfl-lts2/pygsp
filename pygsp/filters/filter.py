@@ -642,7 +642,7 @@ class Filter(object):
         >>> g += g.complement()
         >>> A, B = g.estimate_frame_bounds()
         >>> print('A={:.3f}, B={:.3f}'.format(A, B))
-        A=1.972, B=1.972
+        A=1.971, B=1.971
         >>> fig, ax = g.plot(ax=axes[1])
 
         """

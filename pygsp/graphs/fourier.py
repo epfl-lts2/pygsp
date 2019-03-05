@@ -156,8 +156,7 @@ class FourierMixIn(object):
         if n_eigenvectors is None:
             n_eigenvectors = self.n_vertices
 
-        if (self._e is not None and self._U is not None and not recompute
-                and n_eigenvectors <= len(self._e)):
+        if (self._U is not None and n_eigenvectors <= len(self._e)):
             return
 
         assert self.L.shape == (self.n_vertices, self.n_vertices)

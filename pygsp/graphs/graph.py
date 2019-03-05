@@ -108,24 +108,27 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         # CSR sparse matrices are the most efficient for matrix multiplication.
         # They are the sole sparse matrix type to support eliminate_zeros().
-        self.W = sparse.csr_matrix(adjacency, copy=False)
+        self._adjacency = sparse.csr_matrix(adjacency, copy=False)
 
-        if np.isnan(self.W.sum()):
+        if np.isnan(self._adjacency.sum()):
             raise ValueError('Adjacency: there is a Not a Number (NaN).')
-        if np.isinf(self.W.sum()):
+        if np.isinf(self._adjacency.sum()):
             raise ValueError('Adjacency: there is an infinite value.')
         if self.has_loops():
             self.logger.warning('Adjacency: there are self-loops '
                                 '(non-zeros on the diagonal). '
                                 'The Laplacian will not see them.')
-        if (self.W < 0).nnz != 0:
+        if (self._adjacency < 0).nnz != 0:
             self.logger.warning('Adjacency: there are negative edge weights.')
 
-        self.n_vertices = self.W.shape[0]
+        self.n_vertices = self._adjacency.shape[0]
 
         # Don't keep edges of 0 weight. Otherwise n_edges will not correspond
         # to the real number of edges. Problematic when plotting.
-        self.W.eliminate_zeros()
+        self._adjacency.eliminate_zeros()
+
+        self._directed = None
+        self._connected = None
 
         # Don't count edges two times if undirected.
         # Be consistent with the size of the differential operator.
@@ -137,6 +140,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             self.n_edges = off_diagonal // 2 + diagonal
 
         if coords is not None:
+            # TODO: self.coords should be None if unset.
             self.coords = np.asanyarray(coords)
 
         self.plotting = {'vertex_size': 100,
@@ -154,6 +158,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         self._d = None
         self._dw = None
         self._lmax = None
+        self._lmax_method = None
         self._U = None
         self._e = None
         self._coherence = None
@@ -362,7 +367,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             return self._connected
 
         adjacencies = [self.W]
-        if self.is_directed(recompute=recompute):
+        if self.is_directed():
             adjacencies.append(self.W.T)
 
         for adjacency in adjacencies:
@@ -391,11 +396,6 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         In this framework, we consider that a graph is directed if and
         only if its weight matrix is not symmetric.
-
-        Parameters
-        ----------
-        recompute : bool
-            Force to recompute the directedness if already known.
 
         Returns
         -------
@@ -426,10 +426,8 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         False
 
         """
-        if hasattr(self, '_directed') and not recompute:
-            return self._directed
-
-        self._directed = (self.W != self.W.T).nnz != 0
+        if self._directed is None:
+            self._directed = (self.W != self.W.T).nnz != 0
         return self._directed
 
     def has_loops(self):
@@ -919,7 +917,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         18.58
 
         """
-        if self._lmax is not None and not recompute:
+        if method == self._lmax_method:
             return
         self._lmax_method = method
 
