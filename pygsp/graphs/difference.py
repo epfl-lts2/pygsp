@@ -213,20 +213,29 @@ class GraphDifference(object):
 
         Examples
         --------
+
+        Non-directed graph and combinatorial Laplacian:
+
         >>> graph = graphs.Path(4, directed=False, lap_type='combinatorial')
         >>> graph.compute_differential_operator()
         >>> graph.grad([0, 2, 4, 2])
         array([ 2.,  2., -2.])
+
+        Directed graph and combinatorial Laplacian:
 
         >>> graph = graphs.Path(4, directed=True, lap_type='combinatorial')
         >>> graph.compute_differential_operator()
         >>> graph.grad([0, 2, 4, 2])
         array([ 1.41421356,  1.41421356, -1.41421356])
 
+        Non-directed graph and normalized Laplacian:
+
         >>> graph = graphs.Path(4, directed=False, lap_type='normalized')
         >>> graph.compute_differential_operator()
         >>> graph.grad([0, 2, 4, 2])
         array([ 1.41421356,  1.41421356, -0.82842712])
+
+        Directed graph and normalized Laplacian:
 
         >>> graph = graphs.Path(4, directed=True, lap_type='normalized')
         >>> graph.compute_differential_operator()
@@ -286,20 +295,29 @@ class GraphDifference(object):
 
         Examples
         --------
+
+        Non-directed graph and combinatorial Laplacian:
+
         >>> graph = graphs.Path(4, directed=False, lap_type='combinatorial')
         >>> graph.compute_differential_operator()
         >>> graph.div([2, -2, 0])
         array([-2.,  4., -2.,  0.])
+
+        Directed graph and combinatorial Laplacian:
 
         >>> graph = graphs.Path(4, directed=True, lap_type='combinatorial')
         >>> graph.compute_differential_operator()
         >>> graph.div([2, -2, 0])
         array([-1.41421356,  2.82842712, -1.41421356,  0.        ])
 
+        Non-directed graph and normalized Laplacian:
+
         >>> graph = graphs.Path(4, directed=False, lap_type='normalized')
         >>> graph.compute_differential_operator()
         >>> graph.div([2, -2, 0])
         array([-2.        ,  2.82842712, -1.41421356,  0.        ])
+
+        Directed graph and normalized Laplacian:
 
         >>> graph = graphs.Path(4, directed=True, lap_type='normalized')
         >>> graph.compute_differential_operator()

@@ -406,16 +406,16 @@ class Filter(object):
 
         As :math:`g(L) = U g(\Lambda) U^\top` is diagonalized by the Fourier
         basis :math:`U` with eigenvalues :math:`\Lambda`, :math:`\| g(L) x \|^2
-        = \| g(\Lambda) U x \|^2`, and :math:`A = \min g^2(\Lambda)`,
+        = \| g(\Lambda) U^\top x \|^2`, and :math:`A = \min g^2(\Lambda)`,
         :math:`B = \max g^2(\Lambda)`.
 
         Parameters
         ----------
         x : array_like
             Graph frequencies at which to evaluate the filter bank `g(x)`.
-            The default is `x = np.linspace(0, G.lmax, 1000)`.
+            The default is ``x = np.linspace(0, G.lmax, 1000)``.
             The exact bounds are given by evaluating the filter bank at the
-            eigenvalues of the graph Laplacian, i.e., `x = G.e`.
+            eigenvalues of the graph Laplacian, i.e., ``x = G.e``.
 
         Returns
         -------

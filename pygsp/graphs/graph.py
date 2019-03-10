@@ -691,6 +691,9 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Examples
         --------
+
+        Non-directed graph:
+
         >>> graph = graphs.Path(5, directed=False)
         >>> signal = [0, 2, 2, 4, 4]
         >>> graph.dirichlet_energy(signal)
@@ -699,6 +702,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> graph.compute_differential_operator()
         >>> graph.grad(signal)
         array([2., 0., 2., 0.])
+
+        Directed graph:
 
         >>> graph = graphs.Path(5, directed=True)
         >>> signal = [0, 2, 2, 4, 4]

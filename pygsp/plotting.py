@@ -15,7 +15,7 @@ Filters (from :mod:`pygsp.filters`) are to be plotted with
 
 .. data:: BACKEND
 
-    Indicates which drawing backend to use if none are provided to the plotting
+    The default drawing backend to use if none are provided to the plotting
     functions. Should be either ``'matplotlib'`` or ``'pyqtgraph'``. In general
     pyqtgraph is better for interactive exploration while matplotlib is better
     at generating figures to be included in papers or elsewhere.
@@ -128,7 +128,7 @@ def close_all():
 
 
 def show(*args, **kwargs):
-    r"""Show created figures, alias to plt.show().
+    r"""Show created figures, alias to ``plt.show()``.
 
     By default, showing plots does not block the prompt.
     Calling this function will block execution.
@@ -138,7 +138,7 @@ def show(*args, **kwargs):
 
 
 def close(*args, **kwargs):
-    r"""Close last created figure, alias to plt.close()."""
+    r"""Close last created figure, alias to ``plt.close()``."""
     _, plt, _ = _import_plt()
     plt.close(*args, **kwargs)
 
