@@ -40,19 +40,26 @@ class GraphFourier(object):
     def coherence(self):
         r"""Coherence of the Fourier basis.
 
-        The mutual coherence between the basis of Kronecker deltas on the graph
-        and the basis of graph Laplacian eigenvectors is defined as
+        The *mutual coherence* between the basis of Kronecker deltas and the
+        basis formed by the eigenvectors of the graph Laplacian is defined as
 
-        .. math:: \mu = \max_{\ell,i} | \langle U_\ell, \delta_i \rangle |
+        .. math:: \mu = \max_{\ell,i} \langle U_\ell, \delta_i \rangle
                       = \max_{\ell,i} | U_{\ell, i} |
-                      \in \left[ \frac{1}{\sqrt{N}}, 1 \right].
+                      \in \left[ \frac{1}{\sqrt{N}}, 1 \right],
 
-        It is a measure of the localization of the Fourier modes (Laplacian
-        eigenvectors). The smaller the value, the more localized the
+        where :math:`N` is the number of vertices, :math:`\delta_i \in
+        \mathbb{R}^N` denotes the Kronecker delta that is non-zero on vertex
+        :math:`v_i`, and :math:`U_\ell \in \mathbb{R}^N` denotes the
+        :math:`\ell^\text{th}` eigenvector of the graph Laplacian (i.e., the
+        :math:`\ell^\text{th}` Fourier mode).
+
+        The coherence is a measure of the localization of the Fourier modes
+        (Laplacian eigenvectors). The larger the value, the more localized the
         eigenvectors can be. The extreme is a node that is disconnected from
         the rest of the graph: an eigenvector will be localized as a Kronecker
-        delta there. In the classical setting, Fourier modes (which are complex
-        exponentials) are completely delocalized, and the coherence equals one.
+        delta there (i.e., :math:`\mu = 1`). In the classical setting, Fourier
+        modes (which are complex exponentials) are completely delocalized, and
+        the coherence is minimal.
 
         The value is computed by :meth:`compute_fourier_basis`.
 
@@ -74,7 +81,7 @@ class GraphFourier(object):
 
         Localized eigenvectors.
 
-        >>> graph = graphs.Sensor(64, seed=20)
+        >>> graph = graphs.Sensor(64, seed=10)
         >>> graph.compute_fourier_basis()
         >>> minimum = 1 / np.sqrt(graph.n_vertices)
         >>> print('{:.2f} in [{:.2f}, 1]'.format(graph.coherence, minimum))
@@ -82,8 +89,9 @@ class GraphFourier(object):
         >>>
         >>> # Plot the most localized eigenvector.
         >>> import matplotlib.pyplot as plt
-        >>> idx = np.argmax(np.max(graph.U, axis=0))
-        >>> _ = graph.plot(graph.U[:, idx])
+        >>> idx = np.argmax(np.abs(graph.U))
+        >>> idx_vertex, idx_fourier = np.unravel_index(idx, graph.U.shape)
+        >>> _ = graph.plot(graph.U[:, idx_fourier], highlight=idx_vertex)
 
         """
         return self._check_fourier_properties('coherence',
