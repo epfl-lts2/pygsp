@@ -85,7 +85,11 @@ class FourierMixIn(object):
         >>> graph.compute_fourier_basis()
         >>> minimum = 1 / np.sqrt(graph.n_vertices)
         >>> print('{:.2f} in [{:.2f}, 1]'.format(graph.coherence, minimum))
+<<<<<<< HEAD
         0.91 in [0.12, 1]
+=======
+        0.75 in [0.12, 1]
+>>>>>>> doc: update Fourier coherence
         >>>
         >>> # Plot the most localized eigenvector.
         >>> import matplotlib.pyplot as plt
