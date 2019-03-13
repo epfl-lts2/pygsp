@@ -189,6 +189,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             s += '{}={}, '.format(key, value)
         return '{}({})'.format(self.__class__.__name__, s[:-2])
 
+
     def set_coordinates(self, kind='spring', **kwargs):
         r"""Set node's coordinates (their position when plotting).
 
