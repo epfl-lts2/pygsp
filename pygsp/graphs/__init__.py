@@ -87,12 +87,25 @@ Plotting
     Graph.plot
     Graph.plot_spectrogram
 
+Import and export (I/O)
+-----------------------
+
+.. autosummary::
+
+    Graph.load
+    Graph.save
+    Graph.from_networkx
+    Graph.to_networkx
+    Graph.from_graphtool
+    Graph.to_graphtool
+
 Others
 ------
 
 .. autosummary::
 
     Graph.get_edge_list
+    Graph.set_signal
     Graph.set_coordinates
     Graph.subgraph
     Graph.extract_components
