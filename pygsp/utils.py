@@ -365,25 +365,29 @@ def import_functions(names, src, dst):
         module = importlib.import_module('pygsp.' + src)
         setattr(sys.modules['pygsp.' + dst], name, getattr(module, name))
 
-def numpy2graph_tool_type(dtype):
+
+def convert_dtype(dtype):
     r"""Convert from numpy dtype to graph tool types.
 
-    The supported numpy types are: {bool_, int_, int16, int32, int64,
-    float_, float16, float32, float64}
-    See graph_tool `doc <https://graph-tool.skewed.de/static/doc/quickstart.html#property-maps>`_ for more details.
+    The supported numpy types are: ``bool_``, ``int_``, ``int16``, ``int32``,
+    ``int64``, ``float_``, ``float16``, ``float32``, ``float64``.
+
+    See the `graph-tool documentation
+    <https://graph-tool.skewed.de/static/doc/quickstart.html#property-maps>`_
+    for details.
 
     Parameters
     ----------
     dtype : :class:`numpy.dtype`
+        Numpy data type.
 
     Returns
     -------
-    graph_tool_type : string
-        A string representing the type ready to be use by graph_tool
+    type : string
+        A string representing the type, ready to be used by graph-tool.
 
     """
-    # Encode the numpy types with its correspondence in graph_tool
-    numpy2gt_type = {
+    translation = {
         np.bool_: 'bool',
         np.int_: 'int',
         np.int16: 'int16_t',
@@ -396,8 +400,8 @@ def numpy2graph_tool_type(dtype):
     }
 
     try:
-        graph_tool_type = numpy2gt_type[dtype.type]
-    except:
+        graph_tool_type = translation[dtype.type]
+    except KeyError:
         graph_tool_type = None
 
     return graph_tool_type

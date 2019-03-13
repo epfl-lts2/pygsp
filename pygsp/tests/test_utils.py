@@ -32,5 +32,11 @@ class TestCase(unittest.TestCase):
             np.testing.assert_equal(W1.toarray(), W2)
         self.assertRaises(ValueError, utils.symmetrize, W, 'sum')
 
+    def test_convert_dtype(self):
+        signal = np.zeros(10, dtype=np.int16)
+        self.assertEqual(utils.convert_dtype(signal.dtype), 'int16_t')
+        signal = np.zeros(10, dtype=np.float128)
+        self.assertEqual(utils.convert_dtype(signal.dtype), None)
+
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

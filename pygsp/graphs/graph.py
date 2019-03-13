@@ -240,7 +240,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         graph_gt = graph_tool.Graph(directed=self.is_directed())
         v_in, v_out, weights = self.get_edge_list()
         graph_gt.add_edge_list(np.asarray((v_in, v_out)).T)
-        weight_type_str = utils.numpy2graph_tool_type(weights.dtype)
+        weight_type_str = utils.convert_dtype(weights.dtype)
         if weight_type_str is None:
             raise ValueError("Type {} for the weights is not supported"
                              .format(str(weights.dtype)))
@@ -248,7 +248,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         edge_weight.a = weights
         graph_gt.edge_properties['weight'] = edge_weight
         for name in self.signals:
-            edge_type_str = utils.numpy2graph_tool_type(weights.dtype)
+            edge_type_str = utils.convert_dtype(weights.dtype)
             if edge_type_str is None:
                 raise ValueError("Type {} from signal {} is not supported"
                                  .format(str(self.signals[name].dtype), name))
