@@ -2,8 +2,6 @@
 
 from __future__ import division
 
-import warnings
-from itertools import groupby
 from collections import Counter
 
 import numpy as np
