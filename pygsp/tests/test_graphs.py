@@ -9,11 +9,16 @@ from __future__ import division
 
 import sys
 import unittest
+import random
+import os
+import sys
 
 import numpy as np
 import scipy.linalg
 from scipy import sparse
 import networkx as nx
+import graph_tool as gt
+import graph_tool.generation
 from skimage import data, img_as_float
 
 from pygsp import graphs
@@ -577,4 +582,184 @@ class TestCase(unittest.TestCase):
         graphs.Grid2dImgPatches(img=self._img, patch_shape=(3, 3))
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
+suite_graphs = unittest.TestLoader().loadTestsFromTestCase(TestCase)
+
+
+class TestCaseImportExport(unittest.TestCase):
+
+    def test_networkx_export_import(self):
+        # Export to networkx and reimport to PyGSP
+
+        # Exporting the Bunny graph
+        g = graphs.Bunny()
+        g_nx = g.to_networkx()
+        g2 = graphs.Graph.from_networkx(g_nx)
+        np.testing.assert_array_equal(g.W.todense(), g2.W.todense())
+
+    def test_networkx_import_export(self):
+        # Import from networkx then export to networkx again
+        g_nx = nx.gnm_random_graph(100, 50)  # Generate a random graph
+        g = graphs.Graph.from_networkx(g_nx).to_networkx()
+
+        np.testing.assert_array_equal(nx.adjacency_matrix(g_nx).todense(),
+                                      nx.adjacency_matrix(g).todense())
+
+    def test_graphtool_export_import(self):
+        # Export to graph tool and reimport to PyGSP directly
+        # The exported graph is a simple one without an associated Signal
+        if sys.version_info < (3, 0):
+            return None  # skip test for python 2.7
+        g = graphs.Bunny()
+        g_gt = g.to_graphtool()
+        g2 = graphs.Graph.from_graphtool(g_gt)
+        np.testing.assert_array_equal(g.W.todense(), g2.W.todense())
+
+    def test_graphtool_multiedge_import(self):
+        if sys.version_info < (3, 0):
+            return None  # skip test for python2.7
+        # Manualy create a graph with multiple edges
+        g_gt = gt.Graph()
+        g_gt.add_vertex(10)
+        # connect edge (3,6) three times
+        for i in range(3):
+            g_gt.add_edge(g_gt.vertex(3), g_gt.vertex(6))
+        g = graphs.Graph.from_graphtool(g_gt)
+        self.assertEqual(g.W[3, 6], 3.0)
+
+        eprop_double = g_gt.new_edge_property("double")
+
+        # Set the weight of 2 out of the 3 edges. The last one has a default weight of 0
+        e = g_gt.edge(3, 6, all_edges=True)
+        eprop_double[e[0]] = 8.0
+        eprop_double[e[1]] = 1.0
+
+        g_gt.edge_properties["weight"] = eprop_double
+        g3 = graphs.Graph.from_graphtool(g_gt)
+        self.assertEqual(g3.W[3, 6], 9.0)
+
+    def test_graphtool_import_export(self):
+        # Import to PyGSP and export again to graph tool directly
+        # create a random graphTool graph that does not contain multiple edges and no signal
+        if sys.version_info < (3, 0):
+            return None  # skip test for python2.7
+        graph_gt = gt.generation.random_graph(100, lambda : (np.random.poisson(4), np.random.poisson(4)))
+
+        eprop_double = graph_gt.new_edge_property("double")
+        for e in graph_gt.edges():
+            eprop_double[e] = random.random()
+        graph_gt.edge_properties["weight"] = eprop_double
+
+        graph2_gt = graphs.Graph.from_graphtool(graph_gt).to_graphtool()
+
+        self.assertEqual(graph_gt.num_edges(), graph2_gt.num_edges(),
+                         "the number of edges does not correspond")
+
+        def key(edge): return str(edge.source()) + ":" + str(edge.target())
+
+        for e1, e2 in zip(sorted(graph_gt.edges(), key=key), sorted(graph2_gt.edges(), key=key)):
+            self.assertEqual(e1.source(), e2.source())
+            self.assertEqual(e1.target(), e2.target())
+        for v1, v2 in zip(graph_gt.vertices(), graph2_gt.vertices()):
+            self.assertEqual(v1, v2)
+
+    def test_networkx_signal_export(self):
+        graph = graphs.BarabasiAlbert(N=100, seed=42)
+        np.random.seed(42)
+        signal1 = np.random.random(graph.N)
+        signal2 = np.random.random(graph.N)
+        graph.set_signal(signal1, "signal1")
+        graph.set_signal(signal2, "signal2")
+        graph_nx = graph.to_networkx()
+        for i in range(graph.N):
+            self.assertEqual(graph_nx.node[i]["signal1"], signal1[i])
+            self.assertEqual(graph_nx.node[i]["signal2"], signal2[i])
+
+    def test_graphtool_signal_export(self):
+        g = graphs.Logo()
+        np.random.seed(42)
+        s = np.random.random(g.N)
+        s2 = np.random.random(g.N)
+        g.set_signal(s, "signal1")
+        g.set_signal(s2, "signal2")
+        g_gt = g.to_graphtool()
+        # Check the signals on all nodes
+        for i, v in enumerate(g_gt.vertices()):
+            self.assertEqual(g_gt.vertex_properties["signal1"][v], s[i])
+            self.assertEqual(g_gt.vertex_properties["signal2"][v], s2[i])
+
+    def test_graphtool_signal_import(self):
+        if sys.version_info < (3, 0):
+            return None  # skip test for python2.7
+        g_gt = gt.Graph()
+        g_gt.add_vertex(10)
+
+        g_gt.add_edge(g_gt.vertex(3), g_gt.vertex(6))
+        g_gt.add_edge(g_gt.vertex(4), g_gt.vertex(6))
+        g_gt.add_edge(g_gt.vertex(7), g_gt.vertex(2))
+
+        vprop_double = g_gt.new_vertex_property("double")
+
+        vprop_double[g_gt.vertex(0)] = 5
+        vprop_double[g_gt.vertex(1)] = -3
+        vprop_double[g_gt.vertex(2)] = 2.4
+
+        g_gt.vertex_properties["signal"] = vprop_double
+        g = graphs.Graph.from_graphtool(g_gt)
+        self.assertEqual(g.signals["signal"][0], 5.0)
+        self.assertEqual(g.signals["signal"][1], -3.0)
+        self.assertEqual(g.signals["signal"][2], 2.4)
+
+    def test_networkx_signal_import(self):
+        g_nx = nx.Graph()
+        g_nx.add_edge(3, 4)
+        g_nx.add_edge(2, 4)
+        g_nx.add_edge(3, 5)
+        dic_signal = {
+            2: 4.0,
+            3: 5.0,
+            4: 3.3,
+            5: 2.3
+        }
+
+        nx.set_node_attributes(g_nx, dic_signal, "signal1")
+        g = graphs.Graph.from_networkx(g_nx)
+
+        for i, node in enumerate(g_nx.node):
+            self.assertEqual(g.signals["signal1"][i],
+                             nx.get_node_attributes(g_nx, "signal1")[node])
+
+    def test_save_load(self):
+        if sys.version_info >= (3, 6):
+            graph = graphs.Sensor(seed=42)
+            np.random.seed(42)
+            signal = np.random.random(graph.N)
+            graph.set_signal(signal, "signal")
+
+            # save
+            nx_gt = ['gml', 'graphml']
+            all_files = []
+            for fmt in nx_gt:
+                all_files += ["graph_gt.{}".format(fmt), "graph_nx.{}".format(fmt)]
+                graph.save("graph_gt.{}".format(fmt), backend='graph_tool')
+                graph.save("graph_nx.{}".format(fmt), backend='networkx')
+            graph.save("graph_nx.{}".format('gexf'), backend='networkx')
+            all_files += ["graph_nx.{}".format('gexf')]
+
+            # load
+            for filename in all_files:
+                if not "_gt" in filename:
+                    graph_loaded_nx = graphs.Graph.load(filename, backend='networkx')
+                    np.testing.assert_array_equal(graph.W.todense(), graph_loaded_nx.W.todense())
+                    np.testing.assert_array_equal(signal, graph_loaded_nx.signals['signal'])
+                if not ".gexf" in filename:
+                    graph_loaded_gt = graphs.Graph.load(filename, backend='graph_tool')
+                    np.testing.assert_allclose(graph.W.todense(), graph_loaded_gt.W.todense(), atol=0.000001)
+                    np.testing.assert_allclose(signal, graph_loaded_gt.signals['signal'], atol=0.000001)
+
+            # clean
+            for filename in all_files:
+                os.remove(filename)
+
+
+suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestCaseImportExport)
+suite = unittest.TestSuite([suite_graphs, suite_import_export])

@@ -3,6 +3,21 @@
 # https://github.com/travis-ci/travis-ci/issues/9815
 dist: xenial
 
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    - sourceline: 'deb https://downloads.skewed.de/apt/xenial xenial universe'
+      key_url: 'https://pgp.skewed.de/pks/lookup?op=get&search=0x612DEFB798507F25'
+    - sourceline: 'deb http://downloads.skewed.de/apt/trusty trusty universe'
+      key_url: 'https://packagecloud.io/gpg.key'
+    - sourceline: 'deb-src http://downloads.skewed.de/apt/trusty trusty universe'
+      key_url: 'https://packagecloud.io/gpg.key'
+    packages:
+    - python-graph-tool
+    - python3-graph-tool
+    - libqt5gui5  # pyqt5>5.11 fails to load the xcb platform plugin without it
+
 language: python
 
 python:
@@ -16,10 +31,12 @@ matrix:
       dist: trusty  # "cannot import name QtOpenGL" with xenial
       cache: pip  # avoid PySide wheel build
 
-addons:
-  apt:
-    packages:
-    - libqt5gui5  # pyqt5>5.11 fails to load the xcb platform plugin without it
+before_install:
+  - echo $(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+  - mkdir -p $(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+  - if [[ $(python -c 'import sys; print(sys.version_info[0])') = 3 ]] ;
+    then ln -s /usr/lib/python3/dist-packages/graph_tool $(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())");
+    else ln -s /usr/lib/python2.7/dist-packages/graph_tool $(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"); fi
 
 install:
   - pip install --upgrade --upgrade-strategy eager .[dev]

@@ -2,6 +2,8 @@
 
 from __future__ import division
 
+import warnings
+from itertools import groupby
 from collections import Counter
 
 import numpy as np
@@ -52,6 +54,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         Vertices coordinates in 2D or 3D space. Used for plotting only.
     plotting : dict
         Plotting parameters.
+    signals : dict (String -> numpy.array)
+        Signals attached to the graph.
 
     Examples
     --------
@@ -148,6 +152,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                          'highlight_color': 'C1',
                          'normalize_intercept': .25}
         self.plotting.update(plotting)
+        self.signals = dict()
 
         # Attributes that are lazily computed.
         self._A = None
@@ -182,6 +187,302 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                 break
             s += '{}={}, '.format(key, value)
         return '{}({})'.format(self.__class__.__name__, s[:-2])
+
+    def to_networkx(self):
+        r"""Export the graph to an `Networkx <https://networkx.github.io>`_ object
+
+        The weights are stored as an edge attribute under the name `weight`.
+        The signals are stored as node attributes under the name given when
+        adding them with :meth:`set_signal`.
+
+        Returns
+        -------
+        graph_nx : :py:class:`networkx.Graph`
+
+        Examples
+        --------
+        >>> graph = graphs.Logo()
+        >>> nx_graph = graph.to_networkx()
+        >>> print(nx_graph.number_of_nodes())
+        1130
+
+        """
+        import networkx as nx
+        graph_nx = nx.from_scipy_sparse_matrix(
+            self.W, create_using=nx.DiGraph()
+            if self.is_directed() else nx.Graph(),
+            edge_attribute='weight')
+
+        for name, signal in self.signals.items():
+            # networkx can't work with numpy floats so we convert the singal into python float
+            signal_dict = {i: float(signal[i]) for i in range(self.N)}
+            nx.set_node_attributes(graph_nx, signal_dict, name)
+        return graph_nx
+
+    def to_graphtool(self):
+        r"""Export the graph to an `Graph tool <https://graph-tool.skewed.de/>`_ object
+
+        The weights of the graph are stored in a `property maps <https://graph-tool.skewed.de/static/doc/
+        quickstart.html#internal-property-maps>`_ under the name `weight`
+
+        Returns
+        -------
+        graph_gt : :py:class:`graph_tool.Graph`
+
+        Examples
+        --------
+        >>> graph = graphs.Logo()
+        >>> gt_graph = graph.to_graphtool()
+        >>> weight_property = gt_graph.edge_properties["weight"]
+
+        """
+        import graph_tool
+        graph_gt = graph_tool.Graph(directed=self.is_directed())
+        v_in, v_out, weights = self.get_edge_list()
+        graph_gt.add_edge_list(np.asarray((v_in, v_out)).T)
+        weight_type_str = utils.numpy2graph_tool_type(weights.dtype)
+        if weight_type_str is None:
+            raise ValueError("Type {} for the weights is not supported"
+                             .format(str(weights.dtype)))
+        edge_weight = graph_gt.new_edge_property(weight_type_str)
+        edge_weight.a = weights
+        graph_gt.edge_properties['weight'] = edge_weight
+        for name in self.signals:
+            edge_type_str = utils.numpy2graph_tool_type(weights.dtype)
+            if edge_type_str is None:
+                raise ValueError("Type {} from signal {} is not supported"
+                                 .format(str(self.signals[name].dtype), name))
+            vprop_double = graph_gt.new_vertex_property(edge_type_str)
+            vprop_double.get_array()[:] = self.signals[name]
+            graph_gt.vertex_properties[name] = vprop_double
+        return graph_gt
+
+    @classmethod
+    def from_networkx(cls, graph_nx, weight='weight'):
+        r"""Build a graph from a Networkx object.
+
+        The nodes are ordered according to method `nodes()` from networkx
+
+        When a node attribute is not present for node a value of zero is assign
+        to the corresponding signal on that node.
+
+        When the networkx graph is an instance of :py:class:`networkx.MultiGraph`,
+        multiple edge are aggregated by summation.
+
+        Parameters
+        ----------
+        graph_nx : :py:class:`networkx.Graph`
+            A networkx instance of a graph
+        weight : (string or None optional (default=’weight’))
+            The edge attribute that holds the numerical value used for the edge weight.
+            If None then all edge weights are 1.
+
+        Returns
+        -------
+        graph : :class:`~pygsp.graphs.Graph`
+
+        Examples
+        --------
+        >>> import networkx as nx
+        >>> nx_graph = nx.star_graph(200)
+        >>> graph = graphs.Graph.from_networkx(nx_graph)
+
+        """
+        import networkx as nx
+        # keep a consistent order of nodes for the agency matrix and the signal array
+        nodelist = graph_nx.nodes()
+        adjacency = nx.to_scipy_sparse_matrix(graph_nx, nodelist, weight=weight)
+        graph = cls(adjacency)
+        # Adding the signals
+        signals = dict()
+        for i, node in enumerate(nodelist):
+            signals_name = graph_nx.nodes[node].keys()
+
+            # Add signal previously not present in the dict of signal
+            # Set to zero the value of the signal when not present for a node
+            # in Networkx
+            for signal in set(signals_name) - set(signals.keys()):
+                signals[signal] = np.zeros(len(nodelist))
+
+            # Set the value of the signal
+            for signal in signals_name:
+                signals[signal][i] = graph_nx.nodes[node][signal]
+
+        graph.signals = signals
+        return graph
+
+    @classmethod
+    def from_graphtool(cls, graph_gt, weight='weight'):
+        r"""Build a graph from a graph tool object.
+
+        When the graph as multiple edge connecting the same two nodes a sum over the edges is taken to merge them.
+
+        Parameters
+        ----------
+        graph_gt : :py:class:`graph_tool.Graph`
+            Graph tool object
+        weight : string
+            Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_
+            to be loaded as weight for the graph. If the property is not found a graph with default weight set to 1 is created.
+            On the other hand if the property is found but not set for a specific edge the weight of zero will be set
+            therefore for single edge this will result in a none existing edge. If you want to set to a default value please
+            use `set_value <https://graph-tool.skewed.de/static/doc/graph_tool.html?highlight=propertyarray#graph_tool.PropertyMap.set_value>`_
+            from the graph_tool object.
+
+        Returns
+        -------
+        graph : :class:`~pygsp.graphs.Graph`
+            The weight of the graph are loaded from the edge property named ``edge_prop_name``
+
+        Examples
+        --------
+        >>> from graph_tool.all import Graph
+        >>> gt_graph = Graph()
+        >>> _ = gt_graph.add_vertex(10)
+        >>> graph = graphs.Graph.from_graphtool(gt_graph)
+
+        """
+        import graph_tool as gt
+        import graph_tool.spectral
+
+        weight_property = graph_gt.edge_properties.get(weight, None)
+        graph = cls(gt.spectral.adjacency(graph_gt, weight=weight_property).todense().T)
+
+        # Adding signals
+        for signal_name, signal_gt in graph_gt.vertex_properties.items():
+            signal = np.array([signal_gt[vertex] for vertex in graph_gt.vertices()])
+            graph.set_signal(signal, signal_name)
+        return graph
+
+    @classmethod
+    def load(cls, path, fmt='auto', backend='auto'):
+        r"""Load a graph from a file using networkx for import.
+        The format is guessed from path, or can be specified by fmt
+
+        Parameters
+        ----------
+        path : String
+            Where the file is located on the disk.
+        fmt : {'graphml', 'gml', 'gexf', 'auto'}
+            Format in which the graph is encoded.
+        backend : String
+            Python library used in background to load the graph.
+            Supported library are networkx and graph_tool
+
+        Returns
+        -------
+            graph : :class:`~pygsp.graphs.Graph`
+
+        Examples
+        --------
+        >>> graphs.Logo().save('logo.graphml')
+        >>> graph = graphs.Graph.load('logo.graphml')
+
+        """
+
+        def load_networkx(saved_path, format):
+            import networkx as nx
+            load = getattr(nx, 'read_' + format)
+            return cls.from_networkx(load(saved_path))
+
+        def load_graph_tool(saved_path, format):
+            import graph_tool as gt
+            graph_gt = gt.load_graph(saved_path, fmt=format)
+            return cls.from_graphtool(graph_gt)
+
+        if fmt == 'auto':
+            fmt = path.split('.')[-1]
+
+        if backend == 'auto':
+            if fmt in ['graphml', 'gml', 'gexf']:
+                backend = 'networkx'
+            else:
+                backend = 'graph_tool'
+
+        supported_format = ['graphml', 'gml', 'gexf']
+        if fmt not in supported_format:
+            raise ValueError('Unsupported format {}. Please use a format from {}'.format(fmt, supported_format))
+
+        if backend not in ['networkx', 'graph_tool']:
+            raise ValueError(
+                'Unsupported backend specified {} Please use either networkx or graph_tool.'.format(backend))
+
+        return locals()['load_' + backend](path, fmt)
+
+    def save(self, path, fmt='auto', backend='auto'):
+        r"""Save the graph into a file
+
+        Parameters
+        ----------
+        path : String
+            Where to save file on the disk.
+        fmt : String
+            Format in which the graph will be encoded. The format is guessed from
+            the `path` extention when fmt is set to 'auto'
+            Currently supported format are:
+            ['graphml', 'gml', 'gexf']
+        backend : String
+            Python library used in background to save the graph.
+            Supported library are networkx and graph_tool
+            WARNING: when using graph_tool as backend the weight of the edges precision is truncated to E-06.
+
+        Examples
+        --------
+        >>> graph = graphs.Logo()
+        >>> graph.save('logo.graphml')
+
+        """
+        def save_networkx(graph, save_path):
+            import networkx as nx
+            graph_nx = graph.to_networkx()
+            save = getattr(nx, 'write_' + fmt)
+            save(graph_nx, save_path)
+
+        def save_graph_tool(graph, save_path):
+            graph_gt = graph.to_graphtool()
+            graph_gt.save(save_path, fmt=fmt)
+
+        if fmt == 'auto':
+            fmt = path.split('.')[-1]
+
+        if backend == 'auto':
+            if fmt in ['graphml', 'gml', 'gexf']:
+                backend = 'networkx'
+            else:
+                backend = 'graph_tool'
+
+        supported_format = ['graphml', 'gml', 'gexf']
+        if fmt not in supported_format:
+            raise ValueError('Unsupported format {}. Please use a format from {}'.format(fmt, supported_format))
+
+        if backend not in ['networkx', 'graph_tool']:
+            raise ValueError('Unsupported backend specified {} Please use either networkx or graph_tool.'.format(backend))
+
+        locals()['save_' + backend](self, path)
+
+    def set_signal(self, signal, name):
+        r"""
+        Add or modify a signal to the graph
+
+        Parameters
+        ----------
+        signal : numpy.array
+            An array mapping from node to his value. For example the value of the signal at node i is signal[i]
+        name : String
+            Name associated to the signal.
+
+        Examples
+        --------
+        >>> graph = graphs.Logo()
+        >>> DELTAS = [20, 30, 1090]
+        >>> signal = np.zeros(graph.N)
+        >>> signal[DELTAS] = 1
+        >>> graph.set_signal(signal, 'diffusion')
+
+        """
+        if len(signal) != self.N:
+            raise ValueError("A value must be attached to every vertex in the graph")
+        self.signals[name] = np.asarray(signal)
 
     def set_coordinates(self, kind='spring', **kwargs):
         r"""Set node's coordinates (their position when plotting).
