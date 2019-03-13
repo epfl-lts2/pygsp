@@ -11,6 +11,25 @@ from pygsp import utils
 from . import fourier, difference  # prevent circular import in Python < 3.5
 
 
+def _import_networkx():
+    try:
+        import networkx as nx
+    except Exception as e:
+        raise ImportError('Cannot import networkx. Use graph-tool or try to '
+                          'install it with pip (or conda) install networkx. '
+                          'Original exception: {}'.format(e))
+    return nx
+
+
+def _import_graphtool():
+    try:
+        import graph_tool as gt
+    except Exception as e:
+        raise ImportError('Cannot import graph-tool. Use networkx or try to '
+                          'install it. Original exception: {}'.format(e))
+    return gt
+
+
 class Graph(fourier.GraphFourier, difference.GraphDifference):
     r"""Base graph class.
 
