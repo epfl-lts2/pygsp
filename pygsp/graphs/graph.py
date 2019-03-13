@@ -51,6 +51,8 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         The graph Laplacian, an N-by-N matrix computed from W.
     lap_type : 'normalized', 'combinatorial'
         The kind of Laplacian that was computed by :func:`compute_laplacian`.
+    signals : dict (string -> :class:`numpy.ndarray`)
+        Signals attached to the graph.
     coords : :class:`numpy.ndarray`
         Vertices coordinates in 2D or 3D space. Used for plotting only.
     plotting : dict
@@ -655,7 +657,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
     def _check_signal(self, s):
         r"""Check if signal is valid."""
         s = np.asanyarray(s)
-        if s.shape[0] != self.N:
+        if s.shape[0] != self.n_vertices:
             raise ValueError('First dimension must be the number of vertices '
                              'G.N = {}, got {}.'.format(self.N, s.shape))
         return s
