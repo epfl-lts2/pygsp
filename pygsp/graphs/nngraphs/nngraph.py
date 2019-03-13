@@ -128,10 +128,11 @@ def _nmslib(features, metric, order, kind, k, _, params):
         raise ValueError('nmslib does not support metric="minkowski".')
     try:
         import nmslib as nms
-    except Exception:
+    except Exception as e:
         raise ImportError('Cannot import nmslib. Choose another nearest '
-                          'neighbors method or try to install it with '
-                          'pip (or conda) install nmslib.')
+                          'neighbors backend or try to install it with '
+                          'pip (or conda) install nmslib. '
+                          'Original exception: {}'.format(e))
     n_vertices, _ = features.shape
     params_index = params.pop('index', None)
     params_query = params.pop('query', None)
