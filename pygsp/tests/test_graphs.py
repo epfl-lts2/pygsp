@@ -611,19 +611,17 @@ class TestCaseImportExport(unittest.TestCase):
         np.testing.assert_array_equal(nx.adjacency_matrix(g_nx).todense(),
                                       nx.adjacency_matrix(g).todense())
 
+    @unittest.skipIf(sys.version_info < (3,), 'old graph-tool')
     def test_graphtool_export_import(self):
         # Export to graph tool and reimport to PyGSP directly
         # The exported graph is a simple one without an associated Signal
-        if sys.version_info < (3, 0):
-            return None  # skip test for python 2.7
         g = graphs.Bunny()
         g_gt = g.to_graphtool()
         g2 = graphs.Graph.from_graphtool(g_gt)
         np.testing.assert_array_equal(g.W.todense(), g2.W.todense())
 
+    @unittest.skipIf(sys.version_info < (3,), 'old graph-tool')
     def test_graphtool_multiedge_import(self):
-        if sys.version_info < (3, 0):
-            return None  # skip test for python2.7
         # Manualy create a graph with multiple edges
         g_gt = gt.Graph()
         g_gt.add_vertex(10)
@@ -644,11 +642,10 @@ class TestCaseImportExport(unittest.TestCase):
         g3 = graphs.Graph.from_graphtool(g_gt)
         self.assertEqual(g3.W[3, 6], 9.0)
 
+    @unittest.skipIf(sys.version_info < (3,), 'old graph-tool')
     def test_graphtool_import_export(self):
         # Import to PyGSP and export again to graph tool directly
         # create a random graphTool graph that does not contain multiple edges and no signal
-        if sys.version_info < (3, 0):
-            return None  # skip test for python2.7
         graph_gt = gt.generation.random_graph(100, lambda : (np.random.poisson(4), np.random.poisson(4)))
 
         eprop_double = graph_gt.new_edge_property("double")
@@ -694,9 +691,8 @@ class TestCaseImportExport(unittest.TestCase):
             self.assertEqual(g_gt.vertex_properties["signal1"][v], s[i])
             self.assertEqual(g_gt.vertex_properties["signal2"][v], s2[i])
 
+    @unittest.skipIf(sys.version_info < (3,), 'old graph-tool')
     def test_graphtool_signal_import(self):
-        if sys.version_info < (3, 0):
-            return None  # skip test for python2.7
         g_gt = gt.Graph()
         g_gt.add_vertex(10)
 
@@ -735,37 +731,38 @@ class TestCaseImportExport(unittest.TestCase):
             self.assertEqual(g.signals["signal1"][i],
                              nx.get_node_attributes(g_nx, "signal1")[node])
 
+    @unittest.skipIf(sys.version_info < (3, 6), 'need ordered dicts')
     def test_save_load(self):
-        if sys.version_info >= (3, 6):
-            graph = graphs.Sensor(seed=42)
-            np.random.seed(42)
-            signal = np.random.random(graph.N)
-            graph.set_signal(signal, "signal")
 
-            # save
-            nx_gt = ['gml', 'graphml']
-            all_files = []
-            for fmt in nx_gt:
-                all_files += ["graph_gt.{}".format(fmt), "graph_nx.{}".format(fmt)]
-                graph.save("graph_gt.{}".format(fmt), backend='graph_tool')
-                graph.save("graph_nx.{}".format(fmt), backend='networkx')
-            graph.save("graph_nx.{}".format('gexf'), backend='networkx')
-            all_files += ["graph_nx.{}".format('gexf')]
+        graph = graphs.Sensor(seed=42)
+        np.random.seed(42)
+        signal = np.random.random(graph.N)
+        graph.set_signal(signal, "signal")
 
-            # load
-            for filename in all_files:
-                if not "_gt" in filename:
-                    graph_loaded_nx = graphs.Graph.load(filename, backend='networkx')
-                    np.testing.assert_array_equal(graph.W.todense(), graph_loaded_nx.W.todense())
-                    np.testing.assert_array_equal(signal, graph_loaded_nx.signals['signal'])
-                if not ".gexf" in filename:
-                    graph_loaded_gt = graphs.Graph.load(filename, backend='graph_tool')
-                    np.testing.assert_allclose(graph.W.todense(), graph_loaded_gt.W.todense(), atol=0.000001)
-                    np.testing.assert_allclose(signal, graph_loaded_gt.signals['signal'], atol=0.000001)
+        # save
+        nx_gt = ['gml', 'graphml']
+        all_files = []
+        for fmt in nx_gt:
+            all_files += ["graph_gt.{}".format(fmt), "graph_nx.{}".format(fmt)]
+            graph.save("graph_gt.{}".format(fmt), backend='graph_tool')
+            graph.save("graph_nx.{}".format(fmt), backend='networkx')
+        graph.save("graph_nx.{}".format('gexf'), backend='networkx')
+        all_files += ["graph_nx.{}".format('gexf')]
 
-            # clean
-            for filename in all_files:
-                os.remove(filename)
+        # load
+        for filename in all_files:
+            if not "_gt" in filename:
+                graph_loaded_nx = graphs.Graph.load(filename, backend='networkx')
+                np.testing.assert_array_equal(graph.W.todense(), graph_loaded_nx.W.todense())
+                np.testing.assert_array_equal(signal, graph_loaded_nx.signals['signal'])
+            if not ".gexf" in filename:
+                graph_loaded_gt = graphs.Graph.load(filename, backend='graph_tool')
+                np.testing.assert_allclose(graph.W.todense(), graph_loaded_gt.W.todense(), atol=0.000001)
+                np.testing.assert_allclose(signal, graph_loaded_gt.signals['signal'], atol=0.000001)
+
+        # clean
+        for filename in all_files:
+            os.remove(filename)
 
 
 suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestCaseImportExport)
