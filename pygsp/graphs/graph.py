@@ -197,7 +197,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Returns
         -------
-        graph_nx : :py:class:`networkx.Graph`
+        graph_nx : :class:`networkx.Graph`
 
         Examples
         --------
@@ -227,7 +227,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Returns
         -------
-        graph_gt : :py:class:`graph_tool.Graph`
+        graph_gt : :class:`graph_tool.Graph`
 
         Examples
         --------
@@ -266,12 +266,12 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         When a node attribute is not present for node a value of zero is assign
         to the corresponding signal on that node.
 
-        When the networkx graph is an instance of :py:class:`networkx.MultiGraph`,
+        When the networkx graph is an instance of :class:`networkx.MultiGraph`,
         multiple edge are aggregated by summation.
 
         Parameters
         ----------
-        graph_nx : :py:class:`networkx.Graph`
+        graph_nx : :class:`networkx.Graph`
             A networkx instance of a graph
         weight : (string or None optional (default=’weight’))
             The edge attribute that holds the numerical value used for the edge weight.
@@ -319,7 +319,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Parameters
         ----------
-        graph_gt : :py:class:`graph_tool.Graph`
+        graph_gt : :class:`graph_tool.Graph`
             Graph tool object
         weight : string
             Name of the `property <https://graph-tool.skewed.de/static/doc/graph_tool.html#graph_tool.Graph.edge_properties>`_
