@@ -11,6 +11,25 @@ from pygsp import utils
 from . import fourier, difference  # prevent circular import in Python < 3.5
 
 
+def _import_networkx():
+    try:
+        import networkx as nx
+    except Exception as e:
+        raise ImportError('Cannot import networkx. Use graph-tool or try to '
+                          'install it with pip (or conda) install networkx. '
+                          'Original exception: {}'.format(e))
+    return nx
+
+
+def _import_graphtool():
+    try:
+        import graph_tool as gt
+    except Exception as e:
+        raise ImportError('Cannot import graph-tool. Use networkx or try to '
+                          'install it. Original exception: {}'.format(e))
+    return gt
+
+
 class Graph(fourier.GraphFourier, difference.GraphDifference):
     r"""Base graph class.
 
@@ -205,7 +224,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         1130
 
         """
-        import networkx as nx
+        nx = _import_networkx()
         graph_nx = nx.from_scipy_sparse_matrix(
             self.W, create_using=nx.DiGraph()
             if self.is_directed() else nx.Graph(),
@@ -234,8 +253,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> weight_property = gt_graph.edge_properties["weight"]
 
         """
-        import graph_tool
-        graph_gt = graph_tool.Graph(directed=self.is_directed())
+        gt = _import_graphtool()
+        graph_gt = gt.Graph(directed=self.is_directed())
         v_in, v_out, weights = self.get_edge_list()
         graph_gt.add_edge_list(np.asarray((v_in, v_out)).T)
         weight_type_str = utils.convert_dtype(weights.dtype)
@@ -286,7 +305,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> graph = graphs.Graph.from_networkx(nx_graph)
 
         """
-        import networkx as nx
+        nx = _import_networkx()
         # keep a consistent order of nodes for the agency matrix and the signal array
         nodelist = graph_nx.nodes()
         adjacency = nx.to_scipy_sparse_matrix(graph_nx, nodelist, weight=weight)
@@ -340,7 +359,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> graph = graphs.Graph.from_graphtool(gt_graph)
 
         """
-        import graph_tool as gt
+        gt = _import_graphtool()
         import graph_tool.spectral
 
         weight_property = graph_gt.edge_properties.get(weight, None)
@@ -379,12 +398,12 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         """
 
         def load_networkx(saved_path, format):
-            import networkx as nx
+            nx = _import_networkx()
             load = getattr(nx, 'read_' + format)
             return cls.from_networkx(load(saved_path))
 
         def load_graph_tool(saved_path, format):
-            import graph_tool as gt
+            gt = _import_graphtool()
             graph_gt = gt.load_graph(saved_path, fmt=format)
             return cls.from_graphtool(graph_gt)
 
@@ -431,7 +450,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         """
         def save_networkx(graph, save_path):
-            import networkx as nx
+            nx = _import_networkx()
             graph_nx = graph.to_networkx()
             save = getattr(nx, 'write_' + fmt)
             save(graph_nx, save_path)
