@@ -423,6 +423,13 @@ class TestCase(unittest.TestCase):
         test(sparse.csc_matrix(W))
         test(sparse.coo_matrix(W))
 
+    def test_set_signal(self, name='test'):
+        signal = np.zeros(self._G.n_vertices)
+        self._G.set_signal(signal, name)
+        self.assertIs(self._G.signals[name], signal)
+        signal = np.zeros(self._G.n_vertices // 2)
+        self.assertRaises(ValueError, self._G.set_signal, signal, name)
+
     def test_set_coordinates(self):
         G = graphs.FullConnected()
         coords = self._rs.uniform(size=(G.N, 2))

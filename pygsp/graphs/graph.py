@@ -48,6 +48,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         The graph Laplacian, an N-by-N matrix computed from W.
     lap_type : 'normalized', 'combinatorial'
         The kind of Laplacian that was computed by :func:`compute_laplacian`.
+    signals : dict (string -> :class:`numpy.ndarray`)
+        Signals attached to the graph.
     coords : :class:`numpy.ndarray`
         Vertices coordinates in 2D or 3D space. Used for plotting only.
     plotting : dict
@@ -239,6 +241,32 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                 'has_nan_value': has_nan_value,
                 'is_not_square': is_not_square,
                 'diag_is_not_zero': diag_is_not_zero}
+
+    def set_signal(self, signal, name):
+        r"""Attach a signal to the graph.
+
+        Attached signals can be accessed (and modified or deleted) through the
+        :attr:`signals` dictionary.
+
+        Parameters
+        ----------
+        signal : array_like
+            A sequence that assigns a value to each vertex.
+            The value of the signal at vertex `i` is ``signal[i]``.
+        name : String
+            Name of the signal used as a key in the :attr:`signals` dictionary.
+
+        Examples
+        --------
+        >>> graph = graphs.Sensor(10)
+        >>> signal = np.arange(graph.n_vertices)
+        >>> graph.set_signal(signal, 'mysignal')
+        >>> graph.signals
+        {'mysignal': array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])}
+
+        """
+        signal = self._check_signal(signal)
+        self.signals[name] = signal
 
     def set_coordinates(self, kind='spring', **kwargs):
         r"""Set node's coordinates (their position when plotting).
@@ -708,7 +736,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     def _check_signal(self, s):
         r"""Check if signal is valid."""
         s = np.asanyarray(s)
-        if s.shape[0] != self.N:
+        if s.shape[0] != self.n_vertices:
             raise ValueError('First dimension must be the number of vertices '
                              'G.N = {}, got {}.'.format(self.N, s.shape))
         return s
