@@ -374,7 +374,7 @@ def numpy2graph_tool_type(dtype):
 
     Parameters
     ----------
-    dtype : :py:class:`numpy.dtype`
+    dtype : :class:`numpy.dtype`
 
     Returns
     -------
