@@ -20,7 +20,7 @@ addons:
   apt:
     sources:
     - sourceline: 'deb https://downloads.skewed.de/apt/xenial xenial universe'
-      key_url: 'https://pgp.skewed.de/pks/lookup?op=get&search=0x612DEFB798507F25'
+      key_url: 'https://sks-keyservers.net/pks/lookup?op=get&search=0x612DEFB798507F25'
     # TODO: remove the below once we drop python 2.7.
     - ubuntu-toolchain-r-test
     - sourceline: 'deb http://downloads.skewed.de/apt/trusty trusty universe'
