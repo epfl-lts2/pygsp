@@ -742,7 +742,7 @@ class TestImportExport(unittest.TestCase):
         all_files = []
         for fmt in nx_gt:
             all_files += ["graph_gt.{}".format(fmt), "graph_nx.{}".format(fmt)]
-            graph.save("graph_gt.{}".format(fmt), backend='graph_tool')
+            graph.save("graph_gt.{}".format(fmt), backend='graph-tool')
             graph.save("graph_nx.{}".format(fmt), backend='networkx')
         graph.save("graph_nx.{}".format('gexf'), backend='networkx')
         all_files += ["graph_nx.{}".format('gexf')]
@@ -754,7 +754,7 @@ class TestImportExport(unittest.TestCase):
                 np.testing.assert_array_equal(graph.W.todense(), graph_loaded_nx.W.todense())
                 np.testing.assert_array_equal(signal, graph_loaded_nx.signals['signal'])
             if not ".gexf" in filename:
-                graph_loaded_gt = graphs.Graph.load(filename, backend='graph_tool')
+                graph_loaded_gt = graphs.Graph.load(filename, backend='graph-tool')
                 np.testing.assert_allclose(graph.W.todense(), graph_loaded_gt.W.todense(), atol=0.000001)
                 np.testing.assert_allclose(signal, graph_loaded_gt.signals['signal'], atol=0.000001)
 
@@ -781,9 +781,9 @@ class TestImportExport(unittest.TestCase):
             self.assertRaises(ImportError, graph.to_graphtool)
             self.assertRaises(ImportError, graphs.Graph.from_graphtool, None)
             self.assertRaises(ImportError, graph.save, filename,
-                              backend='graph_tool')
+                              backend='graph-tool')
             self.assertRaises(ImportError, graphs.Graph.load, filename,
-                              backend='graph_tool')
+                              backend='graph-tool')
             graph.save(filename)
             graphs.Graph.load(filename)
         with patch.dict(sys.modules, {'networkx': None, 'graph_tool': None}):
