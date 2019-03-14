@@ -666,9 +666,9 @@ class TestImportExport(unittest.TestCase):
 
     def test_networkx_signal_export(self):
         graph = graphs.BarabasiAlbert(N=100, seed=42)
-        np.random.seed(42)
-        signal1 = np.random.random(graph.N)
-        signal2 = np.random.random(graph.N)
+        rs = np.random.RandomState(42)
+        signal1 = rs.normal(size=graph.N)
+        signal2 = rs.normal(size=graph.N)
         graph.set_signal(signal1, "signal1")
         graph.set_signal(signal2, "signal2")
         graph_nx = graph.to_networkx()
@@ -678,9 +678,9 @@ class TestImportExport(unittest.TestCase):
 
     def test_graphtool_signal_export(self):
         g = graphs.Logo()
-        np.random.seed(42)
-        s = np.random.random(g.N)
-        s2 = np.random.random(g.N)
+        rs = np.random.RandomState(42)
+        s = rs.normal(size=g.N)
+        s2 = rs.normal(size=g.N)
         g.set_signal(s, "signal1")
         g.set_signal(s2, "signal2")
         g_gt = g.to_graphtool()
@@ -733,8 +733,7 @@ class TestImportExport(unittest.TestCase):
     def test_save_load(self):
 
         graph = graphs.Sensor(seed=42)
-        np.random.seed(42)
-        signal = np.random.random(graph.N)
+        signal = np.random.RandomState(42).uniform(size=graph.N)
         graph.set_signal(signal, "signal")
 
         # save
