@@ -7,11 +7,10 @@ Test suite for the graphs module of the pygsp package.
 
 from __future__ import division
 
+import os
+import random
 import sys
 import unittest
-import random
-import os
-import sys
 
 import numpy as np
 import scipy.linalg
@@ -592,7 +591,7 @@ class TestCase(unittest.TestCase):
 suite_graphs = unittest.TestLoader().loadTestsFromTestCase(TestCase)
 
 
-class TestCaseImportExport(unittest.TestCase):
+class TestImportExport(unittest.TestCase):
 
     def test_networkx_export_import(self):
         # Export to networkx and reimport to PyGSP
@@ -765,5 +764,34 @@ class TestCaseImportExport(unittest.TestCase):
             os.remove(filename)
 
 
-suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestCaseImportExport)
+    @unittest.skipIf(sys.version_info < (3, 3), 'need unittest.mock')
+    def test_import_errors(self):
+        from unittest.mock import patch
+        graph = graphs.Sensor()
+        filename = 'graph.gml'
+        with patch.dict(sys.modules, {'networkx': None}):
+            self.assertRaises(ImportError, graph.to_networkx)
+            self.assertRaises(ImportError, graphs.Graph.from_networkx, None)
+            self.assertRaises(ImportError, graph.save, filename,
+                              backend='networkx')
+            self.assertRaises(ImportError, graphs.Graph.load, filename,
+                              backend='networkx')
+            graph.save(filename)
+            graphs.Graph.load(filename)
+        with patch.dict(sys.modules, {'graph_tool': None}):
+            self.assertRaises(ImportError, graph.to_graphtool)
+            self.assertRaises(ImportError, graphs.Graph.from_graphtool, None)
+            self.assertRaises(ImportError, graph.save, filename,
+                              backend='graph_tool')
+            self.assertRaises(ImportError, graphs.Graph.load, filename,
+                              backend='graph_tool')
+            graph.save(filename)
+            graphs.Graph.load(filename)
+        with patch.dict(sys.modules, {'networkx': None, 'graph_tool': None}):
+            self.assertRaises(ImportError, graph.save, filename)
+            self.assertRaises(ImportError, graphs.Graph.load, filename)
+        os.remove(filename)
+
+
+suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestImportExport)
 suite = unittest.TestSuite([suite_graphs, suite_import_export])
