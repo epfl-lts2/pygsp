@@ -2,6 +2,7 @@
 
 from __future__ import division
 
+import os
 from collections import Counter
 
 import numpy as np
@@ -372,110 +373,134 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         return graph
 
     @classmethod
-    def load(cls, path, fmt='auto', backend='auto'):
-        r"""Load a graph from a file using networkx for import.
-        The format is guessed from path, or can be specified by fmt
+    def load(cls, path, fmt=None, backend=None):
+        r"""Load a graph from a file.
+
+        A lossless round-trip is only guaranteed if the graph (and its signals)
+        is saved and loaded with the same backend.
 
         Parameters
         ----------
-        path : String
-            Where the file is located on the disk.
-        fmt : {'graphml', 'gml', 'gexf', 'auto'}
-            Format in which the graph is encoded.
-        backend : String
-            Python library used in background to load the graph.
-            Supported library are networkx and graph_tool
+        path : string
+            Path to the file from which to load the graph.
+        fmt : {'graphml', 'gml', 'gexf', None}, optional
+            Format in which the graph is saved.
+            Guessed from the filename extension if None.
+        backend : {'networkx', 'graph-tool', None}, optional
+            Library used to load the graph. Automatically chosen if None.
 
         Returns
         -------
-            graph : :class:`~pygsp.graphs.Graph`
+        graph : :class:`Graph`
+            The loaded graph.
 
-        Examples
+        See also
         --------
-        >>> graphs.Logo().save('logo.graphml')
-        >>> graph = graphs.Graph.load('logo.graphml')
-
-        """
-
-        def load_networkx(saved_path, format):
-            nx = _import_networkx()
-            load = getattr(nx, 'read_' + format)
-            return cls.from_networkx(load(saved_path))
-
-        def load_graph_tool(saved_path, format):
-            gt = _import_graphtool()
-            graph_gt = gt.load_graph(saved_path, fmt=format)
-            return cls.from_graphtool(graph_gt)
-
-        if fmt == 'auto':
-            fmt = path.split('.')[-1]
-
-        if backend == 'auto':
-            if fmt in ['graphml', 'gml', 'gexf']:
-                backend = 'networkx'
-            else:
-                backend = 'graph_tool'
-
-        supported_format = ['graphml', 'gml', 'gexf']
-        if fmt not in supported_format:
-            raise ValueError('Unsupported format {}. Please use a format from {}'.format(fmt, supported_format))
-
-        if backend not in ['networkx', 'graph_tool']:
-            raise ValueError(
-                'Unsupported backend specified {} Please use either networkx or graph_tool.'.format(backend))
-
-        return locals()['load_' + backend](path, fmt)
-
-    def save(self, path, fmt='auto', backend='auto'):
-        r"""Save the graph into a file
-
-        Parameters
-        ----------
-        path : String
-            Where to save file on the disk.
-        fmt : String
-            Format in which the graph will be encoded. The format is guessed from
-            the `path` extention when fmt is set to 'auto'
-            Currently supported format are:
-            ['graphml', 'gml', 'gexf']
-        backend : String
-            Python library used in background to save the graph.
-            Supported library are networkx and graph_tool
-            WARNING: when using graph_tool as backend the weight of the edges precision is truncated to E-06.
+        save : save a graph to a file
 
         Examples
         --------
         >>> graph = graphs.Logo()
         >>> graph.save('logo.graphml')
+        >>> graph = graphs.Graph.load('logo.graphml')
+        >>> import os
+        >>> os.remove('logo.graphml')
 
         """
-        def save_networkx(graph, save_path):
+
+        if fmt is None:
+            fmt = os.path.splitext(path)[1][1:]
+        if fmt not in ['graphml', 'gml', 'gexf']:
+            raise ValueError('Unsupported format {}.'.format(fmt))
+
+        def load_networkx(path, fmt):
             nx = _import_networkx()
-            graph_nx = graph.to_networkx()
+            load = getattr(nx, 'read_' + fmt)
+            graph = load(path)
+            return cls.from_networkx(graph)
+
+        def load_graphtool(path, fmt):
+            gt = _import_graphtool()
+            graph = gt.load_graph(path, fmt=fmt)
+            return cls.from_graphtool(graph)
+
+        if backend == 'networkx':
+            return load_networkx(path, fmt)
+        elif backend == 'graph-tool':
+            return load_graphtool(path, fmt)
+        elif backend is None:
+            try:
+                return load_networkx(path, fmt)
+            except ImportError:
+                try:
+                    return load_graphtool(path, fmt)
+                except ImportError:
+                    raise ImportError('Cannot import networkx nor graph-tool.')
+        else:
+            raise ValueError('Unknown backend {}.'.format(backend))
+
+    def save(self, path, fmt=None, backend=None):
+        r"""Save the graph to a file.
+
+        A lossless round-trip is only guaranteed if the graph (and its signals)
+        is saved and loaded with the same backend.
+
+        Note that edge weights and signal values are rounded at the sixth
+        decimal when saving in ``fmt='gml'`` with ``backend='graph-tool'``.
+
+        Parameters
+        ----------
+        path : string
+            Path to the file where the graph is to be saved.
+        fmt : {'graphml', 'gml', 'gexf', None}, optional
+            Format in which to save the graph.
+            Guessed from the filename extension if None.
+        backend : {'networkx', 'graph-tool', None}, optional
+            Library used to load the graph. Automatically chosen if None.
+
+        See also
+        --------
+        load : load a graph from a file
+
+        Examples
+        --------
+        >>> graph = graphs.Logo()
+        >>> graph.save('logo.graphml')
+        >>> graph = graphs.Graph.load('logo.graphml')
+        >>> import os
+        >>> os.remove('logo.graphml')
+
+        """
+
+        if fmt is None:
+            fmt = os.path.splitext(path)[1][1:]
+        if fmt not in ['graphml', 'gml', 'gexf']:
+            raise ValueError('Unsupported format {}.'.format(fmt))
+
+        def save_networkx(graph, path, fmt):
+            nx = _import_networkx()
+            graph = graph.to_networkx()
             save = getattr(nx, 'write_' + fmt)
-            save(graph_nx, save_path)
+            save(graph, path)
 
-        def save_graph_tool(graph, save_path):
-            graph_gt = graph.to_graphtool()
-            graph_gt.save(save_path, fmt=fmt)
+        def save_graphtool(graph, path, fmt):
+            graph = graph.to_graphtool()
+            graph.save(path, fmt=fmt)
 
-        if fmt == 'auto':
-            fmt = path.split('.')[-1]
-
-        if backend == 'auto':
-            if fmt in ['graphml', 'gml', 'gexf']:
-                backend = 'networkx'
-            else:
-                backend = 'graph_tool'
-
-        supported_format = ['graphml', 'gml', 'gexf']
-        if fmt not in supported_format:
-            raise ValueError('Unsupported format {}. Please use a format from {}'.format(fmt, supported_format))
-
-        if backend not in ['networkx', 'graph_tool']:
-            raise ValueError('Unsupported backend specified {} Please use either networkx or graph_tool.'.format(backend))
-
-        locals()['save_' + backend](self, path)
+        if backend == 'networkx':
+            save_networkx(self, path, fmt)
+        elif backend == 'graph-tool':
+            save_graphtool(self, path, fmt)
+        elif backend is None:
+            try:
+                save_networkx(self, path, fmt)
+            except ImportError:
+                try:
+                    save_graphtool(self, path, fmt)
+                except ImportError:
+                    raise ImportError('Cannot import networkx nor graph-tool.')
+        else:
+            raise ValueError('Unknown backend {}.'.format(backend))
 
     def set_signal(self, signal, name):
         r"""Attach a signal to the graph.
