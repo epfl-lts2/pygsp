@@ -66,7 +66,7 @@ class IOMixIn(object):
         graph : :class:`networkx.Graph`
             A NetworkX graph object.
 
-        See also
+        See Also
         --------
         to_graphtool : export to graph-tool
         save : save to a file
@@ -159,7 +159,7 @@ class IOMixIn(object):
         graph : :class:`graph_tool.Graph`
             A graph-tool graph object.
 
-        See also
+        See Also
         --------
         to_networkx : export to NetworkX
         save : save to a file
@@ -284,7 +284,7 @@ class IOMixIn(object):
         If the graph is a :class:`networkx.MultiGraph`, multiedges are
         aggregated by summation.
 
-        See also
+        See Also
         --------
         from_graphtool : import from graph-tool
         load : load from a file
@@ -359,7 +359,7 @@ class IOMixIn(object):
         If the graph has multiple edge connecting the same two nodes, a sum
         over the edges is taken to merge them.
 
-        See also
+        See Also
         --------
         from_networkx : import from NetworkX
         load : load from a file
@@ -427,7 +427,7 @@ class IOMixIn(object):
         graph : :class:`Graph`
             The loaded graph.
 
-        See also
+        See Also
         --------
         save : save a graph to a file
         from_networkx : load with NetworkX then import in the PyGSP
@@ -505,7 +505,7 @@ class IOMixIn(object):
         backend : {'networkx', 'graph-tool', None}, optional
             Library used to load the graph. Automatically chosen if None.
 
-        See also
+        See Also
         --------
         load : load a graph from a file
         to_networkx : export as a NetworkX graph, and save with NetworkX

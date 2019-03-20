@@ -424,7 +424,7 @@ class Filter(object):
         B : float
             Upper frame bound of the filter bank.
 
-        See also
+        See Also
         --------
         compute_frame: compute the frame
         complement: complement a filter bank to become a tight frame
@@ -551,7 +551,7 @@ class Filter(object):
         frame : ndarray
             Array of size (#nodes x #filters) x #nodes.
 
-        See also
+        See Also
         --------
         estimate_frame_bounds: estimate the frame bounds
         filter: more efficient way to filter signals
@@ -619,7 +619,7 @@ class Filter(object):
         complement: Filter
             The complementary filter.
 
-        See also
+        See Also
         --------
         estimate_frame_bounds: estimate the frame bounds
 
@@ -704,7 +704,7 @@ class Filter(object):
             The pseudo-inverse filter bank, which synthesizes (or reconstructs)
             a signal from its coefficients using the canonical dual frame.
 
-        See also
+        See Also
         --------
         estimate_frame_bounds: estimate the frame bounds
 
