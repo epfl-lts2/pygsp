@@ -765,6 +765,25 @@ class TestImportExport(unittest.TestCase):
         graph_pg = graphs.Graph.from_graphtool(graph_gt, weight='unknown')
         np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
 
+    def test_break_join_signals(self):
+        """Multi-dim signals are broken on export and joined on import."""
+        graph_1 = graphs.Sensor(20, seed=42)
+        graph_1.set_signal(graph_1.coords, 'coords')
+        # networkx
+        graph_2 = graph_1.to_networkx()
+        graph_2 = graphs.Graph.from_networkx(graph_2)
+        np.testing.assert_allclose(graph_2.signals['coords'], graph_1.coords)
+        # graph-tool
+        graph_2 = graph_1.to_graphtool()
+        graph_2 = graphs.Graph.from_graphtool(graph_2)
+        np.testing.assert_allclose(graph_2.signals['coords'], graph_1.coords)
+        # save and load
+        filename = 'graph.graphml'
+        graph_1.save(filename)
+        graph_2 = graphs.Graph.load(filename)
+        np.testing.assert_allclose(graph_2.signals['coords'], graph_1.coords)
+        os.remove(filename)
+
     @unittest.skipIf(sys.version_info < (3, 6), 'need ordered dicts')
     def test_save_load(self):
 
