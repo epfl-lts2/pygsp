@@ -584,8 +584,11 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     def load(cls, path, fmt=None, backend=None):
         r"""Load a graph from a file.
 
-        A lossless round-trip is only guaranteed if the graph (and its signals)
-        is saved and loaded with the same backend.
+        Edge weights are retrieved as an edge attribute named "weight".
+
+        Signals are retrieved from node attributes,
+        and stored in the :attr:`signals` dictionary under the attribute name.
+        `N`-dimensional signals that were broken during export are joined.
 
         Parameters
         ----------
@@ -605,6 +608,18 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         See also
         --------
         save : save a graph to a file
+        from_networkx : load with NetworkX then import in the PyGSP
+        from_graphtool : load with graph-tool then import in the PyGSP
+
+        Notes
+        -----
+
+        A lossless round-trip is only guaranteed if the graph (and its signals)
+        is saved and loaded with the same backend.
+
+        Loading from other formats is possible by loading in NetworkX or
+        graph-tool, and importing to the PyGSP.
+        The proposed formats are however tested for faithful round-trips.
 
         Examples
         --------
@@ -650,11 +665,13 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
     def save(self, path, fmt=None, backend=None):
         r"""Save the graph to a file.
 
-        A lossless round-trip is only guaranteed if the graph (and its signals)
-        is saved and loaded with the same backend.
+        Edge weights are stored as an edge attribute,
+        under the name "weight".
 
-        Note that edge weights and signal values are rounded at the sixth
-        decimal when saving in ``fmt='gml'`` with ``backend='graph-tool'``.
+        Signals are stored as node attributes,
+        under their name in the :attr:`signals` dictionary.
+        `N`-dimensional signals are broken into `N` 1-dimensional signals.
+        They will eventually be joined back together on import.
 
         Parameters
         ----------
@@ -669,6 +686,21 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         See also
         --------
         load : load a graph from a file
+        to_networkx : export as a NetworkX graph, and save with NetworkX
+        to_graphtool : export as a graph-tool graph, and save with graph-tool
+
+        Notes
+        -----
+
+        A lossless round-trip is only guaranteed if the graph (and its signals)
+        is saved and loaded with the same backend.
+
+        Saving in other formats is possible by exporting to NetworkX or
+        graph-tool, and using their respective saving functionality.
+        The proposed formats are however tested for faithful round-trips.
+
+        Edge weights and signal values are rounded at the sixth decimal when
+        saving in ``fmt='gml'`` with ``backend='graph-tool'``.
 
         Examples
         --------
