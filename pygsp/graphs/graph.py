@@ -276,6 +276,23 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         {'weight': 1.0}
         >>> nx.draw(graph, with_labels=True)
 
+        Another common goal is to use NetworkX to compute some properties to be
+        be imported back in the PyGSP as signals.
+
+        >>> import networkx as nx
+        >>> from matplotlib import pyplot as plt
+        >>> graph = graphs.Sensor(100, seed=42)
+        >>> graph.set_signal(graph.coords, 'coords')
+        >>> graph = graph.to_networkx()
+        >>> betweenness = nx.betweenness_centrality(graph, weight='weight')
+        >>> nx.set_node_attributes(graph, betweenness, 'betweenness')
+        >>> graph = graphs.Graph.from_networkx(graph)
+        >>> graph.compute_fourier_basis()
+        >>> graph.set_coordinates(graph.signals['coords'])
+        >>> fig, axes = plt.subplots(1, 2)
+        >>> _ = graph.plot(graph.signals['betweenness'], ax=axes[0])
+        >>> _ = axes[1].plot(graph.e, graph.gft(graph.signals['betweenness']))
+
         """
         nx = _import_networkx()
 
@@ -341,6 +358,25 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         >>> graph.edge_properties['weight'][(0, 1)]
         1.0
         >>> # gt.draw.graph_draw(graph, vertex_text=graph.vertex_index)
+
+        Another common goal is to use graph-tool to compute some properties to
+        be imported back in the PyGSP as signals.
+
+        >>> import graph_tool as gt
+        >>> import graph_tool.centrality
+        >>> from matplotlib import pyplot as plt
+        >>> graph = graphs.Sensor(100, seed=42)
+        >>> graph.set_signal(graph.coords, 'coords')
+        >>> graph = graph.to_graphtool()
+        >>> vprop, eprop = gt.centrality.betweenness(
+        ...     graph, weight=graph.edge_properties['weight'])
+        >>> graph.vertex_properties['betweenness'] = vprop
+        >>> graph = graphs.Graph.from_graphtool(graph)
+        >>> graph.compute_fourier_basis()
+        >>> graph.set_coordinates(graph.signals['coords'])
+        >>> fig, axes = plt.subplots(1, 2)
+        >>> _ = graph.plot(graph.signals['betweenness'], ax=axes[0])
+        >>> _ = axes[1].plot(graph.e, graph.gft(graph.signals['betweenness']))
 
         """
 
