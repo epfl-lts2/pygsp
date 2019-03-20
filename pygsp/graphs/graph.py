@@ -262,32 +262,6 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                 'is_not_square': is_not_square,
                 'diag_is_not_zero': diag_is_not_zero}
 
-    def set_signal(self, signal, name):
-        r"""Attach a signal to the graph.
-
-        Attached signals can be accessed (and modified or deleted) through the
-        :attr:`signals` dictionary.
-
-        Parameters
-        ----------
-        signal : array_like
-            A sequence that assigns a value to each vertex.
-            The value of the signal at vertex `i` is ``signal[i]``.
-        name : String
-            Name of the signal used as a key in the :attr:`signals` dictionary.
-
-        Examples
-        --------
-        >>> graph = graphs.Sensor(10)
-        >>> signal = np.arange(graph.n_vertices)
-        >>> graph.set_signal(signal, 'mysignal')
-        >>> graph.signals
-        {'mysignal': array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])}
-
-        """
-        signal = self._check_signal(signal)
-        self.signals[name] = signal
-
     def set_coordinates(self, kind='spring', **kwargs):
         r"""Set node's coordinates (their position when plotting).
 
