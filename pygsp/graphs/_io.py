@@ -66,7 +66,7 @@ class IOMixIn(object):
         graph : :class:`networkx.Graph`
             A NetworkX graph object.
 
-        See Also
+        See also
         --------
         to_graphtool : export to graph-tool
         save : save to a file
@@ -128,7 +128,7 @@ class IOMixIn(object):
 
         def edges():
             for source, target, weight in zip(*self.get_edge_list()):
-                yield int(source), int(target), {'weight': convert(weight)}
+                yield source, target, {'weight': convert(weight)}
 
         def nodes():
             for vertex in range(self.n_vertices):
@@ -159,7 +159,7 @@ class IOMixIn(object):
         graph : :class:`graph_tool.Graph`
             A graph-tool graph object.
 
-        See Also
+        See also
         --------
         to_networkx : export to NetworkX
         save : save to a file
@@ -229,8 +229,8 @@ class IOMixIn(object):
         try:
             dtype = convert[weights.dtype.type]
         except KeyError:
-            raise TypeError("Type {} of the edge weights is not supported."
-                            .format(weights.dtype))
+            raise ValueError("Type {} of the edge weights is not supported."
+                             .format(weights.dtype))
         prop = graph.new_edge_property(dtype)
         prop.get_array()[:] = weights
         graph.edge_properties['weight'] = prop
@@ -240,8 +240,8 @@ class IOMixIn(object):
             try:
                 dtype = convert[signal.dtype.type]
             except KeyError:
-                raise TypeError("Type {} of signal {} is not supported."
-                                .format(signal.dtype, name))
+                raise ValueError("Type {} of signal {} is not supported."
+                                 .format(signal.dtype, name))
             prop = graph.new_vertex_property(dtype)
             prop.get_array()[:] = signal
             graph.vertex_properties[name] = prop
@@ -284,7 +284,7 @@ class IOMixIn(object):
         If the graph is a :class:`networkx.MultiGraph`, multiedges are
         aggregated by summation.
 
-        See Also
+        See also
         --------
         from_graphtool : import from graph-tool
         load : load from a file
@@ -359,7 +359,7 @@ class IOMixIn(object):
         If the graph has multiple edge connecting the same two nodes, a sum
         over the edges is taken to merge them.
 
-        See Also
+        See also
         --------
         from_networkx : import from NetworkX
         load : load from a file
@@ -427,7 +427,7 @@ class IOMixIn(object):
         graph : :class:`Graph`
             The loaded graph.
 
-        See Also
+        See also
         --------
         save : save a graph to a file
         from_networkx : load with NetworkX then import in the PyGSP
@@ -495,34 +495,6 @@ class IOMixIn(object):
         `N`-dimensional signals are broken into `N` 1-dimensional signals.
         They will eventually be joined back together on import.
 
-        Supported formats are:
-
-        * GraphML_, a comprehensive XML format.
-          `Wikipedia <https://en.wikipedia.org/wiki/GraphML>`_.
-          Supported by NetworkX_, graph-tool_, NetworKit_, igraph_, Gephi_,
-          Cytoscape_, SocNetV_.
-        * GML_ (Graph Modelling Language), a simple non-XML format.
-          `Wikipedia <https://wikipedia.org/wiki/Graph_Modelling_Language>`_.
-          Supported by NetworkX_, graph-tool_, NetworKit_, igraph_, Gephi_,
-          Cytoscape_, SocNetV_, Tulip_.
-        * GEXF_ (Graph Exchange XML Format), Gephi's XML format.
-          Supported by NetworkX_, NetworKit_, Gephi_, Tulip_, ngraph_.
-
-        If unsure, we recommend GraphML_.
-
-        .. _GraphML: http://graphml.graphdrawing.org
-        .. _GML: http://www.infosun.fim.uni-passau.de/Graphlet/GML/gml-tr.html
-        .. _GEXF: https://gephi.org/gexf/format
-        .. _NetworkX: https://networkx.github.io
-        .. _graph-tool: https://graph-tool.skewed.de
-        .. _NetworKit: https://networkit.github.io
-        .. _igraph: https://igraph.org
-        .. _ngraph: https://github.com/anvaka/ngraph
-        .. _Gephi: https://gephi.org
-        .. _Cytoscape: https://cytoscape.org
-        .. _SocNetV: https://socnetv.org
-        .. _Tulip: http://tulip.labri.fr
-
         Parameters
         ----------
         path : string
@@ -533,7 +505,7 @@ class IOMixIn(object):
         backend : {'networkx', 'graph-tool', None}, optional
             Library used to load the graph. Automatically chosen if None.
 
-        See Also
+        See also
         --------
         load : load a graph from a file
         to_networkx : export as a NetworkX graph, and save with NetworkX
