@@ -90,6 +90,21 @@ Plotting
 Import and export (I/O)
 -----------------------
 
+We provide import and export facility to two well-known Python packages for
+network analysis: NetworkX_ and graph-tool_.
+Those packages and the PyGSP are fundamentally different in their goals (graph
+analysis versus graph signal analysis) and graph representations (if in the
+PyGSP everything is an ndarray, in NetworkX everything is a dictionary).
+Those tools are complementary and good interoperability is necessary to exploit
+the strengths of each tool.
+We ourselves leverage NetworkX and graph-tool to save and load graphs.
+
+Note: to tie a signal with the graph, such that they are exported together,
+attach it first with :meth:`Graph.set_signal`.
+
+.. _NetworkX: https://networkx.github.io
+.. _graph-tool: https://graph-tool.skewed.de
+
 .. autosummary::
 
     Graph.load
