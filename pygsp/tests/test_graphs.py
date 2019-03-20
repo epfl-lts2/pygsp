@@ -808,6 +808,42 @@ class TestImportExport(unittest.TestCase):
             self.assertEqual(g.signals["signal1"][i],
                              nx.get_node_attributes(g_nx, "signal1")[node])
 
+    def test_no_weights(self):
+
+        adjacency = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
+
+        # NetworkX no weights.
+        graph_nx = nx.Graph()
+        graph_nx.add_edge(0, 1)
+        graph_nx.add_edge(1, 2)
+        graph_pg = graphs.Graph.from_networkx(graph_nx)
+        np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
+
+        # NetworkX non-existent weight name.
+        graph_nx.edges[(0, 1)]['weight'] = 2
+        graph_nx.edges[(1, 2)]['weight'] = 2
+        graph_pg = graphs.Graph.from_networkx(graph_nx)
+        np.testing.assert_allclose(graph_pg.W.toarray(), 2*adjacency)
+        graph_pg = graphs.Graph.from_networkx(graph_nx, weight='unknown')
+        np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
+
+        # Graph-tool no weights.
+        graph_gt = gt.Graph(directed=False)
+        graph_gt.add_edge(0, 1)
+        graph_gt.add_edge(1, 2)
+        graph_pg = graphs.Graph.from_graphtool(graph_gt)
+        np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
+
+        # Graph-tool non-existent weight name.
+        prop = graph_gt.new_edge_property("double")
+        prop[(0, 1)] = 2
+        prop[(1, 2)] = 2
+        graph_gt.edge_properties["weight"] = prop
+        graph_pg = graphs.Graph.from_graphtool(graph_gt)
+        np.testing.assert_allclose(graph_pg.W.toarray(), 2*adjacency)
+        graph_pg = graphs.Graph.from_graphtool(graph_gt, weight='unknown')
+        np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
+
     @unittest.skipIf(sys.version_info < (3, 6), 'need ordered dicts')
     def test_save_load(self):
 
