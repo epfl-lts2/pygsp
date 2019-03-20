@@ -84,7 +84,7 @@ class DifferenceMixIn(object):
 
         The result is cached and accessible by the :attr:`D` property.
 
-        See also
+        See Also
         --------
         grad : compute the gradient
         div : compute the divergence
@@ -205,7 +205,7 @@ class DifferenceMixIn(object):
         y : ndarray
             Gradient signal of length :attr:`n_edges` living on the edges.
 
-        See also
+        See Also
         --------
         compute_differential_operator
         div : compute the divergence of an edge signal
@@ -288,7 +288,7 @@ class DifferenceMixIn(object):
             Divergence signal of length :attr:`n_vertices` living on the
             vertices.
 
-        See also
+        See Also
         --------
         compute_differential_operator
         grad : compute the gradient of a vertex signal

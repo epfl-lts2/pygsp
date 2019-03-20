@@ -623,7 +623,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         energy : float
             The Dirichlet energy of the graph signal.
 
-        See also
+        See Also
         --------
         grad : compute the gradient of a vertex signal
 
