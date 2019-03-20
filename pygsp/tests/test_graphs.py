@@ -676,6 +676,10 @@ class TestImportExport(unittest.TestCase):
         for i in range(graph.N):
             self.assertEqual(graph_nx.node[i]["signal1"], signal1[i])
             self.assertEqual(graph_nx.node[i]["signal2"], signal2[i])
+        # invalid signal type
+        graph = graphs.Path(3)
+        graph.set_signal(np.array(['a', 'b', 'c']), 'sig')
+        self.assertRaises(ValueError, graph.to_networkx)
 
     def test_graphtool_signal_export(self):
         g = graphs.Logo()
@@ -689,6 +693,10 @@ class TestImportExport(unittest.TestCase):
         for i, v in enumerate(g_gt.vertices()):
             self.assertEqual(g_gt.vertex_properties["signal1"][v], s[i])
             self.assertEqual(g_gt.vertex_properties["signal2"][v], s2[i])
+        # invalid signal type
+        graph = graphs.Path(3)
+        graph.set_signal(np.array(['a', 'b', 'c']), 'sig')
+        self.assertRaises(TypeError, graph.to_graphtool)
 
     @unittest.skipIf(sys.version_info < (3,), 'old graph-tool')
     def test_graphtool_signal_import(self):

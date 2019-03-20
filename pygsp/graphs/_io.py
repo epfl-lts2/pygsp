@@ -229,8 +229,8 @@ class IOMixIn(object):
         try:
             dtype = convert[weights.dtype.type]
         except KeyError:
-            raise ValueError("Type {} of the edge weights is not supported."
-                             .format(weights.dtype))
+            raise TypeError("Type {} of the edge weights is not supported."
+                            .format(weights.dtype))
         prop = graph.new_edge_property(dtype)
         prop.get_array()[:] = weights
         graph.edge_properties['weight'] = prop
@@ -240,8 +240,8 @@ class IOMixIn(object):
             try:
                 dtype = convert[signal.dtype.type]
             except KeyError:
-                raise ValueError("Type {} of signal {} is not supported."
-                                 .format(signal.dtype, name))
+                raise TypeError("Type {} of signal {} is not supported."
+                                .format(signal.dtype, name))
             prop = graph.new_vertex_property(dtype)
             prop.get_array()[:] = signal
             graph.vertex_properties[name] = prop
