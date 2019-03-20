@@ -206,6 +206,29 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             s += '{}={}, '.format(key, value)
         return '{}({})'.format(self.__class__.__name__, s[:-2])
 
+    def _break_signals(self):
+        r"""Break N-dimensional signals into N 1D signals."""
+        for name in list(self.signals.keys()):
+            if self.signals[name].ndim == 2:
+                for i, signal_1d in enumerate(self.signals[name].T):
+                    self.signals[name + '_' + str(i)] = signal_1d
+                del self.signals[name]
+
+    def _join_signals(self):
+        r"""Join N 1D signals into one N-dimensional signal."""
+        joined = dict()
+        for name in self.signals:
+            name_base = name.rsplit('_', 1)[0]
+            names = joined.get(name_base, list())
+            names.append(name)
+            joined[name_base] = names
+        for name_base, names in joined.items():
+            if len(names) > 1:
+                signal_nd = np.stack([self.signals[n] for n in names], axis=1)
+                self.signals[name_base] = signal_nd
+                for name in names:
+                    del self.signals[name]
+
     def to_networkx(self):
         r"""Export the graph to NetworkX.
 
@@ -214,6 +237,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Signals are stored as node attributes,
         under their name in the :attr:`signals` dictionary.
+        `N`-dimensional signals are broken into `N` 1-dimensional signals.
+        They will eventually be joined back together on import.
 
         Returns
         -------
@@ -273,6 +298,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                            for name, signal in self.signals.items()}
                 yield vertex, signals
 
+        self._break_signals()
         graph = nx.DiGraph() if self.is_directed() else nx.Graph()
         graph.add_nodes_from(nodes())
         graph.add_edges_from(edges())
@@ -287,6 +313,8 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Signals are stored as vertex property maps,
         under their name in the :attr:`signals` dictionary.
+        `N`-dimensional signals are broken into `N` 1-dimensional signals.
+        They will eventually be joined back together on import.
 
         Returns
         -------
@@ -350,6 +378,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         prop.get_array()[:] = weights
         graph.edge_properties['weight'] = prop
 
+        self._break_signals()
         for name, signal in self.signals.items():
             try:
                 dtype = convert[signal.dtype.type]
@@ -371,6 +400,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Signals are retrieved from node attributes,
         and stored in the :attr:`signals` dictionary under the attribute name.
+        `N`-dimensional signals that were broken during export are joined.
 
         Parameters
         ----------
@@ -438,6 +468,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
                 except KeyError:
                     pass  # attribute not set for node
 
+        graph_pg._join_signals()
         return graph_pg
 
     @classmethod
@@ -449,6 +480,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
 
         Signals are retrieved from node properties,
         and stored in the :attr:`signals` dictionary under the property name.
+        `N`-dimensional signals that were broken during export are joined.
 
         Parameters
         ----------
@@ -508,6 +540,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         for name, signal in graph.vertex_properties.items():
             graph_pg.set_signal(signal.get_array(), name)
 
+        graph_pg._join_signals()
         return graph_pg
 
     @classmethod
