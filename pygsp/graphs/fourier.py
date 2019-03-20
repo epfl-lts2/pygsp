@@ -9,7 +9,7 @@ from pygsp import utils
 logger = utils.build_logger(__name__)
 
 
-class GraphFourier(object):
+class FourierMixIn(object):
 
     def _check_fourier_properties(self, name, desc):
         if getattr(self, '_' + name) is None:
