@@ -10,15 +10,20 @@ from . import Graph  # prevent circular import in Python < 3.5
 class Grid2d(Graph):
     r"""2-dimensional grid graph.
 
+    On the 2D grid, the graph Fourier transform (GFT) is the Kronecker product
+    between the GFT of two :class:`~pygsp.graphs.Path` graphs.
+
     Parameters
     ----------
     N1 : int
         Number of vertices along the first dimension.
     N2 : int
-        Number of vertices along the second dimension (default N1).
+        Number of vertices along the second dimension. Default is ``N1``.
 
     See Also
     --------
+    Path : 1D line with even boundary conditions
+    Torus : Kronecker product of two ring graphs
     Grid2dImgPatches
 
     Examples
