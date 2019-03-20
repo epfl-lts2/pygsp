@@ -24,6 +24,11 @@ manually as it cannot be installed by pip.
 =======
 >>>>>>> merge all the extra requirements in a single dev requirement
 
+The ``dev`` "extras requirement" ensures that dependencies required for
+development (to run the test suite and build the documentation) are installed.
+Only `graph-tool <https://graph-tool.skewed.de>`_ will be missing: install it
+manually as it cannot be installed by pip.
+
 You can improve or add functionality in the ``pygsp`` folder, along with
 corresponding unit tests in ``pygsp/tests/test_*.py`` (with reasonable
 coverage) and documentation in ``doc/reference/*.rst``. If you have a nice
