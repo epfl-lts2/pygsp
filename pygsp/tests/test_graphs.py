@@ -711,23 +711,12 @@ class TestImportExport(unittest.TestCase):
         self.assertEqual(g.signals["signal"][2], 2.4)
 
     def test_networkx_signal_import(self):
-        g_nx = nx.Graph()
-        g_nx.add_edge(3, 4)
-        g_nx.add_edge(2, 4)
-        g_nx.add_edge(3, 5)
-        dic_signal = {
-            2: 4.0,
-            3: 5.0,
-            4: 3.3,
-            5: 2.3
-        }
-
-        nx.set_node_attributes(g_nx, dic_signal, "signal1")
-        g = graphs.Graph.from_networkx(g_nx)
-
-        for i, node in enumerate(g_nx.node):
-            self.assertEqual(g.signals["signal1"][i],
-                             nx.get_node_attributes(g_nx, "signal1")[node])
+        graph_nx = nx.Graph()
+        graph_nx.add_nodes_from(range(2, 5))
+        graph_nx.add_edges_from([(3, 4), (2, 4), (3, 5)])
+        nx.set_node_attributes(graph_nx, {2: 4, 3: 5, 5: 2.3}, "s")
+        graph_pg = graphs.Graph.from_networkx(graph_nx)
+        np.testing.assert_allclose(graph_pg.signals["s"], [4, 5, np.nan, 2.3])
 
     def test_no_weights(self):
 
