@@ -11,7 +11,7 @@ from pygsp import utils
 logger = utils.build_logger(__name__)
 
 
-class GraphDifference(object):
+class DifferenceMixIn(object):
 
     @property
     def D(self):

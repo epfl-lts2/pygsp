@@ -36,6 +36,7 @@ setup(
         'dev': [
             # Import and export.
             'networkx',
+            # 'graph-tool', cannot be installed by pip
             # Construct patch graphs from images.
             'scikit-image',
             # Approximate nearest neighbors for kNN graphs.

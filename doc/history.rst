@@ -24,6 +24,8 @@ History
 * New implementation of the Sensor graph that is simpler and scales better.
 * A new learning module with three functions to solve standard semi-supervised
   classification and regression problems.
+* Import and export graphs and their signals to NetworkX and graph-tool.
+* Save and load graphs and theirs signals to / from GraphML, GML, and GEXF.
 * Merged all the extra requirements in a single dev requirement.
 
 Experimental filter API (to be tested and validated):

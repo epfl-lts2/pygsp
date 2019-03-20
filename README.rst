@@ -53,6 +53,15 @@ exponential window; and Gabor filters. Despite all the pre-defined models, you
 can easily use a custom graph by defining its adjacency matrix, and a custom
 filter bank by defining a set of functions in the spectral domain.
 
+While NetworkX_ and graph-tool_ are tools to analyze the topology of graphs,
+the aim of the PyGSP is to analyze graph signals, also known as features or
+properties (i.e., not the graph itself).
+Those three tools are complementary and work well together with the provided
+import / export facility.
+
+.. _NetworkX: https://networkx.github.io
+.. _graph-tool: https://graph-tool.skewed.de
+
 The following demonstrates how to instantiate a graph and a filter, the two
 main objects of the package.
 
