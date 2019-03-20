@@ -19,17 +19,11 @@ class Grid2d(Graph):
         Number of vertices along the first dimension.
     N2 : int
         Number of vertices along the second dimension. Default is ``N1``.
-    diagonal : float
-        Value of the diagnal edges. Default is ``0.0``
 
     See Also
     --------
     Path : 1D line with even boundary conditions
     Torus : Kronecker product of two ring graphs
-    Grid2dImgPatches
-
-    See Also
-    --------
     Grid2dImgPatches
 
     Examples

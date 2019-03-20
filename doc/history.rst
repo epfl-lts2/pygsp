@@ -33,7 +33,11 @@ History
 =======
 * Import and export graphs and their signals to NetworkX and graph-tool.
 * Save and load graphs and theirs signals to / from GraphML, GML, and GEXF.
+<<<<<<< HEAD
 >>>>>>> update I/O doc
+=======
+* Documentation: path graph linked to DCT, ring graph linked to DFT.
+>>>>>>> doc: path and DCT, ring and DFT
 * Merged all the extra requirements in a single dev requirement.
 >>>>>>> merge all the extra requirements in a single dev requirement
 
