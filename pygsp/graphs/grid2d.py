@@ -17,6 +17,10 @@ class Grid2d(Graph):
     N2 : int
         Number of vertices along the second dimension (default N1).
 
+    See Also
+    --------
+    Grid2dImgPatches
+
     Examples
     --------
     >>> import matplotlib.pyplot as plt

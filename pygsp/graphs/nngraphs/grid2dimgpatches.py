@@ -17,6 +17,11 @@ class Grid2dImgPatches(Graph):
     kwargs : dict
         Parameters passed to :class:`ImgPatches`.
 
+    See Also
+    --------
+    ImgPatches
+    Grid2d
+
     Examples
     --------
     >>> import matplotlib.pyplot as plt

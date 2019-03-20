@@ -22,6 +22,10 @@ class ImgPatches(NNGraph):
     kwargs : dict
         Parameters passed to :class:`NNGraph`.
 
+    See Also
+    --------
+    Grid2dImgPatches
+
     Notes
     -----
     The feature vector of a pixel `i` will consist of the stacking of the
