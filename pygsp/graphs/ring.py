@@ -9,12 +9,28 @@ from . import Graph  # prevent circular import in Python < 3.5
 class Ring(Graph):
     r"""K-regular ring graph.
 
+    A signal on the ring graph is akin to a 1-dimensional periodic signal in
+    classical signal processing.
+
+    On the ring graph, the graph Fourier transform (GFT) is the classical
+    discrete Fourier transform (DFT_).
+    Actually, the Laplacian of the ring graph is a `circulant matrix`_, and any
+    circulant matrix is diagonalized by the DFT.
+
+    .. _DFT: https://en.wikipedia.org/wiki/Discrete_Fourier_transform
+    .. _circulant matrix: https://en.wikipedia.org/wiki/Circulant_matrix
+
     Parameters
     ----------
     N : int
         Number of vertices.
     k : int
         Number of neighbors in each direction.
+
+    See Also
+    --------
+    Path : 1D line with even boundary conditions
+    Torus : Kronecker product of two ring graphs
 
     Examples
     --------
@@ -23,6 +39,18 @@ class Ring(Graph):
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W)
     >>> _ = G.plot(ax=axes[1])
+
+    The GFT of the ring graph is the classical DFT.
+
+    >>> from matplotlib import pyplot as plt
+    >>> n_eigenvectors = 4
+    >>> graph = graphs.Ring(30)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> graph.set_coordinates('line1D')
+    >>> graph.compute_fourier_basis()
+    >>> _ = graph.plot(graph.U[:, :n_eigenvectors], ax=axes[0])
+    >>> _ = axes[0].legend(range(n_eigenvectors))
+    >>> _ = axes[1].plot(graph.e, '.')
 
     """
 
