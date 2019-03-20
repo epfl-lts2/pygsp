@@ -128,6 +128,15 @@ Others
 Graph models
 ============
 
+In addition to the below graphs, useful resources are the random graph
+generators from NetworkX (see `NetworkX's documentation`_) and graph-tool (see
+:mod:`graph_tool.generation`), as well as graph-tool's assortment of standard
+networks (see :mod:`graph_tool.collection`).
+Any graph created by NetworkX or graph-tool can be imported in the PyGSP with
+:meth:`Graph.from_networkx` and :meth:`Graph.from_graphtool`.
+
+.. _NetworkX's documentation: https://networkx.github.io/documentation/stable/reference/generators.html
+
 .. autosummary::
 
     Airfoil
