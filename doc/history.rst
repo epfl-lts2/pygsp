@@ -25,10 +25,15 @@ History
 * A new learning module with three functions to solve standard semi-supervised
   classification and regression problems.
 <<<<<<< HEAD
+<<<<<<< HEAD
 * A much improved, fixed, documented, and tested NNGraph. The user can now
   select the backend and similarity kernel. The radius can be estimated and
   features standardized. (PR #43)
 =======
+=======
+* Import and export graphs and their signals to NetworkX and graph-tool.
+* Save and load graphs and theirs signals to / from GraphML, GML, and GEXF.
+>>>>>>> update I/O doc
 * Merged all the extra requirements in a single dev requirement.
 >>>>>>> merge all the extra requirements in a single dev requirement
 

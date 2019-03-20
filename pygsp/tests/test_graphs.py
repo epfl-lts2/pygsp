@@ -622,7 +622,7 @@ class TestImportExport(unittest.TestCase):
     def test_graphtool_multiedge_import(self):
         # Manualy create a graph with multiple edges
         g_gt = gt.Graph()
-        g_gt.add_vertex(10)
+        g_gt.add_vertex(n=10)
         # connect edge (3,6) three times
         for i in range(3):
             g_gt.add_edge(g_gt.vertex(3), g_gt.vertex(6))
@@ -787,6 +787,10 @@ class TestImportExport(unittest.TestCase):
 
     @unittest.skipIf(sys.version_info < (3, 6), 'need ordered dicts')
     def test_save_load(self):
+
+        # TODO: test with multiple graphs and signals
+        # * dtypes (float, int, bool) of adjacency and signals
+        # * empty graph / isolated nodes
 
         G1 = graphs.Sensor(seed=42)
         W = G1.W.toarray()
