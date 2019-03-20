@@ -478,21 +478,24 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
         --------
         >>> import graph_tool as gt
         >>> graph = gt.Graph(directed=False)
-        >>> v1 = graph.add_vertex()
-        >>> v2 = graph.add_vertex()
-        >>> v3 = graph.add_vertex()
-        >>> e = graph.add_edge(v1, v2)
-        >>> e = graph.add_edge(v2, v3)
+        >>> e1 = graph.add_edge(0, 1)
+        >>> e2 = graph.add_edge(1, 2)
+        >>> v = graph.add_vertex()
+        >>> eprop = graph.new_edge_property("double")
+        >>> eprop[e1] = 0.2
+        >>> eprop[(1, 2)] = 0.9
+        >>> graph.edge_properties["weight"] = eprop
         >>> vprop = graph.new_vertex_property("double", val=np.nan)
-        >>> vprop[v2] = 3.1416
+        >>> vprop[3] = 3.1416
         >>> graph.vertex_properties["sig"] = vprop
         >>> graph = graphs.Graph.from_graphtool(graph)
         >>> graph.W.toarray()
-        array([[0., 1., 0.],
-               [1., 0., 1.],
-               [0., 1., 0.]])
+        array([[0. , 0.2, 0. , 0. ],
+               [0.2, 0. , 0.9, 0. ],
+               [0. , 0.9, 0. , 0. ],
+               [0. , 0. , 0. , 0. ]])
         >>> graph.signals
-        {'sig': PropertyArray([   nan, 3.1416,    nan])}
+        {'sig': PropertyArray([   nan,    nan,    nan, 3.1416])}
 
         """
         gt = _import_graphtool()
