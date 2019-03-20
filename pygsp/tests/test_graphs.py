@@ -883,6 +883,7 @@ class TestImportExport(unittest.TestCase):
                     self.assertRaises(ValueError, G1.save, 'g', fmt, backend)
                     self.assertRaises(ValueError, graphs.Graph.load, 'g', fmt,
                                       backend)
+                    os.remove('g')
                     continue
 
                 atol = 1e-5 if fmt == 'gml' and backend == 'graph-tool' else 0
@@ -894,11 +895,10 @@ class TestImportExport(unittest.TestCase):
                     np.testing.assert_allclose(G2.signals['s'], sig, atol=atol)
                     os.remove(filename)
 
-        self.assertRaises(ValueError, graphs.Graph.load, 'g', fmt='unk')
-        self.assertRaises(ValueError, graphs.Graph.load, 'g', backend='unk')
-        self.assertRaises(ValueError, G1.save, 'g', fmt='unk')
-        self.assertRaises(ValueError, G1.save, 'g', backend='unk')
-        os.remove('g')
+        self.assertRaises(ValueError, graphs.Graph.load, 'g.gml', fmt='?')
+        self.assertRaises(ValueError, graphs.Graph.load, 'g.gml', backend='?')
+        self.assertRaises(ValueError, G1.save, 'g.gml', fmt='?')
+        self.assertRaises(ValueError, G1.save, 'g.gml', backend='?')
 
     @unittest.skipIf(sys.version_info < (3, 3), 'need unittest.mock')
     def test_import_errors(self):
