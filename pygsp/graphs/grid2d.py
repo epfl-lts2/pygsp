@@ -28,6 +28,10 @@ class Grid2d(Graph):
     Torus : Kronecker product of two ring graphs
     Grid2dImgPatches
 
+    See Also
+    --------
+    Grid2dImgPatches
+
     Examples
     --------
     >>> import matplotlib.pyplot as plt
