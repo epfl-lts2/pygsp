@@ -224,6 +224,7 @@ class Graph(fourier.GraphFourier, difference.GraphDifference):
             joined[name_base] = names
         for name_base, names in joined.items():
             if len(names) > 1:
+                names = sorted(names)  # ensure dim ordering (_0, _1, etc.)
                 signal_nd = np.stack([self.signals[n] for n in names], axis=1)
                 self.signals[name_base] = signal_nd
                 for name in names:
