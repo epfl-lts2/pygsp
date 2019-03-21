@@ -128,7 +128,7 @@ class IOMixIn(object):
 
         def edges():
             for source, target, weight in zip(*self.get_edge_list()):
-                yield source, target, {'weight': convert(weight)}
+                yield int(source), int(target), {'weight': convert(weight)}
 
         def nodes():
             for vertex in range(self.n_vertices):
