@@ -495,6 +495,34 @@ class IOMixIn(object):
         `N`-dimensional signals are broken into `N` 1-dimensional signals.
         They will eventually be joined back together on import.
 
+        Supported formats are:
+
+        * GraphML_, a comprehensive XML format.
+          `Wikipedia <https://en.wikipedia.org/wiki/GraphML>`_.
+          Supported by NetworkX_, graph-tool_, NetworKit_, igraph_, Gephi_,
+          Cytoscape_, SocNetV_.
+        * GML_ (Graph Modelling Language), a simple non-XML format.
+          `Wikipedia <https://wikipedia.org/wiki/Graph_Modelling_Language>`_.
+          Supported by NetworkX_, graph-tool_, NetworKit_, igraph_, Gephi_,
+          Cytoscape_, SocNetV_, Tulip_.
+        * GEXF_ (Graph Exchange XML Format), Gephi's XML format.
+          Supported by NetworkX_, NetworKit_, Gephi_, Tulip_, ngraph_.
+
+        If unsure, we recommend GraphML_.
+
+        .. _GraphML: http://graphml.graphdrawing.org
+        .. _GML: http://www.infosun.fim.uni-passau.de/Graphlet/GML/gml-tr.html
+        .. _GEXF: https://gephi.org/gexf/format
+        .. _NetworkX: https://networkx.github.io
+        .. _graph-tool: https://graph-tool.skewed.de
+        .. _NetworKit: https://networkit.github.io
+        .. _igraph: https://igraph.org
+        .. _ngraph: https://github.com/anvaka/ngraph
+        .. _Gephi: https://gephi.org
+        .. _Cytoscape: https://cytoscape.org
+        .. _SocNetV: https://socnetv.org
+        .. _Tulip: http://tulip.labri.fr
+
         Parameters
         ----------
         path : string
