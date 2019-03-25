@@ -222,7 +222,8 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         Parameters
         ----------
         vertices : list
-            List of vertices to keep.
+            Vertices to keep.
+            Either a list of indices or an indicator function.
 
         Returns
         -------
@@ -249,7 +250,10 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             coords = self.coords[vertices]
         except AttributeError:
             coords = None
-        return Graph(adjacency, self.lap_type, coords, self.plotting)
+        graph = Graph(adjacency, self.lap_type, coords, self.plotting)
+        for name, signal in self.signals.items():
+            graph.set_signal(signal[vertices], name)
+        return graph
 
     def is_connected(self):
         r"""Check if the graph is connected (cached).
