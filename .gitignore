@@ -25,7 +25,8 @@ output/*.html
 output/*/index.html
 
 # Sphinx documentation
-doc/_build
+/doc/_build
+/doc/examples/
 
 # Vim swap files
 .*.swp

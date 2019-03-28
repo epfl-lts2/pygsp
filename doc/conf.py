@@ -2,11 +2,13 @@
 
 import pygsp
 
-extensions = ['sphinx.ext.viewcode',
-              'sphinx.ext.autosummary',
-              'sphinx.ext.mathjax',
-              'sphinx.ext.inheritance_diagram',
-              'sphinxcontrib.bibtex']
+extensions = [
+    'sphinx.ext.viewcode',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.inheritance_diagram',
+    'sphinxcontrib.bibtex',
+]
 
 extensions.append('sphinx.ext.autodoc')
 autodoc_default_flags = ['members', 'undoc-members']
@@ -38,6 +40,17 @@ plot_pre_code = """
 import numpy as np
 from pygsp import graphs, filters, utils, plotting
 """
+
+extensions.append('sphinx_gallery.gen_gallery')
+sphinx_gallery_conf = {
+    'examples_dirs': '../examples',
+    'gallery_dirs': 'examples',
+    'filename_pattern': '/',
+    'reference_url': {
+        'pygsp': None,
+    },
+    'show_memory': True,
+}
 
 exclude_patterns = ['_build']
 source_suffix = '.rst'
