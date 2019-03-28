@@ -61,6 +61,8 @@ setup(
             'sphinx',
             'numpydoc',
             'sphinxcontrib-bibtex',
+            'sphinx-gallery',
+            'memory_profiler',
             'sphinx-rtd-theme',
             # Build and upload packages.
             'wheel',
