@@ -13,6 +13,10 @@ from scipy import sparse
 from matplotlib import pyplot as plt
 import pygsp as pg
 
+#plt.rc('font', family='Latin Modern Roman')
+plt.rc('text', usetex=True)
+plt.rc('text.latex', preamble=r'\usepackage{lmodern}')
+
 N = 7
 steps = [0, 1, 2, 3]
 
@@ -20,11 +24,11 @@ graph = pg.graphs.Grid2d(N)
 delta = np.zeros(graph.N)
 delta[N//2*N + N//2] = 1
 
-probability = sparse.diags(graph.dw**(-1)).dot(graph.W)
+probability = sparse.diags(graph.dw**(-1)) @ graph.W
 
 fig, axes = plt.subplots(1, len(steps), figsize=(12, 3))
 for step, ax in zip(steps, axes):
-    state = (probability**step).__rmatmul__(delta)  ## = delta @ probability**step
+    state = delta @ probability**step
     graph.plot(state, ax=ax, title=r'$\delta P^{}$'.format(step))
     ax.set_axis_off()
 
@@ -47,7 +51,7 @@ for graph, ax in zip(graphs, axes):
     if not hasattr(graph, 'coords'):
         graph.set_coordinates(seed=10)
 
-    P = sparse.diags(graph.dw**(-1)).dot(graph.W)
+    P = sparse.diags(graph.dw**(-1)) @ graph.W
 
 #    e, u = np.linalg.eig(P.T.toarray())
 #    np.testing.assert_allclose(np.linalg.inv(u.T) @ np.diag(e) @ u.T,

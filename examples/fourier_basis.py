@@ -16,6 +16,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pygsp as pg
 
+#plt.rc('font', family='Latin Modern Roman')
+plt.rc('text', usetex=True)
+plt.rc('text.latex', preamble=r'\usepackage{lmodern}')
+
 n_eigenvectors = 7
 
 fig, axes = plt.subplots(2, 7, figsize=(15, 4))

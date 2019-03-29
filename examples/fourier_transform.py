@@ -12,6 +12,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pygsp as pg
 
+#plt.rc('font', family='Latin Modern Roman')
+plt.rc('text', usetex=True)
+plt.rc('text.latex', preamble=r'\usepackage{lmodern}')
+
 G = pg.graphs.Sensor(seed=42)
 G.compute_fourier_basis()
 
