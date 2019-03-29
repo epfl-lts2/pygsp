@@ -28,7 +28,7 @@ times = [0, 5, 10, 20]
 fig, axes = plt.subplots(2, len(times), figsize=(12, 5))
 for i, t in enumerate(times):
     g = pg.filters.Heat(G, scale=t)
-    title = fr'$\hat{{f}}({t}) = g_{{1,{t}}} \odot \hat{{f}}(0)$'
+    title = r'$\hat{{f}}({0}) = g_{{1,{0}}} \odot \hat{{f}}(0)$'.format(t)
     g.plot(alpha=1, ax=axes[0, i], title=title)
     axes[0, i].set_xlabel(r'$\lambda$')
 #    axes[0, i].set_ylabel(r'$g(\lambda)$')
@@ -36,9 +36,9 @@ for i, t in enumerate(times):
         axes[0, i].set_ylabel('')
     y = g.filter(x)
     line, = axes[0, i].plot(G.e, G.gft(y))
-    labels = [fr'$\hat{{f}}({t})$', fr'$g_{{1,{t}}}$']
+    labels = [r'$\hat{{f}}({})$'.format(t), r'$g_{{1,{}}}$'.format(t)]
     axes[0, i].legend([line, axes[0, i].lines[-3]], labels, loc='lower right')
-    G.plot(y, edges=False, highlight=sources, ax=axes[1, i], title=fr'$f({t})$')
+    G.plot(y, edges=False, highlight=sources, ax=axes[1, i], title=r'$f({})$'.format(t))
     axes[1, i].set_aspect('equal', 'box')
     axes[1, i].set_axis_off()
 
