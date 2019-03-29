@@ -13,10 +13,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 import pygsp as pg
 
-#plt.rc('font', family='Latin Modern Roman')
-plt.rc('text', usetex=True)
-plt.rc('text.latex', preamble=r'\usepackage{lmodern}')
-
 fig, axes = plt.subplots(2, 4, figsize=(10, 4))
 
 graphs = [
