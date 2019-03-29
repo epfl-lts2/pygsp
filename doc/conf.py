@@ -44,9 +44,9 @@ sphinx_gallery_conf = {
     'examples_dirs': '../examples',
     'gallery_dirs': 'examples',
     'filename_pattern': '/',
-    'reference_url': {
-        'pygsp': None,
-    },
+    'reference_url': {'pygsp': None},
+    'backreferences_dir': 'backrefs',
+    'doc_module': 'pygsp',
     'show_memory': True,
 }
 
