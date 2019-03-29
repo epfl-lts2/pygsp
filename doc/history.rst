@@ -37,7 +37,12 @@ History
 >>>>>>> update I/O doc
 =======
 * Documentation: path graph linked to DCT, ring graph linked to DFT.
+<<<<<<< HEAD
 >>>>>>> doc: path and DCT, ring and DFT
+=======
+* We now have a gallery of examples! That is convenient for users to get a
+  taste of what the library can do, and to start working from a code snippet.
+>>>>>>> history: examples gallery
 * Merged all the extra requirements in a single dev requirement.
 >>>>>>> merge all the extra requirements in a single dev requirement
 
