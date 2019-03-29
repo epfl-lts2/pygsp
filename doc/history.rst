@@ -92,7 +92,7 @@ The following packages were made optional dependencies:
   workflow, it's not necessary for users who only want to process data without
   plotting graphs, signals and filters.
 * pyflann, as it is only used for approximate kNN. The problem was that the
-  source distribution would not build for Windows.  On conda-forge, (py)flann
+  source distribution would not build for Windows. On conda-forge, (py)flann
   is not built for Windows either.
 
 Moreover, matplotlib is now the default drawing backend. It's well integrated
