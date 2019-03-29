@@ -27,6 +27,8 @@ History
 * Import and export graphs and their signals to NetworkX and graph-tool.
 * Save and load graphs and theirs signals to / from GraphML, GML, and GEXF.
 * Documentation: path graph linked to DCT, ring graph linked to DFT.
+* We now have a gallery of examples! That is convenient for users to get a
+  taste of what the library can do, and to start working from a code snippet.
 * Merged all the extra requirements in a single dev requirement.
 
 Experimental filter API (to be tested and validated):
@@ -93,7 +95,7 @@ The following packages were made optional dependencies:
   workflow, it's not necessary for users who only want to process data without
   plotting graphs, signals and filters.
 * pyflann, as it is only used for approximate kNN. The problem was that the
-  source distribution would not build for Windows.  On conda-forge, (py)flann
+  source distribution would not build for Windows. On conda-forge, (py)flann
   is not built for Windows either.
 
 Moreover, matplotlib is now the default drawing backend. It's well integrated

@@ -1,6 +1,6 @@
-===============
-Reference guide
-===============
+=============
+API reference
+=============
 
 .. automodule:: pygsp
 
