@@ -19,7 +19,7 @@ class Grid2d(Graph):
         Number of vertices along the first dimension.
     N2 : int
         Number of vertices along the second dimension. Default is ``N1``.
-    diag_value : float
+    diagonal : float
         Value of the diagnal edges. Default is ``0.0``
 
     See Also
