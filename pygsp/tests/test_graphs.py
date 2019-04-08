@@ -590,7 +590,7 @@ class TestCase(unittest.TestCase):
 
     def test_grid2d_diagonals(self):
         value = 0.5
-        G = graphs.Grid2d(6, 7, diag_value=value)
+        G = graphs.Grid2d(6, 7, diagonal=value)
         self.assertEqual(G.W[2, 8], value)
         self.assertEqual(G.W[9, 1], value)
         self.assertEqual(G.W[9, 3], value)
