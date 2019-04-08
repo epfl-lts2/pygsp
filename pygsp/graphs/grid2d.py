@@ -72,7 +72,7 @@ class Grid2d(Graph):
                              format='csr',
                              dtype='float')
             W += D
-        
+
         W = utils.symmetrize(W, method='tril')
 
         x = np.kron(np.ones((N1, 1)), (np.arange(N2)/float(N2)).reshape(N2, 1))
