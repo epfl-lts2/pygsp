@@ -19,6 +19,8 @@ class Grid2d(Graph):
         Number of vertices along the first dimension.
     N2 : int
         Number of vertices along the second dimension. Default is ``N1``.
+    diag_value : float
+        Value of the diagnal edges. Default is ``0.0``
 
     See Also
     --------
@@ -36,7 +38,7 @@ class Grid2d(Graph):
 
     """
 
-    def __init__(self, N1=16, N2=None, diagonal=0.0, **kwargs):
+    def __init__(self, N1=16, N2=None, diag_value=0.0, **kwargs):
 
         if N2 is None:
             N2 = N1
@@ -52,8 +54,14 @@ class Grid2d(Graph):
         diag_1[(N2 - 1)::N2] = 0
         diag_2 = np.ones(N - N2)
 
-        W = sparse.diags(diagonals=[diag_1, diag_2],
-                         offsets=[-1, -N2],
+        # Connecting node with they diagonal neighbours
+        diag_3 = np.full(N - N2 - 1, diag_value)
+        diag_4 = np.full(N - 2, diag_value)
+        diag_3[N2 - 1::N2] = 0
+        diag_4[0::N2] = 0
+
+        W = sparse.diags(diagonals=[diag_1, diag_2, diag_3, diag_4],
+                         offsets=[-1, -N2, -N2 - 1, -N2 + 1],
                          shape=(N, N),
                          format='csr',
                          dtype='float')
