@@ -588,6 +588,16 @@ class TestCase(unittest.TestCase):
     def test_grid2dimgpatches(self):
         graphs.Grid2dImgPatches(img=self._img, patch_shape=(3, 3))
 
+    def test_grid2d_diagonals(self):
+        value = 0.5
+        G = graphs.Grid2d(6, 7, diag_value=value)
+        self.assertEqual(G.W[2, 8], value)
+        self.assertEqual(G.W[9, 1], value)
+        self.assertEqual(G.W[9, 3], value)
+        self.assertEqual(G.W[2, 14], 0.0)
+        self.assertEqual(G.W[17, 1], 0.0)
+        self.assertEqual(G.W[9, 16], 1.0)
+        self.assertEqual(G.W[20, 27], 1.0)
 
 suite_graphs = unittest.TestLoader().loadTestsFromTestCase(TestCase)
 
