@@ -54,6 +54,8 @@ class TestCase(unittest.TestCase):
                 Gs.append(Graph(Xin))
             elif classname in ['ImgPatches', 'Grid2dImgPatches']:
                 Gs.append(Graph(img=self._img, patch_shape=(3, 3)))
+            elif classname == 'LineGraph':
+                Gs.append(Graph(graphs.Sensor(20, seed=42)))
             else:
                 Gs.append(Graph())
 
