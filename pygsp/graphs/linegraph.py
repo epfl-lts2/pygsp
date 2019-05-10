@@ -3,7 +3,11 @@
 import numpy as np
 from scipy import sparse
 
+from pygsp import utils
 from . import Graph  # prevent circular import in Python < 3.5
+
+
+logger = utils.build_logger(__name__)
 
 
 class LineGraph(Graph):
@@ -30,6 +34,10 @@ class LineGraph(Graph):
     """
 
     def __init__(self, graph, **kwargs):
+
+        if graph.is_weighted():
+            logger.warning('Your graph is weighted, and is considered '
+                           'unweighted to build a binary line graph.')
 
         graph.compute_differential_operator()
         # incidence = np.abs(graph.D)  # weighted?

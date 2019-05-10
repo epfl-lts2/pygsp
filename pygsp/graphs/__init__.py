@@ -75,6 +75,7 @@ Checks
 
 .. autosummary::
 
+    Graph.is_weighted
     Graph.is_connected
     Graph.is_directed
     Graph.has_loops

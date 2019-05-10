@@ -479,6 +479,9 @@ class TestCase(unittest.TestCase):
         ]
         np.testing.assert_equal(graph.W.toarray(), adjacency)
         np.testing.assert_equal(graph.coords, coords)
+        if sys.version_info > (3, 4):  # no assertLogs in python 2.7
+            with self.assertLogs(level='WARNING'):
+                graphs.LineGraph(graphs.Graph([[0, 2], [2, 0]]))
 
     def test_subgraph(self, n_vertices=100):
         self._G.set_signal(self._G.coords, 'coords')
