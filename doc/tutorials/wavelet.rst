@@ -16,6 +16,7 @@ As usual, we first have to import some packages.
 
     >>> import numpy as np
     >>> import matplotlib.pyplot as plt
+    >>> from mpl_toolkits.mplot3d import Axes3D
     >>> from pygsp import graphs, filters, plotting, utils
 
 Then we can load a graph. The graph we'll use is a nearest-neighbor graph of a
