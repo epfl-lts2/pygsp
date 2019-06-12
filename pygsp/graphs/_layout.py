@@ -92,10 +92,10 @@ class LayoutMixIn(object):
                 self.coords[i] = self.info['com_coords'][comm_idx] + \
                     comm_rad * self.coords[i]
         elif kind == 'laplacian_eigenmap2D':
-            self.compute_fourier_basis(n_eigenvectors=2)
+            self.compute_fourier_basis(n_eigenvectors=3)
             self.coords = self.U[:, 1:3]
         elif kind == 'laplacian_eigenmap3D':
-            self.compute_fourier_basis(n_eigenvectors=3)
+            self.compute_fourier_basis(n_eigenvectors=4)
             self.coords = self.U[:, 1:4]
         else:
             raise ValueError('Unexpected argument kind={}.'.format(kind))
