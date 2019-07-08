@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import log
 import numpy as np
 
 from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
@@ -315,7 +316,7 @@ class SphereIcosahedron(NNGraph):
         if digits is None:
             digits = self._decimal_to_digits(1e-8)
         elif isinstance(digits, float) or isinstance(digits, np.float):
-            digits = _decimal_to_digits(digits)
+            digits = self._decimal_to_digits(digits)
         elif not (isinstance(digits, int) or isinstance(digits, np.integer)):
             log.warn('Digits were passed as %s!', digits.__class__.__name__)
             raise ValueError('Digits must be None, int, or float!')
