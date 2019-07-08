@@ -193,6 +193,7 @@ _GRAPHS = [
     'RandomRegular',
     'RandomRing',
     'Ring',
+    'SphereEquiangular',
     'StochasticBlockModel',
     'SwissRoll',
     'Torus'
@@ -205,6 +206,8 @@ _NNGRAPHS = [
     'Grid2dImgPatches',
     'Sensor',
     'Sphere',
+    'SphereHealpix',
+    'SphereIcosahedron',
     'TwoMoons'
 ]
 
