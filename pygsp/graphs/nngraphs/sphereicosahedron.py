@@ -35,14 +35,15 @@ class SphereIcosahedron(NNGraph):
             raise ValueError('Unknown sampling value:' + sampling)
         PHI = (1 + np.sqrt(5))/2
         radius = np.sqrt(PHI**2+1)
-        coords = [0, 1, PHI, 0, -1, PHI, 0, 1, -PHI, 0, -1, -PHI,
-                  1, PHI, 0, -1, PHI, 0, 1, -PHI, 0, -1, -PHI, 0,
-                  PHI, 0, 1, PHI, 0, -1, -PHI, 0, 1, -PHI, 0, -1]
+        coords = [-1, PHI, 0, 1, PHI, 0, -1, -PHI, 0, 1, -PHI, 0,
+                  0, -1, PHI, 0, 1, PHI, 0, -1, -PHI, 0, 1, -PHI,
+                  PHI, 0, -1, PHI, 0, 1, -PHI, 0, -1, -PHI, 0, 1]
         coords = np.reshape(coords, (-1,3))
         coords = coords/radius
-        faces = [1, 2, 7, 1, 7, 10, 1, 10, 9, 1, 9, 5, 1, 5, 2, 2, 7, 12, 12, 7, 8,
-                 7, 8, 10, 8, 10, 3, 10, 3, 9, 3, 9, 6, 9, 6, 5, 6, 5, 11, 5, 11, 2,
-                 11, 2, 12, 4, 11, 12, 4, 12, 8, 4, 8, 3, 4, 3, 6, 4, 6, 11]
+        faces = [0, 11, 5, 0, 5, 1, 0, 1, 7, 0, 7, 10, 0, 10, 11,
+                 1, 5, 9, 5, 11, 4, 11, 10, 2, 10, 7, 6, 7, 1, 8,
+                 3, 9, 4, 3, 4, 2, 3, 2, 6, 3, 6, 8, 3, 8, 9,
+                 4, 9, 5, 2, 4, 11, 6, 2, 10, 8, 6, 7, 9, 8, 1]
         self.faces = np.reshape(faces, (20,3))-1
         self.level = level
         self.intp = None
