@@ -20,6 +20,7 @@ class SphereIcosahedron(NNGraph):
     Examples
     --------
     >>> import matplotlib.pyplot as plt
+    >>> from mpl_toolkits.mplot3d import Axes3D
     >>> G = graphs.SphereIcosahedron(level=1)
     >>> fig = plt.figure()
     >>> ax1 = fig.add_subplot(121)
@@ -44,7 +45,7 @@ class SphereIcosahedron(NNGraph):
                  1, 5, 9, 5, 11, 4, 11, 10, 2, 10, 7, 6, 7, 1, 8,
                  3, 9, 4, 3, 4, 2, 3, 2, 6, 3, 6, 8, 3, 8, 9,
                  4, 9, 5, 2, 4, 11, 6, 2, 10, 8, 6, 7, 9, 8, 1]
-        self.faces = np.reshape(faces, (20,3))-1
+        self.faces = np.reshape(faces, (20, 3))
         self.level = level
         self.intp = None
 
@@ -127,7 +128,7 @@ class SphereIcosahedron(NNGraph):
 
     def xyz2latlong(self):
         x, y, z = self.coords[:, 0], self.coords[:, 1], self.coords[:, 2]
-        long = np.arctan2(y, x)
+        long = np.arctan2(y, x) + np.pi
         xy2 = x**2 + y**2
         lat = np.arctan2(z, np.sqrt(xy2))
         return lat, long

@@ -39,6 +39,8 @@ setup(
             # 'graph-tool', cannot be installed by pip
             # Construct patch graphs from images.
             'scikit-image',
+            # Construct Sphere graph
+            'healpy',
             # Approximate nearest neighbors for kNN graphs.
             'cyflann',
             'nmslib',
