@@ -115,19 +115,16 @@ def distanz(x, y=None):
            [2., 1., 0.]])
 
     """
-    try:
-        x.shape[1]
-    except IndexError:
-        x = x.reshape(1, x.shape[0])
+    if len(x.shape)<2:
+        x = np.expand_dims(x, axis=0)
 
     if y is None:
         y = x
-
+        diag_zero = True
     else:
-        try:
-            y.shape[1]
-        except IndexError:
-            y = y.reshape(1, y.shape[0])
+        diag_zero = False
+        if len(y.shape)<2:
+            y = np.expand_dims(xy, axis=0)
 
     rx, cx = x.shape
     ry, cy = y.shape
@@ -142,7 +139,10 @@ def distanz(x, y=None):
 
     d = abs(np.kron(np.ones((cy, 1)), xx).T +
             np.kron(np.ones((cx, 1)), yy) - 2 * xy)
-
+    
+    if diag_zero:
+        # Remove diagonal errors
+        d = d-np.diag(np.diag(d))
     return np.sqrt(d)
 
 
