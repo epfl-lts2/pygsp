@@ -1,8 +1,10 @@
 import unittest
 import numpy as np
 from nn import nn, sparse_distance_matrix
-from learn_graph import  prox_sum_log, isvector, issymetric, squareform_sp, sum_squareform, lin_map, norm_S
+from learn_graph import  prox_sum_log, isvector, issymetric, squareform_sp, sum_squareform, lin_map, norm_S, learn_graph_log_degree, gsp_compute_graph_learning_theta
 from scipy import sparse
+import pygsp as pg
+from pygsp.utils import distanz
 
 class TestCase(unittest.TestCase):
     def test_prox_sum_log(self):
@@ -76,7 +78,34 @@ class TestCase(unittest.TestCase):
             res1 = np.linalg.norm(S.todense(),2)
             res2 = norm_S(S)
             np.testing.assert_allclose(res1,res2)
-
+            
+    def test_learn_graph_log(self):
+        # Create a bunch of signals
+        n=100
+        d = 400
+        G = pg.graphs.Sensor(N=n,k=6)
+        G.compute_fourier_basis()
+        # g = pg.filters.Heat(G, scale=5)
+        g = pg.filters.Filter(G,lambda x:1/(1+5*x))
+        S = np.random.randn(n,d)
+        X = np.squeeze(g.filter(S))
+        
+        Z = distanz(X.transpose())
+        k=6
+        theta, theta_min, theta_max = gsp_compute_graph_learning_theta(Z, k)
+        learned_W, _ = learn_graph_log_degree(theta*Z, verbosity=0)
+        
+        neighbors, distances = nn(X, k=3*k, kind='knn')  
+        np.testing.assert_equal(distances[:,0],0)
+        dmat = distances[:,1:]
+        theta2, theta_min2, theta_max2 = gsp_compute_graph_learning_theta(dmat, k)
+        np.testing.assert_allclose(theta, theta2)
+        np.testing.assert_allclose(theta_min, theta_min2)
+        np.testing.assert_allclose(theta_max, theta_max2)
+        W = sparse_distance_matrix(neighbors, distances)
+        learned_W2, _ = learn_graph_log_degree(W*theta2, edge_mask=W>0, verbosity=0)
+        assert(np.sum(np.abs(learned_W2.todense()-learned_W))/np.sum(np.abs(learned_W))<1e-4)
+        
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
 if __name__ == '__main__':
     unittest.main()

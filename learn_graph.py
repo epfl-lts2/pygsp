@@ -186,25 +186,81 @@ def norm_S(S):
     return np.sqrt(2*np.max(np.sum(S, axis=1)))
 
 
-def learn_graph_log_degree(Z):
-    a = 1
-    b = 1
-    c = 0
-    verbosity = 2
-    maxit = 1000
-    tol = 1e-5
-    step_size = .5  # from (0, 1)
-    fix_zeros = False
-    max_w = np.inf
-    edge_mask = None
-    w_0 = 0
+def compute_theta_bounds(Z, geom_mean=False, islist=None):
+    '''Compute the values of parameter theta (controlling sparsity) 
+    that should be expected to give each sparsity level. Return upper 
+    and lower bounds each sparsity level k=[1, ..., n-1] neighbors/node.
+    
+    Z : distance matrix
+    geom_mean: use geometric mean instead of arithmetic mean? default: False
+    '''
+    # Z is the zero-diagonal pairwise distance matrix between nodes
+    
+    if isvector(Z):
+        ValueError('Z must be a matrix.')
+    assert(len(Z.shape)==2)
+    n = len(Z);
+    
+    if islist is None:
+        islist = not(Z.shape[0]==Z.shape[1])
+    if islist:
+        Z_sorted = np.sort(Z, axis=1)
+    else:
+        assert(Z.shape[0]==Z.shape[1])
+        # don't take into account the diagonal of Z
+        Z_sorted = np.zeros((n, n-1));
+        for i in range(n):
+            Z_sorted[i, :] = np.sort(np.concatenate((Z[i,:i],Z[i,i+1:])), kind='mergesort')
+
+    n, m  = Z_sorted.shape
+    
+    B_k = np.cumsum(Z_sorted, axis=1)       # cummulative sum for each row
+    K_mat = np.tile(np.arange(1,m+1), (n, 1))
+    ## Theoretical intervals of theta for each desired sparsity level:
+    if geom_mean:
+        theta_u = np.mean(1./(np.sqrt(K_mat*Z_sorted*Z_sorted - B_k*Z_sorted)+1e-15), axis=0)
+    else:
+        # try geometric mean instead of arithmetic:
+        theta_u = np.exp(np.mean(np.log(1/(np.sqrt(K_mat*Z_sorted*Z_sorted - B_k*Z_sorted)+1e-15)), axis=0))
+    theta_l = np.zeros(theta_u.shape)
+    theta_l[:-1] = theta_u[1:]
+    return theta_l, theta_u, Z_sorted
+
+def gsp_compute_graph_learning_theta(Z, k, geom_mean=False, islist=None):
+
+    
+    # Z is the zero-diagonal pairwise distance matrix between nodes
+    theta_min, theta_max, _ = compute_theta_bounds(Z, geom_mean, islist)
+    theta_min = theta_min[k-1];
+    theta_max = theta_max[k-1];
+
+    if k > 1:
+        theta = np.sqrt(theta_min * theta_max);
+    else:
+        theta = theta_min * 1.1;
+    return theta, theta_min, theta_max
+
+
+def learn_graph_log_degree(Z,
+    a = 1,
+    b = 1,
+    c = 0,
+    verbosity = 1,
+    maxit = 1000,
+    tol = 1e-5,
+    step_size = .5, 
+    fix_zeros = False,
+    max_w = np.inf,
+    edge_mask = None,
+    w_0 = 0,
+    rel_edge=1e-5):
     
     if isvector(Z):
         z = Z;
     else:
         z = squareform_sp(Z)
 
-    l = len(z) # number of edges
+    l = z.shape[0] # number of edges
     # n(n-1)/2 = l => n = (1 + sqrt(1+8*l))/ 2
     n = int(np.round((1 + np.sqrt(1+8*l))/ 2))  # number of nodes
 
@@ -221,14 +277,13 @@ def learn_graph_log_degree(Z):
     if edge_mask is not None:
         if not(isvector(edge_mask)):
             edge_mask = squareform_sp(edge_mask)
-        raise NotImplementedError()
-    #     # use only the non-zero elements to optimize
-    #     ind = find(params.edge_mask(:));
-    #     z = full(z(ind));
-    #     if not(isscalar(w_0))
-    #         w_0 = full(w_0(ind));
+        # use only the non-zero elements to optimize
+        ind, _ = edge_mask.nonzero()
 
-
+        z = z[ind].data
+        if not(np.isscalar(w_0)):
+            w_0 = w_0[ind].data
+    
     w = np.zeros(z.shape);
 
     ## Needed operators
@@ -237,20 +292,11 @@ def learn_graph_log_degree(Z):
     S, St = sum_squareform(n, mask=edge_mask)
 
     # S: edges -> nodes
-    K_op = lambda w : S@w
+    K_op = lambda w : S.dot(w)
 
     # S': nodes -> edges
-    Kt_op = lambda z: St@z
+    Kt_op = lambda z: St.dot(z)
 
-    # if edge_mask is not None:
-    #     norm_K = normest(S);
-    #     # approximation: 
-    #     # sqrt(2*(n-1)) * sqrt(nnz(params.edge_mask) / (n*(n+1)/2)) /sqrt(2)
-    # else:
-    #     # the next is an upper bound if we use a mask
-    #     norm_K = sqrt(2*(n-1));
-
-    # This should be always the good value because S is made only with ones. To check...
     norm_K = norm_S(S)
 
 
@@ -288,7 +334,7 @@ def learn_graph_log_degree(Z):
     # primal variable ALREADY INITIALIZED
     # dual variable
     v_n = K_op(w)
-
+        
     stat = dict()
     stat['time'] = np.nan
     if verbosity > 1:
@@ -339,63 +385,18 @@ def learn_graph_log_degree(Z):
         print('# iters: {:4d}. Rel primal: {:6.4e} Rel dual: {:6.4e}  OBJ {:6.3e}'.format(
                 i, rel_norm_primal, rel_norm_dual, feval(w) + geval(K_op(w)) + heval(w)))
         print('Time needed is {:f} seconds'.format(stat['time']))
-
-    if edge_mask is not None:
-        raise NotImplementedError()
-    #     w = sparse(ind, ones(size(ind)), w, l, 1);
     
-    w[w<0]=0
+    # Force positivity on the solution
+    
+    w[w<rel_edge*np.max(w)]=0
+    
+    if edge_mask is not None:
+        indw = w>0
+        w = sparse.csr_matrix((w[indw], (ind[indw], np.zeros((np.sum(indw))))),  (l, 1))
+
     if isvector(Z):
         W = w;
     else:
         W = squareform_sp(w);
 
-    return W
-
-def compute_theta_bounds(Z, geom_mean=False):
-    '''Compute the values of parameter theta (controlling sparsity) 
-    that should be expected to give each sparsity level. Return upper 
-    and lower bounds each sparsity level k=[1, ..., n-1] neighbors/node.
-    
-    Z : distance matrix
-    geom_mean: use geometric mean instead of arithmetic mean? default: False
-    '''
-    # Z is the zero-diagonal pairwise distance matrix between nodes
-    
-    if isvector(Z):
-        ValueError('Z must be a matrix.')
-    assert(Z.shape[0]==Z.shape[1])
-    assert(len(Z.shape)==2)
-    n = len(Z);
-
-    # don't take into account the diagonal of Z
-    Z_sorted = np.zeros((n, n-1));
-    for i in range(n):
-        Z_sorted[i, :] = np.sort(np.concatenate((Z[i,:i],Z[i,i+1:])), kind='mergesort')
-
-    n, m  = Z_sorted.shape
-    
-    B_k = np.cumsum(Z_sorted, axis=1)       # cummulative sum for each row
-    K_mat = np.tile(np.arange(1,m+1), (n, 1))
-    ## Theoretical intervals of theta for each desired sparsity level:
-    if geom_mean:
-        theta_u = np.mean(1./(np.sqrt(K_mat*Z_sorted*Z_sorted - B_k*Z_sorted)+1e-15), axis=0)
-    else:
-        # try geometric mean instead of arithmetic:
-        theta_u = np.exp(np.mean(np.log(1/(np.sqrt(K_mat*Z_sorted*Z_sorted - B_k*Z_sorted)+1e-15)), axis=0))
-    theta_l = np.zeros(theta_u.shape)
-    theta_l[:-1] = theta_u[1:]
-    return theta_l, theta_u, Z_sorted
-
-def gsp_compute_graph_learning_theta(Z, k, geom_mean=False):
-
-    # Z is the zero-diagonal pairwise distance matrix between nodes
-    theta_min, theta_max, _ = compute_theta_bounds(Z, geom_mean)
-    theta_min = theta_min[k-1];
-    theta_max = theta_max[k-1];
-
-    if k > 1:
-        theta = np.sqrt(theta_min * theta_max);
-    else:
-        theta = theta_min * 1.1;
-    return theta, theta_min, theta_max
+    return W, stat
