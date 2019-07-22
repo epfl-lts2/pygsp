@@ -138,7 +138,7 @@ def _nmslib(features, metric, order, kind, k, _, params):
     neighbors = np.concatenate(neighbors).reshape(n_vertices, k+1)
     return neighbors, distances
 
-def nn(features, metric='euclidean', order=2, kind='knn', k=10, radius=None, backend='scipy-ckdtree', **kwargs):
+def nearest_neighbor(features, metric='euclidean', order=2, kind='knn', k=10, radius=None, backend='scipy-ckdtree', **kwargs):
     '''Find nearest neighboors.
     
     Parameters
@@ -212,7 +212,7 @@ def nn(features, metric='euclidean', order=2, kind='knn', k=10, radius=None, bac
 
 
 def sparse_distance_matrix(neighbors, distances, symmetrize=True, safe=False, kind = None):
-    '''Build a sparse distance matrix.'''
+    '''Build a sparse distance matrix from nearest neighbors'''
     n_edges = [len(n) - 1 for n in neighbors]  # remove distance to self
     if safe and kind is None:
         raise ValueError('Please specify "kind" to "knn" or "radius" to use the safe mode')
