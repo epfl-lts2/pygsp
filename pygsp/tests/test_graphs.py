@@ -358,7 +358,7 @@ class TestCase(unittest.TestCase):
 
         for metric in metrics:
             for kind in ['knn', 'radius']:
-                params = dict(features=data, metric=metric, kind=kind)
+                params = dict(features=data, metric=metric, kind=kind, k=4)
                 ref = Graph(backend='scipy-pdist', **params)
                 for backend in backends:
                     # Unsupported combinations.
