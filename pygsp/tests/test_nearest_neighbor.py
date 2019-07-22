@@ -11,7 +11,7 @@ class TestCase(unittest.TestCase):
         for metric in metrics:
             for kind in ['knn', 'radius']:
                 for backend in backends:
-                    params = dict(features=data, metric=metric, kind=kind, radius=0.25)
+                    params = dict(features=data, metric=metric, kind=kind, radius=0.25, k=4)
                     ref_nn, ref_d = nearest_neighbor(backend='scipy-pdist', **params)
                     # Unsupported combinations.
                     if backend == 'flann' and metric == 'max_dist':
