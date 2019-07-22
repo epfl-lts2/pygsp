@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from nn import nn, sparse_distance_matrix
-from learn_graph import  prox_sum_log, isvector, issymetric, squareform_sp, sum_squareform, lin_map, norm_S, learn_graph_log_degree, gsp_compute_graph_learning_theta
+from learn_graph import  *
 from scipy import sparse
 import pygsp as pg
 from pygsp.utils import distanz
