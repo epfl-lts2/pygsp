@@ -518,7 +518,7 @@ class TestCase(unittest.TestCase):
                     else:
                         params['backend'] = backend
                         if backend == 'flann':
-                            graph = Graph(random_seed=40, **params)
+                            graph = Graph(random_seed=40,  target_precision=1, **params)
                         else:
                             graph = Graph(**params)
                         np.testing.assert_allclose(graph.W.toarray(),
@@ -1029,3 +1029,4 @@ class TestImportExport(unittest.TestCase):
 
 suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestImportExport)
 suite = unittest.TestSuite([suite_graphs, suite_import_export])
+
