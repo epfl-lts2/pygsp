@@ -177,7 +177,7 @@ class SphereEquiangular(Graph):
         kernel_width = np.mean(distances)
 
         # weights = np.exp(-distances / (2 * kernel_width))
-        weights = 1/distances
+        weights = 1/(distances+1e-8)
 
         W = sparse.csr_matrix(
             (weights, (row_index, col_index)), shape=(self.npix, self.npix), dtype=np.float32)
