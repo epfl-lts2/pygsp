@@ -75,6 +75,7 @@ Checks
 
 .. autosummary::
 
+    Graph.is_weighted
     Graph.is_connected
     Graph.is_directed
     Graph.has_loops
@@ -137,6 +138,16 @@ Any graph created by NetworkX or graph-tool can be imported in the PyGSP with
 
 .. _NetworkX's documentation: https://networkx.github.io/documentation/stable/reference/generators.html
 
+Graphs built from other graphs
+------------------------------
+
+.. autosummary::
+
+    LineGraph
+
+Generated graphs
+----------------
+
 .. autosummary::
 
     Airfoil
@@ -186,6 +197,7 @@ _GRAPHS = [
     'ErdosRenyi',
     'FullConnected',
     'Grid2d',
+    'LineGraph',
     'Logo',
     'LowStretchTree',
     'Minnesota',

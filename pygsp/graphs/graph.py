@@ -255,6 +255,43 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             graph.set_signal(signal[vertices], name)
         return graph
 
+    def is_weighted(self):
+        r"""Check if the graph is weighted.
+
+        A graph is unweighted (binary) if and only if all the entries in the
+        adjacency matrix are either zero or one.
+
+        Returns
+        -------
+        weighted : bool
+            True if the graph is weighted, False otherwise.
+
+        Examples
+        --------
+
+        Unweighted (binary) graph:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 1, 0],
+        ...     [1, 0, 1],
+        ...     [0, 1, 0],
+        ... ])
+        >>> graph.is_weighted()
+        False
+
+        Weighted graph:
+
+        >>> graph = graphs.Graph([
+        ...     [0, 2, 0],
+        ...     [2, 0, 1],
+        ...     [0, 1, 0],
+        ... ])
+        >>> graph.is_weighted()
+        True
+
+        """
+        return not np.all(self.W.data == 1)
+
     def is_connected(self):
         r"""Check if the graph is connected (cached).
 

@@ -448,6 +448,41 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('community2D')
         self.assertRaises(ValueError, G.set_coordinates, 'invalid')
 
+    def test_line_graph(self):
+        adjacency = [
+            [0, 1, 1, 3],
+            [1, 0, 1, 0],
+            [1, 1, 0, 1],
+            [3, 0, 1, 0],
+        ]
+        coords = [
+            [0, 0],
+            [4, 0],
+            [4, 2],
+            [0, 2],
+        ]
+        graph = graphs.Graph(adjacency, coords=coords)
+        graph = graphs.LineGraph(graph)
+        adjacency = [
+            [0, 1, 1, 1, 0],
+            [1, 0, 1, 1, 1],
+            [1, 1, 0, 0, 1],
+            [1, 1, 0, 0, 1],
+            [0, 1, 1, 1, 0],
+        ]
+        coords = [
+            [2, 0],
+            [2, 1],
+            [0, 1],
+            [4, 1],
+            [2, 2],
+        ]
+        np.testing.assert_equal(graph.W.toarray(), adjacency)
+        np.testing.assert_equal(graph.coords, coords)
+        if sys.version_info > (3, 4):  # no assertLogs in python 2.7
+            with self.assertLogs(level='WARNING'):
+                graphs.LineGraph(graphs.Graph([[0, 2], [2, 0]]))
+
     def test_subgraph(self, n_vertices=100):
         self._G.set_signal(self._G.coords, 'coords')
         graph = self._G.subgraph(range(n_vertices))
