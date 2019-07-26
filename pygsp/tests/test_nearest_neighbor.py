@@ -11,7 +11,7 @@ class TestCase(unittest.TestCase):
         for metric in metrics:
             for kind in ['knn', 'radius']:
                 for backend in backends:
-                    params = dict(features=data, metric=metric, kind=kind, radius=0.25, k=10)
+                    params = dict(features=data, metric=metric, kind=kind, radius=0.25, k=8)
                     
                     ref_nn, ref_d = nearest_neighbor(backend='scipy-pdist', **params)
                     # Unsupported combinations.
@@ -76,3 +76,4 @@ class TestCase(unittest.TestCase):
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
+
