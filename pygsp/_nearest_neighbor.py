@@ -6,6 +6,8 @@ import numpy as np
 from scipy import sparse, spatial
 from pygsp import utils
 
+_logger = utils.build_logger(__name__)
+
 def _scipy_pdist(features, metric, order, kind, k, radius, params):
     if params:
         raise ValueError('unexpected parameters {}'.format(params))
@@ -211,12 +213,13 @@ def nearest_neighbor(features, metric='euclidean', order=2, kind='knn', k=10, ra
     return neighbors, distances
 
 
-def sparse_distance_matrix(neighbors, distances, symmetrize=True, safe=False, kind = None):
+def sparse_distance_matrix(neighbors, distances, symmetrize=True, safe=False, kind = None, k=None):
     '''Build a sparse distance matrix from nearest neighbors'''
     n_edges = [len(n) - 1 for n in neighbors]  # remove distance to self
     if safe and kind is None:
         raise ValueError('Please specify "kind" to "knn" or "radius" to use the safe mode')
     
+    n_vertices = len(n_edges)
     if safe and kind == 'radius':
         n_disconnected = np.sum(np.asarray(n_edges) == 0)
         if n_disconnected > 0:
@@ -228,7 +231,6 @@ def sparse_distance_matrix(neighbors, distances, symmetrize=True, safe=False, ki
     row = np.empty_like(value, dtype=np.int)
     col = np.empty_like(value, dtype=np.int)
     start = 0
-    n_vertices = len(n_edges)
     for vertex in range(n_vertices):
         if safe and kind == 'knn':
             assert n_edges[vertex] == k

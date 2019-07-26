@@ -498,11 +498,12 @@ class TestCase(unittest.TestCase):
         Graph = graphs.NNGraph
         data = np.random.RandomState(42).uniform(size=(n_vertices, 3))
         metrics = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-        backends = ['scipy-kdtree', 'scipy-ckdtree', 'flann', 'nmslib']
+        # Not testing , 'flann', 'nmslib' as they are tested in test_nearest_neighbor
+        backends = ['scipy-kdtree', 'scipy-ckdtree'] 
 
         for metric in metrics:
             for kind in ['knn', 'radius']:
-                params = dict(features=data, metric=metric, kind=kind, k=4)
+                params = dict(features=data, metric=metric, kind=kind, k=6)
                 ref = Graph(backend='scipy-pdist', **params)
                 for backend in backends:
                     # Unsupported combinations.
@@ -1029,4 +1030,5 @@ class TestImportExport(unittest.TestCase):
 
 suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestImportExport)
 suite = unittest.TestSuite([suite_graphs, suite_import_export])
+
 
