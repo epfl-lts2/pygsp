@@ -22,7 +22,7 @@ class SphereEquiangular(Graph):
     Parameters
     ----------
     bw : int or list or tuple
-        Resolution of the sampling scheme, corresponding to the bandwidth.
+        Resolution of the sampling scheme, corresponding to the bandwidth (latitude, latitude).
         Use a list or tuple to have a different resolution for latitude and longitude (default = 64)
     sptype : string
         sampling type (default = 'SOFT')
@@ -47,7 +47,7 @@ class SphereEquiangular(Graph):
     >>> _ = _ = G.plot(ax=ax2)
 
     """
-    def __init__(self, bw=64, sptype='DH', dist='euclidean', cylinder=False, **kwargs):
+    def __init__(self, bw=64, sptype='DH', dist='euclidean', **kwargs):
         if isinstance(bw, int):
             bw = (bw, bw)
         elif len(bw)>2:
@@ -66,10 +66,10 @@ class SphereEquiangular(Graph):
         elif sptype is 'SOFT':  # SO(3) Fourier Transform optimal
             beta = np.pi * (2 * np.arange(2 * bw[0]) + 1) / (4. * bw[0])
             alpha = np.arange(2 * bw[1]) * np.pi / bw[1]
-        elif sptype == 'CC':  # Clenshaw-Curtis
+        elif sptype == 'CC':  # Clenshaw-Curtis  # TODO: no warranty for good weight matrix
             beta = np.linspace(0, np.pi, 2 * bw[0] + 1)
             alpha = np.linspace(0, 2 * np.pi, 2 * bw[1] + 2, endpoint=False)
-        elif sptype == 'GL':  # Gauss-legendre
+        elif sptype == 'GL':  # Gauss-legendre  # TODO: no warranty for good weight matrix
             try:
                 from numpy.polynomial.legendre import leggauss
             except:
@@ -78,7 +78,7 @@ class SphereEquiangular(Graph):
             x, _ = leggauss(bw[0] + 1)  # TODO: leggauss docs state that this may not be only stable for orders > 100
             beta = np.arccos(x)
             alpha = np.arange(2 * bw[1] + 2) * np.pi / (bw[1] + 1)
-        if sptype == 'OD':  # Optimal Dimensionality
+        if sptype == 'OD':  # Optimal Dimensionality   # TODO: move in other file
             theta, phi = np.zeros(4*bw[0]**2), np.zeros(4*bw[0]**2)
             index=0
             #beta = np.pi * (2 * np.arange(2 * bw) + 1) / (4. * bw)
@@ -92,12 +92,8 @@ class SphereEquiangular(Graph):
         else:
             theta, phi = np.meshgrid(*(beta, alpha),indexing='ij')
         self.lat, self.lon = theta.shape
-        if cylinder:
-            ct = theta.flatten() * 2 * bw[1] / np.pi
-            st = 1
-        else:
-            ct = np.cos(theta).flatten()
-            st = np.sin(theta).flatten()
+        ct = np.cos(theta).flatten()
+        st = np.sin(theta).flatten()
         cp = np.cos(phi).flatten()
         sp = np.sin(phi).flatten()
         x = st * cp
@@ -109,25 +105,25 @@ class SphereEquiangular(Graph):
 
         ## neighbors and weight matrix calculation
         def south(x):
-            if x >= self.npix - self.lat:
-                return (x + self.lat//2)%self.lat + self.npix - self.lat
+            if x >= self.npix - self.lon:
+                return (x + self.lon//2)%self.lon + self.npix - self.lon
             return x + self.lon
 
         def north(x):
-            if x < self.lat:
-                return (x + self.lat//2)%self.lat
+            if x < self.lon:
+                return (x + self.lon//2)%self.lon
             return x - self.lon
 
         def west(x):
             if x%(self.lon)<1:
                 try:
-                    assert x//self.lat == (x-1+self.lon)//self.lat
+                    assert x//self.lon == (x-1+self.lon)//self.lon
                 except:
                     raise
                 x += self.lon
             else:
                 try:
-                    assert x//self.lat == (x-1)//self.lat
+                    assert x//self.lon == (x-1)//self.lon
                 except:
                     raise
             return x - 1
@@ -135,13 +131,13 @@ class SphereEquiangular(Graph):
         def east(x):
             if x%(self.lon)>=self.lon-1:
                 try:
-                    assert x//self.lat == (x+1-self.lon)//self.lat
+                    assert x//self.lon == (x+1-self.lon)//self.lon
                 except:
                     raise
                 x -= self.lon
             else:
                 try:
-                    assert x//self.lat == (x+1)//self.lat
+                    assert x//self.lon == (x+1)//self.lon
                 except:
                     raise
             return x + 1
@@ -152,6 +148,8 @@ class SphereEquiangular(Graph):
             #     neighbor = [south(west(ind)), west(ind), north(west(ind)), north(ind),
             #                 north(east(ind)), east(ind), south(east(ind)), south(ind)]
             # elif neighbors==4:
+            # if self.sptype == 'DH' and x < self.lon:
+            #     neighbor = []
             neighbor = [west(ind), north(ind), east(ind), south(ind)]
             # else:
             #     neighbor = []
@@ -177,7 +175,7 @@ class SphereEquiangular(Graph):
         kernel_width = np.mean(distances)
 
         # weights = np.exp(-distances / (2 * kernel_width))
-        weights = 1/(distances+1e-8)
+        weights = 1/(distances+1e-8)   # TODO: find a better representation for sampling 'Driscoll-Heally'
 
         W = sparse.csr_matrix(
             (weights, (row_index, col_index)), shape=(self.npix, self.npix), dtype=np.float32)
@@ -186,3 +184,14 @@ class SphereEquiangular(Graph):
         super(SphereEquiangular, self).__init__(adjacency=W, coords=coords,
                                      plotting=plotting, **kwargs)
 
+
+if __name__=='__main__':
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+    G = SphereEquiangular(bw=(4, 8), sptype='SOFT')  # (384, 576)
+    fig = plt.figure()
+    ax1 = fig.add_subplot(121)
+    ax2 = fig.add_subplot(122, projection='3d')
+    _ = ax1.spy(G.W, markersize=1.5)
+    _ = _ = G.plot(ax=ax2)
+    plt.show()
