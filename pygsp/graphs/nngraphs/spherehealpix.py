@@ -44,6 +44,7 @@ class SphereHealpix(NNGraph):
         npix = hp.nside2npix(Nside)
         indexes = np.arange(npix)
         x, y, z = hp.pix2vec(Nside, indexes, nest=nest)
+        self.lat, self.lon = hp.pix2ang(Nside, indexes, nest=nest, lonlat=False)
         coords = np.vstack([x, y, z]).transpose()
         coords = np.asarray(coords, dtype=np.float32)
         ## TODO: n_neighbors in function of Nside
@@ -53,7 +54,7 @@ class SphereHealpix(NNGraph):
         try:
             sigma = opt_std[Nside]
         except:
-            sigma = 0.001
+            raise ValueError('Unknown sigma for nside>32')
 
         plotting = {
             'vertex_size': 80,

@@ -91,7 +91,8 @@ class SphereEquiangular(Graph):
                 index += end
         else:
             theta, phi = np.meshgrid(*(beta, alpha),indexing='ij')
-        self.lat, self.lon = theta.shape
+        self.lat, self.lon = theta, phi
+        self.bwlat, self.bwlon = theta.shape
         ct = np.cos(theta).flatten()
         st = np.sin(theta).flatten()
         cp = np.cos(phi).flatten()
@@ -105,39 +106,39 @@ class SphereEquiangular(Graph):
 
         ## neighbors and weight matrix calculation
         def south(x):
-            if x >= self.npix - self.lon:
-                return (x + self.lon//2)%self.lon + self.npix - self.lon
-            return x + self.lon
+            if x >= self.npix - self.bwlon:
+                return (x + self.bwlon//2)%self.bwlon + self.npix - self.bwlon
+            return x + self.bwlon
 
         def north(x):
-            if x < self.lon:
-                return (x + self.lon//2)%self.lon
-            return x - self.lon
+            if x < self.bwlon:
+                return (x + self.bwlon//2)%self.bwlon
+            return x - self.bwlon
 
         def west(x):
-            if x%(self.lon)<1:
+            if x%(self.bwlon)<1:
                 try:
-                    assert x//self.lon == (x-1+self.lon)//self.lon
+                    assert x//self.bwlon == (x-1+self.bwlon)//self.bwlon
                 except:
                     raise
-                x += self.lon
+                x += self.bwlon
             else:
                 try:
-                    assert x//self.lon == (x-1)//self.lon
+                    assert x//self.bwlon == (x-1)//self.bwlon
                 except:
                     raise
             return x - 1
 
         def east(x):
-            if x%(self.lon)>=self.lon-1:
+            if x%(self.bwlon)>=self.bwlon-1:
                 try:
-                    assert x//self.lon == (x+1-self.lon)//self.lon
+                    assert x//self.bwlon == (x+1-self.bwlon)//self.bwlon
                 except:
                     raise
-                x -= self.lon
+                x -= self.bwlon
             else:
                 try:
-                    assert x//self.lon == (x+1)//self.lon
+                    assert x//self.bwlon == (x+1)//self.bwlon
                 except:
                     raise
             return x + 1
@@ -188,7 +189,7 @@ class SphereEquiangular(Graph):
 if __name__=='__main__':
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
-    G = SphereEquiangular(bw=(4, 8), sptype='SOFT')  # (384, 576)
+    G = SphereEquiangular(bw=(4, 8), sptype='DH')  # (384, 576)
     fig = plt.figure()
     ax1 = fig.add_subplot(121)
     ax2 = fig.add_subplot(122, projection='3d')
