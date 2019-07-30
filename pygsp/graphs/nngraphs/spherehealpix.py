@@ -16,7 +16,7 @@ def _import_hp():
 
 
 class SphereHealpix(NNGraph):
-    r"""Spherical-shaped graph using HEALPix sampling scheme [https://healpix.jpl.nasa.gov/] (NN-graph).
+    r"""Spherical-shaped graph using HEALPix sampling scheme (NN-graph).
 
     Parameters
     ----------
@@ -24,6 +24,20 @@ class SphereHealpix(NNGraph):
         Resolution of the sampling scheme. It should be a power of 2 (default = 1024)
     nest : bool
         ordering of the pixels (default = True)
+
+    See Also
+    --------
+    SphereEquiangular, SphereIcosahedron
+
+    Notes
+    -----
+    This graph us based on the HEALPix[1]_ sampling scheme mainly used by the cosmologist.
+    Heat Kernel Distance is used to find its weight matrix.
+
+    References
+    ----------
+    [1] K. M. Gorski et al., « HEALPix -- a Framework for High Resolution Discretization,
+    and Fast Analysis of Data Distributed on the Sphere », ApJ, vol. 622, nᵒ 2, p. 759‑771, avr. 2005.
 
     Examples
     --------
@@ -60,5 +74,5 @@ class SphereHealpix(NNGraph):
             'vertex_size': 80,
             "limits": np.array([-1, 1, -1, 1, -1, 1])
         }
-        super(SphereHealpix, self).__init__(Xin=coords, k=n_neighbors, center=False, rescale=False,
+        super(SphereHealpix, self).__init__(coords, k=n_neighbors, center=False, rescale=False,
                                      sigma=sigma, plotting=plotting, **kwargs)

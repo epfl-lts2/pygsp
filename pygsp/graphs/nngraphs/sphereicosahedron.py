@@ -17,6 +17,10 @@ class SphereIcosahedron(NNGraph):
     sampling : string
         What the pixels represent. Either a vertex or a face (default = 'vertex')
 
+    See Also
+    --------
+    SphereHealpix, SphereEquiangular
+
     Examples
     --------
     >>> import matplotlib.pyplot as plt
@@ -29,7 +33,7 @@ class SphereIcosahedron(NNGraph):
     >>> _ = _ = G.plot(ax=ax2)
 
     """
-
+    # TODO create a new class for 'face' as it is the dual of icosahedron and the dodecahedron
     def __init__(self, level=5, sampling='vertex', **kwargs):
 
         if sampling not in ['vertex', 'face']:
@@ -69,7 +73,7 @@ class SphereIcosahedron(NNGraph):
         self.nv_next = int((self.ne * 4) - (self.nf * 4) + 2)
 
         neighbours = 3 if 'face' in sampling else (5 if level == 0 else 6)
-        super(SphereIcosahedron, self).__init__(Xin=self.coords, k=neighbours, center=False, rescale=False, **kwargs)
+        super(SphereIcosahedron, self).__init__(self.coords, k=neighbours, center=False, rescale=False, **kwargs)
 
     def divide(self):
         """
