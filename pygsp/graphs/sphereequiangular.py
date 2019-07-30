@@ -90,10 +90,10 @@ class SphereEquiangular(Graph):
             raise ValueError('Unknown distance type value:' + distance_type)
 
         ## sampling and coordinates calculation
-        if sampling is 'Driscoll-Healy':
+        if sampling == 'Driscoll-Healy':
             beta = np.arange(2 * bandwidth[0]) * np.pi / (2. * bandwidth[0])  # Driscoll-Heally
             alpha = np.arange(2 * bandwidth[1]) * np.pi / bandwidth[1]
-        elif sampling is 'SOFT':  # SO(3) Fourier Transform optimal
+        elif sampling == 'SOFT':  # SO(3) Fourier Transform optimal
             beta = np.pi * (2 * np.arange(2 * bandwidth[0]) + 1) / (4. * bandwidth[0])
             alpha = np.arange(2 * bandwidth[1]) * np.pi / bandwidth[1]
         elif sampling == 'Clenshaw-Curtis':  # Clenshaw-Curtis
@@ -209,7 +209,7 @@ class SphereEquiangular(Graph):
 if __name__=='__main__':
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
-    G = SphereEquiangular(bandwidth=(4, 8), sampling='DH')  # (384, 576)
+    G = SphereEquiangular(bandwidth=(4, 8), sampling='Driscoll-Healy')  # (384, 576)
     fig = plt.figure()
     ax1 = fig.add_subplot(121)
     ax2 = fig.add_subplot(122, projection='3d')
