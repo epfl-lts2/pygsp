@@ -77,7 +77,7 @@ class SphereEquiangular(Graph):
     """
     # TODO add different plot to illustrate the different sampling schemes. Maybe zoom on some part of the sphere
     # TODO move OD in different file, as well as the cylinder
-    def __init__(self, bandwidth=64, sampling='DH', distance_type='euclidean', **kwargs):
+    def __init__(self, bandwidth=64, sampling='SOFT', distance_type='euclidean', **kwargs):
         if isinstance(bandwidth, int):
             bandwidth = (bandwidth, bandwidth)
         elif len(bandwidth)>2:

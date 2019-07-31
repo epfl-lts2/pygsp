@@ -52,6 +52,7 @@ class SphereHealpix(NNGraph):
     """
 
     def __init__(self, Nside=1024, nest=True, **kwargs):
+        # TODO: add part of sphere construction
         hp = _import_hp()
         self.Nside = Nside
         self.nest = nest
@@ -74,5 +75,4 @@ class SphereHealpix(NNGraph):
             'vertex_size': 80,
             "limits": np.array([-1, 1, -1, 1, -1, 1])
         }
-        super(SphereHealpix, self).__init__(coords, k=n_neighbors, center=False, rescale=False,
-                                     sigma=sigma, plotting=plotting, **kwargs)
+        super(SphereHealpix, self).__init__(coords, k=n_neighbors, kernel_width=2*sigma, plotting=plotting, **kwargs)

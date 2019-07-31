@@ -144,5 +144,4 @@ class SphereOptimalDimensionality(NNGraph):
         self.npix = len(coords)
 
         plotting = {"limits": np.array([-1, 1, -1, 1, -1, 1])}
-        super(SphereOptimalDimensionality, self).__init__(coords, k=4, center=False, rescale=False,
-                                                          plotting=plotting, **kwargs)
+        super(SphereOptimalDimensionality, self).__init__(coords, k=4, plotting=plotting, **kwargs)
