@@ -149,26 +149,20 @@ def _nmslib(features, metric, order, kind, k, _, params):
 
 class NNGraph(Graph):
     r"""Nearest-neighbor graph.
-
     The nearest-neighbor graph is built from a set of features, where the edge
     weight between vertices :math:`v_i` and :math:`v_j` is given by
-
     .. math:: A(i,j) = k \left( \frac{d(v_i, v_j)}{\sigma} \right),
-
     where :math:`d(v_i, v_j)` is a distance measure between some representation
     (the features) of :math:`v_i` and :math:`v_j`, :math:`k` is a kernel
     function that transforms a distance in :math:`[0, \infty]` to a similarity
     measure generally in :math:`[0, 1]`, and :math:`\sigma` is the kernel width.
-
     For example, the features might be the 3D coordinates of points in a point
     cloud. Then, if ``metric='euclidean'`` and ``kernel='gaussian'`` (the
     defaults), :math:`A(i,j) = \exp(-\log(2) \| x_i - x_j \|_2^2 / \sigma^2)`,
     where :math:`x_i` is the 3D position of vertex :math:`v_i`.
-
     The similarity matrix :math:`A` is sparsified by either keeping the ``k``
     closest vertices for each vertex (if ``type='knn'``), or by setting to zero
     the similarity when the distance is greater than ``radius`` (if ``type='radius'``).
-
     Parameters
     ----------
     features : ndarray
@@ -179,7 +173,6 @@ class NNGraph(Graph):
         and standard deviation of 1 (unit variance).
     metric : {'euclidean', 'manhattan', 'minkowski', 'max_dist'}, optional
         Metric used to compute pairwise distances.
-
         * ``'euclidean'`` defines pairwise distances as
           :math:`d(v_i, v_j) = \| x_i - x_j \|_2`.
         * ``'manhattan'`` defines pairwise distances as
@@ -190,7 +183,6 @@ class NNGraph(Graph):
         * ``'max_dist'`` defines pairwise distances as
           :math:`d(v_i, v_j) = \| x_i - x_j \|_\infty = \max(x_i - x_j)`, where
           the maximum is taken over the elements of the vector.
-
         More metrics may be supported for some backends.
         Please refer to the documentation of the chosen backend.
     order : float, optional
@@ -215,7 +207,6 @@ class NNGraph(Graph):
     kernel : string or function
         The function :math:`k` that transforms a distance to a similarity.
         The following kernels are pre-defined.
-
         * ``'gaussian'`` defines the Gaussian, also known as the radial basis
           function (RBF), kernel :math:`k(d) = \exp(-\log(2) d^2)`.
         * ``'exponential'`` defines the kernel :math:`k(d) = \exp(-\log(2) d)`.
@@ -224,7 +215,6 @@ class NNGraph(Graph):
         * Other kernels are ``'tricube'``, ``'triweight'``, ``'quartic'``,
           ``'epanechnikov'``, ``'logistic'``, and ``'sigmoid'``.
           See `Wikipedia <https://en.wikipedia.org/wiki/Kernel_(statistics)>`_.
-
         Another option is to pass a function that takes a vector of pairwise
         distances and returns the similarities. All the predefined kernels
         return a similarity of 0.5 when the distance is one.
@@ -251,7 +241,6 @@ class NNGraph(Graph):
         * ``'nmslib'`` uses the `Non-Metric Space Library (NMSLIB)
           <https://github.com/nmslib/nmslib>`_. That method is an
           approximation. It should be the fastest in high-dimensional spaces.
-
         You can look at this `benchmark
         <https://github.com/erikbern/ann-benchmarks>`_ to get an idea of the
         relative performance of those backends. It's nonetheless wise to run
@@ -259,12 +248,9 @@ class NNGraph(Graph):
     kwargs : dict
         Parameters to be passed to the :class:`Graph` constructor or the
         backend library.
-
     Examples
     --------
-
     Construction of a graph from a set of features.
-
     >>> import matplotlib.pyplot as plt
     >>> rs = np.random.RandomState(42)
     >>> features = rs.uniform(size=(30, 2))
@@ -272,9 +258,7 @@ class NNGraph(Graph):
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=5)
     >>> _ = G.plot(ax=axes[1])
-
     Radius versus knn graph.
-
     >>> features = rs.uniform(size=(100, 3))
     >>> fig, ax = plt.subplots()
     >>> G = graphs.NNGraph(features, kind='radius', radius=0.2964)
@@ -285,9 +269,7 @@ class NNGraph(Graph):
     >>> _ = ax.hist(G.W.data, bins=20, label=label, alpha=0.5)
     >>> _ = ax.legend()
     >>> _ = ax.set_title('edge weights')
-
     Control of the sparsity of knn and radius graphs.
-
     >>> features = rs.uniform(size=(100, 3))
     >>> n_edges = dict(knn=[], radius=[])
     >>> n_neighbors = np.arange(1, 100, 5)
@@ -305,9 +287,7 @@ class NNGraph(Graph):
     >>> _ = axes[0].set_xlabel('number of neighbors (knn graph)')
     >>> _ = axes[1].set_xlabel('radius (radius graph)')
     >>> _ = fig.suptitle('Sparsity')
-
     Choice of metric and the curse of dimensionality.
-
     >>> fig, axes = plt.subplots(1, 2)
     >>> for dim, ax in zip([3, 30], axes):
     ...     features = rs.uniform(size=(100, dim))
@@ -317,9 +297,7 @@ class NNGraph(Graph):
     ...         _ = ax.hist(G.W.data, bins=20, label=metric, alpha=0.5)
     ...     _ = ax.legend()
     ...     _ = ax.set_title('edge weights, {} dimensions'.format(dim))
-
     Choice of kernel.
-
     >>> fig, axes = plt.subplots(1, 2)
     >>> width = 0.3
     >>> distances = np.linspace(0, 1, 200)
@@ -334,9 +312,7 @@ class NNGraph(Graph):
     ...     _ = axes[1].hist(G.W.data, bins=20, label=kernel, alpha=0.5)
     >>> _ = axes[1].legend()
     >>> _ = axes[1].set_title('edge weights')
-
     Choice of kernel width.
-
     >>> fig, axes = plt.subplots()
     >>> for width in [.2, .3, .4, .6, .8, None]:
     ...     G = graphs.NNGraph(features, kernel_width=width)
@@ -344,9 +320,7 @@ class NNGraph(Graph):
     ...     _ = axes.hist(G.W.data, bins=20, label=label, alpha=0.5)
     >>> _ = axes.legend(loc='upper left')
     >>> _ = axes.set_title('edge weights')
-
     Choice of backend. Compare on your data!
-
     >>> import time
     >>> sizes = [300, 1000, 3000]
     >>> dims = [3, 100]
@@ -370,7 +344,6 @@ class NNGraph(Graph):
     ...         _ = ax.set_xlabel('number of vertices')
     >>> _ = axes[0].set_ylabel('execution time [s]')
     >>> _ = axes[1].legend(loc='upper left')
-
     """
 
     def __init__(self, features, standardize=False,
@@ -492,8 +465,7 @@ class NNGraph(Graph):
         self.radius = radius
         self.kernel_width = kernel_width
 
-        super(NNGraph, self).__init__(W, plotting=plotting,
-                                      coords=Xout, **kwargs)
+        super(NNGraph, self).__init__(W=W, coords=features, **params_graph)
 
     def _get_extra_repr(self):
         attrs = {

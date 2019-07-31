@@ -75,4 +75,4 @@ class SphereHealpix(NNGraph):
             'vertex_size': 80,
             "limits": np.array([-1, 1, -1, 1, -1, 1])
         }
-        super(SphereHealpix, self).__init__(coords, k=n_neighbors, kernel_width=2*sigma, plotting=plotting, **kwargs)
+        super(SphereHealpix, self).__init__(coords, k=n_neighbors, kernel_width=np.sqrt(2*sigma), plotting=plotting, **kwargs)
