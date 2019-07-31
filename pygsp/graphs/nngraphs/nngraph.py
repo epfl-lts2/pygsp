@@ -465,7 +465,7 @@ class NNGraph(Graph):
         self.radius = radius
         self.kernel_width = kernel_width
 
-        super(NNGraph, self).__init__(W=W, coords=features, **params_graph)
+        super(NNGraph, self).__init__(W, coords=features, **params_graph)
 
     def _get_extra_repr(self):
         attrs = {
