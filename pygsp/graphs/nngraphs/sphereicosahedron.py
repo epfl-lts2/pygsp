@@ -72,9 +72,14 @@ class SphereIcosahedron(NNGraph):
         self.nv_prev = int((self.ne / 4) - (self.nf / 4) + 2)
         self.nv_next = int((self.ne * 4) - (self.nf * 4) + 2)
 
+        plotting = {
+            'vertex_size': 80,
+            "limits": np.array([-1, 1, -1, 1, -1, 1])
+        }
+
         # change kind to 'radius', and add radius parameter. k will be ignored
         neighbours = 3 if 'face' in sampling else (5 if level == 0 else 6)
-        super(SphereIcosahedron, self).__init__(self.coords, k=neighbours, **kwargs)
+        super(SphereIcosahedron, self).__init__(self.coords, k=neighbours, plotting=plotting, **kwargs)
 
     def divide(self):
         """
