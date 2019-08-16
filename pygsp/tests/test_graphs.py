@@ -354,30 +354,16 @@ class TestCase(unittest.TestCase):
         Graph = graphs.NNGraph
         data = np.random.RandomState(42).uniform(size=(n_vertices, 3))
         metrics = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-        backends = ['scipy-kdtree', 'scipy-ckdtree', 'flann', 'nmslib']
+        # Not testing , 'flann', 'nmslib' as they are tested in test_nearest_neighbor
+        backends = ['scipy-kdtree', 'scipy-ckdtree'] 
 
         for metric in metrics:
             for kind in ['knn', 'radius']:
-                params = dict(features=data, metric=metric, kind=kind)
+                params = dict(features=data, metric=metric, kind=kind, k=6)
                 ref = Graph(backend='scipy-pdist', **params)
                 for backend in backends:
-                    # Unsupported combinations.
-                    if backend == 'flann' and metric == 'max_dist':
-                        self.assertRaises(ValueError, Graph, data,
-                                          metric=metric, backend=backend)
-                    elif backend == 'nmslib' and metric == 'minkowski':
-                        self.assertRaises(ValueError, Graph, data,
-                                          metric=metric, backend=backend)
-                    elif backend == 'nmslib' and kind == 'radius':
-                        self.assertRaises(ValueError, Graph, data,
-                                          kind=kind, backend=backend)
-                    else:
-                        params['backend'] = backend
-                        if backend == 'flann':
-                            graph = Graph(random_seed=40, **params)
-                        else:
-                            graph = Graph(**params)
-                        np.testing.assert_allclose(graph.W.toarray(),
+                    graph = Graph(**params)
+                    np.testing.assert_allclose(graph.W.toarray(),
                                                    ref.W.toarray(), rtol=1e-5)
 
         # Distances between points on a circle.
@@ -392,8 +378,6 @@ class TestCase(unittest.TestCase):
         data = graphs.Ring(n_vertices).coords
         for kind in ['knn', 'radius']:
             for backend in backends + ['scipy-pdist']:
-                if backend == 'nmslib' and kind == 'radius':
-                    continue  # unsupported
                 graph = Graph(data, kind=kind, k=2, radius=1.01*distance,
                               kernel_width=1, backend=backend)
                 np.testing.assert_allclose(graph.W.toarray(), adjacency)

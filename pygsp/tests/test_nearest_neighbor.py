@@ -3,7 +3,7 @@ import numpy as np
 from pygsp._nearest_neighbor import nearest_neighbor, sparse_distance_matrix
 
 class TestCase(unittest.TestCase):
-    def test_nngraph(self, n_vertices=24):
+    def test_nngraph(self, n_vertices=100):
         data = np.random.RandomState(42).uniform(size=(n_vertices, 3))
         metrics = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
         backends = ['scipy-kdtree', 'scipy-ckdtree', 'flann', 'nmslib']
@@ -11,7 +11,8 @@ class TestCase(unittest.TestCase):
         for metric in metrics:
             for kind in ['knn', 'radius']:
                 for backend in backends:
-                    params = dict(features=data, metric=metric, kind=kind, radius=0.25)
+                    params = dict(features=data, metric=metric, kind=kind, radius=0.25, k=8)
+                    
                     ref_nn, ref_d = nearest_neighbor(backend='scipy-pdist', **params)
                     # Unsupported combinations.
                     if backend == 'flann' and metric == 'max_dist':
@@ -26,15 +27,22 @@ class TestCase(unittest.TestCase):
                     else:
                         params['backend'] = backend
                         if backend == 'flann':
-                            other_nn, other_d = nearest_neighbor(random_seed=44, **params)
+                            other_nn, other_d = nearest_neighbor(random_seed=44, target_precision=1, **params)
                         else:
                             other_nn, other_d = nearest_neighbor(**params)
                         print(kind, backend)
-                        for a,b in zip(ref_nn, other_nn):
-                            np.testing.assert_allclose(np.sort(a),np.sort(b), rtol=1e-5)
+                        if backend == 'flann':
+                            for a,b in zip(ref_nn, other_nn):
+                                assert(len(set(a)-set(b))<=2)
 
-                        for a,b in zip(ref_d, other_d):
-                            np.testing.assert_allclose(np.sort(a),np.sort(b), rtol=1e-5)
+                            for a,b in zip(ref_d, other_d):
+                                np.testing.assert_allclose(np.mean(a).astype(np.float32),np.mean(b), atol=2e-2)                            
+                        else:
+                            for a,b,c,d in zip(ref_nn, other_nn, ref_d, other_d):
+                                e = set(a)-set(b)
+                                assert(len(e)<=1)
+                                if len(e)==0:
+                                    np.testing.assert_allclose(np.sort(c),np.sort(d), rtol=1e-5)
 
     def test_sparse_distance_matrix(self):
         data = np.random.RandomState(42).uniform(size=(200, 3))
@@ -69,5 +77,3 @@ class TestCase(unittest.TestCase):
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
 
-if __name__ == '__main__':
-    unittest.main()
