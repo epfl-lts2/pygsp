@@ -506,23 +506,8 @@ class TestCase(unittest.TestCase):
                 params = dict(features=data, metric=metric, kind=kind, k=6)
                 ref = Graph(backend='scipy-pdist', **params)
                 for backend in backends:
-                    # Unsupported combinations.
-                    if backend == 'flann' and metric == 'max_dist':
-                        self.assertRaises(ValueError, Graph, data,
-                                          metric=metric, backend=backend)
-                    elif backend == 'nmslib' and metric == 'minkowski':
-                        self.assertRaises(ValueError, Graph, data,
-                                          metric=metric, backend=backend)
-                    elif backend == 'nmslib' and kind == 'radius':
-                        self.assertRaises(ValueError, Graph, data,
-                                          kind=kind, backend=backend)
-                    else:
-                        params['backend'] = backend
-                        if backend == 'flann':
-                            graph = Graph(random_seed=40,  target_precision=1, **params)
-                        else:
-                            graph = Graph(**params)
-                        np.testing.assert_allclose(graph.W.toarray(),
+                    graph = Graph(**params)
+                    np.testing.assert_allclose(graph.W.toarray(),
                                                    ref.W.toarray(), rtol=1e-5)
 
         # Distances between points on a circle.
@@ -537,8 +522,6 @@ class TestCase(unittest.TestCase):
         data = graphs.Ring(n_vertices).coords
         for kind in ['knn', 'radius']:
             for backend in backends + ['scipy-pdist']:
-                if backend == 'nmslib' and kind == 'radius':
-                    continue  # unsupported
                 graph = Graph(data, kind=kind, k=2, radius=1.01*distance,
                               kernel_width=1, backend=backend)
                 np.testing.assert_allclose(graph.W.toarray(), adjacency)
