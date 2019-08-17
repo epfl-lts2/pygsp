@@ -9,10 +9,10 @@ from pygsp import utils
 logger = utils.build_logger(__name__)
 
 
-class GraphFourier(object):
+class FourierMixIn(object):
 
     def _check_fourier_properties(self, name, desc):
-        if not hasattr(self, '_' + name):
+        if getattr(self, '_' + name) is None:
             self.logger.warning('The {} G.{} is not available, we need to '
                                 'compute the Fourier basis. Explicitly call '
                                 'G.compute_fourier_basis() once beforehand '
@@ -40,19 +40,26 @@ class GraphFourier(object):
     def coherence(self):
         r"""Coherence of the Fourier basis.
 
-        The mutual coherence between the basis of Kronecker deltas on the graph
-        and the basis of graph Laplacian eigenvectors is defined as
+        The *mutual coherence* between the basis of Kronecker deltas and the
+        basis formed by the eigenvectors of the graph Laplacian is defined as
 
-        .. math:: \mu = \max_{\ell,i} | \langle U_\ell, \delta_i \rangle |
+        .. math:: \mu = \max_{\ell,i} \langle U_\ell, \delta_i \rangle
                       = \max_{\ell,i} | U_{\ell, i} |
-                      \in \left[ \frac{1}{\sqrt{N}}, 1 \right].
+                      \in \left[ \frac{1}{\sqrt{N}}, 1 \right],
 
-        It is a measure of the localization of the Fourier modes (Laplacian
-        eigenvectors). The smaller the value, the more localized the
+        where :math:`N` is the number of vertices, :math:`\delta_i \in
+        \mathbb{R}^N` denotes the Kronecker delta that is non-zero on vertex
+        :math:`v_i`, and :math:`U_\ell \in \mathbb{R}^N` denotes the
+        :math:`\ell^\text{th}` eigenvector of the graph Laplacian (i.e., the
+        :math:`\ell^\text{th}` Fourier mode).
+
+        The coherence is a measure of the localization of the Fourier modes
+        (Laplacian eigenvectors). The larger the value, the more localized the
         eigenvectors can be. The extreme is a node that is disconnected from
         the rest of the graph: an eigenvector will be localized as a Kronecker
-        delta there. In the classical setting, Fourier modes (which are complex
-        exponentials) are completely delocalized, and the coherence equals one.
+        delta there (i.e., :math:`\mu = 1`). In the classical setting, Fourier
+        modes (which are complex exponentials) are completely delocalized, and
+        the coherence is minimal.
 
         The value is computed by :meth:`compute_fourier_basis`.
 
@@ -74,7 +81,7 @@ class GraphFourier(object):
 
         Localized eigenvectors.
 
-        >>> graph = graphs.Sensor(64, seed=20)
+        >>> graph = graphs.Sensor(64, seed=10)
         >>> graph.compute_fourier_basis()
         >>> minimum = 1 / np.sqrt(graph.n_vertices)
         >>> print('{:.2f} in [{:.2f}, 1]'.format(graph.coherence, minimum))
@@ -82,14 +89,15 @@ class GraphFourier(object):
         >>>
         >>> # Plot the most localized eigenvector.
         >>> import matplotlib.pyplot as plt
-        >>> idx = np.argmax(np.max(graph.U, axis=0))
-        >>> _ = graph.plot(graph.U[:, idx])
+        >>> idx = np.argmax(np.abs(graph.U))
+        >>> idx_vertex, idx_fourier = np.unravel_index(idx, graph.U.shape)
+        >>> _ = graph.plot(graph.U[:, idx_fourier], highlight=idx_vertex)
 
         """
         return self._check_fourier_properties('coherence',
                                               'Fourier basis coherence')
 
-    def compute_fourier_basis(self, n_eigenvectors=None, recompute=False):
+    def compute_fourier_basis(self, n_eigenvectors=None):
         r"""Compute the (partial) Fourier basis of the graph (cached).
 
         The result is cached and accessible by the :attr:`U`, :attr:`e`,
@@ -100,8 +108,6 @@ class GraphFourier(object):
         n_eigenvectors : int or `None`
             Number of eigenvectors to compute. If `None`, all eigenvectors
             are computed. (default: None)
-        recompute: bool
-            Force to recompute the Fourier basis if already existing.
 
         Notes
         -----
@@ -148,14 +154,13 @@ class GraphFourier(object):
 
         """
         if n_eigenvectors is None:
-            n_eigenvectors = self.N
+            n_eigenvectors = self.n_vertices
 
-        if (hasattr(self, '_e') and hasattr(self, '_U') and not recompute
-                and n_eigenvectors <= len(self.e)):
+        if (self._U is not None and n_eigenvectors <= len(self._e)):
             return
 
-        assert self.L.shape == (self.N, self.N)
-        if self.N**2 * n_eigenvectors > 3000**3:
+        assert self.L.shape == (self.n_vertices, self.n_vertices)
+        if self.n_vertices**2 * n_eigenvectors > 3000**3:
             self.logger.warning(
                 'Computing the {0} eigendecomposition of a large matrix ({1} x'
                 ' {1}) is expensive. Consider decreasing n_eigenvectors '
@@ -165,7 +170,7 @@ class GraphFourier(object):
                     self.N))
 
         # TODO: handle non-symmetric Laplacians. Test lap_type?
-        if n_eigenvectors == self.N:
+        if n_eigenvectors == self.n_vertices:
             self._e, self._U = np.linalg.eigh(self.L.toarray())
         else:
             # fast partial eigendecomposition of hermitian matrices
@@ -186,6 +191,7 @@ class GraphFourier(object):
         assert np.max(self._e) == self._e[-1]
         if n_eigenvectors == self.N:
             self._lmax = self._e[-1]
+            self._lmax_method = 'fourier'
             self._coherence = np.max(np.abs(self._U))
 
     def gft(self, s):
@@ -200,7 +206,7 @@ class GraphFourier(object):
 
         Parameters
         ----------
-        s : ndarray
+        s : array_like
             Graph signal in the vertex domain.
 
         Returns
@@ -219,9 +225,7 @@ class GraphFourier(object):
         True
 
         """
-        if s.shape[0] != self.N:
-            raise ValueError('First dimension should be the number of nodes '
-                             'G.N = {}, got {}.'.format(self.N, s.shape))
+        s = self._check_signal(s)
         U = np.conjugate(self.U)  # True Hermitian. (Although U is often real.)
         return np.tensordot(U, s, ([0], [0]))
 
@@ -237,7 +241,7 @@ class GraphFourier(object):
 
         Parameters
         ----------
-        s_hat : ndarray
+        s_hat : array_like
             Graph signal in the Fourier domain.
 
         Returns
@@ -256,7 +260,5 @@ class GraphFourier(object):
         True
 
         """
-        if s_hat.shape[0] != self.N:
-            raise ValueError('First dimension should be the number of nodes '
-                             'G.N = {}, got {}.'.format(self.N, s_hat.shape))
+        s_hat = self._check_signal(s_hat)
         return np.tensordot(self.U, s_hat, ([1], [0]))

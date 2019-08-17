@@ -116,7 +116,7 @@ class Filter(object):
 
         Parameters
         ----------
-        x : ndarray
+        x : array_like
             Graph frequencies at which to evaluate the filter.
 
         Returns
@@ -138,6 +138,7 @@ class Filter(object):
         [<matplotlib.lines.Line2D object at ...>]
 
         """
+        x = np.asanyarray(x)
         # Avoid to copy data as with np.array([g(x) for g in self._kernels]).
         y = np.empty([self.Nf] + list(x.shape))
         for i, kernel in enumerate(self._kernels):
@@ -179,7 +180,7 @@ class Filter(object):
 
         Parameters
         ----------
-        s : ndarray
+        s : array_like
             Graph signals, a tensor of shape ``(N_NODES, N_SIGNALS,
             N_FEATURES)``, where ``N_NODES`` is the number of nodes in the
             graph, ``N_SIGNALS`` the number of independent signals you want to
@@ -265,9 +266,7 @@ class Filter(object):
         True
 
         """
-        if s.shape[0] != self.G.N:
-            raise ValueError('First dimension should be the number of nodes '
-                             'G.N = {}, got {}.'.format(self.G.N, s.shape))
+        s = self.G._check_signal(s)
 
         # TODO: not in self.Nin (Nf = Nin x Nout).
         if s.ndim == 1 or s.shape[-1] not in [1, self.Nf]:
@@ -407,16 +406,16 @@ class Filter(object):
 
         As :math:`g(L) = U g(\Lambda) U^\top` is diagonalized by the Fourier
         basis :math:`U` with eigenvalues :math:`\Lambda`, :math:`\| g(L) x \|^2
-        = \| g(\Lambda) U x \|^2`, and :math:`A = \min g^2(\Lambda)`,
+        = \| g(\Lambda) U^\top x \|^2`, and :math:`A = \min g^2(\Lambda)`,
         :math:`B = \max g^2(\Lambda)`.
 
         Parameters
         ----------
-        x : ndarray
+        x : array_like
             Graph frequencies at which to evaluate the filter bank `g(x)`.
-            The default is `x = np.linspace(0, G.lmax, 1000)`.
+            The default is ``x = np.linspace(0, G.lmax, 1000)``.
             The exact bounds are given by evaluating the filter bank at the
-            eigenvalues of the graph Laplacian, i.e., `x = G.e`.
+            eigenvalues of the graph Laplacian, i.e., ``x = G.e``.
 
         Returns
         -------
@@ -425,7 +424,7 @@ class Filter(object):
         B : float
             Upper frame bound of the filter bank.
 
-        See also
+        See Also
         --------
         compute_frame: compute the frame
         complement: complement a filter bank to become a tight frame
@@ -499,6 +498,8 @@ class Filter(object):
         """
         if x is None:
             x = np.linspace(0, self.G.lmax, 1000)
+        else:
+            x = np.asanyarray(x)
 
         sum_filters = np.sum(self.evaluate(x)**2, axis=0)
 
@@ -516,7 +517,7 @@ class Filter(object):
         *analysis operator*
 
         .. math::
-            g(L) = \begin{pmatrix} g_0(L) \\ \vdots \\ g_F(L) \end{pmatrix}
+            g(L) = \begin{pmatrix} g_1(L) \\ \vdots \\ g_F(L) \end{pmatrix}
                    \in \mathbb{R}^{NF \times N}, \quad
             g_i(L) = U g_i(\Lambda) U^\top,
 
@@ -550,7 +551,7 @@ class Filter(object):
         frame : ndarray
             Array of size (#nodes x #filters) x #nodes.
 
-        See also
+        See Also
         --------
         estimate_frame_bounds: estimate the frame bounds
         filter: more efficient way to filter signals
@@ -618,7 +619,7 @@ class Filter(object):
         complement: Filter
             The complementary filter.
 
-        See also
+        See Also
         --------
         estimate_frame_bounds: estimate the frame bounds
 
@@ -662,14 +663,21 @@ class Filter(object):
     def inverse(self):
         r"""Return the pseudo-inverse filter bank.
 
-        The pseudo-inverse of the filter bank :math:`g` is the filter bank
-        :math:`g^+` such that
+        The pseudo-inverse of the *analysis filter bank* :math:`g` is the
+        *synthesis filter bank* :math:`g^+` such that
 
         .. math:: g(L)^+ g(L) = I,
 
-        where :math:`I` is the identity matrix, and :math:`g(L)^+ = (g(L)\top
-        g(L))^{-1} g(L)^\top` is the left pseudo-inverse of the analysis
-        operator :math:`g(L)`.
+        where :math:`I` is the identity matrix, and the *synthesis operator*
+
+        .. math:: g(L)^+ = (g(L)\top g(L))^{-1} g(L)^\top
+                         = (g_1(L)^+, \dots, g_F(L)^+)
+                           \in \mathbb{R}^{N \times NF}
+
+        is the left pseudo-inverse of the analysis operator :math:`g(L)`. Note
+        that :math:`g_i(L)^+` is the pseudo-inverse of :math:`g_i(L)`,
+        :math:`N` is the number of vertices, and :math:`F` is the number of
+        filters in the bank.
 
         The above relation holds, and the reconstruction is exact, if and only
         if :math:`g(L)` is a frame. To be a frame, the rows of :math:`g(L)`
@@ -679,19 +687,24 @@ class Filter(object):
         will be the closest to :math:`x` in the least square sense.
 
         While there exists infinitely many inverses of the analysis operator of
-        a frame, the pseudo-inverse is unique and corresponds to the canonical
-        dual of the filter kernel.
+        a frame, the pseudo-inverse is unique and corresponds to the *canonical
+        dual* of the filter kernel.
 
-        If the frame is tight (i.e., :math:`A=B`), the canonical dual filters
-        are given by :math:`h_i = g_i / A`, where :math:`g_i` are the filters
-        composing the filter bank :math:`g`.
+        The *frame operator* of :math:`g^+` is :math:`g(L)^+ (g(L)^+)^\top =
+        (g(L)\top g(L))^{-1}`, the inverse of the frame operator of :math:`g`.
+        Similarly, its *frame bounds* are :math:`A^{-1}` and :math:`B^{-1}`,
+        where :math:`A` and :math:`B` are the frame bounds of :math:`g`.
+
+        If :math:`g` is tight (i.e., :math:`A=B`), the canonical dual is given
+        by :math:`g^+ = g / A` (i.e., :math:`g^+_i = g_i / A \ \forall i`).
 
         Returns
         -------
-        inverse: Filter
-            The pseudo-inverse filter bank.
+        inverse : :class:`pygsp.filters.Filter`
+            The pseudo-inverse filter bank, which synthesizes (or reconstructs)
+            a signal from its coefficients using the canonical dual frame.
 
-        See also
+        See Also
         --------
         estimate_frame_bounds: estimate the frame bounds
 

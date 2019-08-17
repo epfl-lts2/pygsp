@@ -30,5 +30,5 @@ class Logo(Graph):
 
         plotting = {"limits": np.array([0, 640, -400, 0])}
 
-        super(Logo, self).__init__(W=data['W'], coords=data['coords'],
+        super(Logo, self).__init__(data['W'], coords=data['coords'],
                                    plotting=plotting, **kwargs)

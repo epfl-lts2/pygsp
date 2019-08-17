@@ -236,7 +236,7 @@ class Community(Graph):
         for key, value in {'Nc': Nc, 'info': info}.items():
             setattr(self, key, value)
 
-        super(Community, self).__init__(W=W, coords=coords, **kwargs)
+        super(Community, self).__init__(W, coords=coords, **kwargs)
 
     def _get_extra_repr(self):
         attrs = {'Nc': self.Nc,

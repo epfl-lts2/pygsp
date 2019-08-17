@@ -93,7 +93,7 @@ class SwissRoll(Graph):
             'distance': 7,
         }
 
-        super(SwissRoll, self).__init__(W=W, coords=coords.T,
+        super(SwissRoll, self).__init__(W, coords=coords.T,
                                         plotting=plotting,
                                         **kwargs)
 

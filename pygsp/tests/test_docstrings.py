@@ -32,11 +32,12 @@ def setup(doctest):
         'np': numpy,
     }
 
+
 # Docstrings from reference documentation.
-suite_documentation = test_docstrings('pygsp', '.py', setup)
+suite_reference = test_docstrings('pygsp', '.py', setup)
 
 # Docstrings from tutorials.
 # No setup to not forget imports.
 suite_tutorials = test_docstrings('.', '.rst')
 
-suite = unittest.TestSuite([suite_documentation, suite_tutorials])
+suite = unittest.TestSuite([suite_reference, suite_tutorials])

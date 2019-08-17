@@ -57,7 +57,7 @@ class DavidSensorNet(Graph):
 
         plotting = {"limits": [0, 1, 0, 1]}
 
-        super(DavidSensorNet, self).__init__(W=W, coords=coords,
+        super(DavidSensorNet, self).__init__(W, coords=coords,
                                              plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):

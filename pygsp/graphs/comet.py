@@ -59,7 +59,7 @@ class Comet(Graph):
                                         np.min(tmpcoords[:, 1]),
                                         np.max(tmpcoords[:, 1])])}
 
-        super(Comet, self).__init__(W=W, coords=tmpcoords,
+        super(Comet, self).__init__(W, coords=tmpcoords,
                                     plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):

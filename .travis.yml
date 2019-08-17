@@ -18,13 +18,29 @@ matrix:
 
 addons:
   apt:
+    sources:
+    - sourceline: 'deb https://downloads.skewed.de/apt/xenial xenial universe'
+      key_url: 'http://ha.pool.sks-keyservers.net/pks/lookup?op=get&search=0x612DEFB798507F25'
+    # TODO: remove the below once we drop python 2.7.
+    - ubuntu-toolchain-r-test
+    - sourceline: 'deb http://downloads.skewed.de/apt/trusty trusty universe'
     packages:
-      - libqt5gui5  # pyqt5>5.11 otherwise cannot load the xcb platform plugin
-      - libflann-dev
+    - libqt5gui5  # pyqt5>5.11 otherwise cannot load the xcb platform plugin
+    - libflann-dev
+    - python3-graph-tool
+    - python-graph-tool
 
 install:
-  - pip install -U --upgrade-strategy eager .[alldeps,test,doc]
-  # Update dependencies (e.g. numpy formatting changed in v1.14).
+  - pip install --upgrade --upgrade-strategy eager .[dev]
+  # Upgrade to test with the latest version of our dependencies.
+
+before_script:
+  # As graph-tool cannot be installed by pip, link to the system installation
+  # from the virtual environment.
+  # TODO: remove the condition once we drop python 2.7.
+  - if [[ $(python -c 'import sys; print(sys.version_info[0])') = 3 ]] ;
+    then ln -s "/usr/lib/python3/dist-packages/graph_tool" $(python -c "import site; print(site.getsitepackages()[0])");
+    else ln -s "/usr/lib/python2.7/dist-packages/graph_tool" $(python -c "import site; print(site.getsitepackages()[0])"); fi
 
 script:
 # - make lint

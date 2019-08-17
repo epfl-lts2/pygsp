@@ -9,16 +9,20 @@ from . import Graph  # prevent circular import in Python < 3.5
 class Torus(Graph):
     r"""Sampled torus manifold.
 
+    On the torus, the graph Fourier transform (GFT) is the Kronecker product
+    between the GFT of two :class:`~pygsp.graphs.Ring` graphs.
+
     Parameters
     ----------
     Nv : int
-        Number of vertices along the first dimension (default is 16)
+        Number of vertices along the first dimension.
     Mv : int
-        Number of vertices along the second dimension (default is Nv)
+        Number of vertices along the second dimension. Default is ``Nv``.
 
-    References
-    ----------
-    See :cite:`strang1999discrete` for more informations.
+    See Also
+    --------
+    Ring : 1D line with periodic boundary conditions
+    Grid2d : Kronecker product of two path graphs
 
     Examples
     --------
@@ -92,7 +96,7 @@ class Torus(Graph):
             'limits': np.array([-2.5, 2.5, -2.5, 2.5, -2.5, 2.5])
         }
 
-        super(Torus, self).__init__(W=W, coords=coords,
+        super(Torus, self).__init__(W, coords=coords,
                                     plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):

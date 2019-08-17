@@ -54,6 +54,8 @@ class TestCase(unittest.TestCase):
                 Gs.append(Graph(features))
             elif classname in ['ImgPatches', 'Grid2dImgPatches']:
                 Gs.append(Graph(img=self._img, patch_shape=(3, 3)))
+            elif classname == 'LineGraph':
+                Gs.append(Graph(graphs.Sensor(20, seed=42)))
             else:
                 Gs.append(Graph())
 
@@ -71,7 +73,6 @@ class TestCase(unittest.TestCase):
 
         for G in Gs:
             self.assertTrue(hasattr(G, 'coords'))
-            self.assertTrue(hasattr(G, 'A'))
             self.assertEqual(G.N, G.coords.shape[0])
 
             signal = np.arange(G.N) + 0.3

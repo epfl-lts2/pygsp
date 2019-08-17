@@ -61,7 +61,7 @@ class Meyer(Filter):
             * meyer scaling function kernel: supported on [0,4/3]
             """
 
-            x = np.asarray(x)
+            x = np.asanyarray(x)
 
             l1 = 2/3.
             l2 = 4/3.  # 2*l1
