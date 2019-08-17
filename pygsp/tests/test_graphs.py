@@ -17,12 +17,14 @@ import numpy as np
 import scipy.linalg
 from scipy import sparse
 import networkx as nx
-import graph_tool as gt
-import graph_tool.generation
-import scipy.sparse.linalg
 from skimage import data, img_as_float
 
 from pygsp import graphs
+
+import graph_tool as gt
+import graph_tool.generation
+
+
 
 
 class TestCase(unittest.TestCase):
