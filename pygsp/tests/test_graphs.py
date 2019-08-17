@@ -17,11 +17,14 @@ import numpy as np
 import scipy.linalg
 from scipy import sparse
 import networkx as nx
-import graph_tool as gt
-import graph_tool.generation
 from skimage import data, img_as_float
 
 from pygsp import graphs
+
+import graph_tool as gt
+import graph_tool.generation
+
+
 
 
 class TestCase(unittest.TestCase):
@@ -970,6 +973,3 @@ class TestImportExport(unittest.TestCase):
 
 suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestImportExport)
 suite = unittest.TestSuite([suite_graphs, suite_import_export])
-
-if __name__ == '__main__':
-    unittest.TextTestRunner(verbosity=2).run(suite)
