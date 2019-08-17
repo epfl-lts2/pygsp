@@ -1,10 +1,12 @@
 import unittest
 import numpy as np
 from nn import nn, sparse_distance_matrix
-from learn_graph import  *
+from pygsp._nearest_neighbor import nearest_neighbor as nn
+from pygsp._nearest_neighbor import sparse_distance_matrix
 from scipy import sparse
 import pygsp as pg
 from pygsp.utils import distanz
+from learngraph import *
 
 class TestCase(unittest.TestCase):
     def test_prox_sum_log(self):
