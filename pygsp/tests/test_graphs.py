@@ -592,13 +592,13 @@ class TestCase(unittest.TestCase):
 
             # Only p-norms with 1<=p<=infinity permitted.
             if dist_type != 'minkowski':
-                graphs.NNGraph(Xin, NNtype='radius', dist_type=dist_type)
-                graphs.NNGraph(Xin, NNtype='knn', dist_type=dist_type)
+                graphs.NNGraph(Xin, kind='radius', dist_type=dist_type)
+                graphs.NNGraph(Xin, kind='knn', dist_type=dist_type)
 
             # Distance type unsupported in the C bindings,
             # use the C++ bindings instead.
             if dist_type != 'max_dist':
-                graphs.NNGraph(Xin, use_flann=True, NNtype='knn',
+                graphs.NNGraph(Xin, use_flann=True, kind='knn',
                                dist_type=dist_type)
 
     def test_bunny(self):
