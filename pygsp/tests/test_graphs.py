@@ -583,24 +583,6 @@ class TestCase(unittest.TestCase):
         self.assertIs(graph.lap_type, self._G.lap_type)
         self.assertEqual(graph.plotting, self._G.plotting)
 
-    def test_nngraph(self, n_vertices=30):
-        rs = np.random.RandomState(42)
-        Xin = rs.normal(size=(n_vertices, 3))
-        dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-
-        for dist_type in dist_types:
-
-            # Only p-norms with 1<=p<=infinity permitted.
-            if dist_type != 'minkowski':
-                graphs.NNGraph(Xin, kind='radius', dist_type=dist_type)
-                graphs.NNGraph(Xin, kind='knn', dist_type=dist_type)
-
-            # Distance type unsupported in the C bindings,
-            # use the C++ bindings instead.
-            if dist_type != 'max_dist':
-                graphs.NNGraph(Xin, use_flann=True, kind='knn',
-                               dist_type=dist_type)
-
     def test_bunny(self):
         graphs.Bunny()
 
