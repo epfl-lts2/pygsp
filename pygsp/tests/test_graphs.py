@@ -449,51 +449,7 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('community2D')
         self.assertRaises(ValueError, G.set_coordinates, 'invalid')
 
-    def test_line_graph(self):
-        adjacency = [
-            [0, 1, 1, 3],
-            [1, 0, 1, 0],
-            [1, 1, 0, 1],
-            [3, 0, 1, 0],
-        ]
-        coords = [
-            [0, 0],
-            [4, 0],
-            [4, 2],
-            [0, 2],
-        ]
-        graph = graphs.Graph(adjacency, coords=coords)
-        graph = graphs.LineGraph(graph)
-        adjacency = [
-            [0, 1, 1, 1, 0],
-            [1, 0, 1, 1, 1],
-            [1, 1, 0, 0, 1],
-            [1, 1, 0, 0, 1],
-            [0, 1, 1, 1, 0],
-        ]
-        coords = [
-            [2, 0],
-            [2, 1],
-            [0, 1],
-            [4, 1],
-            [2, 2],
-        ]
-        np.testing.assert_equal(graph.W.toarray(), adjacency)
-        np.testing.assert_equal(graph.coords, coords)
-        with self.assertLogs(level='WARNING'):
-            graphs.LineGraph(graphs.Graph([[0, 2], [2, 0]]))
-
-    def test_subgraph(self, n_vertices=100):
-        self._G.set_signal(self._G.coords, 'coords')
-        graph = self._G.subgraph(range(n_vertices))
-        self.assertEqual(graph.n_vertices, n_vertices)
-        self.assertEqual(graph.coords.shape, (n_vertices, 2))
-        self.assertEqual(graph.signals['coords'].shape, (n_vertices, 2))
-        self.assertIs(graph.lap_type, self._G.lap_type)
-        self.assertEqual(graph.plotting, self._G.plotting)
-
     def test_nngraph(self, n_vertices=24):
-
         """Test all the combinations of metric, kind, backend."""
         Graph = graphs.NNGraph
         data = np.random.RandomState(42).uniform(size=(n_vertices, 3))
@@ -581,6 +537,50 @@ class TestCase(unittest.TestCase):
         # Attributes.
         self.assertEqual(Graph(data, kind='knn').radius, None)
         self.assertEqual(Graph(data, kind='radius').k, None)
+
+    def test_line_graph(self):
+        adjacency = [
+            [0, 1, 1, 3],
+            [1, 0, 1, 0],
+            [1, 1, 0, 1],
+            [3, 0, 1, 0],
+        ]
+        coords = [
+            [0, 0],
+            [4, 0],
+            [4, 2],
+            [0, 2],
+        ]
+        graph = graphs.Graph(adjacency, coords=coords)
+        graph = graphs.LineGraph(graph)
+        adjacency = [
+            [0, 1, 1, 1, 0],
+            [1, 0, 1, 1, 1],
+            [1, 1, 0, 0, 1],
+            [1, 1, 0, 0, 1],
+            [0, 1, 1, 1, 0],
+        ]
+        coords = [
+            [2, 0],
+            [2, 1],
+            [0, 1],
+            [4, 1],
+            [2, 2],
+        ]
+        np.testing.assert_equal(graph.W.toarray(), adjacency)
+        np.testing.assert_equal(graph.coords, coords)
+        if sys.version_info > (3, 4):  # no assertLogs in python 2.7
+            with self.assertLogs(level='WARNING'):
+                graphs.LineGraph(graphs.Graph([[0, 2], [2, 0]]))
+
+    def test_subgraph(self, n_vertices=100):
+        self._G.set_signal(self._G.coords, 'coords')
+        graph = self._G.subgraph(range(n_vertices))
+        self.assertEqual(graph.n_vertices, n_vertices)
+        self.assertEqual(graph.coords.shape, (n_vertices, 2))
+        self.assertEqual(graph.signals['coords'].shape, (n_vertices, 2))
+        self.assertIs(graph.lap_type, self._G.lap_type)
+        self.assertEqual(graph.plotting, self._G.plotting)
 
     def test_bunny(self):
         graphs.Bunny()
