@@ -988,3 +988,6 @@ class TestImportExport(unittest.TestCase):
 
 suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestImportExport)
 suite = unittest.TestSuite([suite_graphs, suite_import_export])
+
+if __name__ == '__main__':
+    unittest.TextTestRunner(verbosity=2).run(suite)
