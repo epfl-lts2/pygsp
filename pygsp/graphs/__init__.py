@@ -182,6 +182,13 @@ Nearest-neighbors graphs constructed from point clouds
     Sensor
     Sphere
     TwoMoons
+    
+Learning graph from data
+------------------------
+
+.. autosummary::
+
+    LearnedGraph
 
 """
 
@@ -197,6 +204,7 @@ _GRAPHS = [
     'ErdosRenyi',
     'FullConnected',
     'Grid2d',
+    'LearnGraph',
     'LineGraph',
     'Logo',
     'LowStretchTree',
