@@ -106,7 +106,7 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(theta_max, theta_max2)
         W = sparse_distance_matrix(neighbors, distances)
         learned_W2, _ = learn_graph_log_degree(W*theta2, edge_mask=W>0, verbosity=0)
-        assert(np.sum(np.abs(learned_W2.todense()-learned_W))/np.sum(np.abs(learned_W))<1e-4)
+        assert(np.sum(np.abs(learned_W2.todense()-learned_W))/np.sum(np.abs(learned_W))<1e-3)
         
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
 if __name__ == '__main__':
