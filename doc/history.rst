@@ -33,7 +33,8 @@ History
 * We now have a gallery of examples! That is convenient for users to get a
   taste of what the library can do, and to start working from a code snippet.
 * Merged all the extra requirements in a single dev requirement.
-
+* A function to learn the graph from the signal has been added with doc and tests. 
+  This function can be used simply using the graph ``LearnGraph``
 
 Experimental filter API (to be tested and validated):
 
