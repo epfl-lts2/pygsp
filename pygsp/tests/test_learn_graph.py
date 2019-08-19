@@ -1,3 +1,5 @@
+from __future__ import division
+
 import unittest
 import numpy as np
 from nn import nn, sparse_distance_matrix
