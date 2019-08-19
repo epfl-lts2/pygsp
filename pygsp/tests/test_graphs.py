@@ -20,6 +20,7 @@ import networkx as nx
 from skimage import data, img_as_float
 
 from pygsp import graphs
+from pygsp import filters
 
 import graph_tool as gt
 import graph_tool.generation
@@ -721,10 +722,9 @@ class TestCase(unittest.TestCase):
         d = 400
         k = 6
         coords = np.random.RandomState(0).uniform(size=(n, 2))
-        G = pg.graphs.NNGraph(coords,k=10, kernel='gaussian')
+        G = graphs.NNGraph(coords,k=10, kernel='gaussian')
         G.compute_fourier_basis()
-        # g = pg.filters.Heat(G, scale=5)
-        g = pg.filters.Filter(G,lambda x:1/(1+5*x))
+        g = filters.Filter(G,lambda x:1/(1+5*x))
         S = np.random.randn(n,d)
         X = np.squeeze(g.filter(S))
 

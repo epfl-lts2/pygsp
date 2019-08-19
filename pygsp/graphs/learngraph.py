@@ -262,12 +262,44 @@ def learn_graph_log_degree(Z,
     rel_edge=1e-5):
     r"""Learn a graph from distances
 
-    This function solves the convex optimization problem:
+    This function computes a weighted
+    adjacency matrix $W$ from squared pairwise distances in $Z$, using the
+    smoothness assumption that $\text{trace}(X^TLX)$ is small, where $X$ is
+    the data (columns) changing smoothly from node to node on the graph and
+    $L = D-W$ is the combinatorial graph Laplacian. See :cite:`kalofolias2018large` 
+    and :cite:`kalofolias2016learn` for the theory behind the algorithm.
+
+    Alternatively, Z can contain other types of distances and use the
+    smoothness assumption that sum(sum(W * Z)) is small.
+
+    The minimization problem solved is
     
+    minimize_W sum(sum(W .* Z)) - a * sum(log(sum(W))) + b * ||W||_F^2/2 + c * ||W-W_0||_F^2/2
+    
+    The algorithm used is forward-backward-forward (FBF) based primal dual 
+    optimization.
+        
     Parameters
     ----------
-    Z : Distance matrices [Nnodes x Nnodes]. It can be sparse
-    
+    Z         : Distance matrices [Nnodes x Nnodes]. It can be sparse
+    a         : Weight of the connectivity term (prevents all nodes to be disconnected)
+    b         : Weight of the sparsity term
+    c         : Weight of the L2 prior (Default 0)
+    verbosity : How much should display the algorithm - 0: nothing, 
+                1: summary at convergence, 2: each steps (Default 1)
+    maxit     : maximum number of iterations (Default: 1000)
+    tol       : tolerance to stop iterating
+    step_size : Step size from the interval (0,1). Default: 0.5
+    max_w     : Maximum weight allowed for each edge (or inf)
+    edge_mask : Mask indicating the non zero edges if "fix_zeros"
+    fix_zeros : Fix a set of edges to zero (True/False)
+    w_0       : Vector for adding prior c/2*||w - w_0||^2
+    rel_edge  : Remove all edges bellow this tolerance after convergence of the algorithm
+
+    References
+    ----------
+    See :cite:`kalofolias2018large` and :cite:`kalofolias2016learn` for more informations.
+
     """
     
     if isvector(Z):
@@ -420,6 +452,8 @@ def learn_graph_log_degree(Z,
 
 class LearnGraph(Graph):
     r"""Learned graph.
+    
+    Return a graph learned with with the function 
 
     Parameters
     ----------
@@ -428,6 +462,9 @@ class LearnGraph(Graph):
 
     Examples
     --------
+    >>> import numpy as np
+    >>> import pygsp as pg
+    >>> from matplotlib import pyplot as plt
     >>> # A) Create a bunch of smooth signals
     >>> n = 100 # Number of nodes
     >>> d = 50 # Number of signals
@@ -445,7 +482,7 @@ class LearnGraph(Graph):
     >>> X = np.squeeze(g.filter(S))
     >>> 
     >>> # B) Learn the graph
-    >>> Glearned = LearnedGraph(X,k=k)
+    >>> Glearned = LearnGraph(X,k=k)
     >>> # plot the learned graph
     >>> Glearned.coords = coords
     >>> 
