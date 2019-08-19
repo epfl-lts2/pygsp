@@ -509,7 +509,7 @@ class LearnGraph(Graph):
     >>> 
     >>> # B) Learn the graph
     >>> param_opt = {'verbosity':0}
-    >>> Glearned = LearnGraph(X,k=k, param_opt=param_opt)
+    >>> Glearned = pg.graphs.LearnGraph(X,k=k, param_opt=param_opt)
     >>> # plot the learned graph
     >>> Glearned.coords = coords
     >>> 
