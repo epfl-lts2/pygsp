@@ -50,7 +50,7 @@ class TestCase(unittest.TestCase):
         res1 = np.sum(A, axis=1)
         a = squareform_sp(A)
         S,St = sum_squareform(nt)
-        res2 = S @ a
+        res2 = S.dot(a)
         np.testing.assert_allclose(res1,res2)
         np.testing.assert_array_equal(S.transpose().todense(), St.todense())
         
@@ -65,7 +65,7 @@ class TestCase(unittest.TestCase):
         w = squareform_sp(W)
         S,St = sum_squareform(nt, w)
         wfull = w.data
-        res2 = S @ wfull
+        res2 = S.dot(wfull)
         np.testing.assert_allclose(res1,res2)
         np.testing.assert_array_equal(S.transpose().todense(), St.todense())
         
