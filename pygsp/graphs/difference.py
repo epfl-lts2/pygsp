@@ -11,7 +11,7 @@ from pygsp import utils
 logger = utils.build_logger(__name__)
 
 
-class GraphDifference(object):
+class DifferenceMixIn(object):
 
     @property
     def D(self):
@@ -19,7 +19,7 @@ class GraphDifference(object):
 
         Is computed by :func:`compute_differential_operator`.
         """
-        if not hasattr(self, '_D'):
+        if self._D is None:
             self.logger.warning('The differential operator G.D is not '
                                 'available, we need to compute it. Explicitly '
                                 'call G.compute_differential_operator() '
@@ -84,7 +84,7 @@ class GraphDifference(object):
 
         The result is cached and accessible by the :attr:`D` property.
 
-        See also
+        See Also
         --------
         grad : compute the gradient
         div : compute the divergence
@@ -95,12 +95,11 @@ class GraphDifference(object):
         The difference operator is an incidence matrix.
         Example with a undirected graph.
 
-        >>> adjacency = np.array([
+        >>> graph = graphs.Graph([
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 1, 0],
         ... ])
-        >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.compute_differential_operator()
         >>> graph.D.toarray()
@@ -116,12 +115,11 @@ class GraphDifference(object):
 
         Example with a directed graph.
 
-        >>> adjacency = np.array([
+        >>> graph = graphs.Graph([
         ...     [0, 2, 0],
         ...     [2, 0, 1],
         ...     [0, 0, 0],
         ... ])
-        >>> graph = graphs.Graph(adjacency)
         >>> graph.compute_laplacian('combinatorial')
         >>> graph.compute_differential_operator()
         >>> graph.D.toarray()
@@ -168,7 +166,7 @@ class GraphDifference(object):
 
         self._D = sparse.csc_matrix((values, (rows, columns)),
                                     shape=(self.n_vertices, self.n_edges))
-        self.D.eliminate_zeros()  # Self-loops introduce stored zeros.
+        self._D.eliminate_zeros()  # Self-loops introduce stored zeros.
 
     def grad(self, x):
         r"""Compute the gradient of a signal defined on the vertices.
@@ -199,7 +197,7 @@ class GraphDifference(object):
 
         Parameters
         ----------
-        x : ndarray
+        x : array_like
             Signal of length :attr:`n_vertices` living on the vertices.
 
         Returns
@@ -207,7 +205,7 @@ class GraphDifference(object):
         y : ndarray
             Gradient signal of length :attr:`n_edges` living on the edges.
 
-        See also
+        See Also
         --------
         compute_differential_operator
         div : compute the divergence of an edge signal
@@ -215,29 +213,37 @@ class GraphDifference(object):
 
         Examples
         --------
+
+        Non-directed graph and combinatorial Laplacian:
+
         >>> graph = graphs.Path(4, directed=False, lap_type='combinatorial')
         >>> graph.compute_differential_operator()
-        >>> graph.grad(np.array([0, 2, 4, 2]))
+        >>> graph.grad([0, 2, 4, 2])
         array([ 2.,  2., -2.])
+
+        Directed graph and combinatorial Laplacian:
 
         >>> graph = graphs.Path(4, directed=True, lap_type='combinatorial')
         >>> graph.compute_differential_operator()
-        >>> graph.grad(np.array([0, 2, 4, 2]))
+        >>> graph.grad([0, 2, 4, 2])
         array([ 1.41421356,  1.41421356, -1.41421356])
+
+        Non-directed graph and normalized Laplacian:
 
         >>> graph = graphs.Path(4, directed=False, lap_type='normalized')
         >>> graph.compute_differential_operator()
-        >>> graph.grad(np.array([0, 2, 4, 2]))
+        >>> graph.grad([0, 2, 4, 2])
         array([ 1.41421356,  1.41421356, -0.82842712])
+
+        Directed graph and normalized Laplacian:
 
         >>> graph = graphs.Path(4, directed=True, lap_type='normalized')
         >>> graph.compute_differential_operator()
-        >>> graph.grad(np.array([0, 2, 4, 2]))
+        >>> graph.grad([0, 2, 4, 2])
         array([ 1.41421356,  1.41421356, -0.82842712])
 
         """
-        if self.N != x.shape[0]:
-            raise ValueError('Signal length should be the number of nodes.')
+        x = self._check_signal(x)
         return self.D.T.dot(x)
 
     def div(self, y):
@@ -273,7 +279,7 @@ class GraphDifference(object):
 
         Parameters
         ----------
-        y : ndarray
+        y : array_like
             Signal of length :attr:`n_edges` living on the edges.
 
         Returns
@@ -282,34 +288,45 @@ class GraphDifference(object):
             Divergence signal of length :attr:`n_vertices` living on the
             vertices.
 
-        See also
+        See Also
         --------
         compute_differential_operator
         grad : compute the gradient of a vertex signal
 
         Examples
         --------
+
+        Non-directed graph and combinatorial Laplacian:
+
         >>> graph = graphs.Path(4, directed=False, lap_type='combinatorial')
         >>> graph.compute_differential_operator()
-        >>> graph.div(np.array([2, -2, 0]))
+        >>> graph.div([2, -2, 0])
         array([-2.,  4., -2.,  0.])
+
+        Directed graph and combinatorial Laplacian:
 
         >>> graph = graphs.Path(4, directed=True, lap_type='combinatorial')
         >>> graph.compute_differential_operator()
-        >>> graph.div(np.array([2, -2, 0]))
+        >>> graph.div([2, -2, 0])
         array([-1.41421356,  2.82842712, -1.41421356,  0.        ])
+
+        Non-directed graph and normalized Laplacian:
 
         >>> graph = graphs.Path(4, directed=False, lap_type='normalized')
         >>> graph.compute_differential_operator()
-        >>> graph.div(np.array([2, -2, 0]))
+        >>> graph.div([2, -2, 0])
         array([-2.        ,  2.82842712, -1.41421356,  0.        ])
+
+        Directed graph and normalized Laplacian:
 
         >>> graph = graphs.Path(4, directed=True, lap_type='normalized')
         >>> graph.compute_differential_operator()
-        >>> graph.div(np.array([2, -2, 0]))
+        >>> graph.div([2, -2, 0])
         array([-2.        ,  2.82842712, -1.41421356,  0.        ])
 
         """
-        if self.Ne != y.shape[0]:
-            raise ValueError('Signal length should be the number of edges.')
+        y = np.asanyarray(y)
+        if y.shape[0] != self.Ne:
+            raise ValueError('First dimension must be the number of edges '
+                             'G.Ne = {}, got {}.'.format(self.Ne, y.shape))
         return self.D.dot(y)

@@ -41,8 +41,9 @@ class StochasticBlockModel(Graph):
         Allow self loops if True (default is False).
     connected : bool
         Force the graph to be connected (default is False).
-    n_try : int
-        Maximum number of trials to get a connected graph (default is 10).
+    n_try : int or None
+        Maximum number of trials to get a connected graph. If None, it will try
+        forever.
     seed : int
         Seed for the random number generator (for reproducible graphs).
 
@@ -79,7 +80,7 @@ class StochasticBlockModel(Graph):
         if M is None:
 
             self.p = p
-            p = np.asarray(p)
+            p = np.asanyarray(p)
             if p.size == 1:
                 p = p * np.ones(k)
             if p.shape != (k,):
@@ -89,7 +90,7 @@ class StochasticBlockModel(Graph):
             if q is None:
                 q = 0.3 / k
             self.q = q
-            q = np.asarray(q)
+            q = np.asanyarray(q)
             if q.size == 1:
                 q = q * np.ones((k, k))
             if q.shape != (k, k):
@@ -108,7 +109,7 @@ class StochasticBlockModel(Graph):
         # Along the lines of np.random.uniform(size=(N, N)) < p.
         # Or similar to sparse.random(N, N, p, data_rvs=lambda n: np.ones(n)).
 
-        for nb_iter in range(n_try):
+        while (n_try is None) or (n_try > 0):
 
             nb_row, nb_col = 0, 0
             csr_data, csr_i, csr_j = [], [], []
@@ -132,19 +133,19 @@ class StochasticBlockModel(Graph):
 
             if not connected:
                 break
-            else:
-                self.W = W
-                if self.is_connected(recompute=True):
-                    break
-            if nb_iter == n_try - 1:
-                raise ValueError('The graph could not be connected after {} '
-                                 'trials. Increase the connection probability '
-                                 'or the number of trials.'.format(n_try))
+            if Graph(W).is_connected():
+                break
+            if n_try is not None:
+                n_try -= 1
+        if connected and n_try == 0:
+            raise ValueError('The graph could not be connected after {} '
+                             'trials. Increase the connection probability '
+                             'or the number of trials.'.format(self.n_try))
 
         self.info = {'node_com': z, 'comm_sizes': np.bincount(z),
                      'world_rad': np.sqrt(N)}
 
-        super(StochasticBlockModel, self).__init__(W=W, **kwargs)
+        super(StochasticBlockModel, self).__init__(W, **kwargs)
 
     def _get_extra_repr(self):
         attrs = {'k': self.k}

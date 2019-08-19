@@ -75,9 +75,10 @@ Checks
 
 .. autosummary::
 
-    Graph.check_weights
+    Graph.is_weighted
     Graph.is_connected
     Graph.is_directed
+    Graph.has_loops
 
 Plotting
 --------
@@ -87,18 +88,65 @@ Plotting
     Graph.plot
     Graph.plot_spectrogram
 
+Import and export (I/O)
+-----------------------
+
+We provide import and export facility to two well-known Python packages for
+network analysis: NetworkX_ and graph-tool_.
+Those packages and the PyGSP are fundamentally different in their goals (graph
+analysis versus graph signal analysis) and graph representations (if in the
+PyGSP everything is an ndarray, in NetworkX everything is a dictionary).
+Those tools are complementary and good interoperability is necessary to exploit
+the strengths of each tool.
+We ourselves leverage NetworkX and graph-tool to save and load graphs.
+
+Note: to tie a signal with the graph, such that they are exported together,
+attach it first with :meth:`Graph.set_signal`.
+
+.. _NetworkX: https://networkx.github.io
+.. _graph-tool: https://graph-tool.skewed.de
+
+.. autosummary::
+
+    Graph.load
+    Graph.save
+    Graph.from_networkx
+    Graph.to_networkx
+    Graph.from_graphtool
+    Graph.to_graphtool
+
 Others
 ------
 
 .. autosummary::
 
     Graph.get_edge_list
+    Graph.set_signal
     Graph.set_coordinates
     Graph.subgraph
     Graph.extract_components
 
 Graph models
 ============
+
+In addition to the below graphs, useful resources are the random graph
+generators from NetworkX (see `NetworkX's documentation`_) and graph-tool (see
+:mod:`graph_tool.generation`), as well as graph-tool's assortment of standard
+networks (see :mod:`graph_tool.collection`).
+Any graph created by NetworkX or graph-tool can be imported in the PyGSP with
+:meth:`Graph.from_networkx` and :meth:`Graph.from_graphtool`.
+
+.. _NetworkX's documentation: https://networkx.github.io/documentation/stable/reference/generators.html
+
+Graphs built from other graphs
+------------------------------
+
+.. autosummary::
+
+    LineGraph
+
+Generated graphs
+----------------
 
 .. autosummary::
 
@@ -149,6 +197,7 @@ _GRAPHS = [
     'ErdosRenyi',
     'FullConnected',
     'Grid2d',
+    'LineGraph',
     'Logo',
     'LowStretchTree',
     'Minnesota',

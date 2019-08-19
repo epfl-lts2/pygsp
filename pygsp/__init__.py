@@ -25,6 +25,7 @@ __all__ = [
     'plotting',
     'reduction',
     'features',
+    'learning',
     'optimization',
     'utils',
 ]

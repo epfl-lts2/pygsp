@@ -15,7 +15,7 @@ Filters (from :mod:`pygsp.filters`) are to be plotted with
 
 .. data:: BACKEND
 
-    Indicates which drawing backend to use if none are provided to the plotting
+    The default drawing backend to use if none are provided to the plotting
     functions. Should be either ``'matplotlib'`` or ``'pyqtgraph'``. In general
     pyqtgraph is better for interactive exploration while matplotlib is better
     at generating figures to be included in papers or elsewhere.
@@ -128,7 +128,7 @@ def close_all():
 
 
 def show(*args, **kwargs):
-    r"""Show created figures, alias to plt.show().
+    r"""Show created figures, alias to ``plt.show()``.
 
     By default, showing plots does not block the prompt.
     Calling this function will block execution.
@@ -138,7 +138,7 @@ def show(*args, **kwargs):
 
 
 def close(*args, **kwargs):
-    r"""Close last created figure, alias to plt.close()."""
+    r"""Close last created figure, alias to ``plt.close()``."""
     _, plt, _ = _import_plt()
     plt.close(*args, **kwargs)
 
@@ -237,7 +237,7 @@ def _plot_filter(filters, n, eigenvalues, sum, title, ax, **kwargs):
     """
 
     if eigenvalues is None:
-        eigenvalues = hasattr(filters.G, '_e')
+        eigenvalues = (filters.G._e is not None)
 
     if sum is None:
         sum = filters.n_filters > 1
@@ -295,13 +295,13 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
 
     Parameters
     ----------
-    vertex_color : array-like or color
+    vertex_color : array_like or color
         Signal to plot as vertex color (length is the number of vertices).
         If None, vertex color is set to `graph.plotting['vertex_color']`.
         Alternatively, a color can be set in any format accepted by matplotlib.
         Each vertex color can by specified by an RGB(A) array of dimension
         `n_vertices` x 3 (or 4).
-    vertex_size : array-like or int
+    vertex_size : array_like or int
         Signal to plot as vertex size (length is the number of vertices).
         Vertex size ranges from 0.5 to 2 times `graph.plotting['vertex_size']`.
         If None, vertex size is set to `graph.plotting['vertex_size']`.
@@ -315,7 +315,7 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
         Whether to draw edges in addition to vertices.
         Default to True if less than 10,000 edges to draw.
         Note that drawing many edges can be slow.
-    edge_color : array-like or color
+    edge_color : array_like or color
         Signal to plot as edge color (length is the number of edges).
         Edge color is given by `graph.plotting['edge_color']` and transparency
         ranges from 0.2 to 0.9.
@@ -324,7 +324,7 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
         Each edge color can by specified by an RGB(A) array of dimension
         `n_edges` x 3 (or 4).
         Only available with the matplotlib backend.
-    edge_width : array-like or int
+    edge_width : array_like or int
         Signal to plot as edge width (length is the number of edges).
         Edge width ranges from 0.5 to 2 times `graph.plotting['edge_width']`.
         If None, edge width is set to `graph.plotting['edge_width']`.
@@ -403,11 +403,17 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
             raise ValueError(txt)
 
     def normalize(x):
-        """Scale values in [0.25, 1]. Return 0.5 if constant."""
+        """Scale values in [intercept, 1]. Return 0.5 if constant.
+
+        Set intercept value in G.plotting["normalize_intercept"]
+        with value in [0, 1], default is .25.
+        """
         ptp = x.ptp()
         if ptp == 0:
             return np.full(x.shape, 0.5)
-        return 0.75 * (x - x.min()) / ptp + 0.25
+        else:
+            intercept = G.plotting['normalize_intercept']
+            return (1. - intercept) * (x - x.min()) / ptp + intercept
 
     def is_color(color):
 
@@ -432,14 +438,14 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
         limits = [0, 0]
         colorbar = False
     else:
-        vertex_color = np.asarray(vertex_color).squeeze()
+        vertex_color = np.asanyarray(vertex_color).squeeze()
         check_shape(vertex_color, 'Vertex color', G.n_vertices,
                     many=(G.coords.ndim == 1))
 
     if vertex_size is None:
         vertex_size = G.plotting['vertex_size']
     elif not np.isscalar(vertex_size):
-        vertex_size = np.asarray(vertex_size).squeeze()
+        vertex_size = np.asanyarray(vertex_size).squeeze()
         check_shape(vertex_size, 'Vertex size', G.n_vertices)
         vertex_size = G.plotting['vertex_size'] * 4 * normalize(vertex_size)**2
 
@@ -449,7 +455,7 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
     if edge_color is None:
         edge_color = (G.plotting['edge_color'],)
     elif not is_color(edge_color):
-        edge_color = np.asarray(edge_color).squeeze()
+        edge_color = np.asanyarray(edge_color).squeeze()
         check_shape(edge_color, 'Edge color', G.n_edges)
         edge_color = 0.9 * normalize(edge_color)
         edge_color = [
@@ -526,7 +532,8 @@ def _plt_plot_graph(G, vertex_color, vertex_size, highlight,
         ax.plot(G.coords, vertex_color, alpha=0.5)
         ax.set_ylim(limits)
         for coord_hl in coords_hl:
-            ax.axvline(x=coord_hl, color='C1', linewidth=2)
+            ax.axvline(x=coord_hl, color=G.plotting['highlight_color'],
+                       linewidth=2)
 
     else:
         sc = ax.scatter(*G.coords.T,
@@ -539,7 +546,8 @@ def _plt_plot_graph(G, vertex_color, vertex_size, highlight,
             size_hl = vertex_size[highlight]
         ax.scatter(*coords_hl.T,
                    s=2*size_hl, zorder=3,
-                   marker='o', c='None', edgecolors='C1', linewidths=2)
+                   marker='o', c='None',
+                   edgecolors=G.plotting['highlight_color'], linewidths=2)
 
         if G.coords.shape[1] == 3:
             try:

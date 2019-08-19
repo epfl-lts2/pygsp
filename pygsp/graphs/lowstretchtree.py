@@ -67,7 +67,7 @@ class LowStretchTree(Graph):
                     "vertex_size": 75,
                     "limits": np.array([0, 2**k + 1, 0, 2**k + 1])}
 
-        super(LowStretchTree, self).__init__(W=W,
+        super(LowStretchTree, self).__init__(W,
                                              coords=coords,
                                              plotting=plotting,
                                              **kwargs)

@@ -55,9 +55,9 @@ class Modulation(Filter):
     modulation_first : bool
         First modulate then localize the kernel if True, first localize then
         modulate if False. The two operators do not commute. This setting only
-        applies to `filter`, `evaluate` only performs modulation (the filter
-        would otherwise have a different spectrum depending on where it is
-        localized).
+        applies to :meth:`filter`. :meth:`evaluate` only performs modulation,
+        as the filter would otherwise have a different spectrum depending on
+        where it is localized.
 
     See Also
     --------

@@ -14,7 +14,12 @@ The package can be set up (ideally in a virtual environment) for local
 development with the following::
 
     $ git clone https://github.com/epfl-lts2/pygsp.git
-    $ pip install -U -e pygsp[alldeps,test,doc,pkg]
+    $ pip install -U -e pygsp[dev]
+
+The ``dev`` "extras requirement" ensures that dependencies required for
+development (to run the test suite and build the documentation) are installed.
+Only `graph-tool <https://graph-tool.skewed.de>`_ will be missing: install it
+manually as it cannot be installed by pip.
 
 You can improve or add functionality in the ``pygsp`` folder, along with
 corresponding unit tests in ``pygsp/tests/test_*.py`` (with reasonable
@@ -35,6 +40,13 @@ documentation with the following (enforced by Travis CI)::
 
 Check the generated coverage report at ``htmlcov/index.html`` to make sure the
 tests reasonably cover the changes you've introduced.
+
+To iterate faster, you can partially run the test suite, at various degrees of
+granularity, as follows::
+
+   $ python -m unittest pygsp.tests.test_docstrings.suite_reference
+   $ python -m unittest pygsp.tests.test_graphs.TestImportExport
+   $ python -m unittest pygsp.tests.test_graphs.TestImportExport.test_save_load
 
 Making a release
 ----------------
