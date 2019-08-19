@@ -508,15 +508,16 @@ class LearnGraph(Graph):
     >>> X = np.squeeze(g.filter(S))
     >>> 
     >>> # B) Learn the graph
-    >>> Glearned = pg.graphs.LearnGraph(X,k=k)
+    >>> param_opt = {'verbosity':0}
+    >>> Glearned = LearnGraph(X,k=k, param_opt=param_opt)
     >>> # plot the learned graph
     >>> Glearned.coords = coords
     >>> 
-    >>> # C) Plot the graph
+    >>> # C) Plot the graph and one signal
     >>> fig, (ax1,ax2) = plt.subplots(1,2)
-    >>> G.plot_signal(X[:,1], ax=ax1,title='Signal generating graph')
-    >>> Glearned.plot_signal(X[:,1], ax=ax2,title='Learned graph')
-    >>> # The graph is expected to be less connected as explained in the paper
+    >>> _ = G.plot_signal(X[:,1], ax=ax1,title='Signal generating graph')
+    >>> _ = Glearned.plot_signal(X[:,1], ax=ax2,title='Learned graph')
+    >>> # The two graphs are not expected to be the same!
 
     References
     ----------
