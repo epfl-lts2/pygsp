@@ -543,6 +543,6 @@ class LearnGraph(Graph):
             W, stat = learn_graph_log_degree(Z*theta, edge_mask=edge_mask, rel_edge=rel_edge, **param_opt)
         else:            
             W, stat = learn_graph_log_degree(Z, a=a, b=b, edge_mask=edge_mask, rel_edge=rel_edge, **param_opt)
-        super().__init__(W, **kwargs)
+        super(LearnGraph, self).__init__(W, **kwargs)
         
         self._stat = stat
