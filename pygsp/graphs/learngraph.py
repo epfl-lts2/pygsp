@@ -468,8 +468,8 @@ class LearnGraph(Graph):
     minimize_W sum(sum(W .* Z)) - a * sum(log(sum(W))) + b * ||W||_F^2/2 + c * ||W-W_0||_F^2/2
     
     In order to scale, this function can automatically: 
-      1. Compute the optimal value of a,b
-      2. Use a resticted support to reduce the computational and the memory cost
+      1. compute the optimal value of a,b and,
+      2. use a resticted support to reduce the computational and the memory cost.
     By default, these option are enabled and only the average number of neighboors k should be set.
     
     Alternatively, the value of a and be can be set.
