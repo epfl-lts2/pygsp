@@ -34,3 +34,6 @@ class TestCase(unittest.TestCase):
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
+
+if __name__ == '__main__':
+    unittest.main()
