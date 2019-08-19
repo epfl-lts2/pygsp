@@ -711,6 +711,36 @@ class TestCase(unittest.TestCase):
         self.assertEqual(G.W[9, 16], 1.0)
         self.assertEqual(G.W[20, 27], 1.0)
 
+    def test_learn_graph(self):
+        from pygsp.graphs import LearnGraph
+        from pygsp.utils import distanz
+        from pygsp.graphs.learngraph import gsp_compute_graph_learning_theta
+        
+        # Create a bunch of signals
+        n=100
+        d = 400
+        k = 6
+        coords = np.random.RandomState(0).uniform(size=(n, 2))
+        G = pg.graphs.NNGraph(coords,k=10, kernel='gaussian')
+        G.compute_fourier_basis()
+        # g = pg.filters.Heat(G, scale=5)
+        g = pg.filters.Filter(G,lambda x:1/(1+5*x))
+        S = np.random.randn(n,d)
+        X = np.squeeze(g.filter(S))
+
+        # Test if large scale and small scale are close
+        G_learned1 = LearnGraph(X, k=k, sparse=False)
+        G_learned2 = LearnGraph(X,k=k, sparse=True)
+        assert(np.sum(np.abs(G_learned2.W.todense()-G_learned1.W.todense()))/np.sum(np.abs(G_learned1.W.todense()))<1e-4)
+
+        # Test automatic parameters tuning
+        Z = distanz(X.transpose())
+        theta, theta_min, theta_max = gsp_compute_graph_learning_theta(Z, k)
+        a = 1/theta
+        b = a
+        G_learned3 = LearnGraph(X,a=a,b=b, sparse=False)
+        assert(np.sum(np.abs(G_learned3.W.todense()-G_learned1.W.todense()))/np.sum(np.abs(G_learned1.W.todense()))<1e-3)
+
 suite_graphs = unittest.TestLoader().loadTestsFromTestCase(TestCase)
 
 

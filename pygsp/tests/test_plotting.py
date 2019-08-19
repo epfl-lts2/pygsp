@@ -39,6 +39,7 @@ class TestCase(unittest.TestCase):
             'FullConnected',
             'RandomRegular',
             'StochasticBlockModel',
+            'LearnGraph',
             }
 
         # Coordinates are not in 2D or 3D.

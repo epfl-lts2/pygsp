@@ -260,6 +260,15 @@ def learn_graph_log_degree(Z,
     edge_mask = None,
     w_0 = 0,
     rel_edge=1e-5):
+    r"""Learn a graph from distances
+
+    This function solves the convex optimization problem:
+    
+    Parameters
+    ----------
+    Z : Distance matrices [Nnodes x Nnodes]. It can be sparse
+    
+    """
     
     if isvector(Z):
         z = Z;
@@ -409,7 +418,7 @@ def learn_graph_log_degree(Z,
 
 
 
-class LearnedGraph(Graph):
+class LearnGraph(Graph):
     r"""Learned graph.
 
     Parameters
@@ -448,7 +457,7 @@ class LearnedGraph(Graph):
 
     References
     ----------
-    See :cite:`strang1999discrete` for more informations.
+    See :cite:`kalofolias2018large` and :cite:`kalofolias2016learn` for more informations.
 
     """
 
