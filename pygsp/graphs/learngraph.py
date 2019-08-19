@@ -524,7 +524,7 @@ class LearnGraph(Graph):
 
     """
 
-    def __init__(self, X, a=None, b=None, k=10, kk=None, sparse=True, rel_edge=1e-5, param_nn={}, param_opt={} **kwargs):
+    def __init__(self, X, a=None, b=None, k=10, kk=None, sparse=True, rel_edge=1e-5, param_nn={}, param_opt={}, **kwargs):
         
         if sparse:
             if kk is None:
