@@ -87,7 +87,7 @@ class TestCase(unittest.TestCase):
         # Create a bunch of signals
         n=100
         d = 400
-        G = pg.graphs.Sensor(N=n,k=6)
+        G = pg.graphs.Sensor(N=n,k=6, seed=0)
         G.compute_fourier_basis()
         # g = pg.filters.Heat(G, scale=5)
         g = pg.filters.Filter(G,lambda x:1/(1+5*x))
@@ -108,7 +108,7 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(theta_max, theta_max2)
         W = sparse_distance_matrix(neighbors, distances)
         learned_W2, _ = learn_graph_log_degree(W*theta2, edge_mask=W>0, verbosity=0)
-        assert(np.sum(np.abs(learned_W2.todense()-learned_W))/np.sum(np.abs(learned_W))<1e-3)
+        assert(np.sum(np.abs(learned_W2.todense()-learned_W))/np.sum(np.abs(learned_W))<1e-4)
         
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
 if __name__ == '__main__':
