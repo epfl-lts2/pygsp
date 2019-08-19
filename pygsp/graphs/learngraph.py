@@ -255,7 +255,6 @@ def learn_graph_log_degree(Z,
     maxit = 1000,
     tol = 1e-5,
     step_size = .5, 
-    fix_zeros = False,
     max_w = np.inf,
     edge_mask = None,
     w_0 = 0,
@@ -291,8 +290,7 @@ def learn_graph_log_degree(Z,
     tol       : tolerance to stop iterating
     step_size : Step size from the interval (0,1). Default: 0.5
     max_w     : Maximum weight allowed for each edge (or inf)
-    edge_mask : Mask indicating the non zero edges if "fix_zeros"
-    fix_zeros : Fix a set of edges to zero (True/False)
+    edge_mask : Mask indicating the non zero edges (for the scaling version)
     w_0       : Vector for adding prior c/2*||w - w_0||^2
     rel_edge  : Remove all edges bellow this tolerance after convergence of the algorithm
 
@@ -453,13 +451,41 @@ def learn_graph_log_degree(Z,
 class LearnGraph(Graph):
     r"""Learned graph.
     
-    Return a graph learned with with the function 
+    Return a graph learned with with the function by :func:`learn_graph_log_degree`. 
+    
+    This function computes the pairwise distances $Z$ between the vectos in $X$. Then 
+    the adjacency matrix $W$ is estiamged from $Z$, using the
+    smoothness assumption that $\text{trace}(X^TLX)$ is small, where $X$ is
+    the data (columns) changing smoothly from node to node on the graph and
+    $L = D-W$ is the combinatorial graph Laplacian. See :cite:`kalofolias2018large` 
+    and :cite:`kalofolias2016learn` for the theory behind the algorithm.
+
+    Alternatively, Z can contain other types of distances and use the
+    smoothness assumption that sum(sum(W * Z)) is small.
+
+    The minimization problem solved is
+    
+    minimize_W sum(sum(W .* Z)) - a * sum(log(sum(W))) + b * ||W||_F^2/2 + c * ||W-W_0||_F^2/2
+    
+    In order to scale, this function can automatically: 
+      1. Compute the optimal value of a,b
+      2. Use a resticted support to reduce the computational and the memory cost
+    By default, these option are enabled and only the average number of neighboors k should be set.
+    
+    Alternatively, the value of a and be can be set.
 
     Parameters
     ----------
     X : Data [Nnodes x Nsignals]
-        
-
+    a : Weight of the connectivity term (leave this to None for automatic setup)
+    b : Weight of the sparsity term (leave this to None for automatic setup)
+    k : desired average number of neigboors 
+    kk: desired number of neiboors for the sparse support (Default 3k)
+    sparse: Use a sparse support. Set this to True to scale. (Default True) 
+    rel_edge : Remove all edges bellow this tolerance after convergence of the algorithm
+    param_nn : Parameters for the nearest neighboor search (dictionary). See :func:`nearest_neighbor`.
+    param_opt: Parameters for the optimization algorithm. See :func:`learn_graph_log_degree`.
+    
     Examples
     --------
     >>> import numpy as np
@@ -482,7 +508,7 @@ class LearnGraph(Graph):
     >>> X = np.squeeze(g.filter(S))
     >>> 
     >>> # B) Learn the graph
-    >>> Glearned = LearnGraph(X,k=k)
+    >>> Glearned = pg.graphs.LearnGraph(X,k=k)
     >>> # plot the learned graph
     >>> Glearned.coords = coords
     >>> 
@@ -498,7 +524,7 @@ class LearnGraph(Graph):
 
     """
 
-    def __init__(self, X, a=None, b=None, k=10, kk=None, sparse=True, rel_edge=1e-5, plotting={}, lap_type='combinatorial', param_nn={}, param_opt={}):
+    def __init__(self, X, a=None, b=None, k=10, kk=None, sparse=True, rel_edge=1e-5, param_nn={}, param_opt={} **kwargs):
         
         if sparse:
             if kk is None:
@@ -516,6 +542,6 @@ class LearnGraph(Graph):
             W, stat = learn_graph_log_degree(Z*theta, edge_mask=edge_mask, rel_edge=rel_edge, **param_opt)
         else:            
             W, stat = learn_graph_log_degree(Z, a=a, b=b, edge_mask=edge_mask, rel_edge=rel_edge, **param_opt)
-        super().__init__(W, lap_type=lap_type, plotting=plotting)
+        super().__init__(W, **kwargs)
         
         self._stat = stat
