@@ -409,7 +409,7 @@ def learn_graph_log_degree(Z,
 
 
 
-class LearnGraph(Graph):
+class LearnedGraph(Graph):
     r"""Learned graph.
 
     Parameters
@@ -419,12 +419,32 @@ class LearnGraph(Graph):
 
     Examples
     --------
-    >>> import matplotlib.pyplot as plt
-    >>> fig, axes = plt.subplots(2, 2, figsize=(10, 8))
-    >>> for i, directed in enumerate([False, True]):
-    ...     G = graphs.Path(N=10, directed=directed)
-    ...     _ = axes[i, 0].spy(G.W)
-    ...     _ = G.plot(ax=axes[i, 1])
+    >>> # A) Create a bunch of smooth signals
+    >>> n = 100 # Number of nodes
+    >>> d = 50 # Number of signals
+    >>> k = 6 # Average number of neighboors
+    >>> # A1) Create a graph 
+    >>> coords = np.random.RandomState(0).uniform(size=(n, 2))
+    >>> G = pg.graphs.NNGraph(coords,k=10, kernel='gaussian')
+    >>> 
+    >>> # A2) Create a lowpass filter
+    >>> G.estimate_lmax()
+    >>> g = pg.filters.Filter(G,lambda x:1/(1+5*x))
+    >>> 
+    >>> # A3) Create signals by filtering random noise
+    >>> S = np.random.randn(n,d)
+    >>> X = np.squeeze(g.filter(S))
+    >>> 
+    >>> # B) Learn the graph
+    >>> Glearned = LearnedGraph(X,k=k)
+    >>> # plot the learned graph
+    >>> Glearned.coords = coords
+    >>> 
+    >>> # C) Plot the graph
+    >>> fig, (ax1,ax2) = plt.subplots(1,2)
+    >>> G.plot_signal(X[:,1], ax=ax1,title='Signal generating graph')
+    >>> Glearned.plot_signal(X[:,1], ax=ax2,title='Learned graph')
+    >>> # The graph is expected to be less connected as explained in the paper
 
     References
     ----------
@@ -445,14 +465,11 @@ class LearnGraph(Graph):
             Z = distanz(X.transpose())
             Zp = Z
             edge_mask = None
-        if alpha is None and beta is None:
+        if a is None and b is None:
             theta, theta_min, theta_max = gsp_compute_graph_learning_theta(Zp, k)
             W, stat = learn_graph_log_degree(Z*theta, edge_mask=edge_mask, rel_edge=rel_edge, **param_opt)
         else:            
             W, stat = learn_graph_log_degree(Z, a=a, b=b, edge_mask=edge_mask, rel_edge=rel_edge, **param_opt)
-        super(Graph).__init__(W, lap_type=lap_type, plotting=plotting)
+        super().__init__(W, lap_type=lap_type, plotting=plotting)
         
         self._stat = stat
-
-    def _get_extra_repr(self):
-        return dict(directed=self.directed)
