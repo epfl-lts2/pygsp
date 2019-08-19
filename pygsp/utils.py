@@ -124,7 +124,7 @@ def distanz(x, y=None):
     else:
         diag_zero = False
         if len(y.shape)<2:
-            y = np.expand_dims(xy, axis=0)
+            y = np.expand_dims(y, axis=0)
 
     rx, cx = x.shape
     ry, cy = y.shape

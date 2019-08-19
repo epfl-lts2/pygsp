@@ -3,7 +3,8 @@ from scipy import sparse
 from scipy.spatial.distance import squareform
 from time import time
 from pygsp import utils
-
+from pygsp.utils import distanz
+from pygsp._nearest_neighbor import nearest_neighbor, sparse_distance_matrix
 from . import Graph  # prevent circular import in Python < 3.5
 
 logger = utils.build_logger(__name__)
@@ -407,13 +408,13 @@ def learn_graph_log_degree(Z,
     return W, stat
 
 
+
 class LearnGraph(Graph):
     r"""Learned graph.
 
     Parameters
     ----------
-    X : int
-        Data
+    X : Data [Nnodes x Nsignals]
         
 
     Examples
@@ -431,24 +432,27 @@ class LearnGraph(Graph):
 
     """
 
-    def __init__(self, N=16, directed=False, **kwargs):
-
-        self.directed = directed
-        if directed:
-            sources = np.arange(0, N-1)
-            targets = np.arange(1, N)
-            n_edges = N - 1
+    def __init__(self, X, a=None, b=None, k=10, kk=None, sparse=True, rel_edge=1e-5, plotting={}, lap_type='combinatorial', param_nn={}, param_opt={}):
+        
+        if sparse:
+            if kk is None:
+                kk = 3*k
+            neighbors, distances = nearest_neighbor(X, k=kk, **param_nn)
+            Z = sparse_distance_matrix(neighbors, distances)
+            edge_mask = Z>0
+            Zp = distances[:,1:]
         else:
-            sources = np.concatenate((np.arange(0, N-1), np.arange(1, N)))
-            targets = np.concatenate((np.arange(1, N), np.arange(0, N-1)))
-            n_edges = 2 * (N - 1)
-        weights = np.ones(n_edges)
-        W = sparse.csr_matrix((weights, (sources, targets)), shape=(N, N))
-        plotting = {"limits": np.array([-1, N, -1, 1])}
-
-        super(Path, self).__init__(W=W, plotting=plotting, **kwargs)
-
-        self.set_coordinates('line2D')
+            Z = distanz(X.transpose())
+            Zp = Z
+            edge_mask = None
+        if alpha is None and beta is None:
+            theta, theta_min, theta_max = gsp_compute_graph_learning_theta(Zp, k)
+            W, stat = learn_graph_log_degree(Z*theta, edge_mask=edge_mask, rel_edge=rel_edge, **param_opt)
+        else:            
+            W, stat = learn_graph_log_degree(Z, a=a, b=b, edge_mask=edge_mask, rel_edge=rel_edge, **param_opt)
+        super(Graph).__init__(W, lap_type=lap_type, plotting=plotting)
+        
+        self._stat = stat
 
     def _get_extra_repr(self):
         return dict(directed=self.directed)
