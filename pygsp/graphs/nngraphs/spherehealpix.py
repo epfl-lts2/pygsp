@@ -51,28 +51,61 @@ class SphereHealpix(NNGraph):
 
     """
 
-    def __init__(self, Nside=1024, nest=True, **kwargs):
-        # TODO: add part of sphere construction
+    def __init__(self, indexes=None, Nside=32, nest=True, kernel_width=None, n_neighbors=None, **kwargs):
         hp = _import_hp()
         self.Nside = Nside
         self.nest = nest
         npix = hp.nside2npix(Nside)
-        indexes = np.arange(npix)
+        if indexes is None:
+            indexes = np.arange(npix)
         x, y, z = hp.pix2vec(Nside, indexes, nest=nest)
         self.lat, self.lon = hp.pix2ang(Nside, indexes, nest=nest, lonlat=False)
         coords = np.vstack([x, y, z]).transpose()
         coords = np.asarray(coords, dtype=np.float32)
         ## TODO: n_neighbors in function of Nside
-        n_neighbors = 6 if Nside==1 else 8
-        ## TODO: find optimal sigmas
-        opt_std = {1: 0.5, 2: 0.15, 4: 0.05, 8: 0.0125, 16: 0.005, 32: 0.001}
-        try:
-            sigma = opt_std[Nside]
-        except:
-            raise ValueError('Unknown sigma for nside>32')
+        if n_neighbors is None:
+            n_neighbors = 6 if Nside==1 else 8
+            if Nside>=4:
+                n_neighbors = 50
+            elif Nside == 2:
+                n_neighbors = 47
+            else:
+                n_neighbors = 11
+        if len(indexes)<50:
+            n_neighbors = len(indexes)-1
+        ## TODO: find optimal sigmas (for n_neighbors = 50)
+        """opt_std =  {1:1.097324009878543,
+                    2:1.097324042581347,
+                    4: 0.5710655156439823,
+                    8: 0.28754191240507265,
+                    16: 0.14552024595543614,
+                    32: 0.07439700765663292,
+                    64: 0.03654101726025044,
+                    128: 0.018262391329213392,
+                    256: 0.009136370875837834,
+                    512: 0.004570016186845779,
+                    1024: 0.0022857004460788742,}
+        """
+        opt_std = {1:1.097324009878543,
+                   2:1.097324042581347,
+                   4: 0.5710655156439823,
+                   8: 0.28754191240507265,
+                   16: 0.14552024595543614,
+                   32: 0.05172026,      ### from nside=32 on it was obtained by equivariance error minimization
+                   64: 0.0254030519,
+                   128: 0.01269588289,
+                   256: 0.00635153921,
+                   512: 0.002493215645,}
 
+            try:
+                kernel_width = opt_std[Nside]
+            except:
+                raise ValueError('Unknown sigma for nside>32')
+        ## TODO: check std
         plotting = {
             'vertex_size': 80,
             "limits": np.array([-1, 1, -1, 1, -1, 1])
         }
-        super(SphereHealpix, self).__init__(coords, k=n_neighbors, kernel_width=np.sqrt(2*sigma), plotting=plotting, **kwargs)
+        super(SphereHealpix, self).__init__(features=coords, k=n_neighbors,
+                                     kernel_width=kernel_width, plotting=plotting, **kwargs)
+        
