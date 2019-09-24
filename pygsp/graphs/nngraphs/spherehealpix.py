@@ -42,7 +42,7 @@ class SphereHealpix(NNGraph):
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> G = graphs.SphereHealpix(Nside=4)
+    >>> G = graphs.SphereHealpix(nside=4)
     >>> fig = plt.figure()
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')
@@ -51,57 +51,69 @@ class SphereHealpix(NNGraph):
 
     """
 
-    def __init__(self, indexes=None, Nside=32, nest=True, kernel_width=None, n_neighbors=None, **kwargs):
+    def __init__(self, indexes=None, nside=32, nest=True, kernel_width=None, n_neighbors=50, **kwargs):
         hp = _import_hp()
-        self.Nside = Nside
+        self.nside = nside
         self.nest = nest
-        npix = hp.nside2npix(Nside)
+        npix = hp.nside2npix(nside)
         if indexes is None:
             indexes = np.arange(npix)
-        x, y, z = hp.pix2vec(Nside, indexes, nest=nest)
-        self.lat, self.lon = hp.pix2ang(Nside, indexes, nest=nest, lonlat=False)
+        x, y, z = hp.pix2vec(nside, indexes, nest=nest)
+        self.lat, self.lon = hp.pix2ang(nside, indexes, nest=nest, lonlat=False)
         coords = np.vstack([x, y, z]).transpose()
         coords = np.asarray(coords, dtype=np.float32)
-        ## TODO: n_neighbors in function of Nside
         if n_neighbors is None:
             n_neighbors = 6 if Nside==1 else 8
-            if Nside>=4:
-                n_neighbors = 50
-            elif Nside == 2:
-                n_neighbors = 47
-            else:
-                n_neighbors = 11
-        if len(indexes)<50:
-            n_neighbors = len(indexes)-1
-        ## TODO: find optimal sigmas (for n_neighbors = 50)
-        """opt_std =  {1:1.097324009878543,
-                    2:1.097324042581347,
-                    4: 0.5710655156439823,
-                    8: 0.28754191240507265,
-                    16: 0.14552024595543614,
-                    32: 0.07439700765663292,
-                    64: 0.03654101726025044,
-                    128: 0.018262391329213392,
-                    256: 0.009136370875837834,
-                    512: 0.004570016186845779,
-                    1024: 0.0022857004460788742,}
-        """
-        opt_std = {1:1.097324009878543,
-                   2:1.097324042581347,
-                   4: 0.5710655156439823,
-                   8: 0.28754191240507265,
-                   16: 0.14552024595543614,
-                   32: 0.05172026,      ### from nside=32 on it was obtained by equivariance error minimization
-                   64: 0.0254030519,
-                   128: 0.01269588289,
-                   256: 0.00635153921,
-                   512: 0.002493215645,}
-
-            try:
-                kernel_width = opt_std[Nside]
-            except:
-                raise ValueError('Unknown sigma for nside>32')
+            
+        self.opt_std = dict()
+        self.opt_std[20] =  {
+                    32:   0.03185,
+                    64:   0.01564,
+                    128:  0.00782,
+                    256:  0.00391,
+                    512:  0.00196,
+                    1024: 0.00098,
+        }
+        self.opt_std[40] =  {
+                    32:   0.042432,
+                    64:   0.021354,
+                    128:  0.010595,
+                    256:  0.005551,  # seems a bit off
+                    #512:  0.003028,  # seems buggy
+                    512:  0.005551 / 2,  # extrapolated
+                    1024: 0.005551 / 4,  # extrapolated
+        }
+        self.opt_std[60] =  {
+                    32:   0.051720,
+                    64:   0.025403,
+                    128:  0.012695,
+                    256:  0.006351,
+                    #512:  0.002493,  # seems buggy
+                    512:  0.006351 / 2,  # extrapolated
+                    1024: 0.006351 / 4,  # extrapolated
+        }
+        self.opt_std[8] = {
+                    32:   0.02500,
+                    64:   0.01228,
+                    128:  0.00614,
+                    256:  0.00307,
+                    512:  0.00154,
+                    1024: 0.00077,
+        }
+        try:
+            kernel_dict = self.opt_std[n_neighbors]
+        except:
+            raise ValueError('No sigma for number of neighbors {}'.format(n_neighbors))
+        try:
+            kernel_width = kernel_dict[nside]
+        except:
+            raise ValueError('Unknown sigma for nside {}'.format(nside))
         ## TODO: check std
+    
+        ## TODO: n_neighbors in function of Nside
+        if len(indexes) <= n_neighbors:
+            n_neighbors = len(indexes)-1
+        
         plotting = {
             'vertex_size': 80,
             "limits": np.array([-1, 1, -1, 1, -1, 1])

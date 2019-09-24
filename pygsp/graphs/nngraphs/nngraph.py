@@ -414,9 +414,14 @@ class NNGraph(Graph):
             function = globals()['_' + backend.replace('-', '_')]
         except KeyError:
             raise ValueError('Invalid backend "{}".'.format(backend))
+        
+
         neighbors, distances = function(features, metric, order,
                                         kind, k, radius, kwargs)
-
+        # ------ MARTINO's MODIFICATION ------
+        self.distances = distances
+        # ------------------------------------
+        
         n_edges = [len(n) - 1 for n in neighbors]  # remove distance to self
 
         if kind == 'radius':
