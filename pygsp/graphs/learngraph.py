@@ -224,10 +224,10 @@ def compute_theta_bounds(Z, geom_mean=False, islist=None):
     K_mat = np.tile(np.arange(1,m+1), (n, 1))
     ## Theoretical intervals of theta for each desired sparsity level:
     if geom_mean:
-        theta_u = np.mean(1./(np.sqrt(K_mat*Z_sorted*Z_sorted - B_k*Z_sorted)+1e-15), axis=0)
+        theta_u = np.mean(1./(np.sqrt(K_mat*Z_sorted*Z_sorted - B_k*Z_sorted+1e-7)+1e-15), axis=0)
     else:
         # try geometric mean instead of arithmetic:
-        theta_u = np.exp(np.mean(np.log(1/(np.sqrt(K_mat*Z_sorted*Z_sorted - B_k*Z_sorted)+1e-15)), axis=0))
+        theta_u = np.exp(np.mean(np.log(1/(np.sqrt(K_mat*Z_sorted*Z_sorted - B_k*Z_sorted+1e-7)+1e-15)), axis=0))
     theta_l = np.zeros(theta_u.shape)
     theta_l[:-1] = theta_u[1:]
     return theta_l, theta_u, Z_sorted
