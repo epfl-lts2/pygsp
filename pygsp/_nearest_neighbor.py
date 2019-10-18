@@ -46,7 +46,7 @@ def _scipy_kdtree(features, _, order, kind, k, radius, params):
     return neighbors, distances
 
 
-def _scipy_ckdtree(features, _, order, kind, k, radius, params):
+def _scipy_ckdtree(features, metric, order, kind, k, radius, params):
     if order is None:
         raise ValueError('invalid metric for scipy-kdtree')
     eps = params.pop('eps', 0)
@@ -61,9 +61,15 @@ def _scipy_ckdtree(features, _, order, kind, k, radius, params):
                                           radius * np.ones((features.shape[0],)),
                                           p=order)
         dist = []
+        metric = 'cityblock' if metric == 'manhattan' else metric
+        metric = 'chebyshev' if metric == 'max_dist' else metric
+        params = dict(metric=metric)
+        if metric == 'minkowski':
+            params['p'] = order
         for i, neighbor in enumerate(neighbors):
             dist.append(spatial.distance.cdist([features[i]],
-                                                features[neighbor]).flatten())
+                                                features[neighbor],
+                                                **params).flatten())
         return neighbors, dist
 
 
