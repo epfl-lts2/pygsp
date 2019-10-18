@@ -54,20 +54,17 @@ def _scipy_ckdtree(features, _, order, kind, k, radius, params):
     params = dict(p=order, eps=eps, n_jobs=-1)
     if kind == 'knn':
         params['k'] = k + 1
-    elif kind == 'radius':
-        params['k'] = features.shape[0]  # number of vertices
-        params['distance_upper_bound'] = radius
-    distances, neighbors = tree.query(features, **params)
-    if kind == 'knn':
+        distances, neighbors = tree.query(features, **params)
         return neighbors, distances
     elif kind == 'radius':
+        neighbors = tree.query_ball_point(features, 
+                                          radius * np.ones((features.shape[0],)),
+                                          p=order)
         dist = []
-        neigh = []
-        for distance, neighbor in zip(distances, neighbors):
-            mask = (distance != np.inf)
-            dist.append(distance[mask])
-            neigh.append(neighbor[mask])
-        return neigh, dist
+        for i, neighbor in enumerate(neighbors):
+            dist.append(spatial.distance.cdist([features[i]],
+                                                features[neighbor]).flatten())
+        return neighbors, dist
 
 
 def _flann(features, metric, order, kind, k, radius, params):
