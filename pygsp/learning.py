@@ -283,6 +283,7 @@ def regression_tikhonov(G, y, M, tau=0):
     --------
     >>> from pygsp import graphs, filters, learning
     >>> import matplotlib.pyplot as plt
+    >>> import numpy as np
     >>>
     >>> G = graphs.Sensor(N=100, seed=42)
     >>> G.estimate_lmax()
