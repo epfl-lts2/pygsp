@@ -797,8 +797,8 @@ class TestImportExport(unittest.TestCase):
         graph.set_signal(signal2, "signal2")
         graph_nx = graph.to_networkx()
         for i in range(graph.N):
-            self.assertEqual(graph_nx.node[i]["signal1"], signal1[i])
-            self.assertEqual(graph_nx.node[i]["signal2"], signal2[i])
+            self.assertEqual(graph_nx.nodes[i]["signal1"], signal1[i])
+            self.assertEqual(graph_nx.nodes[i]["signal2"], signal2[i])
         # invalid signal type
         graph = graphs.Path(3)
         graph.set_signal(np.array(['a', 'b', 'c']), 'sig')
