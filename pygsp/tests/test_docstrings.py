@@ -42,5 +42,3 @@ suite_tutorials = test_docstrings('.', '.rst')
 
 suite = unittest.TestSuite([suite_reference, suite_tutorials])
 
-if __name__ == '__main__':
-    unittest.main()

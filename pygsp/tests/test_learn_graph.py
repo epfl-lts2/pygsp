@@ -111,5 +111,3 @@ class TestCase(unittest.TestCase):
         assert(np.sum(np.abs(learned_W2.todense()-learned_W))/np.sum(np.abs(learned_W))<1e-4)
         
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
-if __name__ == '__main__':
-    unittest.main()
