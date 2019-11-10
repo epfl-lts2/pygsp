@@ -86,7 +86,7 @@ class TestCase(unittest.TestCase):
         # Create a bunch of signals
         n=100
         d = 400
-        G = pg.graphs.Sensor(N=n,k=6, seed=0)
+        G = pg.graphs.Sensor(N=n,k=6, seed=1)
         G.compute_fourier_basis()
         # g = pg.filters.Heat(G, scale=5)
         g = pg.filters.Filter(G,lambda x:1/(1+5*x))
