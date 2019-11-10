@@ -2,7 +2,6 @@ from __future__ import division
 
 import unittest
 import numpy as np
-from nn import nn, sparse_distance_matrix
 from pygsp._nearest_neighbor import nearest_neighbor as nn
 from pygsp._nearest_neighbor import sparse_distance_matrix
 from scipy import sparse
