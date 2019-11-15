@@ -2,8 +2,8 @@
 
 from __future__ import division
 
-import os
-from collections import Counter
+# import os
+# from collections import Counter
 
 import numpy as np
 from scipy import sparse

@@ -204,7 +204,6 @@ _GRAPHS = [
     'ErdosRenyi',
     'FullConnected',
     'Grid2d',
-    'LearnedFromSmoothSignals',
     'LineGraph',
     'Logo',
     'LowStretchTree',
@@ -231,4 +230,5 @@ _NNGRAPHS = [
 __all__ = _GRAPHS + _NNGRAPHS
 
 _utils.import_classes(_GRAPHS, 'graphs', 'graphs')
+from pygsp.graphs.learned import LearnedFromSmoothSignals
 _utils.import_classes(_NNGRAPHS, 'graphs.nngraphs', 'graphs')
