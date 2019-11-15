@@ -204,7 +204,7 @@ _GRAPHS = [
     'ErdosRenyi',
     'FullConnected',
     'Grid2d',
-    'LearnGraph',
+    'LearnedFromSmoothSignals',
     'LineGraph',
     'Logo',
     'LowStretchTree',

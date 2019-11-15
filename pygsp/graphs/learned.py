@@ -448,8 +448,8 @@ def learn_graph_log_degree(Z,
 
 
 
-class LearnGraph(Graph):
-    r"""Learned graph.
+class LearnedFromSmoothSignals(Graph):
+    r"""Learned graph from smooth signals.
     
     Return a graph learned with with the function by :func:`learn_graph_log_degree`. 
     
@@ -509,7 +509,7 @@ class LearnGraph(Graph):
     >>> 
     >>> # B) Learn the graph
     >>> param_opt = {'verbosity':0}
-    >>> Glearned = pg.graphs.LearnGraph(X,k=k, param_opt=param_opt)
+    >>> Glearned = pg.graphs.LearnedFromSmoothSignals(X,k=k, param_opt=param_opt)
     >>> # plot the learned graph
     >>> Glearned.coords = coords
     >>> 
@@ -541,8 +541,7 @@ class LearnGraph(Graph):
         if a is None and b is None:
             theta, theta_min, theta_max = gsp_compute_graph_learning_theta(Zp, k)
             W, stat = learn_graph_log_degree(Z*theta, edge_mask=edge_mask, rel_edge=rel_edge, **param_opt)
-        else:            
+        else:
             W, stat = learn_graph_log_degree(Z, a=a, b=b, edge_mask=edge_mask, rel_edge=rel_edge, **param_opt)
-        super(LearnGraph, self).__init__(W, **kwargs)
-        
+        super(LearnedFromSmoothSignals, self).__init__(W, **kwargs)
         self._stat = stat
