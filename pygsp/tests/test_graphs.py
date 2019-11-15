@@ -715,7 +715,7 @@ class TestCase(unittest.TestCase):
     def test_learn_graph(self):
         from pygsp.graphs import LearnedFromSmoothSignals
         from pygsp.utils import distanz
-        from pygsp.graphs.learngraph import gsp_compute_graph_learning_theta
+        from pygsp.graphs.learned import gsp_compute_graph_learning_theta
         
         # Create a bunch of signals
         n=100
