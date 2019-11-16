@@ -713,9 +713,9 @@ class TestCase(unittest.TestCase):
         self.assertEqual(G.W[20, 27], 1.0)
 
     def test_learn_graph(self):
-        from pygsp.graphs import LearnGraph
+        from pygsp.graphs import LearnedFromSmoothSignals
         from pygsp.utils import distanz
-        from pygsp.graphs.learngraph import gsp_compute_graph_learning_theta
+        from pygsp.graphs.learned import gsp_compute_graph_learning_theta
         
         # Create a bunch of signals
         n=100
@@ -729,8 +729,8 @@ class TestCase(unittest.TestCase):
         X = np.squeeze(g.filter(S))
 
         # Test if large scale and small scale are close
-        G_learned1 = LearnGraph(X, k=k, sparse=False)
-        G_learned2 = LearnGraph(X,k=k, sparse=True)
+        G_learned1 = LearnedFromSmoothSignals(X, k=k, sparse=False)
+        G_learned2 = LearnedFromSmoothSignals(X,k=k, sparse=True)
         assert(np.sum(np.abs(G_learned2.W.todense()-G_learned1.W.todense()))/np.sum(np.abs(G_learned1.W.todense()))<1e-4)
 
         # Test automatic parameters tuning
@@ -738,7 +738,7 @@ class TestCase(unittest.TestCase):
         theta, theta_min, theta_max = gsp_compute_graph_learning_theta(Z, k)
         a = 1/theta
         b = a
-        G_learned3 = LearnGraph(X,a=a,b=b, sparse=False)
+        G_learned3 = LearnedFromSmoothSignals(X,a=a,b=b, sparse=False)
         assert(np.sum(np.abs(G_learned3.W.todense()-G_learned1.W.todense()))/np.sum(np.abs(G_learned1.W.todense()))<1e-3)
 
 suite_graphs = unittest.TestLoader().loadTestsFromTestCase(TestCase)
@@ -827,8 +827,8 @@ class TestImportExport(unittest.TestCase):
         graph.set_signal(signal2, "signal2")
         graph_nx = graph.to_networkx()
         for i in range(graph.N):
-            self.assertEqual(graph_nx.node[i]["signal1"], signal1[i])
-            self.assertEqual(graph_nx.node[i]["signal2"], signal2[i])
+            self.assertEqual(graph_nx.nodes[i]["signal1"], signal1[i])
+            self.assertEqual(graph_nx.nodes[i]["signal2"], signal2[i])
         # invalid signal type
         graph = graphs.Path(3)
         graph.set_signal(np.array(['a', 'b', 'c']), 'sig')
