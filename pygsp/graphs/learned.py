@@ -12,9 +12,9 @@ logger = utils.build_logger(__name__)
 def isvector(x):
     '''Test if x is a vector'''
     if sparse.issparse(x):
-        return x.shape[1]==1
+        return (np.ndim(x) == 1) or (np.ndim(x) == 2 and x.shape[1] == 1)
     try:
-        return len(x.shape)==1
+        return (np.ndim(x) == 2 and len(x.shape) == 1)
     except:
         return False
 
@@ -451,10 +451,10 @@ def learn_graph_log_degree(Z,
 class LearnedFromSmoothSignals(Graph):
     r"""Learned graph from smooth signals.
     
-    Return a graph learned with with the function by :func:`learn_graph_log_degree`. 
+    Return a graph learned with the function of :func:`learn_graph_log_degree`. 
     
-    This function computes the pairwise distances $Z$ between the vectos in $X$. Then 
-    the adjacency matrix $W$ is estiamged from $Z$, using the
+    This function computes the squared pairwise distances $Z$ between the vectors
+    in $X$. Then the adjacency matrix $W$ is estimated from $Z$, using the
     smoothness assumption that $\text{trace}(X^TLX)$ is small, where $X$ is
     the data (columns) changing smoothly from node to node on the graph and
     $L = D-W$ is the combinatorial graph Laplacian. See :cite:`kalofolias2018large` 
@@ -468,11 +468,11 @@ class LearnedFromSmoothSignals(Graph):
     minimize_W sum(sum(W .* Z)) - a * sum(log(sum(W))) + b * ||W||_F^2/2 + c * ||W-W_0||_F^2/2
     
     In order to scale, this function can automatically: 
-      1. compute the optimal value of a,b and,
+      1. compute the optimal values of (a, b) and
       2. use a resticted support to reduce the computational and the memory cost.
     By default, these option are enabled and only the average number of neighboors k should be set.
     
-    Alternatively, the value of a and be can be set.
+    Alternatively, the values of a, b can be set.
 
     Parameters
     ----------
@@ -509,7 +509,7 @@ class LearnedFromSmoothSignals(Graph):
     >>> 
     >>> # B) Learn the graph
     >>> param_opt = {'verbosity':0}
-    >>> Glearned = pg.graphs.LearnedFromSmoothSignals(X,k=k, param_opt=param_opt)
+    >>> Glearned = pg.graphs.LearnedFromSmoothSignals(X, k=k, param_opt=param_opt)
     >>> # plot the learned graph
     >>> Glearned.coords = coords
     >>> 
@@ -521,8 +521,7 @@ class LearnedFromSmoothSignals(Graph):
 
     References
     ----------
-    See :cite:`kalofolias2018large` and :cite:`kalofolias2016learn` for more informations.
-
+    See :cite:`kalofolias2018large` and :cite:`kalofolias2016learn` for more information.
     """
 
     def __init__(self, X, a=None, b=None, k=10, kk=None, sparse=True, rel_edge=1e-5, param_nn={}, param_opt={}, **kwargs):
@@ -531,11 +530,13 @@ class LearnedFromSmoothSignals(Graph):
             if kk is None:
                 kk = 3*k
             neighbors, distances = nearest_neighbor(X, k=kk, **param_nn)
-            Z = sparse_distance_matrix(neighbors, distances)
+            # the original method needs squared distances!!
+            Z = sparse_distance_matrix(neighbors, distances**2)
             edge_mask = Z>0
-            Zp = distances[:,1:]
+            Zp = distances[:,1:]**2
         else:
-            Z = distanz(X.transpose())
+            # the original method needs squared distances!!
+            Z = distanz(X.transpose())**2
             Zp = Z
             edge_mask = None
         if a is None and b is None:
