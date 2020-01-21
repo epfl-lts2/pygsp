@@ -66,15 +66,28 @@ class SphereHealpix(NNGraph):
             n_neighbors = 6 if Nside==1 else 8
             
         self.opt_std = dict()
+        # TODO: find best interpolator between n_side and n_neighbors.
+        self.opt_std = dict()
         self.opt_std[20] =  {
+                    1:    0.03185 * 32,  # extrapolated
+                    2:    0.03185 * 16,  # extrapolated
+                    4:    0.03185 * 8,  # extrapolated
+                    8:    0.03185 * 4,  # extrapolated
+                    16:   0.03185 * 2,  # extrapolated
                     32:   0.03185,
                     64:   0.01564,
                     128:  0.00782,
                     256:  0.00391,
                     512:  0.00196,
                     1024: 0.00098,
+                    2048: 0.00098 / 2,  # extrapolated
         }
         self.opt_std[40] =  {
+                    1:    0.042432 * 32,  # extrapolated
+                    2:    0.042432 * 16,  # extrapolated
+                    4:    0.042432 * 8,  # extrapolated
+                    8:    0.042432 * 4,  # extrapolated
+                    16:   0.042432 * 2,  # extrapolated
                     32:   0.042432,
                     64:   0.021354,
                     128:  0.010595,
@@ -82,8 +95,14 @@ class SphereHealpix(NNGraph):
                     #512:  0.003028,  # seems buggy
                     512:  0.005551 / 2,  # extrapolated
                     1024: 0.005551 / 4,  # extrapolated
+                    2048: 0.005551 / 8,  # extrapolated
         }
         self.opt_std[60] =  {
+                    1:    0.051720 * 32,  # extrapolated
+                    2:    0.051720 * 16,  # extrapolated
+                    4:    0.051720 * 8,  # extrapolated
+                    8:    0.051720 * 4,  # extrapolated
+                    16:   0.051720 * 2,  # extrapolated
                     32:   0.051720,
                     64:   0.025403,
                     128:  0.012695,
@@ -91,14 +110,21 @@ class SphereHealpix(NNGraph):
                     #512:  0.002493,  # seems buggy
                     512:  0.006351 / 2,  # extrapolated
                     1024: 0.006351 / 4,  # extrapolated
+                    2048: 0.006351 / 8,  # extrapolated
         }
         self.opt_std[8] = {
+                    1:    0.02500 * 32,  # extrapolated
+                    2:    0.02500 * 16,  # extrapolated
+                    4:    0.02500 * 8,  # extrapolated
+                    8:    0.02500 * 4,  # extrapolated
+                    16:   0.02500 * 2,  # extrapolated
                     32:   0.02500,
                     64:   0.01228,
                     128:  0.00614,
                     256:  0.00307,
                     512:  0.00154,
                     1024: 0.00077,
+                    2048: 0.00077 / 2,  # extrapolated
         }
         try:
             kernel_dict = self.opt_std[n_neighbors]
