@@ -28,8 +28,7 @@ example to demonstrate the use of the introduced functionality, please consider
 adding a tutorial in ``doc/tutorials``.
 
 Do not forget to update ``README.rst`` and ``doc/history.rst`` with e.g. new
-features. The version number needs to be updated in ``setup.py`` and
-``pyunlocbox/__init__.py``.
+features.
 
 After making any change, please check the style, run the tests, and build the
 documentation with the following (enforced by Travis CI)::
