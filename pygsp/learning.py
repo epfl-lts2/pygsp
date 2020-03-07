@@ -113,6 +113,7 @@ def classification_tikhonov_simplex(G, y, M, tau=0.1, **kwargs):
     if tau <= 0:
         raise ValueError('Tau should be greater than 0.')
 
+    y = y.copy()
     y[M == False] = 0
     Y = _to_logits(y.astype(np.int))
     Y[M == False, :] = 0
@@ -246,6 +247,7 @@ def classification_tikhonov(G, y, M, tau=0):
     >>> _ = fig.tight_layout()
 
     """
+    y = y.copy()
     y[M == False] = 0
     Y = _to_logits(y.astype(np.int))
     return regression_tikhonov(G, Y, M, tau)
@@ -316,7 +318,7 @@ def regression_tikhonov(G, y, M, tau=0):
     """
 
     if tau > 0:
-
+        y = y.copy()
         y[M == False] = 0
 
         if sparse.issparse(G.L):
