@@ -2,8 +2,8 @@
 History
 =======
 
-0.6.0 (xxxx-xx-xx)
-------------------
+Unreleased
+----------
 
 * ``print(graph)`` and ``print(filters)`` now show valuable information.
 * Building a graph object is much faster.
