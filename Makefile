@@ -35,7 +35,8 @@ doc:
 dist: clean
 	python setup.py sdist
 	python setup.py bdist_wheel --universal
-	ls -l dist
+	ls -lh dist/*
+	twine check dist/*
 
 release: dist
 	twine upload dist/*
