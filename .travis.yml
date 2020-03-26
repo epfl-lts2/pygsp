@@ -25,10 +25,8 @@ addons:
     - libqt5gui5  # pyqt5>5.11 fails to load the xcb platform plugin without it
 
 install:
-  # Install with the latest pip, e.g., to support manylinux2014 used by PyQt5 (2020-01-24).
-  - pip install --upgrade pip
-  # Upgrade to test with the latest version of our dependencies.
-  - pip install --upgrade --upgrade-strategy eager .[dev]
+  - pip install --upgrade pip setuptools wheel  # install with latest tools
+  - pip install --upgrade --upgrade-strategy eager .[dev]  # get latest deps
 
 before_script:
   # As graph-tool cannot be installed by pip, link to the system installation

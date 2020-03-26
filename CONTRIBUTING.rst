@@ -10,11 +10,11 @@ Code and documentation can be improved by submitting a `pull request
 <https://github.com/epfl-lts2/pygsp/pulls>`_. Please add documentation and
 tests for any new code.
 
-The package can be set up (ideally in a virtual environment) for local
+The package can be set up (ideally in a fresh virtual environment) for local
 development with the following::
 
     $ git clone https://github.com/epfl-lts2/pygsp.git
-    $ pip install -U -e pygsp[dev]
+    $ pip install --upgrade --editable pygsp[dev]
 
 The ``dev`` "extras requirement" ensures that dependencies required for
 development (to run the test suite and build the documentation) are installed.
