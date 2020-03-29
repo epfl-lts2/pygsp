@@ -5,9 +5,11 @@ from time import time
 from pygsp import utils
 from pygsp.utils import distanz
 from pygsp._nearest_neighbor import nearest_neighbor, sparse_distance_matrix
+from pygsp._nearest_neighbor import distances_from_edge_mask
 from . import Graph  # prevent circular import in Python < 3.5
 
-logger = utils.build_logger(__name__)
+_logger = utils.build_logger(__name__)
+
 
 def isvector(x):
     '''Test if x is a vector'''
@@ -19,7 +21,6 @@ def isvector(x):
         return False
 
 
-    
 def prox_sum_log(x, gamma):
     '''Solves the proximal problem:
         sol = argmin_z 0.5*||x - z||_2^2 - gamma * sum(log(z))
@@ -33,7 +34,8 @@ def prox_sum_log(x, gamma):
 def issymetric(W, tol=1e-7):
     '''Test if a sparse matrix is symmetric'''
     WT = sparse.triu(W) - sparse.triu(W.transpose())
-    return np.sum(np.abs(WT))<tol
+    return np.sum(np.abs(WT)) < tol
+
 
 def squareform_sp(w, safe=True):
     '''Squareform function for sparse matrix'''
@@ -192,51 +194,80 @@ def norm_S(S):
     return np.sqrt(2*np.max(np.sum(S, axis=1)))
 
 
-def compute_theta_bounds(Z, geom_mean=False, islist=None):
+def sort_k_smallest(Z, k, axis=None):
+    '''Sort only the smallest k elements and return a matrix with k columns
+    
+    First keep only the k smallest elements (O(n) per row)
+    Then sort only the k smallest elements (O(k*log(k)) per row)
+    The zero of the diagonal will be now in the first column (TODO: check!!)
+     --> so get rid of it'''
+    return np.sort(np.partition(Z, k, axis=axis)[:, :k], axis=1)
+
+
+def compute_theta_bounds(Z, geom_mean=False, is_sorted=False, kmax=None):
     '''Compute the values of parameter theta (controlling sparsity) 
     that should be expected to give each sparsity level. Return upper 
     and lower bounds each sparsity level k=[1, ..., n-1] neighbors/node.
     
-    Z : distance matrix
+    You can reduce computation by giving a maximum k needed
+    
+    Z : squared or pairwise distance matrix (zero diagonal)
+        OR [n,m] sized distance matrix with m smallest distances (nonzero) per
+        node. Not necessarily sorted, but if sorted we save computation
     geom_mean: use geometric mean instead of arithmetic mean? default: False
     '''
-    # Z is the zero-diagonal pairwise distance matrix between nodes
     
     if isvector(Z):
         ValueError('Z must be a matrix.')
     assert(len(Z.shape)==2)
-    n = len(Z);
     
-    if islist is None:
-        islist = not(Z.shape[0]==Z.shape[1])
-    if islist:
-        Z_sorted = np.sort(Z, axis=1)
-    else:
-        assert(Z.shape[0]==Z.shape[1])
-        # don't take into account the diagonal of Z
-        Z_sorted = np.zeros((n, n-1));
-        for i in range(n):
-            Z_sorted[i, :] = np.sort(np.concatenate((Z[i,:i],Z[i,i+1:])), kind='mergesort')
+    n, m = Z.shape;
 
-    n, m  = Z_sorted.shape
+    assert(n >= m)
+    
+    if kmax is None:
+        kmax = m
+    
+    if n == m:
+        # square distance matrix contains zero diagonals and is not expected to
+        # be sorted!
+        if kmax == m:
+            Z_sorted = np.sort(Z, axis=1)[:, 1:]
+        else:
+            Z_sorted = sort_k_smallest(Z, kmax+1, axis=1)[:, 1:]
+        m -= 1
+    else:
+        # rectangular distance matrix without the zeros
+        if is_sorted:
+            assert(np.all(Z[:,0]==0))
+        else:
+            if kmax == m:
+                Z_sorted = np.sort(Z, axis=1)
+            else:
+                # only sort the smallest k elements!
+                Z_sorted = sort_k_smallest(Z, kmax, axis=1)
     
     B_k = np.cumsum(Z_sorted, axis=1)       # cummulative sum for each row
     K_mat = np.tile(np.arange(1,m+1), (n, 1))
     ## Theoretical intervals of theta for each desired sparsity level:
     if geom_mean:
-        theta_u = np.mean(1./(np.sqrt(K_mat*Z_sorted*Z_sorted - B_k*Z_sorted+1e-7)+1e-15), axis=0)
-    else:
         # try geometric mean instead of arithmetic:
         theta_u = np.exp(np.mean(np.log(1/(np.sqrt(K_mat*Z_sorted*Z_sorted - B_k*Z_sorted+1e-7)+1e-15)), axis=0))
+    else:
+        theta_u = np.mean(1./(np.sqrt(K_mat*Z_sorted*Z_sorted - B_k*Z_sorted+1e-7)+1e-15), axis=0)
     theta_l = np.zeros(theta_u.shape)
     theta_l[:-1] = theta_u[1:]
     return theta_l, theta_u, Z_sorted
 
-def gsp_compute_graph_learning_theta(Z, k, geom_mean=False, islist=None):
+def gsp_compute_graph_learning_theta(Z, k, geom_mean=False, is_sorted=False):
 
+    '''
+        Z : squared or pairwise distance matrix (zero diagonal)
+            OR [n,m] sized distance matrix with m smallest distances (nonzero) 
+            per node. Not necessarily sorted, but if sorted we save computation
+    ''' 
     
-    # Z is the zero-diagonal pairwise distance matrix between nodes
-    theta_min, theta_max, _ = compute_theta_bounds(Z, geom_mean, islist)
+    theta_min, theta_max, _ = compute_theta_bounds(Z, geom_mean, is_sorted)
     theta_min = theta_min[k-1];
     theta_max = theta_max[k-1];
 
@@ -296,7 +327,7 @@ def learn_graph_log_degree(Z,
 
     References
     ----------
-    See :cite:`kalofolias2018large` and :cite:`kalofolias2016learn` for more informations.
+    See :cite:`kalofolias2018large` and :cite:`kalofolias2016learn` for more information.
 
     """
     
@@ -355,7 +386,7 @@ def learn_graph_log_degree(Z,
     fprox = lambda w, gamma: np.minimum(max_w, np.maximum(0, w - 2*gamma*z)) # weighted soft thresholding op
 
     geval = lambda v: -a * np.sum(np.log(v+1e-15))
-    gprox = lambda v, gamma: prox_sum_log(v, gamma*a)
+    # gprox = lambda v, gamma: prox_sum_log(v, gamma*a)
     # proximal of conjugate of g: v-gamma*gprox(v/gamma, 1/gamma)
     g_star_prox = lambda v, gamma: v - gamma*a * prox_sum_log(v/(gamma*a), 1/(gamma*a))
 
@@ -428,7 +459,7 @@ def learn_graph_log_degree(Z,
     stat['time'] = time()-tstart
     if verbosity > 0:
         print('# iters: {:4d}. Rel primal: {:6.4e} Rel dual: {:6.4e}  OBJ {:6.3e}'.format(
-                i, rel_norm_primal, rel_norm_dual, feval(w) + geval(K_op(w)) + heval(w)))
+                i+1, rel_norm_primal, rel_norm_dual, feval(w) + geval(K_op(w)) + heval(w)))
         print('Time needed is {:f} seconds'.format(stat['time']))
     
     # Force positivity on the solution
@@ -481,8 +512,9 @@ class LearnedFromSmoothSignals(Graph):
     b : Weight of the sparsity term (leave this to None for automatic setup)
     k : desired average number of neigboors 
     kk: desired number of neiboors for the sparse support (Default 3k)
-    sparse: Use a sparse support. Set this to True to scale. (Default True) 
+    sparse: Use a sparse support. Set this to True to scale. (Default False for n<1000, True otherwise) 
     rel_edge : Remove all edges bellow this tolerance after convergence of the algorithm
+    edge_mask: A mask of the allowed edge pattern, size [Nnodes x Nnodes]. Only edges with >0 will be learned 
     param_nn : Parameters for the nearest neighboor search (dictionary). See :func:`nearest_neighbor`.
     param_opt: Parameters for the optimization algorithm. See :func:`learn_graph_log_degree`.
     
@@ -524,16 +556,44 @@ class LearnedFromSmoothSignals(Graph):
     See :cite:`kalofolias2018large` and :cite:`kalofolias2016learn` for more information.
     """
 
-    def __init__(self, X, a=None, b=None, k=10, kk=None, sparse=True, rel_edge=1e-5, param_nn={}, param_opt={}, **kwargs):
-        
+    # TODO: allow Z to be given by user if pre-computed
+    def __init__(self, X, a=None, b=None, k=10, kk=None, sparse=None, rel_edge=1e-5, edge_mask=None, param_nn={}, param_opt={}, **kwargs):
+        if sparse is None:
+            if X.shape[0] <= 1000:
+                sparse = False
+            else:
+                sparse = True
+                _logger.info(
+                    '''For large graphs (1000 nodes+) graph learning might be considerably slow (O(n^2) 
+                    complexity). Consider using a sparse set of allowed edges to learn. Automatic 
+                    fallback to approximate NN. To override this decision specify sparse=False. To
+                    suppress this info message, specify sparse=True.''')
+                
         if sparse:
-            if kk is None:
-                kk = 3*k
-            neighbors, distances = nearest_neighbor(X, k=kk, **param_nn)
-            # the original method needs squared distances!!
-            Z = sparse_distance_matrix(neighbors, distances**2)
-            edge_mask = Z>0
-            Zp = distances[:,1:]**2
+            if edge_mask is None:
+                if kk is None:
+                    kk = 3*k
+                neighbors, distances = nearest_neighbor(X, k=kk, **param_nn)
+                # the original method needs squared distances!!
+                Z = sparse_distance_matrix(neighbors, distances**2)
+                edge_mask = Z>0
+                Zp = distances[:, 1:]**2
+            else:
+                '''If edge mask is given, the pairwise distance should be only
+                computed for the edges indicated by the mask'''
+                # TODO: form should not be matrix here if 
+                #   inside learn_graph_log_degree it becomes eventually vector
+                # TODO: allow different distances than euclidean!!
+                Z = distances_from_edge_mask(X, edge_mask, form='matrix')**2
+                if a is None or b is None:
+                    # TODO: implement automatic a and b selection here!
+                    _logger.error(
+                        '''If you set manually your own edge_mask, you also 
+                        have to set up a and b manually'''
+                        )
+                    raise NotImplementedError(
+                        '''If you set manually an edge_mask, you also have to 
+                           set a and b manually''')
         else:
             # the original method needs squared distances!!
             Z = distanz(X.transpose())**2

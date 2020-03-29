@@ -4,6 +4,7 @@ from __future__ import division
 
 import numpy as np
 from scipy import sparse, spatial
+from scipy.linalg import norm
 from pygsp import utils
 
 _logger = utils.build_logger(__name__)
@@ -142,7 +143,18 @@ def _nmslib(features, metric, order, kind, k, _, params):
 
 def nearest_neighbor(features, metric='euclidean', order=2, kind='knn', k=10, radius=None, backend='scipy-ckdtree', **kwargs):
     '''Find nearest neighboors.
-    
+    Inputs:
+        features [n, m]:
+            rows correspond to nodes, columns correspond to features/dimensions
+        k [default 10]: number of neighbors per node
+        
+    Outputs:
+        neighbors [n, k]:
+            list of nodes neighboring to node of each row
+        distances [n, k]:
+            distance of each row's node to each of its k neighbors
+        
+        
     Parameters
     ----------
     features : data numpy array 
@@ -239,9 +251,39 @@ def sparse_distance_matrix(neighbors, distances, symmetrize=True, safe=False, ki
         row[start:end] = np.full(n_edges[vertex], vertex)
         col[start:end] = neighbors[vertex][1:]
         start = end
-    W = sparse.csr_matrix((value, (row, col)), (n_vertices, n_vertices))
+    Z = sparse.csr_matrix((value, (row, col)), (n_vertices, n_vertices))
     if symmetrize:
         # Enforce symmetry. May have been broken by k-NN. Checking symmetry
-        # with np.abs(W - W.T).sum() is as costly as the symmetrization itself.
-        W = utils.symmetrize(W, method='fill')
-    return W
+        # with np.abs(Z - Z.T).sum() is as costly as the symmetrization itself.
+        Z = utils.symmetrize(Z, method='fill')
+    return Z
+
+
+def distances_from_edge_mask(X, edge_mask, form='vector'):
+    '''
+    Compute pairwise distances between rows of X, only for pairs corresponding 
+    to non-zeros of edge_mask
+
+    Inputs:
+        X [n, m]: rows are nodes, columns are features
+        edge_mask [n, n]: sparse mask, non-zeros correspond to allowed edges        
+        form: 'vector' (default) or 'matrix' to return z or Z
+    
+    Output:
+        Z [n, n]: sparse matrix with same pattern as edge_mask, containing
+            corresponding pairwise distances (NOT SQUARED)
+    
+    Important function to reduce computation in case edge mask is given
+    
+    TODO: merge with sparse_distance_matrix() and nearest_neighbor()
+    TODO: clean up and expose to the user    
+    '''
+    r, c = np.where(edge_mask)
+    z = norm(X[r] - X[c], axis=1)
+    if form == 'vector':
+        return z
+    elif form == 'matrix':
+        return sparse.csr_matrix((z, (r, c)))
+    else:
+        _logger.error('form can either be "vector" or "matrix"')
+    

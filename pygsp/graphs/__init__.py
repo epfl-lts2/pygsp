@@ -183,7 +183,7 @@ Nearest-neighbors graphs constructed from point clouds
     Sphere
     TwoMoons
     
-Learning graph from data
+Learning graphs from data
 ------------------------
 
 .. autosummary::

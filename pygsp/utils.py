@@ -26,12 +26,12 @@ def build_logger(name):
         formatter = logging.Formatter(
             "%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s")
 
-        steam_handler = logging.StreamHandler()
-        steam_handler.setLevel(logging.DEBUG)
-        steam_handler.setFormatter(formatter)
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.DEBUG)
+        stream_handler.setFormatter(formatter)
 
         logger.setLevel(logging.DEBUG)
-        logger.addHandler(steam_handler)
+        logger.addHandler(stream_handler)
 
     return logger
 
@@ -91,7 +91,7 @@ def loadmat(path):
 
 def distanz(x, y=None):
     r"""
-    Calculate the distance between two colon vectors.
+    Calculate the distance between two vectors.
 
     Parameters
     ----------
