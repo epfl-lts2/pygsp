@@ -2,6 +2,8 @@
 History
 =======
 
+Versions follow `SemVer <https://semver.org>`_ (we try our best).
+
 Unreleased
 ----------
 
