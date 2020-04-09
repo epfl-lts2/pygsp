@@ -23,12 +23,12 @@ manually as it cannot be installed by pip.
 
 You can improve or add functionality in the ``pygsp`` folder, along with
 corresponding unit tests in ``pygsp/tests/test_*.py`` (with reasonable
-coverage) and documentation in ``doc/reference/*.rst``. If you have a nice
-example to demonstrate the use of the introduced functionality, please consider
-adding a tutorial in ``doc/tutorials``.
+coverage).
+If you have a nice example to demonstrate the use of the introduced
+functionality, please consider adding a tutorial in ``doc/tutorials`` or a
+short example in ``examples``.
 
-Do not forget to update ``README.rst`` and ``doc/history.rst`` with e.g. new
-features.
+Update ``README.rst`` and ``doc/history.rst`` if applicable.
 
 After making any change, please check the style, run the tests, and build the
 documentation with the following (enforced by Travis CI)::
