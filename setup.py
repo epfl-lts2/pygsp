@@ -41,8 +41,7 @@ setup(
             # Construct patch graphs from images.
             'scikit-image',
             # Approximate nearest neighbors for kNN graphs.
-            'pyflann; python_version == "2.*"',
-            'pyflann3; python_version == "3.*"',
+            'pyflann3',
             # Convex optimization on graph.
             'pyunlocbox',
             # Plot graphs, signals, and filters.
@@ -50,10 +49,7 @@ setup(
             # Interactive graph visualization.
             'pyqtgraph',
             'PyOpenGL',
-            # PyQt5 is only available on PyPI as wheels for Python 3.5 and up.
-            'PyQt5; python_version >= "3.5"',
-            # No source package for PyQt5 on PyPI, fall back to PySide.
-            'PySide; python_version < "3.5"',
+            'PyQt5',
             # Run the tests.
             'flake8',
             'coverage',
@@ -83,9 +79,8 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
 )

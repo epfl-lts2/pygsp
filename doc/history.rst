@@ -22,7 +22,7 @@ Unreleased
 * ``g.inverse()`` returns the pseudo-inverse of the filter bank.
 * ``g.complement()`` returns the filter that makes the frame tight.
 * Wave filter bank which application simulates the propagation of a wave.
-* Drop support of Python 3.4 and test with 3.7. Last version to support 2.7.
+* Continuous integration with Python 3.6, 3.7, 3.8. Dropped 2.7, 3.4, 3.5.
 * New implementation of the Sensor graph that is simpler and scales better.
 * A new learning module with three functions to solve standard semi-supervised
   classification and regression problems.
