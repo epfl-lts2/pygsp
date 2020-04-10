@@ -41,18 +41,25 @@ class TestCase(unittest.TestCase):
             'StochasticBlockModel',
             }
 
-        # Coordinates are not in 2D or 3D.
-        COORDS_WRONG_DIM = {'ImgPatches'}
-
         Gs = []
-        for classname in set(graphs.__all__) - COORDS_NO - COORDS_WRONG_DIM:
+        for classname in dir(graphs):
+
+            if not classname[0].isupper():
+                # Not a Graph class but a submodule or private stuff.
+                continue
+            elif classname in COORDS_NO:
+                continue
+            elif classname == 'ImgPatches':
+                # Coordinates are not in 2D or 3D.
+                continue
+
             Graph = getattr(graphs, classname)
 
             # Classes who require parameters.
             if classname == 'NNGraph':
                 Xin = np.arange(90).reshape(30, 3)
                 Gs.append(Graph(Xin))
-            elif classname in ['ImgPatches', 'Grid2dImgPatches']:
+            elif classname == 'Grid2dImgPatches':
                 Gs.append(Graph(img=self._img, patch_shape=(3, 3)))
             elif classname == 'LineGraph':
                 Gs.append(Graph(graphs.Sensor(20, seed=42)))

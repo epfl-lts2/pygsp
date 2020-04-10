@@ -113,37 +113,27 @@ account the cost of the necessary eigendecomposition of the graph Laplacian).
 
 """
 
-from pygsp import utils as _utils
+from .filter import Filter  # noqa: F401
+from .abspline import Abspline  # noqa: F401
+from .expwin import Expwin  # noqa: F401
+from .gabor import Gabor  # noqa: F401
+from .halfcosine import HalfCosine  # noqa: F401
+from .heat import Heat  # noqa: F401
+from .held import Held  # noqa: F401
+from .itersine import Itersine  # noqa: F401
+from .mexicanhat import MexicanHat  # noqa: F401
+from .meyer import Meyer  # noqa: F401
+from .modulation import Modulation  # noqa: F401
+from .papadakis import Papadakis  # noqa: F401
+from .rectangular import Rectangular  # noqa: F401
+from .regular import Regular  # noqa: F401
+from .simoncelli import Simoncelli  # noqa: F401
+from .simpletight import SimpleTight  # noqa: F401
+from .wave import Wave  # noqa: F401
 
-_FILTERS = [
-    'Filter',
-    'Abspline',
-    'Expwin',
-    'Gabor',
-    'HalfCosine',
-    'Heat',
-    'Held',
-    'Itersine',
-    'MexicanHat',
-    'Meyer',
-    'Modulation',
-    'Papadakis',
-    'Rectangular',
-    'Regular',
-    'Simoncelli',
-    'SimpleTight',
-    'Wave',
-]
-_APPROXIMATIONS = [
-    'compute_cheby_coeff',
-    'compute_jackson_cheby_coeff',
-    'cheby_op',
-    'cheby_rect',
-    'lanczos',
-    'lanczos_op'
-]
-
-__all__ = _FILTERS + _APPROXIMATIONS
-
-_utils.import_classes(_FILTERS, 'filters', 'filters')
-_utils.import_functions(_APPROXIMATIONS, 'filters.approximations', 'filters')
+from .approximations import compute_cheby_coeff  # noqa: F401
+from .approximations import compute_jackson_cheby_coeff  # noqa: F401
+from .approximations import cheby_op  # noqa: F401
+from .approximations import cheby_rect  # noqa: F401
+from .approximations import lanczos  # noqa: F401
+from .approximations import lanczos_op  # noqa: F401

@@ -8,7 +8,6 @@ the package.
 from __future__ import division
 
 import sys
-import importlib
 import logging
 import functools
 import pkgutil
@@ -343,24 +342,3 @@ def compute_log_scales(lmin, lmax, Nscales, t1=1, t2=2):
     scale_min = t1 / lmax
     scale_max = t2 / lmin
     return np.exp(np.linspace(np.log(scale_max), np.log(scale_min), Nscales))
-
-
-def import_modules(names, src, dst):
-    """Import modules in package."""
-    for name in names:
-        module = importlib.import_module(src + '.' + name)
-        setattr(sys.modules[dst], name, module)
-
-
-def import_classes(names, src, dst):
-    """Import classes in package from their implementation modules."""
-    for name in names:
-        module = importlib.import_module('pygsp.' + src + '.' + name.lower())
-        setattr(sys.modules['pygsp.' + dst], name, getattr(module, name))
-
-
-def import_functions(names, src, dst):
-    """Import functions in package from their implementation modules."""
-    for name in names:
-        module = importlib.import_module('pygsp.' + src)
-        setattr(sys.modules['pygsp.' + dst], name, getattr(module, name))
