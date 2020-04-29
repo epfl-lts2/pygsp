@@ -24,7 +24,7 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 import pygsp as pg
 
-fig, axes = plt.subplots(2, 2, figsize=(10, 10))#, sharey=True)
+fig, axes = plt.subplots(2, 2, figsize=(10, 10))
 
 for w, ax in zip([10, 1, 0.1, 0.01], axes.flatten()):
 
@@ -44,8 +44,8 @@ for w, ax in zip([10, 1, 0.1, 0.01], axes.flatten()):
     ax.legend([f'$u_{i}(v)$, $\lambda_{i}={graph.e[i]:.1f}$' for i in
               range(graph.n_vertices)], loc='upper right')
 
-    ax.text(-0.1, 0.9, f'coherence $={graph.coherence:.2f} \in
-            [{1/np.sqrt(graph.n_vertices)}, 1]$')
+    ax.text(-0.1, 0.9, f'coherence = {graph.coherence:.2f}'
+            f'$\in [{1/np.sqrt(graph.n_vertices)}, 1]$')
 
     # Plot vertices.
     ax.set_xticks(range(graph.n_vertices))
