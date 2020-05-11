@@ -2,10 +2,11 @@ r"""
 Localization of Fourier modes
 =============================
 
-The Fourier modes (the eigenvectors of the graph Laplacian) can be localized in
-the spacial domain. As a consequence, graph signals can be localized in both
-space and frequency (which is impossible for Euclidean domains or manifolds, by
-the Heisenberg's uncertainty principle).
+The Fourier modes :attr:`pygsp.graphs.Graph.U` (the eigenvectors of the graph
+Laplacian :attr:`pygsp.graphs.Graph.L`) can be localized in the spacial domain.
+As a consequence, graph signals can be localized in both space and frequency
+(which is impossible for Euclidean domains or manifolds, by the Heisenberg's
+uncertainty principle).
 
 This example demonstrates that the more isolated a node is, the more a Fourier
 mode will be localized on it.
