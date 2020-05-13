@@ -2,7 +2,7 @@ r"""
 Fourier transform
 =================
 
-The graph Fourier transform (:meth:`pygsp.graphs.Graph.gft`) transforms a
+The graph Fourier transform :meth:`pygsp.graphs.Graph.gft` transforms a
 signal from the vertex domain to the spectral domain. The smoother the signal
 (see :meth:`pygsp.graphs.Graph.dirichlet_energy`), the lower in the frequencies
 its energy is concentrated.
