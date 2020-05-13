@@ -1,6 +1,6 @@
 r"""
-Filtering a graph signal
-========================
+Filtering a signal
+==================
 
 A graph signal is filtered by transforming it to the spectral domain (via the
 Fourier transform), performing a point-wise multiplication (motivated by the

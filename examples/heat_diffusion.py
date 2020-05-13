@@ -1,6 +1,6 @@
 r"""
-Heat diffusion on graphs
-========================
+Heat diffusion
+==============
 
 Solve the heat equation by filtering the initial conditions with the heat
 kernel.

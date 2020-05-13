@@ -1,6 +1,6 @@
 r"""
-Fourier basis of graphs
-=======================
+Fourier basis
+=============
 
 The eigenvectors of the graph Laplacian form the Fourier basis.
 The eigenvalues are a measure of variation of their corresponding eigenvector.
