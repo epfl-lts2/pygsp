@@ -9,14 +9,22 @@ from . import Graph  # prevent circular import in Python < 3.5
 class Comet(Graph):
     r"""Comet graph.
 
-    The comet graph is a path graph with a star of degree *k* at its end.
+    The comet is a path graph with a star of degree `k` at one end.
+    Equivalently, the comet is a star made of `k` branches, where a branch of
+    length `N-k` acts as the tail.
+    The central vertex has degree `N-1`, the others have degree 1.
 
     Parameters
     ----------
     N : int
-        Number of nodes.
+        Number of vertices.
     k : int
-        Degree of center vertex.
+        Degree of central vertex.
+
+    See Also
+    --------
+    Path : Comet without star
+    Star : Comet without tail (path)
 
     Examples
     --------
@@ -31,7 +39,7 @@ class Comet(Graph):
     def __init__(self, N=32, k=12, **kwargs):
 
         if k > N-1:
-            raise ValueError('The degree of the center vertex k={} must be '
+            raise ValueError('The degree of the central vertex k={} must be '
                              'smaller than the number of vertices N={}.'
                              ''.format(k, N))
 

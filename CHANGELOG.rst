@@ -34,6 +34,7 @@ Unreleased
 * We now have a gallery of examples! That is convenient for users to get a
   taste of what the library can do, and to start working from a code snippet.
 * Merged all the extra requirements in a single dev requirement.
+* New star graph (implemented as a comet without a tail).
 
 Experimental filter API (to be tested and validated):
 

@@ -547,6 +547,17 @@ class TestCase(unittest.TestCase):
         g1 = graphs.Comet(n, 0)
         g2 = graphs.Path(n)
         np.testing.assert_array_equal(g1.W.toarray(), g2.W.toarray())
+        # Comet generalizes Star.
+        g1 = graphs.Comet(n, n-1)
+        g2 = graphs.Star(n)
+        np.testing.assert_array_equal(g1.W.toarray(), g2.W.toarray())
+
+    def test_star(self, n=20):
+        graph = graphs.Star(n)
+        self.assertEqual(graph.n_vertices, n)
+        self.assertEqual(graph.n_edges, n-1)
+        np.testing.assert_array_equal(graph.d, [n-1] + (n-1) * [1])
+        np.testing.assert_allclose(np.linalg.norm(graph.coords[1:], axis=1), 1)
 
     def test_lowstretchtree(self):
         graphs.LowStretchTree()
