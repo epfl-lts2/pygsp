@@ -531,11 +531,11 @@ class LearnedFromSmoothSignals(Graph):
             if kk is None:
                 kk = 3*k
             neighbors, distances = nearest_neighbor(X, k=kk, **param_nn)
-            Z = sparse_distance_matrix(neighbors, distances)
+            Z = sparse_distance_matrix(neighbors, distances**2)
             edge_mask = Z>0
             Zp = distances[:,1:]
         else:
-            Z = distanz(X.transpose())
+            Z = distanz(X.transpose())**2
             Zp = Z
             edge_mask = None
         if a is None and b is None:
