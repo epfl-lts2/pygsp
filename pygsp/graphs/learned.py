@@ -533,7 +533,7 @@ class LearnedFromSmoothSignals(Graph):
             neighbors, distances = nearest_neighbor(X, k=kk, **param_nn)
             Z = sparse_distance_matrix(neighbors, distances**2)
             edge_mask = Z>0
-            Zp = distances[:,1:]
+            Zp = distances[:,1:]**2
         else:
             Z = distanz(X.transpose())**2
             Zp = Z
