@@ -41,3 +41,11 @@ except AttributeError:
 
 __version__ = '0.5.1'
 __release_date__ = '2017-12-15'
+
+
+def test():  # pragma: no cover
+    """Run the test suite."""
+    import unittest
+    # Lazy as it might be slow and require additional dependencies.
+    from pygsp.tests import suite
+    unittest.TextTestRunner(verbosity=2).run(suite)
