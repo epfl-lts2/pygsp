@@ -19,7 +19,8 @@ def gen_recursive_file(root, ext):
 
 def test_docstrings(root, ext, setup=None):
     files = list(gen_recursive_file(root, ext))
-    return doctest.DocFileSuite(*files, setUp=setup, module_relative=False)
+    return doctest.DocFileSuite(*files, setUp=setup, tearDown=teardown,
+                                module_relative=False)
 
 
 def setup(doctest):
@@ -31,6 +32,12 @@ def setup(doctest):
         'utils': pygsp.utils,
         'np': numpy,
     }
+
+
+def teardown(doctest):
+    """Close matplotlib figures to avoid warning and save memory."""
+    import pygsp
+    pygsp.plotting.close_all()
 
 
 # Docstrings from API reference.
