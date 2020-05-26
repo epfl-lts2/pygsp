@@ -22,6 +22,8 @@ class Star(Comet):
     --------
     >>> import matplotlib.pyplot as plt
     >>> graph = graphs.Star(15)
+    >>> graph
+    Star(n_vertices=15, n_edges=14)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(graph.W)
     >>> _ = graph.plot(ax=axes[1])
