@@ -36,6 +36,8 @@ class Ring(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.Ring(N=10)
+    >>> G
+    Ring(n_vertices=10, n_edges=10, k=1)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W)
     >>> _ = G.plot(ax=axes[1])

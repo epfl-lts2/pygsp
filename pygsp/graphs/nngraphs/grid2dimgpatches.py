@@ -28,6 +28,8 @@ class Grid2dImgPatches(Graph):
     >>> from skimage import data, img_as_float
     >>> img = img_as_float(data.camera()[::64, ::64])
     >>> G = graphs.Grid2dImgPatches(img)
+    >>> G  # doctest: +ELLIPSIS
+    Grid2dImgPatches(n_vertices=64, n_edges=522, N1=8, N2=8, ..., order=0)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
     >>> _ = G.plot(ax=axes[1])

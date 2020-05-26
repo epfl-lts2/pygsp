@@ -40,6 +40,8 @@ class RandomRegular(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.RandomRegular(N=64, k=5, seed=42)
+    >>> G
+    RandomRegular(n_vertices=64, n_edges=160, k=5, seed=42)
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)

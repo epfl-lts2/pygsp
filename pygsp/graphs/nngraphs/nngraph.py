@@ -68,6 +68,8 @@ class NNGraph(Graph):
     >>> import matplotlib.pyplot as plt
     >>> X = np.random.RandomState(42).uniform(size=(30, 2))
     >>> G = graphs.NNGraph(X)
+    >>> G  # doctest: +ELLIPSIS
+    NNGraph(n_vertices=30, n_edges=187, NNtype=knn, ..., order=0)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=5)
     >>> _ = G.plot(ax=axes[1])

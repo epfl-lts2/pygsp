@@ -52,6 +52,8 @@ class StochasticBlockModel(Graph):
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.StochasticBlockModel(
     ...     100, k=3, p=[0.4, 0.6, 0.3], q=0.02, seed=42)
+    >>> G  # doctest: +ELLIPSIS
+    StochasticBlockModel(n_vertices=100, n_edges=795, k=3, ..., seed=42)
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=0.8)

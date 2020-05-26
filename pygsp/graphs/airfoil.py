@@ -14,6 +14,8 @@ class Airfoil(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.Airfoil()
+    >>> G
+    Airfoil(n_vertices=4253, n_edges=12289)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=0.5)
     >>> _ = G.plot(edges=True, ax=axes[1])

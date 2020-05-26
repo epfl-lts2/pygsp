@@ -32,6 +32,8 @@ class Grid2d(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.Grid2d(N1=5, N2=4)
+    >>> G
+    Grid2d(n_vertices=20, n_edges=31, N1=5, N2=4)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W)
     >>> _ = G.plot(ax=axes[1])

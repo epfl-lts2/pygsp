@@ -35,6 +35,8 @@ class BarabasiAlbert(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.BarabasiAlbert(N=150, seed=42)
+    >>> G
+    BarabasiAlbert(n_vertices=150, n_edges=149, m0=1, m=1, seed=42)
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)

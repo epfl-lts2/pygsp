@@ -35,6 +35,8 @@ class SwissRoll(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.SwissRoll(N=200, seed=42)
+    >>> G  # doctest: +ELLIPSIS
+    SwissRoll(n_vertices=200, n_edges=1244, a=1, b=4, dim=3, ..., seed=42)
     >>> fig = plt.figure()
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')

@@ -28,6 +28,8 @@ class Torus(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.Torus(10)
+    >>> G
+    Torus(n_vertices=100, n_edges=200, Nv=10, Mv=10)
     >>> fig = plt.figure()
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')

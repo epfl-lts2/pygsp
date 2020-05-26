@@ -23,6 +23,8 @@ class RandomRing(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.RandomRing(N=10, seed=42)
+    >>> G
+    RandomRing(n_vertices=10, n_edges=10, seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W)
     >>> _ = G.plot(ax=axes[1])

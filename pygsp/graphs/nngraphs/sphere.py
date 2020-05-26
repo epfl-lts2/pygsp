@@ -26,6 +26,8 @@ class Sphere(NNGraph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.Sphere(nb_pts=100, seed=42)
+    >>> G  # doctest: +ELLIPSIS
+    Sphere(n_vertices=100, n_edges=581, radius=1.00, nb_pts=100, ..., order=0)
     >>> fig = plt.figure()
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')

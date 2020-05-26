@@ -13,6 +13,8 @@ class Logo(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.Logo()
+    >>> G
+    Logo(n_vertices=1130, n_edges=3131)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=0.5)
     >>> _ = G.plot(ax=axes[1])

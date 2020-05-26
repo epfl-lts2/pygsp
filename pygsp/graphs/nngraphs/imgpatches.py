@@ -39,6 +39,8 @@ class ImgPatches(NNGraph):
     >>> from skimage import data, img_as_float
     >>> img = img_as_float(data.camera()[::64, ::64])
     >>> G = graphs.ImgPatches(img, patch_shape=(3, 3))
+    >>> G  # doctest: +ELLIPSIS
+    ImgPatches(n_vertices=64, n_edges=473, patch_shape=(3, 3), ..., order=0)
     >>> print('{} nodes ({} x {} pixels)'.format(G.Xin.shape[0], *img.shape))
     64 nodes (8 x 8 pixels)
     >>> print('{} features per node'.format(G.Xin.shape[1]))

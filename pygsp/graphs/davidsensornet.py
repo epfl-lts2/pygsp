@@ -22,6 +22,8 @@ class DavidSensorNet(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.DavidSensorNet()
+    >>> G
+    DavidSensorNet(n_vertices=64, n_edges=236, seed=None)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
     >>> _ = G.plot(ax=axes[1])

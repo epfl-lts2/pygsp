@@ -25,6 +25,8 @@ class Minnesota(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.Minnesota()
+    >>> G
+    Minnesota(n_vertices=2642, n_edges=3304, connected=True)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=0.5)
     >>> _ = G.plot(ax=axes[1])

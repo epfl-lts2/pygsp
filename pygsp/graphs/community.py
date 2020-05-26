@@ -53,6 +53,8 @@ class Community(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.Community(N=250, Nc=3, comm_sizes=[50, 120, 80], seed=42)
+    >>> G  # doctest: +ELLIPSIS
+    Community(n_vertices=250, n_edges=1607, Nc=3, min_comm=28, ..., seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=0.5)
     >>> _ = G.plot(ax=axes[1])

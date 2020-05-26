@@ -22,6 +22,8 @@ class Comet(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.Comet(15, 10)
+    >>> G
+    Comet(n_vertices=15, n_edges=14, k=10)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W)
     >>> _ = G.plot(ax=axes[1])
