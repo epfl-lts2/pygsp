@@ -67,7 +67,7 @@ class Gabor(Filter):
     ...     _ = g.plot(ax=ax[0], sum=False)
     ...     _ = G.plot(s, ax=ax[1])
     >>> fig.tight_layout()
-    >>> print(g)
+    >>> g
     Gabor(in=1, out=7)
 
     """

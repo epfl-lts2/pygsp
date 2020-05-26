@@ -59,7 +59,7 @@ class Heat(Filter):
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
     >>> g = filters.Heat(G, scale=[5, 10, 100])
-    >>> print(g)
+    >>> g
     Heat(in=1, out=3, scale=[5.00, 10.00, 100.00], normalize=False)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)

@@ -45,6 +45,8 @@ class Filter(object):
     --------
     >>> G = graphs.Logo()
     >>> my_filter = filters.Filter(G, lambda x: x / (1. + x))
+    >>> my_filter
+    Filter(in=1, out=1)
     >>>
     >>> # Signal: Kronecker delta.
     >>> signal = np.zeros(G.N)

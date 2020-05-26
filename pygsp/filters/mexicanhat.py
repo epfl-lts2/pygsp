@@ -48,7 +48,7 @@ class MexicanHat(Filter):
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
     >>> g = filters.MexicanHat(G)
-    >>> print(g)
+    >>> g
     MexicanHat(in=1, out=6, lpfactor=20.00, normalize=False)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)

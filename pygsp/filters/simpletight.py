@@ -32,7 +32,7 @@ class SimpleTight(Filter):
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
     >>> g = filters.SimpleTight(G)
-    >>> print(g)
+    >>> g
     SimpleTight(in=1, out=6)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)

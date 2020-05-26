@@ -35,7 +35,7 @@ class Abspline(Filter):
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
     >>> g = filters.Abspline(G)
-    >>> print(g)
+    >>> g
     Abspline(in=1, out=6, lpfactor=20.00)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)

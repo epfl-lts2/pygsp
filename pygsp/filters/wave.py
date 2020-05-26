@@ -62,6 +62,8 @@ class Wave(Filter):
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
     >>> g = filters.Wave(G, time=[5, 15], speed=1)
+    >>> g
+    Wave(in=1, out=2, time=[5.00, 15.00], speed=[1.00])
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = g.plot(ax=axes[0])
