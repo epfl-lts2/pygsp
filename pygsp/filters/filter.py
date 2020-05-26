@@ -454,7 +454,7 @@ class Filter(object):
         minimum and maximum of their squared sum (the black curve):
 
         >>> def plot(g, ax):
-        ...     g.plot(ax=ax, title='')
+        ...     g.plot(ax=ax, labels=False, title='')
         ...     ax.hlines(B, 0, G.lmax, colors='r', zorder=3,
         ...               label='upper bound $B={:.2f}$'.format(B))
         ...     ax.hlines(A, 0, G.lmax, colors='b', zorder=3,
