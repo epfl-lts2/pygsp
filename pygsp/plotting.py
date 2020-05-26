@@ -191,7 +191,7 @@ def _qtg_plot_graph(G, edges, vertex_size, title):
         _qtg_widgets.append(widget)
 
 
-def _plot_filter(filters, n, eigenvalues, sum, title, ax, **kwargs):
+def _plot_filter(filters, n, eigenvalues, sum, labels, title, ax, **kwargs):
     r"""Plot the spectral response of a filter bank.
 
     Parameters
@@ -205,16 +205,17 @@ def _plot_filter(filters, n, eigenvalues, sum, title, ax, **kwargs):
         By default, the eigenvalues are shown if they are available.
     sum : boolean
         Whether to plot the sum of the squared magnitudes of the filters.
-        Default True if there is multiple filters.
+        Default False if there is only one filter in the bank, True otherwise.
+    labels : boolean
+        Whether to label the filters.
+        Default False if there is only one filter in the bank, True otherwise.
     title : str
         Title of the figure.
     ax : :class:`matplotlib.axes.Axes`
         Axes where to draw the graph. Optional, created if not passed.
-        Only available with the matplotlib backend.
     kwargs : dict
         Additional parameters passed to the matplotlib plot function.
         Useful for example to change the linewidth, linestyle, or set a label.
-        Only available with the matplotlib backend.
 
     Returns
     -------
@@ -225,7 +226,7 @@ def _plot_filter(filters, n, eigenvalues, sum, title, ax, **kwargs):
 
     Notes
     -----
-    This function is only implemented for the matplotlib backend at the moment.
+    This function is only implemented with the matplotlib backend.
 
     Examples
     --------
@@ -240,17 +241,20 @@ def _plot_filter(filters, n, eigenvalues, sum, title, ax, **kwargs):
         eigenvalues = (filters.G._e is not None)
 
     if sum is None:
-        sum = filters.n_filters > 1
+        sum = (filters.n_filters > 1)
+
+    if labels is None:
+        labels = (filters.n_filters > 1)
 
     if title is None:
         title = repr(filters)
 
     return _plt_plot_filter(filters, n=n, eigenvalues=eigenvalues, sum=sum,
-                            title=title, ax=ax, **kwargs)
+                            labels=labels, title=title, ax=ax, **kwargs)
 
 
 @_plt_handle_figure
-def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
+def _plt_plot_filter(filters, n, eigenvalues, sum, labels, ax, **kwargs):
 
     x = np.linspace(0, filters.G.lmax, n)
 
@@ -269,6 +273,13 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
 
     if sum:
         line_sum, = ax.plot(x, np.sum(y**2, 1), 'k', **kwargs)
+
+    if labels:
+        for i, line in enumerate(lines):
+            line.set_label(fr'$g_{{{i}}}(\lambda)$')
+        if sum:
+            line_sum.set_label(fr'$\sum_i g_i^2(\lambda)$')
+        ax.legend()
 
     if eigenvalues:
 
@@ -291,8 +302,8 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
             params.update(color=line_sum.get_color())
             ax.plot(filters.G.e, np.sum(y**2, 1), '.', **params)
 
-    ax.set_xlabel(r"$\lambda$: laplacian's eigenvalues / graph frequencies")
-    ax.set_ylabel(r'$\hat{g}(\lambda)$: filter response')
+    ax.set_xlabel(r"laplacian's eigenvalues (graph frequencies) $\lambda$")
+    ax.set_ylabel(r'filter response $g(\lambda)$')
 
 
 def _plot_graph(G, vertex_color, vertex_size, highlight,
