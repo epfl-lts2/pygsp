@@ -10,21 +10,25 @@ Code and documentation can be improved by submitting a `pull request
 <https://github.com/epfl-lts2/pygsp/pulls>`_. Please add documentation and
 tests for any new code.
 
-The package can be set up (ideally in a virtual environment) for local
+The package can be set up (ideally in a fresh virtual environment) for local
 development with the following::
 
     $ git clone https://github.com/epfl-lts2/pygsp.git
-    $ pip install -U -e pygsp[alldeps,test,doc,pkg]
+    $ pip install --upgrade --editable pygsp[dev]
+
+The ``dev`` "extras requirement" ensures that dependencies required for
+development (to run the test suite and build the documentation) are installed.
+Only `graph-tool <https://graph-tool.skewed.de>`_ will be missing: install it
+manually as it cannot be installed by pip.
 
 You can improve or add functionality in the ``pygsp`` folder, along with
 corresponding unit tests in ``pygsp/tests/test_*.py`` (with reasonable
-coverage) and documentation in ``doc/reference/*.rst``. If you have a nice
-example to demonstrate the use of the introduced functionality, please consider
-adding a tutorial in ``doc/tutorials``.
+coverage).
+If you have a nice example to demonstrate the use of the introduced
+functionality, please consider adding a tutorial in ``doc/tutorials`` or a
+short example in ``examples``.
 
-Do not forget to update ``README.rst`` and ``doc/history.rst`` with e.g. new
-features. The version number needs to be updated in ``setup.py`` and
-``pyunlocbox/__init__.py``.
+Update ``README.rst`` and ``doc/history.rst`` if applicable.
 
 After making any change, please check the style, run the tests, and build the
 documentation with the following (enforced by Travis CI)::
@@ -35,6 +39,13 @@ documentation with the following (enforced by Travis CI)::
 
 Check the generated coverage report at ``htmlcov/index.html`` to make sure the
 tests reasonably cover the changes you've introduced.
+
+To iterate faster, you can partially run the test suite, at various degrees of
+granularity, as follows::
+
+   $ python -m unittest pygsp.tests.test_docstrings.suite_reference
+   $ python -m unittest pygsp.tests.test_graphs.TestImportExport
+   $ python -m unittest pygsp.tests.test_graphs.TestImportExport.test_save_load
 
 Making a release
 ----------------

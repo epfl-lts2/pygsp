@@ -22,7 +22,7 @@ class FullConnected(Graph):
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=5)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
@@ -31,4 +31,4 @@ class FullConnected(Graph):
         W = np.ones((N, N)) - np.identity(N)
         plotting = {'limits': np.array([-1, 1, -1, 1])}
 
-        super(FullConnected, self).__init__(W=W, plotting=plotting, **kwargs)
+        super(FullConnected, self).__init__(W, plotting=plotting, **kwargs)

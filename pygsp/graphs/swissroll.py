@@ -39,7 +39,7 @@ class SwissRoll(Graph):
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')
     >>> _ = ax1.spy(G.W, markersize=1)
-    >>> G.plot(ax=ax2)
+    >>> _ = G.plot(ax=ax2)
 
     """
 
@@ -93,7 +93,7 @@ class SwissRoll(Graph):
             'distance': 7,
         }
 
-        super(SwissRoll, self).__init__(W=W, coords=coords.T,
+        super(SwissRoll, self).__init__(W, coords=coords.T,
                                         plotting=plotting,
                                         **kwargs)
 

@@ -98,7 +98,7 @@ smoothness of a signal.
 
     >>> G.compute_differential_operator()
     >>> G.D.shape
-    (60, 30)
+    (30, 60)
 
 .. note::
     Note that we called :meth:`pygsp.graphs.Graph.compute_fourier_basis` and
@@ -121,7 +121,7 @@ coordinates with :meth:`pygsp.graphs.Graph.set_coordinates` and plot our graph.
     :context: close-figs
 
     >>> G.set_coordinates('ring2D')
-    >>> G.plot()
+    >>> fig, ax = G.plot()
 
 While we created our first graph ourselves, many standard models of graphs are
 implemented as subclasses of the Graph class and can be easily instantiated.
@@ -151,7 +151,7 @@ which assign a set of values (a vector in :math:`\mathbb{R}^d`) at every node
     >>>
     >>> fig, axes = plt.subplots(1, 2, figsize=(10, 3))
     >>> for i, ax in enumerate(axes):
-    ...     G.plot_signal(G.U[:, i+1], vertex_size=30, ax=ax)
+    ...     _ = G.plot(G.U[:, i+1], vertex_size=30, ax=ax)
     ...     _ = ax.set_title('Eigenvector {}'.format(i+2))
     ...     ax.set_axis_off()
     >>> fig.tight_layout()
@@ -168,9 +168,9 @@ plot best represents the graph.
     >>> G2 = graphs.Ring(N=50)
     >>> G2.compute_fourier_basis()
     >>> fig, axes = plt.subplots(1, 2, figsize=(10, 4))
-    >>> G2.plot_signal(G2.U[:, 4], ax=axes[0])
+    >>> _ = G2.plot(G2.U[:, 4], ax=axes[0])
     >>> G2.set_coordinates('line1D')
-    >>> G2.plot_signal(G2.U[:, 1:4], ax=axes[1])
+    >>> _ = G2.plot(G2.U[:, 1:4], ax=axes[1])
     >>> fig.tight_layout()
 
 Filters
@@ -192,9 +192,7 @@ let's define and plot that low-pass filter:
     ...     return 1. / (1. + tau * x)
     >>> g = filters.Filter(G, g)
     >>>
-    >>> fig, ax = plt.subplots()
-    >>> g.plot(eigenvalues=True, ax=ax)
-    >>> _ = ax.set_title('Filter frequency response')
+    >>> fig, ax = g.plot(eigenvalues=True, title='Filter frequency response')
 
 The filter is plotted along all the spectrum of the graph. The black crosses
 are the eigenvalues of the Laplacian. They are the points where the continuous
@@ -215,9 +213,9 @@ Let's create a graph signal and add some random noise.
 
     >>> # Graph signal: each letter gets a different value + additive noise.
     >>> s = np.zeros(G.N)
-    >>> s[G.info['idx_g']-1] = -1
-    >>> s[G.info['idx_s']-1] = 0
-    >>> s[G.info['idx_p']-1] = 1
+    >>> s[G.info['idx_g']] = -1
+    >>> s[G.info['idx_s']] = 0
+    >>> s[G.info['idx_p']] = 1
     >>> s += rs.uniform(-0.5, 0.5, size=G.N)
 
 We can now try to denoise that signal by filtering it with the above defined
@@ -229,11 +227,9 @@ low-pass filter.
     >>> s2 = g.filter(s)
     >>>
     >>> fig, axes = plt.subplots(1, 2, figsize=(10, 3))
-    >>> G.plot_signal(s, vertex_size=30, ax=axes[0])
-    >>> _ = axes[0].set_title('Noisy signal')
+    >>> _ = G.plot(s, vertex_size=30, title='noisy', ax=axes[0])
     >>> axes[0].set_axis_off()
-    >>> G.plot_signal(s2, vertex_size=30, ax=axes[1])
-    >>> _ = axes[1].set_title('Cleaned signal')
+    >>> _ = G.plot(s2, vertex_size=30, title='cleaned', ax=axes[1])
     >>> axes[1].set_axis_off()
     >>> fig.tight_layout()
 

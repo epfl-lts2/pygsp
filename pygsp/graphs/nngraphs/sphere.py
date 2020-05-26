@@ -30,7 +30,7 @@ class Sphere(NNGraph):
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')
     >>> _ = ax1.spy(G.W, markersize=1.5)
-    >>> G.plot(ax=ax2)
+    >>> _ = _ = G.plot(ax=ax2)
 
     """
 
@@ -65,6 +65,7 @@ class Sphere(NNGraph):
         }
 
         super(Sphere, self).__init__(Xin=pts, k=10,
+                                     center=False, rescale=False,
                                      plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):

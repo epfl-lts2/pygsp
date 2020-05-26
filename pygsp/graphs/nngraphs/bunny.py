@@ -19,7 +19,7 @@ class Bunny(NNGraph):
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')
     >>> _ = ax1.spy(G.W, markersize=0.1)
-    >>> G.plot(ax=ax2)
+    >>> _ = _ = G.plot(ax=ax2)
 
     """
 
@@ -31,9 +31,10 @@ class Bunny(NNGraph):
             'vertex_size': 10,
             'elevation': -90,
             'azimuth': 90,
-            'distance': 7,
+            'distance': 8,
         }
 
-        super(Bunny, self).__init__(Xin=data['bunny'], epsilon=0.2,
-                                    NNtype='radius', plotting=plotting,
-                                    **kwargs)
+        super(Bunny, self).__init__(Xin=data['bunny'],
+                                    epsilon=0.02, NNtype='radius',
+                                    center=False, rescale=False,
+                                    plotting=plotting, **kwargs)

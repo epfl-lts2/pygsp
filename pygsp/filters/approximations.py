@@ -121,16 +121,16 @@ def cheby_rect(G, bounds, signal, **kwargs):
     Parameters
     ----------
     G : Graph
-    bounds : array-like
+    bounds : array_like
         The bounds of the pass-band filter
-    signal : array-like
+    signal : array_like
         Signal to filter
     order : int (optional)
         Order of the Chebyshev polynomial (default: 30)
 
     Returns
     -------
-    r : array-like
+    r : array_like
         Result of the filtering
 
     """
@@ -202,16 +202,16 @@ def compute_jackson_cheby_coeff(filter_bounds, delta_lambda, m):
     filter_bounds[1] = (filter_bounds[1]-a2)/a1
 
     # First compute cheby coeffs
-    ch = np.arange(float(m+1))
+    ch = np.empty(m+1, dtype=float)
     ch[0] = (2/(np.pi))*(np.arccos(filter_bounds[0])-np.arccos(filter_bounds[1]))
-    for i in ch[1:]:
+    for i in range(1, len(ch)):
         ch[i] = (2/(np.pi * i)) * \
             (np.sin(i * np.arccos(filter_bounds[0])) - np.sin(i * np.arccos(filter_bounds[1])))
 
     # Then compute jackson coeffs
-    jch = np.arange(float(m+1))
+    jch = np.empty(m+1, dtype=float)
     alpha = (np.pi/(m+2))
-    for i in jch:
+    for i in range(len(jch)):
         jch[i] = (1/np.sin(alpha)) * \
             ((1 - i/(m+2)) * np.sin(alpha) * np.cos(i * alpha) +
              (1/(m+2)) * np.cos(alpha) * np.sin(i * alpha))

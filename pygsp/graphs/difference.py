@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+
 import numpy as np
 from scipy import sparse
 
@@ -9,7 +11,7 @@ from pygsp import utils
 logger = utils.build_logger(__name__)
 
 
-class GraphDifference(object):
+class DifferenceMixIn(object):
 
     @property
     def D(self):
@@ -17,7 +19,7 @@ class GraphDifference(object):
 
         Is computed by :func:`compute_differential_operator`.
         """
-        if not hasattr(self, '_D'):
+        if self._D is None:
             self.logger.warning('The differential operator G.D is not '
                                 'available, we need to compute it. Explicitly '
                                 'call G.compute_differential_operator() '
@@ -28,127 +30,303 @@ class GraphDifference(object):
     def compute_differential_operator(self):
         r"""Compute the graph differential operator (cached).
 
-        The differential operator is a matrix such that
+        The differential operator is the matrix :math:`D` such that
 
-        .. math:: L = D^T D,
+        .. math:: L = D D^\top,
 
-        where :math:`D` is the differential operator and :math:`L` is the graph
-        Laplacian. It is used to compute the gradient and the divergence of a
-        graph signal, see :meth:`grad` and :meth:`div`.
+        where :math:`L` is the graph Laplacian (combinatorial or normalized).
+        It is used to compute the gradient and the divergence of graph
+        signals (see :meth:`grad` and :meth:`div`).
+
+        The differential operator computes the gradient and divergence of
+        signals, and the Laplacian computes the divergence of the gradient, as
+        follows:
+
+        .. math:: z = L x = D y = D D^\top x,
+
+        where :math:`y = D^\top x = \nabla_\mathcal{G} x` is the gradient of
+        :math:`x` and :math:`z = D y = \operatorname{div}_\mathcal{G} y` is the
+        divergence of :math:`y`. See :meth:`grad` and :meth:`div` for details.
+
+        The difference operator is actually an incidence matrix of the graph,
+        defined as
+
+        .. math:: D[i, k] =
+            \begin{cases}
+                -\sqrt{W[i, j] / 2} &
+                    \text{if } e_k = (v_i, v_j) \text{ for some } j, \\
+                +\sqrt{W[i, j] / 2} &
+                    \text{if } e_k = (v_j, v_i) \text{ for some } j, \\
+                0 & \text{otherwise}
+            \end{cases}
+
+        for the combinatorial Laplacian, and
+
+        .. math:: D[i, k] =
+            \begin{cases}
+                -\sqrt{W[i, j] / 2 / d[i]} &
+                    \text{if } e_k = (v_i, v_j) \text{ for some } j, \\
+                +\sqrt{W[i, j] / 2 / d[i]} &
+                    \text{if } e_k = (v_j, v_i) \text{ for some } j, \\
+                0 & \text{otherwise}
+            \end{cases}
+
+        for the normalized Laplacian, where :math:`v_i \in \mathcal{V}` is a
+        vertex, :math:`e_k = (v_i, v_j) \in \mathcal{E}` is an edge from
+        :math:`v_i` to :math:`v_j`, :math:`W[i, j]` is the weight :attr:`W` of
+        the edge :math:`(v_i, v_j)`, :math:`d[i]` is the degree :attr:`dw` of
+        vertex :math:`v_i`.
+
+        For undirected graphs, only half the edges are kept (the upper
+        triangular part of the adjacency matrix) in the interest of space and
+        time. In that case, the :math:`1/\sqrt{2}` factor disappears from the
+        above equations for :math:`L = D D^\top` to stand at all times.
 
         The result is cached and accessible by the :attr:`D` property.
 
-        See also
+        See Also
         --------
         grad : compute the gradient
         div : compute the divergence
 
         Examples
         --------
+
+        The difference operator is an incidence matrix.
+        Example with a undirected graph.
+
+        >>> graph = graphs.Graph([
+        ...     [0, 2, 0],
+        ...     [2, 0, 1],
+        ...     [0, 1, 0],
+        ... ])
+        >>> graph.compute_laplacian('combinatorial')
+        >>> graph.compute_differential_operator()
+        >>> graph.D.toarray()
+        array([[-1.41421356,  0.        ],
+               [ 1.41421356, -1.        ],
+               [ 0.        ,  1.        ]])
+        >>> graph.compute_laplacian('normalized')
+        >>> graph.compute_differential_operator()
+        >>> graph.D.toarray()
+        array([[-1.        ,  0.        ],
+               [ 0.81649658, -0.57735027],
+               [ 0.        ,  1.        ]])
+
+        Example with a directed graph.
+
+        >>> graph = graphs.Graph([
+        ...     [0, 2, 0],
+        ...     [2, 0, 1],
+        ...     [0, 0, 0],
+        ... ])
+        >>> graph.compute_laplacian('combinatorial')
+        >>> graph.compute_differential_operator()
+        >>> graph.D.toarray()
+        array([[-1.        ,  1.        ,  0.        ],
+               [ 1.        , -1.        , -0.70710678],
+               [ 0.        ,  0.        ,  0.70710678]])
+        >>> graph.compute_laplacian('normalized')
+        >>> graph.compute_differential_operator()
+        >>> graph.D.toarray()
+        array([[-0.70710678,  0.70710678,  0.        ],
+               [ 0.63245553, -0.63245553, -0.4472136 ],
+               [ 0.        ,  0.        ,  1.        ]])
+
+        The graph Laplacian acts on a signal as the divergence of the gradient.
+
         >>> G = graphs.Logo()
-        >>> G.N, G.Ne
-        (1130, 3131)
         >>> G.compute_differential_operator()
-        >>> G.D.shape == (G.Ne, G.N)
+        >>> s = np.random.normal(size=G.N)
+        >>> s_grad = G.D.T.dot(s)
+        >>> s_lap = G.D.dot(s_grad)
+        >>> np.linalg.norm(s_lap - G.L.dot(s)) < 1e-10
         True
 
         """
 
-        v_in, v_out, weights = self.get_edge_list()
+        sources, targets, weights = self.get_edge_list()
 
-        n = len(v_in)
-        Dr = np.concatenate((np.arange(n), np.arange(n)))
-        Dc = np.empty(2*n)
-        Dc[:n] = v_in
-        Dc[n:] = v_out
-        Dv = np.empty(2*n)
+        n = self.n_edges
+        rows = np.concatenate([sources, targets])
+        columns = np.concatenate([np.arange(n), np.arange(n)])
+        values = np.empty(2*n)
 
         if self.lap_type == 'combinatorial':
-            Dv[:n] = np.sqrt(weights)
-            Dv[n:] = -Dv[:n]
+            values[:n] = -np.sqrt(weights)
+            values[n:] = -values[:n]
         elif self.lap_type == 'normalized':
-            Dv[:n] = np.sqrt(weights / self.dw[v_in])
-            Dv[n:] = -np.sqrt(weights / self.dw[v_out])
+            values[:n] = -np.sqrt(weights / self.dw[sources])
+            values[n:] = +np.sqrt(weights / self.dw[targets])
         else:
             raise ValueError('Unknown lap_type {}'.format(self.lap_type))
 
-        self._D = sparse.csc_matrix((Dv, (Dr, Dc)), shape=(n, self.N))
+        if self.is_directed():
+            values /= np.sqrt(2)
 
-    def grad(self, s):
-        r"""Compute the gradient of a graph signal.
+        self._D = sparse.csc_matrix((values, (rows, columns)),
+                                    shape=(self.n_vertices, self.n_edges))
+        self._D.eliminate_zeros()  # Self-loops introduce stored zeros.
 
-        The gradient of a signal :math:`s` is defined as
+    def grad(self, x):
+        r"""Compute the gradient of a signal defined on the vertices.
 
-        .. math:: y = D s,
+        The gradient :math:`y` of a signal :math:`x` is defined as
 
-        where :math:`D` is the differential operator :attr:`D`.
-
-        Parameters
-        ----------
-        s : ndarray
-            Signal of length G.N living on the nodes.
-
-        Returns
-        -------
-        s_grad : ndarray
-            Gradient signal of length G.Ne/2 living on the edges (non-directed
-            graph).
-
-        See also
-        --------
-        compute_differential_operator
-        div : compute the divergence
-
-        Examples
-        --------
-        >>> G = graphs.Logo()
-        >>> G.N, G.Ne
-        (1130, 3131)
-        >>> s = np.random.normal(size=G.N)
-        >>> s_grad = G.grad(s)
-        >>> s_div = G.div(s_grad)
-        >>> np.linalg.norm(s_div - G.L.dot(s)) < 1e-10
-        True
-
-        """
-        if self.N != s.shape[0]:
-            raise ValueError('Signal length should be the number of nodes.')
-        return self.D.dot(s)
-
-    def div(self, s):
-        r"""Compute the divergence of a graph signal.
-
-        The divergence of a signal :math:`s` is defined as
-
-        .. math:: y = D^T s,
+        .. math:: y = \nabla_\mathcal{G} x = D^\top x,
 
         where :math:`D` is the differential operator :attr:`D`.
 
+        The value of the gradient on the edge :math:`e_k = (v_i, v_j)` from
+        :math:`v_i` to :math:`v_j` with weight :math:`W[i, j]` is
+
+        .. math:: y[k] = D[i, k] x[i] + D[j, k] x[j]
+                       = \sqrt{\frac{W[i, j]}{2}} (x[j] - x[i])
+
+        for the combinatorial Laplacian, and
+
+        .. math:: y[k] = \sqrt{\frac{W[i, j]}{2}} \left(
+                \frac{x[j]}{\sqrt{d[j]}} - \frac{x[i]}{\sqrt{d[i]}}
+            \right)
+
+        for the normalized Laplacian.
+
+        For undirected graphs, only half the edges are kept and the
+        :math:`1/\sqrt{2}` factor disappears from the above equations. See
+        :meth:`compute_differential_operator` for details.
+
         Parameters
         ----------
-        s : ndarray
-            Signal of length G.Ne/2 living on the edges (non-directed graph).
+        x : array_like
+            Signal of length :attr:`n_vertices` living on the vertices.
 
         Returns
         -------
-        s_div : ndarray
-            Divergence signal of length G.N living on the nodes.
+        y : ndarray
+            Gradient signal of length :attr:`n_edges` living on the edges.
 
-        See also
+        See Also
         --------
         compute_differential_operator
-        grad : compute the gradient
+        div : compute the divergence of an edge signal
+        dirichlet_energy : compute the norm of the gradient
 
         Examples
         --------
-        >>> G = graphs.Logo()
-        >>> G.N, G.Ne
-        (1130, 3131)
-        >>> s = np.random.normal(size=G.Ne)
-        >>> s_div = G.div(s)
-        >>> s_grad = G.grad(s_div)
+
+        Non-directed graph and combinatorial Laplacian:
+
+        >>> graph = graphs.Path(4, directed=False, lap_type='combinatorial')
+        >>> graph.compute_differential_operator()
+        >>> graph.grad([0, 2, 4, 2])
+        array([ 2.,  2., -2.])
+
+        Directed graph and combinatorial Laplacian:
+
+        >>> graph = graphs.Path(4, directed=True, lap_type='combinatorial')
+        >>> graph.compute_differential_operator()
+        >>> graph.grad([0, 2, 4, 2])
+        array([ 1.41421356,  1.41421356, -1.41421356])
+
+        Non-directed graph and normalized Laplacian:
+
+        >>> graph = graphs.Path(4, directed=False, lap_type='normalized')
+        >>> graph.compute_differential_operator()
+        >>> graph.grad([0, 2, 4, 2])
+        array([ 1.41421356,  1.41421356, -0.82842712])
+
+        Directed graph and normalized Laplacian:
+
+        >>> graph = graphs.Path(4, directed=True, lap_type='normalized')
+        >>> graph.compute_differential_operator()
+        >>> graph.grad([0, 2, 4, 2])
+        array([ 1.41421356,  1.41421356, -0.82842712])
 
         """
-        if self.Ne != s.shape[0]:
-            raise ValueError('Signal length should be the number of edges.')
-        return self.D.T.dot(s)
+        x = self._check_signal(x)
+        return self.D.T.dot(x)
+
+    def div(self, y):
+        r"""Compute the divergence of a signal defined on the edges.
+
+        The divergence :math:`z` of a signal :math:`y` is defined as
+
+        .. math:: z = \operatorname{div}_\mathcal{G} y = D y,
+
+        where :math:`D` is the differential operator :attr:`D`.
+
+        The value of the divergence on the vertex :math:`v_i` is
+
+        .. math:: z[i] = \sum_k D[i, k] y[k]
+            = \sum_{\{k,j | e_k=(v_j, v_i) \in \mathcal{E}\}}
+                \sqrt{\frac{W[j, i]}{2}} y[k]
+            - \sum_{\{k,j | e_k=(v_i, v_j) \in \mathcal{E}\}}
+                \sqrt{\frac{W[i, j]}{2}} y[k]
+
+        for the combinatorial Laplacian, and
+
+        .. math:: z[i] = \sum_k D[i, k] y[k]
+            = \sum_{\{k,j | e_k=(v_j, v_i) \in \mathcal{E}\}}
+                \sqrt{\frac{W[j, i]}{2 d[i]}} y[k]
+            - \sum_{\{k,j | e_k=(v_i, v_j) \in \mathcal{E}\}}
+                \sqrt{\frac{W[i, j]}{2 d[i]}} y[k]
+
+        for the normalized Laplacian.
+
+        For undirected graphs, only half the edges are kept and the
+        :math:`1/\sqrt{2}` factor disappears from the above equations. See
+        :meth:`compute_differential_operator` for details.
+
+        Parameters
+        ----------
+        y : array_like
+            Signal of length :attr:`n_edges` living on the edges.
+
+        Returns
+        -------
+        z : ndarray
+            Divergence signal of length :attr:`n_vertices` living on the
+            vertices.
+
+        See Also
+        --------
+        compute_differential_operator
+        grad : compute the gradient of a vertex signal
+
+        Examples
+        --------
+
+        Non-directed graph and combinatorial Laplacian:
+
+        >>> graph = graphs.Path(4, directed=False, lap_type='combinatorial')
+        >>> graph.compute_differential_operator()
+        >>> graph.div([2, -2, 0])
+        array([-2.,  4., -2.,  0.])
+
+        Directed graph and combinatorial Laplacian:
+
+        >>> graph = graphs.Path(4, directed=True, lap_type='combinatorial')
+        >>> graph.compute_differential_operator()
+        >>> graph.div([2, -2, 0])
+        array([-1.41421356,  2.82842712, -1.41421356,  0.        ])
+
+        Non-directed graph and normalized Laplacian:
+
+        >>> graph = graphs.Path(4, directed=False, lap_type='normalized')
+        >>> graph.compute_differential_operator()
+        >>> graph.div([2, -2, 0])
+        array([-2.        ,  2.82842712, -1.41421356,  0.        ])
+
+        Directed graph and normalized Laplacian:
+
+        >>> graph = graphs.Path(4, directed=True, lap_type='normalized')
+        >>> graph.compute_differential_operator()
+        >>> graph.div([2, -2, 0])
+        array([-2.        ,  2.82842712, -1.41421356,  0.        ])
+
+        """
+        y = np.asanyarray(y)
+        if y.shape[0] != self.Ne:
+            raise ValueError('First dimension must be the number of edges '
+                             'G.Ne = {}, got {}.'.format(self.Ne, y.shape))
+        return self.D.dot(y)

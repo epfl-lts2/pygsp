@@ -24,7 +24,7 @@ class DavidSensorNet(Graph):
     >>> G = graphs.DavidSensorNet()
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
@@ -57,7 +57,7 @@ class DavidSensorNet(Graph):
 
         plotting = {"limits": [0, 1, 0, 1]}
 
-        super(DavidSensorNet, self).__init__(W=W, coords=coords,
+        super(DavidSensorNet, self).__init__(W, coords=coords,
                                              plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):

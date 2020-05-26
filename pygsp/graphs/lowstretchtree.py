@@ -24,7 +24,7 @@ class LowStretchTree(Graph):
     >>> G = graphs.LowStretchTree(k=2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
@@ -67,7 +67,7 @@ class LowStretchTree(Graph):
                     "vertex_size": 75,
                     "limits": np.array([0, 2**k + 1, 0, 2**k + 1])}
 
-        super(LowStretchTree, self).__init__(W=W,
+        super(LowStretchTree, self).__init__(W,
                                              coords=coords,
                                              plotting=plotting,
                                              **kwargs)

@@ -1,6 +1,6 @@
-===============
-Reference guide
-===============
+=============
+API reference
+=============
 
 .. automodule:: pygsp
 
@@ -10,6 +10,7 @@ Reference guide
     graphs
     filters
     plotting
+    learning
     reduction
     features
     optimization

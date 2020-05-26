@@ -14,10 +14,11 @@ _logger = utils.build_logger(__name__)
 def _import_pfl():
     try:
         import pyflann as pfl
-    except Exception:
+    except Exception as e:
         raise ImportError('Cannot import pyflann. Choose another nearest '
                           'neighbors method or try to install it with '
-                          'pip (or conda) install pyflann (or pyflann3).')
+                          'pip (or conda) install pyflann (or pyflann3). '
+                          'Original exception: {}'.format(e))
     return pfl
 
 
@@ -43,7 +44,8 @@ class NNGraph(Graph):
     k : int, optional
         Number of neighbors for knn (default is 10)
     sigma : float, optional
-        Width parameter of the similarity kernel (default is 0.1)
+        Width of the similarity kernel.
+        By default, it is set to the average of the nearest neighbor distance.
     epsilon : float, optional
         Radius for the epsilon-neighborhood search (default is 0.01)
     plotting : dict, optional
@@ -68,12 +70,12 @@ class NNGraph(Graph):
     >>> G = graphs.NNGraph(X)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=5)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
     def __init__(self, Xin, NNtype='knn', use_flann=False, center=True,
-                 rescale=True, k=10, sigma=0.1, epsilon=0.01,
+                 rescale=True, k=10, sigma=None, epsilon=0.01,
                  plotting={}, symmetrize_type='average', dist_type='euclidean',
                  order=0, **kwargs):
 
@@ -91,6 +93,10 @@ class NNGraph(Graph):
 
         N, d = np.shape(self.Xin)
         Xout = self.Xin
+
+        if k >= N:
+            raise ValueError('The number of neighbors (k={}) must be smaller '
+                             'than the number of nodes ({}).'.format(k, N))
 
         if self.center:
             Xout = self.Xin - np.kron(np.ones((N, 1)),
@@ -130,6 +136,9 @@ class NNGraph(Graph):
                 D, NN = kdt.query(Xout, k=(k + 1),
                                   p=dist_translation[dist_type])
 
+            if self.sigma is None:
+                self.sigma = np.mean(D[:, 1:])  # Discard distance to self.
+
             for i in range(N):
                 spi[i * k:(i + 1) * k] = np.kron(np.ones((k)), i)
                 spj[i * k:(i + 1) * k] = NN[i, 1:]
@@ -141,6 +150,9 @@ class NNGraph(Graph):
             kdt = spatial.KDTree(Xout)
             D, NN = kdt.query(Xout, k=None, distance_upper_bound=epsilon,
                               p=dist_translation[dist_type])
+            if self.sigma is None:
+                # Discard distance to self.
+                self.sigma = np.mean([np.mean(d[1:]) for d in D])
             count = 0
             for i in range(N):
                 count = count + len(NN[i])
@@ -171,7 +183,7 @@ class NNGraph(Graph):
         # np.abs(W - W.T).sum() is as costly as the symmetrization itself.
         W = utils.symmetrize(W, method=symmetrize_type)
 
-        super(NNGraph, self).__init__(W=W, plotting=plotting,
+        super(NNGraph, self).__init__(W, plotting=plotting,
                                       coords=Xout, **kwargs)
 
     def _get_extra_repr(self):

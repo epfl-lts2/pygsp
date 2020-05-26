@@ -27,7 +27,7 @@ class Minnesota(Graph):
     >>> G = graphs.Minnesota()
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=0.5)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
@@ -53,7 +53,7 @@ class Minnesota(Graph):
             # Binarize: 8 entries are equal to 2 instead of 1.
             A = (A > 0).astype(bool)
 
-        super(Minnesota, self).__init__(W=A, coords=data['xy'],
+        super(Minnesota, self).__init__(A, coords=data['xy'],
                                         plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):

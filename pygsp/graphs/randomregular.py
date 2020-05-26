@@ -43,7 +43,7 @@ class RandomRegular(Graph):
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
@@ -100,7 +100,7 @@ class RandomRegular(Graph):
                 v = sorted([i1, i2])
                 U = np.concatenate((U[:v[0]], U[v[0] + 1:v[1]], U[v[1] + 1:]))
 
-        super(RandomRegular, self).__init__(W=A, **kwargs)
+        super(RandomRegular, self).__init__(A, **kwargs)
 
         self.is_regular()
 

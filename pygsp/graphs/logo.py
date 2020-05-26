@@ -15,7 +15,7 @@ class Logo(Graph):
     >>> G = graphs.Logo()
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=0.5)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
@@ -23,11 +23,12 @@ class Logo(Graph):
 
         data = utils.loadmat('pointclouds/logogsp')
 
-        self.info = {"idx_g": data["idx_g"],
-                     "idx_s": data["idx_s"],
-                     "idx_p": data["idx_p"]}
+        # Remove 1 because the index in python start at 0 and not at 1
+        self.info = {"idx_g": data["idx_g"]-1,
+                     "idx_s": data["idx_s"]-1,
+                     "idx_p": data["idx_p"]-1}
 
         plotting = {"limits": np.array([0, 640, -400, 0])}
 
-        super(Logo, self).__init__(W=data['W'], coords=data['coords'],
+        super(Logo, self).__init__(data['W'], coords=data['coords'],
                                    plotting=plotting, **kwargs)

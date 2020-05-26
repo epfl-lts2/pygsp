@@ -1,7 +1,8 @@
+NB = $(sort $(wildcard *.ipynb))
 .PHONY: help clean lint test doc dist release
 
 help:
-	@echo "clean    remove non-source files"
+	@echo "clean    remove non-source files and clean source files"
 	@echo "lint     check style"
 	@echo "test     run tests and check coverage"
 	@echo "doc      generate HTML documentation and check links"
@@ -10,11 +11,16 @@ help:
 
 clean:
 	git clean -Xdf
+	jupyter nbconvert --inplace --ClearOutputPreprocessor.enabled=True $(NB)
 
 lint:
 	flake8 --doctests --exclude=doc
 
-test: export DISPLAY = :99
+# Matplotlib doesn't print to screen. Also faster.
+export MPLBACKEND = agg
+# Virtual framebuffer nonetheless needed for the pyqtgraph backend.
+export DISPLAY = :99
+
 test:
 	Xvfb $$DISPLAY -screen 0 800x600x24 &
 	coverage run --branch --source pygsp setup.py test
@@ -29,7 +35,8 @@ doc:
 dist: clean
 	python setup.py sdist
 	python setup.py bdist_wheel --universal
-	ls -l dist
+	ls -lh dist/*
+	twine check dist/*
 
 release: dist
 	twine upload dist/*

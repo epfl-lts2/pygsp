@@ -30,7 +30,7 @@ class Cube(NNGraph):
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')
     >>> _ = ax1.spy(G.W, markersize=0.5)
-    >>> G.plot(ax=ax2)
+    >>> _ = G.plot(ax=ax2)
 
     """
 
@@ -86,10 +86,12 @@ class Cube(NNGraph):
             'vertex_size': 80,
             'elevation': 15,
             'azimuth': 0,
-            'distance': 7,
+            'distance': 9,
         }
 
-        super(Cube, self).__init__(Xin=pts, k=10, plotting=plotting, **kwargs)
+        super(Cube, self).__init__(Xin=pts, k=10,
+                                   center=False, rescale=False,
+                                   plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         attrs = {'radius': '{:.2f}'.format(self.radius),

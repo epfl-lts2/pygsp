@@ -2,6 +2,14 @@
 PyGSP: Graph Signal Processing in Python
 ========================================
 
+The PyGSP is a Python package to ease
+`Signal Processing on Graphs <https://arxiv.org/abs/1211.0053>`_.
+The documentation is available on
+`Read the Docs <https://pygsp.readthedocs.io>`_
+and development takes place on
+`GitHub <https://github.com/epfl-lts2/pygsp>`_.
+A (mostly unmaintained) `Matlab version <https://epfl-lts2.github.io/gspbox-html>`_ exists.
+
 +-----------------------------------+
 | |doc|  |pypi|  |conda|  |binder|  |
 +-----------------------------------+
@@ -19,25 +27,17 @@ PyGSP: Graph Signal Processing in Python
 .. |license| image:: https://img.shields.io/pypi/l/pygsp.svg
    :target: https://github.com/epfl-lts2/pygsp/blob/master/LICENSE.txt
 .. |pyversions| image:: https://img.shields.io/pypi/pyversions/pygsp.svg
-   :target: https://pypi.python.org/pypi/PyGSP
+   :target: https://pypi.org/project/PyGSP
 .. |travis| image:: https://img.shields.io/travis/epfl-lts2/pygsp.svg
    :target: https://travis-ci.org/epfl-lts2/pygsp
 .. |coveralls| image:: https://img.shields.io/coveralls/epfl-lts2/pygsp.svg
    :target: https://coveralls.io/github/epfl-lts2/pygsp
 .. |github| image:: https://img.shields.io/github/stars/epfl-lts2/pygsp.svg?style=social
    :target: https://github.com/epfl-lts2/pygsp
-.. |binder| image:: https://mybinder.org/badge.svg
+.. |binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=playground.ipynb
 .. |conda| image:: https://anaconda.org/conda-forge/pygsp/badges/installer/conda.svg
    :target: https://anaconda.org/conda-forge/pygsp
-
-The PyGSP is a Python package to ease
-`Signal Processing on Graphs <https://arxiv.org/abs/1211.0053>`_.
-The documentation is available on
-`Read the Docs <https://pygsp.readthedocs.io>`_
-and development takes place on
-`GitHub <https://github.com/epfl-lts2/pygsp>`_.
-A (mostly unmaintained) `Matlab version <https://lts2.epfl.ch/gsp>`_ exists.
 
 The PyGSP facilitates a wide variety of operations on graphs, like computing
 their Fourier basis, filtering or interpolating signals, plotting graphs,
@@ -53,6 +53,15 @@ exponential window; and Gabor filters. Despite all the pre-defined models, you
 can easily use a custom graph by defining its adjacency matrix, and a custom
 filter bank by defining a set of functions in the spectral domain.
 
+While NetworkX_ and graph-tool_ are tools to analyze the topology of graphs,
+the aim of the PyGSP is to analyze graph signals, also known as features or
+properties (i.e., not the graph itself).
+Those three tools are complementary and work well together with the provided
+import / export facility.
+
+.. _NetworkX: https://networkx.github.io
+.. _graph-tool: https://graph-tool.skewed.de
+
 The following demonstrates how to instantiate a graph and a filter, the two
 main objects of the package.
 
@@ -60,8 +69,8 @@ main objects of the package.
 >>> G = graphs.Logo()
 >>> G.compute_fourier_basis()  # Fourier to plot the eigenvalues.
 >>> # G.estimate_lmax() is otherwise sufficient.
->>> g = filters.Heat(G, tau=50)
->>> g.plot()
+>>> g = filters.Heat(G, scale=50)
+>>> fig, ax = g.plot()
 
 .. image:: ../pygsp/data/readme_example_filter.png
     :alt:
@@ -78,7 +87,7 @@ structure!
 >>> s = np.zeros(G.N)
 >>> s[DELTAS] = 1
 >>> s = g.filter(s)
->>> G.plot_signal(s, highlight=DELTAS)
+>>> fig, ax = G.plot(s, highlight=DELTAS)
 
 .. image:: ../pygsp/data/readme_example_graph.png
     :alt:
@@ -100,12 +109,15 @@ The PyGSP is available on PyPI::
 
     $ pip install pygsp
 
-Note that you will need a recent version of ``pip`` and ``setuptools``. Please
-run ``pip install --upgrade pip setuptools`` if you get any installation error.
-
 The PyGSP is available on `conda-forge <https://github.com/conda-forge/pygsp-feedstock>`_::
 
     $ conda install -c conda-forge pygsp
+
+The PyGSP is available in the `Arch User Repository <https://aur.archlinux.org/packages/python-pygsp>`_::
+
+   $ git clone https://aur.archlinux.org/python-pygsp.git
+   $ cd python-pygsp
+   $ makepkg -csi
 
 Contributing
 ------------

@@ -35,14 +35,15 @@ class Itersine(Filter):
     Itersine(in=1, out=6, overlap=2.00)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
-    >>> g.plot(ax=axes[0])
-    >>> G.plot_signal(s, ax=axes[1])
+    >>> _ = g.plot(ax=axes[0])
+    >>> _ = G.plot(s, ax=axes[1])
 
     """
 
     def __init__(self, G, Nf=6, overlap=2):
 
         self.overlap = overlap
+        self.mu = np.linspace(0, G.lmax, num=Nf)
 
         scales = G.lmax / (Nf - overlap + 1) * overlap
 

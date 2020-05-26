@@ -6,6 +6,7 @@ Test suite for the filters module of the pygsp package.
 """
 
 import unittest
+import sys
 
 import numpy as np
 
@@ -16,7 +17,7 @@ class TestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls._G = graphs.Logo()
+        cls._G = graphs.Sensor(123, seed=42)
         cls._G.compute_fourier_basis()
         cls._rs = np.random.RandomState(42)
         cls._signal = cls._rs.uniform(size=cls._G.N)
@@ -36,8 +37,9 @@ class TestCase(unittest.TestCase):
         self.assertIs(f.G, self._G)
 
         f.evaluate(self._G.e)
+        f.evaluate(np.random.uniform(0, 1, size=(4, 6, 3)))
 
-        A, B = f.estimate_frame_bounds(use_eigenvalues=True)
+        A, B = f.estimate_frame_bounds(self._G.e)
         if tight:
             np.testing.assert_allclose(A, B)
         else:
@@ -53,7 +55,7 @@ class TestCase(unittest.TestCase):
 
         if check:
             # Chebyshev should be close to exact.
-            # Does not pass for Gabor and Rectangular (not smooth).
+            # Does not pass for Gabor, Modulation and Rectangular (not smooth).
             np.testing.assert_allclose(s2, s3, rtol=0.1, atol=0.01)
             np.testing.assert_allclose(s4, s5, rtol=0.1, atol=0.01)
 
@@ -62,33 +64,28 @@ class TestCase(unittest.TestCase):
             np.testing.assert_allclose(s4, A * self._signal)
             assert np.linalg.norm(s5 - A * self._signal) < 0.1
 
-        self.assertRaises(ValueError, f.filter, s2, method='lanczos')
-
-        if f.Nf < 10:
-            # Computing the frame is an alternative way to filter.
-            # Though it is memory intensive.
+        # Computing the frame is an alternative way to filter.
+        if f.n_filters != self._G.n_vertices:
+            # It doesn't work (yet) if the number of filters is the same as the
+            # number of nodes as f.filter() infers that we want synthesis where
+            # we actually want analysis.
             F = f.compute_frame(method='exact')
-            F = F.reshape(self._G.N, -1)
-            s = F.T.dot(self._signal).reshape(self._G.N, -1).squeeze()
+            s = F.dot(self._signal).reshape(-1, self._G.N).T.squeeze()
             np.testing.assert_allclose(s, s2)
 
             F = f.compute_frame(method='chebyshev', order=100)
-            F = F.reshape(self._G.N, -1)
-            s = F.T.dot(self._signal).reshape(self._G.N, -1).squeeze()
+            s = F.dot(self._signal).reshape(-1, self._G.N).T.squeeze()
             np.testing.assert_allclose(s, s3)
 
-        # TODO: f.can_dual()
-
-    def test_filter(self):
-        Nf = 5
-        g = filters.MexicanHat(self._G, Nf=Nf)
+    def test_filter(self, n_filters=5):
+        g = filters.MexicanHat(self._G, n_filters)
 
         s1 = self._rs.uniform(size=self._G.N)
         s2 = s1.reshape((self._G.N, 1))
         s3 = g.filter(s1)
         s4 = g.filter(s2)
         s5 = g.analyze(s1)
-        assert s3.shape == (self._G.N, Nf)
+        assert s3.shape == (self._G.N, n_filters)
         np.testing.assert_allclose(s3, s4)
         np.testing.assert_allclose(s3, s5)
 
@@ -97,12 +94,12 @@ class TestCase(unittest.TestCase):
         s3 = g.filter(s1)
         s4 = g.filter(s2)
         s5 = g.analyze(s1)
-        assert s3.shape == (self._G.N, 4, Nf)
+        assert s3.shape == (self._G.N, 4, n_filters)
         np.testing.assert_allclose(s3, s4)
         np.testing.assert_allclose(s3, s5)
 
-        s1 = self._rs.uniform(size=(self._G.N, Nf))
-        s2 = s1.reshape((self._G.N, 1, Nf))
+        s1 = self._rs.uniform(size=(self._G.N, n_filters))
+        s2 = s1.reshape((self._G.N, 1, n_filters))
         s3 = g.filter(s1)
         s4 = g.filter(s2)
         s5 = g.synthesize(s1)
@@ -110,29 +107,88 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(s3, s4)
         np.testing.assert_allclose(s3, s5)
 
-        s1 = self._rs.uniform(size=(self._G.N, 10, Nf))
+        s1 = self._rs.uniform(size=(self._G.N, 10, n_filters))
         s3 = g.filter(s1)
         s5 = g.synthesize(s1)
         assert s3.shape == (self._G.N, 10)
         np.testing.assert_allclose(s3, s5)
 
     def test_localize(self):
-        G = graphs.Grid2d(20)
-        G.compute_fourier_basis()
-        g = filters.Heat(G, 100)
+        g = filters.Heat(self._G, 100)
 
         # Localize signal at node by filtering Kronecker delta.
         NODE = 10
         s1 = g.localize(NODE, method='exact')
 
         # Should be equal to a row / column of the filtering operator.
-        gL = G.U.dot(np.diag(g.evaluate(G.e)[0]).dot(G.U.T))
-        s2 = np.sqrt(G.N) * gL[NODE, :]
+        gL = self._G.U.dot(np.diag(g.evaluate(self._G.e)[0]).dot(self._G.U.T))
+        s2 = np.sqrt(self._G.N) * gL[NODE, :]
         np.testing.assert_allclose(s1, s2)
 
         # That is actually a row / column of the analysis operator.
         F = g.compute_frame(method='exact')
         np.testing.assert_allclose(F, gL)
+
+    def test_frame_bounds(self):
+        # Not a frame, it as a null-space.
+        g = filters.Rectangular(self._G)
+        A, B = g.estimate_frame_bounds()
+        self.assertEqual(A, 0)
+        self.assertEqual(B, 1)
+        # Identity is tight.
+        g = filters.Filter(self._G, lambda x: np.full_like(x, 2))
+        A, B = g.estimate_frame_bounds()
+        self.assertEqual(A, 4)
+        self.assertEqual(B, 4)
+
+    def test_frame(self):
+        """The frame is a stack of functions of the Laplacian."""
+        g = filters.Heat(self._G, scale=[8, 9])
+        gL1 = g.compute_frame(method='exact')
+        gL2 = g.compute_frame(method='chebyshev', order=30)
+        def get_frame(freq_response):
+            return self._G.U.dot(np.diag(freq_response).dot(self._G.U.T))
+        gL = np.concatenate([get_frame(gl) for gl in g.evaluate(self._G.e)])
+        np.testing.assert_allclose(gL1, gL)
+        np.testing.assert_allclose(gL2, gL, atol=1e-10)
+
+    def test_complement(self, frame_bound=2.5):
+        """Any filter bank becomes tight upon addition of their complement."""
+        g = filters.MexicanHat(self._G)
+        g += g.complement(frame_bound)
+        A, B = g.estimate_frame_bounds()
+        np.testing.assert_allclose(A, frame_bound)
+        np.testing.assert_allclose(B, frame_bound)
+
+    def test_inverse(self, frame_bound=3):
+        """The frame is the pseudo-inverse of the original frame."""
+        g = filters.Heat(self._G, scale=[2, 3, 4])
+        h = g.inverse()
+        Ag, Bg = g.estimate_frame_bounds()
+        Ah, Bh = h.estimate_frame_bounds()
+        np.testing.assert_allclose(Ag * Bh, 1)
+        np.testing.assert_allclose(Bg * Ah, 1)
+        gL = g.compute_frame(method='exact')
+        hL = h.compute_frame(method='exact')
+        I = np.identity(self._G.N)
+        np.testing.assert_allclose(hL.T.dot(gL), I, atol=1e-10)
+        pinv = np.linalg.inv(gL.T.dot(gL)).dot(gL.T)
+        np.testing.assert_allclose(pinv, hL.T, atol=1e-10)
+        # The reconstruction is exact for any frame (lower bound A > 0).
+        y = g.filter(self._signal, method='exact')
+        z = h.filter(y, method='exact')
+        np.testing.assert_allclose(z, self._signal)
+        # Not invertible if not a frame.
+        if sys.version_info > (3, 4):
+            g = filters.Expwin(self._G)
+            with self.assertLogs(level='WARNING'):
+                h = g.inverse()
+                h.evaluate(self._G.e)
+        # If the frame is tight, inverse is h=g/A.
+        g += g.complement(frame_bound)
+        h = g.inverse()
+        he = g(self._G.e) / frame_bound
+        np.testing.assert_allclose(h(self._G.e), he, atol=1e-10)
 
     def test_custom_filter(self):
         def kernel(x):
@@ -147,8 +203,32 @@ class TestCase(unittest.TestCase):
         self._test_methods(f, tight=False)
 
     def test_gabor(self):
-        f = filters.Gabor(self._G, lambda x: x / (1. + x))
+        f = filters.Rectangular(self._G, None, 0.1)
+        f = filters.Gabor(self._G, f)
         self._test_methods(f, tight=False, check=False)
+        self.assertRaises(ValueError, filters.Gabor, graphs.Sensor(), f)
+        f = filters.Regular(self._G)
+        self.assertRaises(ValueError, filters.Gabor, self._G, f)
+
+    def test_modulation(self):
+        f = filters.Rectangular(self._G, None, 0.1)
+        # TODO: synthesis doesn't work yet.
+        # f = filters.Modulation(self._G, f, modulation_first=False)
+        # self._test_methods(f, tight=False, check=False)
+        f = filters.Modulation(self._G, f, modulation_first=True)
+        self._test_methods(f, tight=False, check=False)
+        self.assertRaises(ValueError, filters.Modulation, graphs.Sensor(), f)
+        f = filters.Regular(self._G)
+        self.assertRaises(ValueError, filters.Modulation, self._G, f)
+
+    def test_modulation_gabor(self):
+        """Both should be equivalent for deltas centered at the eigenvalues."""
+        f = filters.Rectangular(self._G, 0, 0)
+        f1 = filters.Modulation(self._G, f, modulation_first=True)
+        f2 = filters.Gabor(self._G, f)
+        s1 = f1.filter(self._signal)
+        s2 = f2.filter(self._signal)
+        np.testing.assert_allclose(s1, -s2, atol=1e-5)
 
     def test_halfcosine(self):
         f = filters.HalfCosine(self._G, Nf=4)
@@ -199,17 +279,36 @@ class TestCase(unittest.TestCase):
         self._test_methods(f, tight=True)
 
     def test_heat(self):
-        f = filters.Heat(self._G, normalize=False, tau=10)
+        f = filters.Heat(self._G, normalize=False, scale=10)
         self._test_methods(f, tight=False)
-        f = filters.Heat(self._G, normalize=False, tau=np.array([5, 10]))
+        f = filters.Heat(self._G, normalize=False, scale=np.array([5, 10]))
         self._test_methods(f, tight=False)
-        f = filters.Heat(self._G, normalize=True, tau=10)
+        f = filters.Heat(self._G, normalize=True, scale=10)
         np.testing.assert_allclose(np.linalg.norm(f.evaluate(self._G.e)), 1)
         self._test_methods(f, tight=False)
-        f = filters.Heat(self._G, normalize=True, tau=[5, 10])
+        f = filters.Heat(self._G, normalize=True, scale=[5, 10])
         np.testing.assert_allclose(np.linalg.norm(f.evaluate(self._G.e)[0]), 1)
         np.testing.assert_allclose(np.linalg.norm(f.evaluate(self._G.e)[1]), 1)
         self._test_methods(f, tight=False)
+
+    def test_wave(self):
+        f = filters.Wave(self._G)
+        self._test_methods(f, tight=False)
+        f = filters.Wave(self._G, time=1)
+        self._test_methods(f, tight=False)
+        f = filters.Wave(self._G, time=[1, 2, 3])
+        self._test_methods(f, tight=False)
+        f = filters.Wave(self._G, speed=[1])
+        self._test_methods(f, tight=False)
+        f = filters.Wave(self._G, speed=[0.5, 1, 1.5])
+        self._test_methods(f, tight=False)
+        f = filters.Wave(self._G, time=[1, 2], speed=[1, 1.5])
+        self._test_methods(f, tight=False)
+        # Sequences of differing lengths.
+        self.assertRaises(ValueError, filters.Wave, self._G, time=[1, 2, 3],
+                          speed=[0, 1])
+        # Invalid speed.
+        self.assertRaises(ValueError, filters.Wave, self._G, speed=2)
 
     def test_expwin(self):
         f = filters.Expwin(self._G)
@@ -220,6 +319,8 @@ class TestCase(unittest.TestCase):
         self._test_methods(f, tight=False)
         f = filters.Expwin(self._G, band_min=0.1, band_max=0.7)
         self._test_methods(f, tight=False)
+        f = filters.Expwin(self._G, band_min=None, band_max=None)
+        self._test_methods(f, tight=True)
 
     def test_rectangular(self):
         f = filters.Rectangular(self._G)
@@ -232,12 +333,6 @@ class TestCase(unittest.TestCase):
         self._test_methods(f, tight=False, check=False)
         f = filters.Rectangular(self._G, band_min=None, band_max=None)
         self._test_methods(f, tight=True, check=True)
-        self.assertRaises(ValueError, filters.Rectangular, self._G,
-                          band_min=-1)
-        self.assertRaises(ValueError, filters.Rectangular, self._G,
-                          band_max=2)
-        self.assertRaises(ValueError, filters.Rectangular, self._G,
-                          band_min=0.8, band_max=0.5)
 
     def test_approximations(self):
         r"""

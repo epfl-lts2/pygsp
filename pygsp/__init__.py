@@ -11,6 +11,7 @@ Moreover, the following modules provide additional functionality:
 * :mod:`.plotting` to plot,
 * :mod:`.reduction` to reduce a graph while keeping its structure,
 * :mod:`.features` to compute features on graphs,
+* :mod:`.learning` to solve learning problems,
 * :mod:`.optimization` to help solving convex optimization problems,
 * :mod:`.utils` for various utilities.
 
@@ -24,6 +25,7 @@ __all__ = [
     'plotting',
     'reduction',
     'features',
+    'learning',
     'optimization',
     'utils',
 ]
@@ -36,13 +38,11 @@ _utils.import_modules(__all__[::-1], 'pygsp', 'pygsp')
 try:
     filters.Filter.plot.__doc__ = plotting._plot_filter.__doc__
     graphs.Graph.plot.__doc__ = plotting._plot_graph.__doc__
-    graphs.Graph.plot_signal.__doc__ = plotting._plot_signal.__doc__
     graphs.Graph.plot_spectrogram.__doc__ = plotting._plot_spectrogram.__doc__
 except AttributeError:
     # For Python 2.7.
     filters.Filter.plot.__func__.__doc__ = plotting._plot_filter.__doc__
     graphs.Graph.plot.__func__.__doc__ = plotting._plot_graph.__doc__
-    graphs.Graph.plot_signal.__func__.__doc__ = plotting._plot_signal.__doc__
     graphs.Graph.plot_spectrogram.__func__.__doc__ = plotting._plot_spectrogram.__doc__
 
 __version__ = '0.5.1'

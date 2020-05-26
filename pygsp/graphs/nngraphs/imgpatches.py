@@ -22,6 +22,10 @@ class ImgPatches(NNGraph):
     kwargs : dict
         Parameters passed to :class:`NNGraph`.
 
+    See Also
+    --------
+    Grid2dImgPatches
+
     Notes
     -----
     The feature vector of a pixel `i` will consist of the stacking of the
@@ -42,7 +46,7 @@ class ImgPatches(NNGraph):
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
 
@@ -84,10 +88,11 @@ class ImgPatches(NNGraph):
         #              sklearn has much less dependencies than skimage.
         try:
             import skimage
-        except Exception:
+        except Exception as e:
             raise ImportError('Cannot import skimage, which is needed to '
                               'extract patches. Try to install it with '
-                              'pip (or conda) install scikit-image.')
+                              'pip (or conda) install scikit-image. '
+                              'Original exception: {}'.format(e))
         patches = skimage.util.view_as_windows(img, window_shape=window_shape)
         patches = patches.reshape((h * w, r * c * d))
 

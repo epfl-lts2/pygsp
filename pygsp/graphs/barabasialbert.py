@@ -38,7 +38,7 @@ class BarabasiAlbert(Graph):
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
-    >>> G.plot(ax=axes[1])
+    >>> _ = G.plot(ax=axes[1])
 
     """
     def __init__(self, N=1000, m0=1, m=1, seed=None, **kwargs):
@@ -63,7 +63,7 @@ class BarabasiAlbert(Graph):
                 W[elem, i] = 1
                 W[i, elem] = 1
 
-        super(BarabasiAlbert, self).__init__(W=W, **kwargs)
+        super(BarabasiAlbert, self).__init__(W, **kwargs)
 
     def _get_extra_repr(self):
         return dict(m0=self.m0, m=self.m, seed=self.seed)

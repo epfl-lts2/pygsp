@@ -16,7 +16,7 @@ class Airfoil(Graph):
     >>> G = graphs.Airfoil()
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=0.5)
-    >>> G.plot(edges=True, ax=axes[1])
+    >>> _ = G.plot(edges=True, ax=axes[1])
 
     """
 
@@ -34,5 +34,5 @@ class Airfoil(Graph):
                     "limits": np.array([-1e-4, 1.01*data['x'].max(),
                                         -1e-4, 1.01*data['y'].max()])}
 
-        super(Airfoil, self).__init__(W=W, coords=coords, plotting=plotting,
+        super(Airfoil, self).__init__(W, coords=coords, plotting=plotting,
                                       **kwargs)

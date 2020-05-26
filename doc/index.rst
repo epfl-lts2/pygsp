@@ -5,6 +5,7 @@
 
    Home <self>
    tutorials/index
+   examples/index
    reference/index
    contributing
    history

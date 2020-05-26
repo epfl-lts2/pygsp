@@ -18,6 +18,8 @@ The :class:`Filter` base class implements a common interface to all filters:
     Filter.filter
     Filter.analyze
     Filter.synthesize
+    Filter.complement
+    Filter.inverse
     Filter.compute_frame
     Filter.estimate_frame_bounds
     Filter.plot
@@ -28,19 +30,32 @@ Filters
 
 Then, derived classes implement various common graph filters.
 
-**Filter banks of N filters**
+**Filters that solve differential equations**
+
+The following filters solve partial differential equations (PDEs) on graphs,
+which model processes such as heat diffusion or wave propagation.
 
 .. autosummary::
 
-    Abspline
-    Gabor
-    HalfCosine
-    Itersine
-    MexicanHat
-    Meyer
-    SimpleTight
+    Heat
+    Wave
 
-**Filter banks of 2 filters: a low pass and a high pass**
+**Low-pass filters**
+
+.. autosummary::
+
+    Heat
+
+**Band-pass filters**
+
+These filters can be configured to be low-pass, high-pass, or band-pass.
+
+.. autosummary::
+
+    Expwin
+    Rectangular
+
+**Filter banks of two filters: a low-pass and a high-pass**
 
 .. autosummary::
 
@@ -49,20 +64,27 @@ Then, derived classes implement various common graph filters.
     Simoncelli
     Papadakis
 
-**Low pass filters**
+**Filter banks composed of dilated or translated filters**
 
 .. autosummary::
 
-    Heat
-    Expwin
-    Rectangular
+    Abspline
+    HalfCosine
+    Itersine
+    MexicanHat
+    Meyer
+    SimpleTight
 
-**Band pass filters**
+**Filter banks for vertex-frequency analyzes**
+
+Those filter banks are composed of shifted versions of a mother filter, one per
+graph frequency (Laplacian eigenvalue). They can analyze frequency content
+locally, as a windowed graph Fourier transform.
 
 .. autosummary::
 
-    Expwin
-    Rectangular
+    Gabor
+    Modulation
 
 Approximations
 --------------
@@ -104,11 +126,13 @@ _FILTERS = [
     'Itersine',
     'MexicanHat',
     'Meyer',
+    'Modulation',
     'Papadakis',
     'Rectangular',
     'Regular',
     'Simoncelli',
     'SimpleTight',
+    'Wave',
 ]
 _APPROXIMATIONS = [
     'compute_cheby_coeff',

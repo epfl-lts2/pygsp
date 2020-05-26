@@ -56,7 +56,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
     Examples
     --------
     >>> from pygsp import reduction
-    >>> G = graphs.Sensor(256, Nc=20, distributed=True)
+    >>> G = graphs.Sensor(256, k=20, distributed=True)
     >>> epsilon = 0.4
     >>> G2 = reduction.graph_sparsify(G, epsilon)
 
@@ -122,7 +122,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
         sparserW = sparserW + sparserW.T
         sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
 
-        if graphs.Graph(W=sparserW).is_connected():
+        if graphs.Graph(sparserW).is_connected():
             break
         elif i == maxiter - 1:
             logger.warning('Despite attempts to reduce epsilon, sparsified graph is disconnected')
@@ -134,7 +134,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
         if not M.is_directed():
             sparserW = (sparserW + sparserW.T) / 2.
 
-        Mnew = graphs.Graph(W=sparserW)
+        Mnew = graphs.Graph(sparserW)
         #M.copy_graph_attributes(Mnew)
     else:
         Mnew = sparse.lil_matrix(sparserL)
@@ -241,8 +241,7 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
     >>> G.compute_fourier_basis()
     >>> Gs = reduction.graph_multiresolution(G, levels, sparsify=False)
     >>> for idx in range(levels):
-    ...     Gs[idx].plotting['plot_name'] = 'Reduction level: {}'.format(idx)
-    ...     Gs[idx].plot()
+    ...     fig, ax = Gs[idx].plot(title='Reduction level: {}'.format(idx))
 
     """
     if sparsify_eps is None:
@@ -258,7 +257,7 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
 
     for i in range(levels):
         if downsampling_method == 'largest_eigenvector':
-            if hasattr(Gs[i], '_U'):
+            if Gs[i]._U is not None:
                 V = Gs[i].U[:, -1]
             else:
                 V = linalg.eigs(Gs[i].L, 1)[1][:, 0]
@@ -361,7 +360,7 @@ def kron_reduction(G, ind):
         Wnew = Wnew - Wnew.diagonal()
 
         coords = G.coords[ind, :] if len(G.coords.shape) else np.ndarray(None)
-        Gnew = graphs.Graph(W=Wnew, coords=coords, lap_type=G.lap_type,
+        Gnew = graphs.Graph(Wnew, coords=coords, lap_type=G.lap_type,
                             plotting=G.plotting)
     else:
         Gnew = Lnew
@@ -473,7 +472,7 @@ def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
 
     """
     least_squares = bool(kwargs.pop('least_squares', False))
-    def_ul = Gs[0].N > 3000 or not hasattr(Gs[0], '_e') or not hasattr(Gs[0], '_U')
+    def_ul = Gs[0].N > 3000 or Gs[0]._e is None or Gs[0]._U is None
     use_landweber = bool(kwargs.pop('use_landweber', def_ul))
     reg_eps = float(kwargs.get('reg_eps', 0.005))
 

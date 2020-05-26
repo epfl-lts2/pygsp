@@ -9,6 +9,7 @@ setup(
     version='0.5.1',
     description='Graph Signal Processing in Python',
     long_description=open('README.rst').read(),
+    long_description_content_type='text/x-rst',
     author='EPFL LTS2',
     url='https://github.com/epfl-lts2/pygsp',
     project_urls={
@@ -31,8 +32,12 @@ setup(
         'scipy',
     ],
     extras_require={
-        # Optional dependencies for some functionalities.
-        'alldeps': (
+        # Optional dependencies for development. Some bring additional
+        # functionalities, others are for testing, documentation, or packaging.
+        'dev': [
+            # Import and export.
+            'networkx',
+            # 'graph-tool', cannot be installed by pip
             # Construct patch graphs from images.
             'scikit-image',
             # Approximate nearest neighbors for kNN graphs.
@@ -49,22 +54,18 @@ setup(
             'PyQt5; python_version >= "3.5"',
             # No source package for PyQt5 on PyPI, fall back to PySide.
             'PySide; python_version < "3.5"',
-        ),
-        # Testing dependencies.
-        'test': [
+            # Run the tests.
             'flake8',
             'coverage',
             'coveralls',
-        ],
-        # Dependencies to build the documentation.
-        'doc': [
+            # Build the documentation.
             'sphinx',
             'numpydoc',
             'sphinxcontrib-bibtex',
+            'sphinx-gallery',
+            'memory_profiler',
             'sphinx-rtd-theme',
-        ],
-        # Dependencies to build and upload packages.
-        'pkg': [
+            # Build and upload packages.
             'wheel',
             'twine',
         ],
@@ -83,8 +84,8 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
 )
