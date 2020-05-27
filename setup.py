@@ -62,6 +62,7 @@ setup(
             'sphinx-gallery',
             'memory_profiler',
             'sphinx-rtd-theme',
+            'sphinx-copybutton',
             # Build and upload packages.
             'wheel',
             'twine',

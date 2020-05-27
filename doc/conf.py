@@ -56,6 +56,9 @@ sphinx_gallery_conf = {
     'show_memory': True,
 }
 
+extensions.append('sphinx_copybutton')
+copybutton_prompt_text = ">>> "
+
 exclude_patterns = ['_build']
 source_suffix = '.rst'
 master_doc = 'index'
