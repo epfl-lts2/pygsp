@@ -1,6 +1,6 @@
-=======
-History
-=======
+=========
+Changelog
+=========
 
 Versions follow `SemVer <https://semver.org>`_ (we try our best).
 
