@@ -17,7 +17,7 @@ setup(
         'Download': 'https://pypi.org/project/PyGSP',
         'Source Code': 'https://github.com/epfl-lts2/pygsp',
         'Bug Tracker': 'https://github.com/epfl-lts2/pygsp/issues',
-        'Try It Online': 'https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=playground.ipynb',
+        'Try It Online': 'https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=examples/playground.ipynb',
     },
     packages=[
         'pygsp',
