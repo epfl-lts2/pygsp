@@ -19,12 +19,13 @@ autodoc_default_options = {
 
 extensions.append('sphinx.ext.intersphinx')
 intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'numpy': ('https://numpy.org/doc/stable', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
+    'matplotlib': ('https://matplotlib.org', None),
     'pyunlocbox': ('https://pyunlocbox.readthedocs.io/en/stable', None),
     'networkx': ('https://networkx.github.io/documentation/stable', None),
     'graph_tool': ('https://graph-tool.skewed.de/static/doc', None),
-    'numpy': ('https://docs.scipy.org/doc/numpy', None),
-    'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
-    'matplotlib': ('https://matplotlib.org', None),
 }
 
 extensions.append('numpydoc')
