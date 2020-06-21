@@ -1,8 +1,3 @@
-# Needed as trusty (the default) doesn't support python 3.7.
-# Remove once xenial is made default.
-# https://github.com/travis-ci/travis-ci/issues/9815
-dist: xenial
-
 language: python
 
 python:
@@ -31,8 +26,8 @@ addons:
     - python-graph-tool
 
 install:
-  - pip install --upgrade --upgrade-strategy eager .[dev]
-  # Upgrade to test with the latest version of our dependencies.
+  - pip install --upgrade pip setuptools wheel  # install with latest tools
+  - pip install --upgrade --upgrade-strategy eager .[dev]  # get latest deps
 
 before_script:
   # As graph-tool cannot be installed by pip, link to the system installation

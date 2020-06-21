@@ -9,6 +9,7 @@ setup(
     version='0.5.1',
     description='Graph Signal Processing in Python',
     long_description=open('README.rst').read(),
+    long_description_content_type='text/x-rst',
     author='EPFL LTS2',
     url='https://github.com/epfl-lts2/pygsp',
     project_urls={

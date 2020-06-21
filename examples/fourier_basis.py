@@ -1,6 +1,6 @@
 r"""
-Fourier basis of graphs
-=======================
+Fourier basis
+=============
 
 The eigenvectors of the graph Laplacian form the Fourier basis.
 The eigenvalues are a measure of variation of their corresponding eigenvector.
@@ -39,4 +39,4 @@ G = pg.graphs.Sensor(seed=42)
 plot_eigenvectors(G, axes[1])
 fig.subplots_adjust(hspace=0.5, right=0.8)
 cax = fig.add_axes([0.82, 0.16, 0.01, 0.26])
-fig.colorbar(axes[1, -1].collections[1], cax=cax, ticks=[-0.4, 0, 0.4])
+_ = fig.colorbar(axes[1, -1].collections[1], cax=cax, ticks=[-0.4, 0, 0.4])

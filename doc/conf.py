@@ -11,8 +11,11 @@ extensions = [
 ]
 
 extensions.append('sphinx.ext.autodoc')
-autodoc_default_flags = ['members', 'undoc-members']
-autodoc_member_order = 'groupwise'  # alphabetical, groupwise, bysource
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+    'member-order': 'groupwise',  # alphabetical, groupwise, bysource
+}
 
 extensions.append('sphinx.ext.intersphinx')
 intersphinx_mapping = {

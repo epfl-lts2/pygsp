@@ -1,9 +1,9 @@
 r"""
-Wave propagation on graphs
-==========================
+Wave propagation
+================
 
 Solve the wave equation by filtering the initial conditions with the wave
-kernel.
+kernel :class:`pygsp.filters.Wave`.
 """
 
 from os import path

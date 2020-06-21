@@ -1,9 +1,9 @@
 r"""
-Heat diffusion on graphs
-========================
+Heat diffusion
+==============
 
 Solve the heat equation by filtering the initial conditions with the heat
-kernel.
+kernel :class:`pygsp.filters.Heat`.
 """
 
 from os import path
