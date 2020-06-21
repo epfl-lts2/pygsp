@@ -591,7 +591,8 @@ class LearnedFromSmoothSignals(Graph):
                         '''If you set manually your own edge_mask, you also 
                         have to set up a and b manually'''
                         )
-                    raise NotImplementedError(
+                    # raise NotImplementedError(
+                    raise TypeError(
                         '''If you set manually an edge_mask, you also have to 
                            set a and b manually''')
         else:
