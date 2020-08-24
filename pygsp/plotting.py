@@ -283,6 +283,7 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
 
         # Plot dots where the evaluation matters.
         y = filters.evaluate(filters.G.e).T
+        params.pop('label', None)
         for i in range(y.shape[1]):
             params.update(color=lines[i].get_color())
             ax.plot(filters.G.e, y[:, i], '.', **params)
