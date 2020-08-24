@@ -258,10 +258,6 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
     params.update(kwargs)
 
     if eigenvalues:
-
-        for e in filters.G.e:
-            ax.axvline(x=e, color=[0.9]*3, linewidth=1)
-
         # Evaluate the filter bank at the eigenvalues to avoid plotting
         # artifacts, for example when deltas are centered on the eigenvalues.
         x = np.sort(np.concatenate([x, filters.G.e]))
@@ -275,6 +271,16 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, ax, **kwargs):
         line_sum, = ax.plot(x, np.sum(y**2, 1), 'k', **kwargs)
 
     if eigenvalues:
+
+        segs = np.empty((len(filters.G.e), 2, 2))
+        segs[:, 0, 0] = segs[:, 1, 0] = filters.G.e
+        segs[:, :, 1] = [0, 1]
+        mpl, _, _ = _import_plt()
+        ax.add_collection(mpl.collections.LineCollection(
+            segs, transform=ax.get_xaxis_transform(), zorder=0,
+            color=[0.9]*3, linewidth=1, label='eigenvalues')
+        )
+
         # Plot dots where the evaluation matters.
         y = filters.evaluate(filters.G.e).T
         for i in range(y.shape[1]):
