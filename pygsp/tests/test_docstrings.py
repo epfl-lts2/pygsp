@@ -41,3 +41,4 @@ suite_reference = test_docstrings('pygsp', '.py', setup)
 suite_tutorials = test_docstrings('.', '.rst')
 
 suite = unittest.TestSuite([suite_reference, suite_tutorials])
+

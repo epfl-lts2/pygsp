@@ -26,12 +26,17 @@ Unreleased
 * New implementation of the Sensor graph that is simpler and scales better.
 * A new learning module with three functions to solve standard semi-supervised
   classification and regression problems.
+* A much improved, fixed, documented, and tested NNGraph. The user can now
+  select the backend and similarity kernel. The radius can be estimated and
+  features standardized. (PR #43)
 * Import and export graphs and their signals to NetworkX and graph-tool.
 * Save and load graphs and theirs signals to / from GraphML, GML, and GEXF.
 * Documentation: path graph linked to DCT, ring graph linked to DFT.
 * We now have a gallery of examples! That is convenient for users to get a
   taste of what the library can do, and to start working from a code snippet.
 * Merged all the extra requirements in a single dev requirement.
+* A function to learn the graph from the signal has been added with doc and tests. 
+  This function can be used simply using the graph ``LearnGraph``
 
 Experimental filter API (to be tested and validated):
 

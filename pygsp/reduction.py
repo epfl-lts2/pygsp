@@ -56,7 +56,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
     Examples
     --------
     >>> from pygsp import reduction
-    >>> G = graphs.Sensor(256, k=20, distributed=True)
+    >>> G = graphs.Sensor(256, k=20, distributed=True, seed=0)
     >>> epsilon = 0.4
     >>> G2 = reduction.graph_sparsify(G, epsilon)
 

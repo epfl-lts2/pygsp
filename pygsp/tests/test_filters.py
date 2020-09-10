@@ -149,7 +149,7 @@ class TestCase(unittest.TestCase):
         def get_frame(freq_response):
             return self._G.U.dot(np.diag(freq_response).dot(self._G.U.T))
         gL = np.concatenate([get_frame(gl) for gl in g.evaluate(self._G.e)])
-        np.testing.assert_allclose(gL1, gL)
+        np.testing.assert_allclose(gL1, gL, atol=1e-10)
         np.testing.assert_allclose(gL2, gL, atol=1e-10)
 
     def test_complement(self, frame_bound=2.5):
@@ -350,3 +350,4 @@ class TestCase(unittest.TestCase):
 
 
 suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
+

@@ -182,6 +182,13 @@ Nearest-neighbors graphs constructed from point clouds
     Sensor
     Sphere
     TwoMoons
+    
+Learning graphs from data
+------------------------
+
+.. autosummary::
+
+    LearnedGraph
 
 """
 
@@ -223,4 +230,5 @@ _NNGRAPHS = [
 __all__ = _GRAPHS + _NNGRAPHS
 
 _utils.import_classes(_GRAPHS, 'graphs', 'graphs')
+from pygsp.graphs.learned import LearnedFromSmoothSignals
 _utils.import_classes(_NNGRAPHS, 'graphs.nngraphs', 'graphs')

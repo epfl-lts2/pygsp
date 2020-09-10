@@ -26,12 +26,12 @@ def build_logger(name):
         formatter = logging.Formatter(
             "%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s")
 
-        steam_handler = logging.StreamHandler()
-        steam_handler.setLevel(logging.DEBUG)
-        steam_handler.setFormatter(formatter)
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.DEBUG)
+        stream_handler.setFormatter(formatter)
 
         logger.setLevel(logging.DEBUG)
-        logger.addHandler(steam_handler)
+        logger.addHandler(stream_handler)
 
     return logger
 
@@ -91,7 +91,7 @@ def loadmat(path):
 
 def distanz(x, y=None):
     r"""
-    Calculate the distance between two colon vectors.
+    Calculate the distance between two vectors.
 
     Parameters
     ----------
@@ -115,19 +115,16 @@ def distanz(x, y=None):
            [2., 1., 0.]])
 
     """
-    try:
-        x.shape[1]
-    except IndexError:
-        x = x.reshape(1, x.shape[0])
+    if len(x.shape)<2:
+        x = np.expand_dims(x, axis=0)
 
     if y is None:
         y = x
-
+        diag_zero = True
     else:
-        try:
-            y.shape[1]
-        except IndexError:
-            y = y.reshape(1, y.shape[0])
+        diag_zero = False
+        if len(y.shape)<2:
+            y = np.expand_dims(y, axis=0)
 
     rx, cx = x.shape
     ry, cy = y.shape
@@ -142,7 +139,10 @@ def distanz(x, y=None):
 
     d = abs(np.kron(np.ones((cy, 1)), xx).T +
             np.kron(np.ones((cx, 1)), yy) - 2 * xy)
-
+    
+    if diag_zero:
+        # Remove diagonal errors
+        d = d-np.diag(np.diag(d))
     return np.sqrt(d)
 
 
