@@ -10,7 +10,8 @@ class ImgPatches(NNGraph):
 
     Extract a feature vector in the form of a patch for every pixel of an
     image, then construct a nearest-neighbor graph between these feature
-    vectors. The feature matrix, i.e. the patches, can be found in :attr:`Xin`.
+    vectors. The feature matrix, i.e., the patches, can be found in
+    :attr:`features`.
 
     Parameters
     ----------
@@ -39,9 +40,10 @@ class ImgPatches(NNGraph):
     >>> from skimage import data, img_as_float
     >>> img = img_as_float(data.camera()[::64, ::64])
     >>> G = graphs.ImgPatches(img, patch_shape=(3, 3))
-    >>> print('{} nodes ({} x {} pixels)'.format(G.Xin.shape[0], *img.shape))
+    >>> N, d = G.patches.shape
+    >>> print('{} nodes ({} x {} pixels)'.format(N, *img.shape))
     64 nodes (8 x 8 pixels)
-    >>> print('{} features per node'.format(G.Xin.shape[1]))
+    >>> print('{} features per node'.format(d))
     9 features per node
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
@@ -87,16 +89,16 @@ class ImgPatches(NNGraph):
         # Alternative: sklearn.feature_extraction.image.extract_patches_2d.
         #              sklearn has much less dependencies than skimage.
         try:
-            import skimage
+            from skimage.util import view_as_windows
         except Exception as e:
             raise ImportError('Cannot import skimage, which is needed to '
                               'extract patches. Try to install it with '
                               'pip (or conda) install scikit-image. '
                               'Original exception: {}'.format(e))
-        patches = skimage.util.view_as_windows(img, window_shape=window_shape)
-        patches = patches.reshape((h * w, r * c * d))
+        self.patches = view_as_windows(img, window_shape)
+        self.patches = self.patches.reshape((h * w, r * c * d))
 
-        super(ImgPatches, self).__init__(patches, **kwargs)
+        super(ImgPatches, self).__init__(self.patches, **kwargs)
 
     def _get_extra_repr(self):
         attrs = dict(patch_shape=self.patch_shape)

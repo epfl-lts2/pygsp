@@ -20,9 +20,10 @@ addons:
     - ubuntu-toolchain-r-test
     - sourceline: 'deb http://downloads.skewed.de/apt/trusty trusty universe'
     packages:
+    - libqt5gui5  # pyqt5>5.11 otherwise cannot load the xcb platform plugin
+    - libflann-dev
     - python3-graph-tool
     - python-graph-tool
-    - libqt5gui5  # pyqt5>5.11 fails to load the xcb platform plugin without it
 
 install:
   - pip install --upgrade pip setuptools wheel  # install with latest tools

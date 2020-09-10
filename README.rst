@@ -39,6 +39,15 @@ A (mostly unmaintained) `Matlab version <https://epfl-lts2.github.io/gspbox-html
 .. |conda| image:: https://anaconda.org/conda-forge/pygsp/badges/installer/conda.svg
    :target: https://anaconda.org/conda-forge/pygsp
 
+
+The PyGSP is a Python package to ease
+`Signal Processing on Graphs <https://arxiv.org/abs/1211.0053>`_.
+The documentation is available on
+`Read the Docs <https://pygsp.readthedocs.io>`_
+and development takes place on
+`GitHub <https://github.com/epfl-lts2/pygsp>`_.
+A (mostly unmaintained) `Matlab version <https://epfl-lts2.github.io/gspbox-html>`_ exists.
+
 The PyGSP facilitates a wide variety of operations on graphs, like computing
 their Fourier basis, filtering or interpolating signals, plotting graphs,
 signals, and filters. Its core is spectral graph theory, and many of the

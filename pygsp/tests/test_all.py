@@ -14,9 +14,11 @@ from pygsp.tests import test_utils
 from pygsp.tests import test_docstrings
 from pygsp.tests import test_plotting
 from pygsp.tests import test_learning
+from pygsp.tests import test_nearest_neighbor
 
 
 suites = []
+suites.append(test_nearest_neighbor.suite)
 suites.append(test_graphs.suite)
 suites.append(test_filters.suite)
 suites.append(test_utils.suite)

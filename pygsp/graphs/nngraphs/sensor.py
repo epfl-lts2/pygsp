@@ -75,9 +75,7 @@ class Sensor(NNGraph):
 
             coords = rs.uniform(0, 1, (N, 2))
 
-        super(Sensor, self).__init__(Xin=coords, k=k,
-                                     rescale=False, center=False,
-                                     plotting=plotting, **kwargs)
+        super(Sensor, self).__init__(coords, k=k, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         return {'k': self.k,

@@ -9,6 +9,7 @@ from __future__ import division
 
 import os
 import random
+
 import sys
 import unittest
 
@@ -16,11 +17,14 @@ import numpy as np
 import scipy.linalg
 from scipy import sparse
 import networkx as nx
-import graph_tool as gt
-import graph_tool.generation
 from skimage import data, img_as_float
 
 from pygsp import graphs
+
+import graph_tool as gt
+import graph_tool.generation
+
+
 
 
 class TestCase(unittest.TestCase):
@@ -448,6 +452,96 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('community2D')
         self.assertRaises(ValueError, G.set_coordinates, 'invalid')
 
+
+    def test_nngraph(self, n_vertices=24):
+        """Test all the combinations of metric, kind, backend."""
+        Graph = graphs.NNGraph
+        data = np.random.RandomState(42).uniform(size=(n_vertices, 3))
+        metrics = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
+        # Not testing , 'flann', 'nmslib' as they are tested in test_nearest_neighbor
+        backends = ['scipy-kdtree', 'scipy-ckdtree'] 
+
+        for metric in metrics:
+            for kind in ['knn', 'radius']:
+                params = dict(features=data, metric=metric, kind=kind, k=6)
+                ref = Graph(backend='scipy-pdist', **params)
+                for backend in backends:
+                    graph = Graph(**params)
+                    np.testing.assert_allclose(graph.W.toarray(),
+                                                   ref.W.toarray(), rtol=1e-5)
+
+        # Distances between points on a circle.
+        angles = [0, 2 * np.pi / n_vertices]
+        points = np.stack([np.cos(angles), np.sin(angles)], axis=1)
+        distance = np.linalg.norm(points[0] - points[1])
+        weight = np.exp(-np.log(2) * distance**2)
+        column = np.zeros(n_vertices)
+        column[1] = weight
+        column[-1] = weight
+        adjacency = scipy.linalg.circulant(column)
+        data = graphs.Ring(n_vertices).coords
+        for kind in ['knn', 'radius']:
+            for backend in backends + ['scipy-pdist']:
+                graph = Graph(data, kind=kind, k=2, radius=1.01*distance,
+                              kernel_width=1, backend=backend)
+                np.testing.assert_allclose(graph.W.toarray(), adjacency)
+
+        graph = Graph(data, kind='radius', radius='estimate')
+        np.testing.assert_allclose(graph.radius, np.sqrt(8 / n_vertices))
+        graph = Graph(data, kind='radius', k=2, radius='estimate-knn')
+        np.testing.assert_allclose(graph.radius, distance)
+
+        graph = Graph(data, standardize=True)
+        np.testing.assert_allclose(np.mean(graph.coords, axis=0), 0, atol=1e-7)
+        np.testing.assert_allclose(np.std(graph.coords, axis=0), 1)
+
+        # Invalid parameters.
+        self.assertRaises(ValueError, Graph, np.ones(n_vertices))
+        self.assertRaises(ValueError, Graph, np.ones((n_vertices, 3, 4)))
+        self.assertRaises(ValueError, Graph, data, metric='invalid')
+        self.assertRaises(ValueError, Graph, data, kind='invalid')
+        self.assertRaises(ValueError, Graph, data, kernel='invalid')
+        self.assertRaises(ValueError, Graph, data, backend='invalid')
+        self.assertRaises(ValueError, Graph, data, kind='knn', k=0)
+        self.assertRaises(ValueError, Graph, data, kind='knn', k=n_vertices)
+        self.assertRaises(ValueError, Graph, data, kind='radius', radius=0)
+
+        # Empty graph.
+        if sys.version_info > (3, 4):  # no assertLogs in python 2.7
+            for backend in backends + ['scipy-pdist']:
+                if backend == 'nmslib':
+                    continue  # nmslib doesn't support radius
+                with self.assertLogs(level='WARNING'):
+                    graph = Graph(data, kind='radius', radius=1e-9,
+                                  backend=backend)
+                self.assertEqual(graph.n_edges, 0)
+
+        # Backend parameters.
+        Graph(data, lap_type='normalized')
+        Graph(data, plotting=dict(vertex_size=10))
+        Graph(data, backend='flann', algorithm='kmeans')
+        Graph(data, backend='nmslib', method='vptree')
+        Graph(data, backend='nmslib', index=dict(post=2))
+        Graph(data, backend='nmslib', query=dict(efSearch=100))
+        for backend in ['scipy-kdtree', 'scipy-ckdtree']:
+            Graph(data, backend=backend, eps=1e-2)
+            Graph(data, backend=backend, leafsize=9)
+        self.assertRaises(ValueError, Graph, data, backend='scipy-pdist', a=0)
+
+        # Kernels.
+        for name, kernel in graphs.NNGraph._kernels.items():
+            similarity = 0 if name == 'rectangular' else 0.5
+            np.testing.assert_allclose(kernel(np.ones(10)), similarity)
+            np.testing.assert_allclose(kernel(np.zeros(10)), 1)
+        Graph(data, kernel=lambda d: d.min()/d)
+        if sys.version_info > (3, 4):  # no assertLogs in python 2.7
+            with self.assertLogs(level='WARNING'):
+                Graph(data, kernel=lambda d: 1/d)
+
+        # Attributes.
+        self.assertEqual(Graph(data, kind='knn').radius, None)
+        self.assertEqual(Graph(data, kind='radius').k, None)
+
     def test_line_graph(self):
         adjacency = [
             [0, 1, 1, 3],
@@ -491,24 +585,6 @@ class TestCase(unittest.TestCase):
         self.assertEqual(graph.signals['coords'].shape, (n_vertices, 2))
         self.assertIs(graph.lap_type, self._G.lap_type)
         self.assertEqual(graph.plotting, self._G.plotting)
-
-    def test_nngraph(self, n_vertices=30):
-        rs = np.random.RandomState(42)
-        Xin = rs.normal(size=(n_vertices, 3))
-        dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
-
-        for dist_type in dist_types:
-
-            # Only p-norms with 1<=p<=infinity permitted.
-            if dist_type != 'minkowski':
-                graphs.NNGraph(Xin, NNtype='radius', dist_type=dist_type)
-                graphs.NNGraph(Xin, NNtype='knn', dist_type=dist_type)
-
-            # Distance type unsupported in the C bindings,
-            # use the C++ bindings instead.
-            if dist_type != 'max_dist':
-                graphs.NNGraph(Xin, use_flann=True, NNtype='knn',
-                               dist_type=dist_type)
 
     def test_bunny(self):
         graphs.Bunny()
