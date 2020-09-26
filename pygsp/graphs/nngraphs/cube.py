@@ -16,9 +16,6 @@ class Cube(NNGraph):
         Dimension (default = 3)
     length : float
         Edge length (default = 1)
-    sampling : string
-        Variance of the distance kernel (default = 'random')
-        (Can now only be 'random')
     seed : int
         Seed for the random number generator (for reproducible graphs).
 
@@ -38,14 +35,12 @@ class Cube(NNGraph):
                  nb_pts=300,
                  nb_dim=3,
                  length=1,
-                 sampling='random',
                  seed=None,
                  **kwargs):
 
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
         self.length = length
-        self.sampling = sampling
         self.seed = seed
         rs = np.random.RandomState(seed)
 
@@ -55,35 +50,31 @@ class Cube(NNGraph):
         if self.nb_dim > 3:
             raise NotImplementedError("Dimension > 3 not supported yet!")
 
-        if self.sampling == "random":
-            if self.nb_dim == 2:
-                pts = rs.rand(self.nb_pts, self.nb_dim)
+        if self.nb_dim == 2:
+            pts = rs.rand(self.nb_pts, self.nb_dim)
 
-            elif self.nb_dim == 3:
-                n = self.nb_pts // 6
+        elif self.nb_dim == 3:
+            n = self.nb_pts // 6
 
-                pts = np.zeros((n*6, 3))
-                pts[:n, 1:] = rs.rand(n, 2)
-                pts[n:2*n, :] = np.concatenate((np.ones((n, 1)),
-                                                rs.rand(n, 2)),
-                                               axis=1)
+            pts = np.zeros((n*6, 3))
+            pts[:n, 1:] = rs.rand(n, 2)
+            pts[n:2*n, :] = np.concatenate((np.ones((n, 1)),
+                                            rs.rand(n, 2)),
+                                           axis=1)
 
-                pts[2*n:3*n, :] = np.concatenate((rs.rand(n, 1),
-                                                  np.zeros((n, 1)),
-                                                  rs.rand(n, 1)),
-                                                 axis=1)
-                pts[3*n:4*n, :] = np.concatenate((rs.rand(n, 1),
-                                                  np.ones((n, 1)),
-                                                  rs.rand(n, 1)),
-                                                 axis=1)
+            pts[2*n:3*n, :] = np.concatenate((rs.rand(n, 1),
+                                              np.zeros((n, 1)),
+                                              rs.rand(n, 1)),
+                                             axis=1)
+            pts[3*n:4*n, :] = np.concatenate((rs.rand(n, 1),
+                                              np.ones((n, 1)),
+                                              rs.rand(n, 1)),
+                                             axis=1)
 
-                pts[4*n:5*n, :2] = rs.rand(n, 2)
-                pts[5*n:6*n, :] = np.concatenate((rs.rand(n, 2),
-                                                  np.ones((n, 1))),
-                                                 axis=1)
-
-        else:
-            raise ValueError("Unknown sampling !")
+            pts[4*n:5*n, :2] = rs.rand(n, 2)
+            pts[5*n:6*n, :] = np.concatenate((rs.rand(n, 2),
+                                              np.ones((n, 1))),
+                                             axis=1)
 
         plotting = {
             'vertex_size': 80,
@@ -98,7 +89,6 @@ class Cube(NNGraph):
         attrs = {'length': '{:.2e}'.format(self.length),
                  'nb_pts': self.nb_pts,
                  'nb_dim': self.nb_dim,
-                 'sampling': self.sampling,
                  'seed': self.seed}
         attrs.update(super(Cube, self)._get_extra_repr())
         return attrs
