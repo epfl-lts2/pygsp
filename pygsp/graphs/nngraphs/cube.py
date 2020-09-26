@@ -12,12 +12,14 @@ class Cube(NNGraph):
     ----------
     nb_pts : int
         Number of vertices (default = 300)
-    nb_dim : int
-        Dimension (default = 3)
     length : float
         Edge length (default = 1)
     seed : int
         Seed for the random number generator (for reproducible graphs).
+
+    See Also
+    --------
+    Sensor : randomly sampled square
 
     Examples
     --------
@@ -33,13 +35,11 @@ class Cube(NNGraph):
 
     def __init__(self,
                  nb_pts=300,
-                 nb_dim=3,
                  length=1,
                  seed=None,
                  **kwargs):
 
         self.nb_pts = nb_pts
-        self.nb_dim = nb_dim
         self.length = length
         self.seed = seed
         rs = np.random.RandomState(seed)
@@ -47,34 +47,27 @@ class Cube(NNGraph):
         if length != 1:
             raise NotImplementedError('Only length=1 is implemented.')
 
-        if self.nb_dim > 3:
-            raise NotImplementedError("Dimension > 3 not supported yet!")
+        n = self.nb_pts // 6
 
-        if self.nb_dim == 2:
-            pts = rs.rand(self.nb_pts, self.nb_dim)
+        pts = np.zeros((n*6, 3))
+        pts[:n, 1:] = rs.rand(n, 2)
+        pts[n:2*n, :] = np.concatenate((np.ones((n, 1)),
+                                        rs.rand(n, 2)),
+                                       axis=1)
 
-        elif self.nb_dim == 3:
-            n = self.nb_pts // 6
+        pts[2*n:3*n, :] = np.concatenate((rs.rand(n, 1),
+                                          np.zeros((n, 1)),
+                                          rs.rand(n, 1)),
+                                         axis=1)
+        pts[3*n:4*n, :] = np.concatenate((rs.rand(n, 1),
+                                          np.ones((n, 1)),
+                                          rs.rand(n, 1)),
+                                         axis=1)
 
-            pts = np.zeros((n*6, 3))
-            pts[:n, 1:] = rs.rand(n, 2)
-            pts[n:2*n, :] = np.concatenate((np.ones((n, 1)),
-                                            rs.rand(n, 2)),
-                                           axis=1)
-
-            pts[2*n:3*n, :] = np.concatenate((rs.rand(n, 1),
-                                              np.zeros((n, 1)),
-                                              rs.rand(n, 1)),
-                                             axis=1)
-            pts[3*n:4*n, :] = np.concatenate((rs.rand(n, 1),
-                                              np.ones((n, 1)),
-                                              rs.rand(n, 1)),
-                                             axis=1)
-
-            pts[4*n:5*n, :2] = rs.rand(n, 2)
-            pts[5*n:6*n, :] = np.concatenate((rs.rand(n, 2),
-                                              np.ones((n, 1))),
-                                             axis=1)
+        pts[4*n:5*n, :2] = rs.rand(n, 2)
+        pts[5*n:6*n, :] = np.concatenate((rs.rand(n, 2),
+                                          np.ones((n, 1))),
+                                         axis=1)
 
         plotting = {
             'vertex_size': 80,
@@ -88,7 +81,6 @@ class Cube(NNGraph):
     def _get_extra_repr(self):
         attrs = {'length': '{:.2e}'.format(self.length),
                  'nb_pts': self.nb_pts,
-                 'nb_dim': self.nb_dim,
                  'seed': self.seed}
         attrs.update(super(Cube, self)._get_extra_repr())
         return attrs

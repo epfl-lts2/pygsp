@@ -61,9 +61,6 @@ class TestCase(unittest.TestCase):
             if classname == 'TwoMoons':
                 Gs.append(Graph(moontype='standard'))
                 Gs.append(Graph(moontype='synthesized'))
-            elif classname == 'Cube':
-                Gs.append(Graph(nb_dim=2))
-                Gs.append(Graph(nb_dim=3))
             elif classname == 'DavidSensorNet':
                 Gs.append(Graph(N=64))
                 Gs.append(Graph(N=500))
