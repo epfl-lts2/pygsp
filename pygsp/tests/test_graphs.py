@@ -485,7 +485,9 @@ class TestCase(unittest.TestCase):
         self.assertTrue(np.all(graph.coords <= 1))
 
     def test_sphere(self):
-        graphs.Sphere()
+        graph = graphs.Sphere(20, dim=4, radius=2.7)
+        self.assertTupleEqual(graph.coords.shape, (20, 4))
+        np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 2.7)
 
     def test_twomoons(self):
         graphs.TwoMoons(moontype='standard')
