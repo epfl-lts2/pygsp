@@ -12,8 +12,6 @@ class Cube(NNGraph):
     ----------
     nb_pts : int
         Number of vertices (default = 300)
-    length : float
-        Edge length (default = 1)
     seed : int
         Seed for the random number generator (for reproducible graphs).
 
@@ -35,17 +33,12 @@ class Cube(NNGraph):
 
     def __init__(self,
                  nb_pts=300,
-                 length=1,
                  seed=None,
                  **kwargs):
 
         self.nb_pts = nb_pts
-        self.length = length
         self.seed = seed
         rs = np.random.RandomState(seed)
-
-        if length != 1:
-            raise NotImplementedError('Only length=1 is implemented.')
 
         n = self.nb_pts // 6
 
@@ -79,8 +72,6 @@ class Cube(NNGraph):
         super(Cube, self).__init__(pts, k=10, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
-        attrs = {'length': '{:.2e}'.format(self.length),
-                 'nb_pts': self.nb_pts,
-                 'seed': self.seed}
+        attrs = {'seed': self.seed}
         attrs.update(super(Cube, self)._get_extra_repr())
         return attrs
