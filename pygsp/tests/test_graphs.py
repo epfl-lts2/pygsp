@@ -478,8 +478,11 @@ class TestCase(unittest.TestCase):
         graphs.Bunny()
 
     def test_cube(self):
-        graphs.Cube()
-        graphs.Cube(nb_dim=2)
+        self.assertEqual(graphs.Cube(60).n_vertices, 60)
+        self.assertEqual(graphs.Cube(65).n_vertices, 60)
+        graph = graphs.Cube(30)
+        self.assertTrue(np.all(graph.coords >= 0))
+        self.assertTrue(np.all(graph.coords <= 1))
 
     def test_sphere(self):
         graphs.Sphere()

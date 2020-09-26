@@ -6,12 +6,13 @@ from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
 
 class Cube(NNGraph):
-    r"""Hyper-cube (NN-graph).
+    r"""Randomly sampled cube.
 
     Parameters
     ----------
-    nb_pts : int
-        Number of vertices (default = 300)
+    N : int
+        Number of vertices (default = 300). Will be rounded to a multiple of 6,
+        for each face to have the same number of vertices.
     seed : int
         Seed for the random number generator (for reproducible graphs).
 
@@ -31,36 +32,20 @@ class Cube(NNGraph):
 
     """
 
-    def __init__(self,
-                 nb_pts=300,
-                 seed=None,
-                 **kwargs):
+    def __init__(self, N=300, seed=None, **kwargs):
 
-        self.nb_pts = nb_pts
         self.seed = seed
+
+        n = N // 6
         rs = np.random.RandomState(seed)
+        coords = rs.uniform(0, 1, (6*n, 3))
 
-        n = self.nb_pts // 6
-
-        pts = np.zeros((n*6, 3))
-        pts[:n, 1:] = rs.rand(n, 2)
-        pts[n:2*n, :] = np.concatenate((np.ones((n, 1)),
-                                        rs.rand(n, 2)),
-                                       axis=1)
-
-        pts[2*n:3*n, :] = np.concatenate((rs.rand(n, 1),
-                                          np.zeros((n, 1)),
-                                          rs.rand(n, 1)),
-                                         axis=1)
-        pts[3*n:4*n, :] = np.concatenate((rs.rand(n, 1),
-                                          np.ones((n, 1)),
-                                          rs.rand(n, 1)),
-                                         axis=1)
-
-        pts[4*n:5*n, :2] = rs.rand(n, 2)
-        pts[5*n:6*n, :] = np.concatenate((rs.rand(n, 2),
-                                          np.ones((n, 1))),
-                                         axis=1)
+        coords[0*n:1*n, 0] = np.zeros(n)  # face 1
+        coords[1*n:2*n, 0] = np.ones(n)  # face 2
+        coords[2*n:3*n, 1] = np.zeros(n)  # face 3
+        coords[3*n:4*n, 1] = np.ones(n)  # face 4
+        coords[4*n:5*n, 2] = np.zeros(n)  # face 5
+        coords[5*n:6*n, 2] = np.ones(n)  # face 6
 
         plotting = {
             'vertex_size': 80,
@@ -69,7 +54,7 @@ class Cube(NNGraph):
             'distance': 9,
         }
 
-        super(Cube, self).__init__(pts, k=10, plotting=plotting, **kwargs)
+        super(Cube, self).__init__(coords, k=10, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         attrs = {'seed': self.seed}
