@@ -45,7 +45,7 @@ class Sphere(NNGraph):
             'vertex_size': 80,
         }
 
-        super(Sphere, self).__init__(coords, k=10, plotting=plotting, **kwargs)
+        super(Sphere, self).__init__(coords, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         attrs = {

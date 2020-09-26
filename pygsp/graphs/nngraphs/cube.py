@@ -54,7 +54,7 @@ class Cube(NNGraph):
             'distance': 9,
         }
 
-        super(Cube, self).__init__(coords, k=10, plotting=plotting, **kwargs)
+        super(Cube, self).__init__(coords, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         attrs = {'seed': self.seed}
