@@ -4,6 +4,7 @@ import numpy as np
 
 from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
+
 def _import_hp():
     try:
         import healpy as hp
@@ -16,14 +17,28 @@ def _import_hp():
 
 
 class SphereHealpix(NNGraph):
-    r"""Spherical-shaped graph using HEALPix sampling scheme (NN-graph).
+    r"""Sphere sampled with an HEALPix scheme.
+
+    The Hierarchical Equal Area isoLatitude Pixelisation (HEALPix) [1]_ is a
+    sampling scheme for the sphere whose pixels
+    (1) have equal area, for white noise to remain white,
+    (2) are arranged on isolatitude rings, for an FFT to be computed per ring,
+    (3) is hierarchical, where each pixel is sub-divided into four pixels.
+    HEALPix is used in cosmology for cosmic microwave background (CMB) maps.
 
     Parameters
     ----------
-    Nside : int
-        Resolution of the sampling scheme. It should be a power of 2 (default = 1024)
+    nside : int
+        Controls the resolution of the sampling. It must be a power of 2.
+        The number of pixels is ``12*npix**2``, and the number of pixels around
+        the equator is ``4*nside``.
+    indexes : array_like of int
+        Indexes of the pixels from which to build a graph. Useful to build a
+        graph from a subset of the pixels, e.g., for partial sky observations.
     nest : bool
-        ordering of the pixels (default = True)
+        Whether to assume NESTED or RING pixel ordering (default RING).
+    kwargs : dict
+        Additional keyword parameters are passed to :class:`NNGraph`.
 
     See Also
     --------
@@ -31,119 +46,137 @@ class SphereHealpix(NNGraph):
 
     Notes
     -----
-    This graph us based on the HEALPix[1]_ sampling scheme mainly used by the cosmologist.
-    Heat Kernel Distance is used to find its weight matrix.
+    Edge weights are computed by :class:`NNGraph`. Gaussian kernel widths have
+    been optimized for some combinations of resolutions `nside` and number of
+    neighbors `k` for the convolutions on the resulting graph to be maximally
+    equivariant to rotation [2]_.
 
     References
     ----------
-    [1] K. M. Gorski et al., « HEALPix -- a Framework for High Resolution Discretization,
-    and Fast Analysis of Data Distributed on the Sphere », ApJ, vol. 622, nᵒ 2, p. 759‑771, avr. 2005.
+    .. [1] Gorski K. M., et al., "HEALPix: a Framework for High Resolution
+       Discretization and Fast Analysis of Data Distributed on the Sphere", The
+       Astrophysical Journal, 2005.
+    .. [2] Defferrard, Michaël, et al., "DeepSphere: a graph-based spherical
+       CNN", International Conference on Learning Representations (ICLR), 2019.
 
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> G = graphs.SphereHealpix(nside=4)
+    >>> G = graphs.SphereHealpix()
     >>> fig = plt.figure()
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')
     >>> _ = ax1.spy(G.W, markersize=1.5)
     >>> _ = _ = G.plot(ax=ax2)
 
+    Vertex orderings:
+
+    >>> import matplotlib.pyplot as plt
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> graph = graphs.SphereHealpix(nside=2, nest=False, k=8)
+    >>> graph.coords = np.stack([graph.signals['lon'], graph.signals['lat']]).T
+    >>> graph.plot(indices=True, ax=axes[0], title='RING ordering')
+    >>> graph = graphs.SphereHealpix(nside=2, nest=True, k=8)
+    >>> graph.coords = np.stack([graph.signals['lon'], graph.signals['lat']]).T
+    >>> graph.plot(indices=True, ax=axes[1], title='NESTED ordering')
+
     """
 
-    def __init__(self, indexes=None, nside=32, nest=True, kernel_width=None, n_neighbors=50, **kwargs):
+    def __init__(self, nside=2, indexes=None, nest=False, **kwargs):
         hp = _import_hp()
+
         self.nside = nside
         self.nest = nest
-        npix = hp.nside2npix(nside)
+
         if indexes is None:
+            npix = hp.nside2npix(nside)
             indexes = np.arange(npix)
+
         x, y, z = hp.pix2vec(nside, indexes, nest=nest)
-        self.lat, self.lon = hp.pix2ang(nside, indexes, nest=nest, lonlat=False)
         coords = np.vstack([x, y, z]).transpose()
         coords = np.asarray(coords, dtype=np.float32)
-        if n_neighbors is None:
-            n_neighbors = 6 if Nside==1 else 8
-            
-        self.opt_std = dict()
-        # TODO: find best interpolator between n_side and n_neighbors.
-        self.opt_std = dict()
-        self.opt_std[20] =  {
-                    1:    0.03185 * 32,  # extrapolated
-                    2:    0.03185 * 16,  # extrapolated
-                    4:    0.03185 * 8,  # extrapolated
-                    8:    0.03185 * 4,  # extrapolated
-                    16:   0.03185 * 2,  # extrapolated
-                    32:   0.03185,
-                    64:   0.01564,
-                    128:  0.00782,
-                    256:  0.00391,
-                    512:  0.00196,
-                    1024: 0.00098,
-                    2048: 0.00098 / 2,  # extrapolated
-        }
-        self.opt_std[40] =  {
-                    1:    0.042432 * 32,  # extrapolated
-                    2:    0.042432 * 16,  # extrapolated
-                    4:    0.042432 * 8,  # extrapolated
-                    8:    0.042432 * 4,  # extrapolated
-                    16:   0.042432 * 2,  # extrapolated
-                    32:   0.042432,
-                    64:   0.021354,
-                    128:  0.010595,
-                    256:  0.005551,  # seems a bit off
-                    #512:  0.003028,  # seems buggy
-                    512:  0.005551 / 2,  # extrapolated
-                    1024: 0.005551 / 4,  # extrapolated
-                    2048: 0.005551 / 8,  # extrapolated
-        }
-        self.opt_std[60] =  {
-                    1:    0.051720 * 32,  # extrapolated
-                    2:    0.051720 * 16,  # extrapolated
-                    4:    0.051720 * 8,  # extrapolated
-                    8:    0.051720 * 4,  # extrapolated
-                    16:   0.051720 * 2,  # extrapolated
-                    32:   0.051720,
-                    64:   0.025403,
-                    128:  0.012695,
-                    256:  0.006351,
-                    #512:  0.002493,  # seems buggy
-                    512:  0.006351 / 2,  # extrapolated
-                    1024: 0.006351 / 4,  # extrapolated
-                    2048: 0.006351 / 8,  # extrapolated
-        }
-        self.opt_std[8] = {
-                    1:    0.02500 * 32,  # extrapolated
-                    2:    0.02500 * 16,  # extrapolated
-                    4:    0.02500 * 8,  # extrapolated
-                    8:    0.02500 * 4,  # extrapolated
-                    16:   0.02500 * 2,  # extrapolated
-                    32:   0.02500,
-                    64:   0.01228,
-                    128:  0.00614,
-                    256:  0.00307,
-                    512:  0.00154,
-                    1024: 0.00077,
-                    2048: 0.00077 / 2,  # extrapolated
-        }
+
+        k = kwargs.pop('k', 20)
         try:
-            kernel_dict = self.opt_std[n_neighbors]
-        except:
-            raise ValueError('No sigma for number of neighbors {}'.format(n_neighbors))
-        try:
-            kernel_width = kernel_dict[nside]
-        except:
-            raise ValueError('Unknown sigma for nside {}'.format(nside))
-        ## TODO: check std
-    
-        ## TODO: n_neighbors in function of Nside
-        if len(indexes) <= n_neighbors:
-            n_neighbors = len(indexes)-1
-        
+            kernel_width = kwargs.pop('kernel_width')
+        except KeyError:
+            try:
+                kernel_width = _OPTIMAL_KERNEL_WIDTHS[k][nside]
+            except KeyError:
+                raise ValueError('No known optimal kernel width for {} '
+                                 'neighbors and nside={}.'.format(k, nside))
+
         plotting = {
             'vertex_size': 80,
-            "limits": np.array([-1, 1, -1, 1, -1, 1])
+            'limits': np.array([-1, 1, -1, 1, -1, 1])
         }
-        super(SphereHealpix, self).__init__(features=coords, k=n_neighbors,
-                                     kernel_width=kernel_width, plotting=plotting, **kwargs)
-        
+        super(SphereHealpix, self).__init__(coords, k=k,
+                                            kernel_width=kernel_width,
+                                            plotting=plotting, **kwargs)
+
+        lat, lon = hp.pix2ang(nside, indexes, nest=nest, lonlat=False)
+        self.signals['lat'] = lat - np.pi/2  # colatitude to latitude
+        self.signals['lon'] = lon
+
+
+# TODO: find an interpolation between nside and k (#neighbors).
+_OPTIMAL_KERNEL_WIDTHS = {
+    8: {
+        1:    0.02500 * 32,  # extrapolated
+        2:    0.02500 * 16,  # extrapolated
+        4:    0.02500 * 8,  # extrapolated
+        8:    0.02500 * 4,  # extrapolated
+        16:   0.02500 * 2,  # extrapolated
+        32:   0.02500,
+        64:   0.01228,
+        128:  0.00614,
+        256:  0.00307,
+        512:  0.00154,
+        1024: 0.00077,
+        2048: 0.00077 / 2,  # extrapolated
+    },
+    20: {
+        1:    0.03185 * 32,  # extrapolated
+        2:    0.03185 * 16,  # extrapolated
+        4:    0.03185 * 8,  # extrapolated
+        8:    0.03185 * 4,  # extrapolated
+        16:   0.03185 * 2,  # extrapolated
+        32:   0.03185,
+        64:   0.01564,
+        128:  0.00782,
+        256:  0.00391,
+        512:  0.00196,
+        1024: 0.00098,
+        2048: 0.00098 / 2,  # extrapolated
+    },
+    40: {
+        1:    0.042432 * 32,  # extrapolated
+        2:    0.042432 * 16,  # extrapolated
+        4:    0.042432 * 8,  # extrapolated
+        8:    0.042432 * 4,  # extrapolated
+        16:   0.042432 * 2,  # extrapolated
+        32:   0.042432,
+        64:   0.021354,
+        128:  0.010595,
+        256:  0.005551,  # seems a bit off
+        # 512:  0.003028,  # seems buggy
+        512:  0.005551 / 2,  # extrapolated
+        1024: 0.005551 / 4,  # extrapolated
+        2048: 0.005551 / 8,  # extrapolated
+    },
+    60: {
+        1:    0.051720 * 32,  # extrapolated
+        2:    0.051720 * 16,  # extrapolated
+        4:    0.051720 * 8,  # extrapolated
+        8:    0.051720 * 4,  # extrapolated
+        16:   0.051720 * 2,  # extrapolated
+        32:   0.051720,
+        64:   0.025403,
+        128:  0.012695,
+        256:  0.006351,
+        # 512:  0.002493,  # seems buggy
+        512:  0.006351 / 2,  # extrapolated
+        1024: 0.006351 / 4,  # extrapolated
+        2048: 0.006351 / 8,  # extrapolated
+    },
+}
