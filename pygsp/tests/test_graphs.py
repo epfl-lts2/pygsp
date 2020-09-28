@@ -489,6 +489,25 @@ class TestCase(unittest.TestCase):
         self.assertTupleEqual(graph.coords.shape, (20, 4))
         np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 2.7)
 
+    def _test_spheres(self, graph):
+        np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 1)
+        self.assertTrue(np.all(graph.signals['lon'] >= 0))
+        self.assertTrue(np.all(graph.signals['lon'] <= 2*np.pi))
+        self.assertTrue(np.all(graph.signals['lat'] >= -np.pi/2))
+        self.assertTrue(np.all(graph.signals['lat'] <= np.pi/2))
+
+    def test_sphere_healpix(self, nside=4):
+        graph = graphs.SphereHealpix(nside)
+        self.assertEqual(graph.n_vertices, 12*nside**2)
+        self._test_spheres(graph)
+        graphs.SphereHealpix(nside, k=20)
+        graphs.SphereHealpix(nside, k=21, kernel_width=0.1)
+        self.assertRaises(ValueError, graphs.SphereHealpix, nside=2, k=21)
+        graphs.SphereHealpix(nside=4, indexes=range(10), k=8)
+        graphs.SphereHealpix(nside, nest=True)
+        n_pixels_at_equator = np.sum(graph.coords[:, 2] == 0)
+        self.assertEqual(n_pixels_at_equator, 4*nside)
+
     def test_twomoons(self):
         graphs.TwoMoons(moontype='standard')
         graphs.TwoMoons(moontype='synthesized')
