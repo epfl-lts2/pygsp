@@ -7,17 +7,6 @@ from scipy import sparse
 from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
 
 
-def _import_hp():
-    try:
-        import healpy as hp
-    except Exception as e:
-        raise ImportError('Cannot import healpy. Choose another graph '
-                          'or try to install it with '
-                          'conda install healpy. '
-                          'Original exception: {}'.format(e))
-    return hp
-
-
 class SphereEquiangular(Graph):
     r"""Spherical-shaped graph using equirectangular sampling scheme.
 
@@ -33,8 +22,6 @@ class SphereEquiangular(Graph):
         * Clenshaw-Curtis use the quadrature of its name to find the position of the latitude rings
         * Gauss-Legendre use the quadrature of its name to find the position of the latitude rings
         * Optimal Dimensionality guarranty the use of a minimum number of pixels, different for each latitude ring
-    distance_type : {'euclidean', 'geodesic'}
-        type of distance use to compute edge weights (default = 'euclidean')
 
     See Also
     --------
@@ -96,7 +83,7 @@ class SphereEquiangular(Graph):
 
     """
     # TODO move OD in different file, as well as the cylinder
-    def __init__(self, bandwidth=64, sampling='SOFT', distance_type='euclidean', **kwargs):
+    def __init__(self, bandwidth=64, sampling='SOFT', **kwargs):
         if isinstance(bandwidth, int):
             bandwidth = (bandwidth, bandwidth)
         elif len(bandwidth)>2:
@@ -105,8 +92,6 @@ class SphereEquiangular(Graph):
         self.sampling = sampling
         if sampling not in ['Driscoll-Healy', 'SOFT', 'Clenshaw-Curtis', 'Gauss-Legendre']:
             raise ValueError('Unknown sampling type:' + sampling)
-        if distance_type not in ['geodesic', 'euclidean']:
-            raise ValueError('Unknown distance type value:' + distance_type)
 
         ## sampling and coordinates calculation
         if sampling == 'Driscoll-Healy':
@@ -202,14 +187,15 @@ class SphereEquiangular(Graph):
         col_index = col_index[keep]
         row_index = row_index[keep]
 
-        if distance_type == 'geodesic':
-            hp = _import_hp()
-            distances = np.zeros(len(row_index))
-            for i, (pos1, pos2) in enumerate(zip(coords[row_index], coords[col_index])):
-                d1, d2 = hp.rotator.vec2dir(pos1.T, lonlat=False).T, hp.rotator.vec2dir(pos2.T, lonlat=False).T
-                distances[i] = hp.rotator.angdist(d1, d2, lonlat=False)
-        else:
-            distances = np.sum((coords[row_index] - coords[col_index])**2, axis=1)
+        distances = np.sum((coords[row_index] - coords[col_index])**2, axis=1)
+        # Alternative: geodesic distances.
+        # Same in practice as the sphere is locally Euclidean.
+        # hp = _import_hp()
+        # distances = np.zeros(len(row_index))
+        # for i, (p1, p2) in enumerate(zip(coords[row_index], coords[col_index])):
+        #     d1 = hp.rotator.vec2dir(p1.T, lonlat=False).T
+        #     d2 = hp.rotator.vec2dir(p2.T, lonlat=False).T
+        #     distances[i] = hp.rotator.angdist(d1, d2, lonlat=False)
 
         # Compute similarities / edge weights.
         # kernel_width = np.mean(distances)
