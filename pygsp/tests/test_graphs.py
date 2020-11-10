@@ -484,17 +484,18 @@ class TestCase(unittest.TestCase):
         self.assertTrue(np.all(graph.coords >= 0))
         self.assertTrue(np.all(graph.coords <= 1))
 
-    def test_sphere(self):
-        graph = graphs.Sphere(20, dim=4, radius=2.7)
-        self.assertTupleEqual(graph.coords.shape, (20, 4))
-        np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 2.7)
-
-    def _test_spheres(self, graph):
+    def _test_sphere(self, graph):
         np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 1)
         self.assertTrue(np.all(graph.signals['lon'] >= 0))
         self.assertTrue(np.all(graph.signals['lon'] <= 2*np.pi))
         self.assertTrue(np.all(graph.signals['lat'] >= -np.pi/2))
         self.assertTrue(np.all(graph.signals['lat'] <= np.pi/2))
+
+    def test_sphere(self):
+        graph = graphs.Sphere(20, dim=4)
+        self.assertTupleEqual(graph.coords.shape, (20, 4))
+        np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 1)
+        self._test_sphere(graphs.Sphere())
 
     def test_sphere_healpix(self, nside=4):
         graph = graphs.SphereHealpix(nside)

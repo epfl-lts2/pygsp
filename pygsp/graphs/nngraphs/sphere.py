@@ -15,8 +15,6 @@ class Sphere(NNGraph):
         Number of vertices (default = 300).
     dim : int
         Dimensionality of the space the hypersphere is embedded in (default = 3).
-    radius : float
-        Radius of the sphere (default = 2)
     seed : int
         Seed for the random number generator (for reproducible graphs).
 
@@ -32,15 +30,14 @@ class Sphere(NNGraph):
 
     """
 
-    def __init__(self, N=300, dim=3, radius=1, seed=None, **kwargs):
+    def __init__(self, N=300, dim=3, seed=None, **kwargs):
 
         self.dim = dim
-        self.radius = radius
         self.seed = seed
 
         rs = np.random.RandomState(seed)
         coords = rs.normal(0, 1, (N, dim))
-        coords *= radius / np.linalg.norm(coords, axis=1)[:, np.newaxis]
+        coords /= np.linalg.norm(coords, axis=1)[:, np.newaxis]
 
         plotting = {
             'vertex_size': 80,
@@ -56,8 +53,7 @@ class Sphere(NNGraph):
     def _get_extra_repr(self):
         attrs = {
             'dim': self.dim,
-            'radius': '{:.2e}'.format(self.diameter),
-            'seed': self.seed
+            'seed': self.seed,
         }
         attrs.update(super(Sphere, self)._get_extra_repr())
         return attrs
