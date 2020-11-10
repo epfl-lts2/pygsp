@@ -441,11 +441,15 @@ class TestCase(unittest.TestCase):
         G.set_coordinates('spring', dim=3, pos=G.coords)
         G.set_coordinates('laplacian_eigenmap2D')
         G.set_coordinates('laplacian_eigenmap3D')
-        self.assertRaises(AttributeError, G.set_coordinates, 'community2D')
+        self.assertRaises(ValueError, G.set_coordinates, 'community2D')
+        self.assertRaises(ValueError, G.set_coordinates, 'sphere')
         G = graphs.Community()
         G.set_coordinates('community2D')
+        G = graphs.SphereHealpix()
+        G.set_coordinates('sphere', dim=2)
+        G.set_coordinates('sphere', dim=3)
+        self.assertRaises(ValueError, G.set_coordinates, 'sphere', 4)
         self.assertRaises(ValueError, G.set_coordinates, 'invalid')
-
 
     def test_subgraph(self, n_vertices=100):
         self._G.set_signal(self._G.coords, 'coords')
@@ -487,9 +491,15 @@ class TestCase(unittest.TestCase):
     def _test_sphere(self, graph):
         np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 1)
         self.assertTrue(np.all(graph.signals['lon'] >= 0))
-        self.assertTrue(np.all(graph.signals['lon'] <= 2*np.pi))
+        self.assertTrue(np.all(graph.signals['lon'] < 2*np.pi))
         self.assertTrue(np.all(graph.signals['lat'] >= -np.pi/2))
         self.assertTrue(np.all(graph.signals['lat'] <= np.pi/2))
+        coords = graph.coords
+        graph.set_coordinates('sphere', dim=2)
+        np.testing.assert_allclose(graph.coords[:, 0], graph.signals['lon'])
+        np.testing.assert_allclose(graph.coords[:, 1], graph.signals['lat'])
+        graph.set_coordinates('sphere', dim=3)
+        np.testing.assert_allclose(graph.coords, coords, atol=1e-7)
 
     def test_sphere(self):
         graph = graphs.Sphere(20, dim=4)

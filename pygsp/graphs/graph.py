@@ -271,7 +271,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
                 'is_not_square': is_not_square,
                 'diag_is_not_zero': diag_is_not_zero}
 
-    def set_coordinates(self, kind='spring', **kwargs):
+    def set_coordinates(self, kind='spring', dim=2, **kwargs):
         r"""Set node's coordinates (their position when plotting).
 
         Parameters
@@ -283,6 +283,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             algorithm. Available algorithms: community2D, random2D, random3D,
             ring2D, line1D, spring, laplacian_eigenmap2D, laplacian_eigenmap3D.
             Default is 'spring'.
+            * sphere: embed a sphere graph in 2D (spherical coordinates) or 3D.
         kwargs : dict
             Additional parameters to be passed to the Fruchterman-Reingold
             force-directed algorithm when kind is spring.
@@ -324,10 +325,21 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         elif kind == 'spring':
             self.coords = self._fruchterman_reingold_layout(**kwargs)
 
+        elif kind == 'sphere':
+            try:
+                lon, lat = self.signals['lon'], self.signals['lat']
+            except KeyError:
+                raise ValueError('Graph needs longitude and latitude signals.')
+            if dim == 2:
+                self.coords = np.stack([lon, lat], axis=1)
+            elif dim == 3:
+                self.coords = np.stack(utils.latlon2xyz(lat, lon), axis=1)
+            else:
+                raise ValueError('kind="sphere" only embeds in 2D or 3D.')
+
         elif kind == 'community2D':
-            if not hasattr(self, 'info') or 'node_com' not in self.info:
-                ValueError('Missing arguments to the graph to be able to '
-                           'compute community coordinates.')
+            if not hasattr(self, 'info') or ('node_com' not in self.info):
+                raise ValueError('Graph needs community attributes.')
 
             if 'world_rad' not in self.info:
                 self.info['world_rad'] = np.sqrt(self.N)
