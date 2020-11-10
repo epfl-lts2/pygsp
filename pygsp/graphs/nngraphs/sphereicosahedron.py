@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import scipy
 
 from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 from pygsp import utils
@@ -49,143 +50,60 @@ class SphereIcosahedron(NNGraph):
     >>> _ = _ = G.plot(ax=ax2)
 
     """
-    def __init__(self, level=5, sampling='vertex', **kwargs):
+    def __init__(self, subdivisions=2, dual=False, **kwargs):
 
-        if sampling not in ['vertex', 'face']:
-            raise ValueError('Unknown sampling value:' + sampling)
-        PHI = (1 + np.sqrt(5))/2
-        radius = np.sqrt(PHI**2+1)
-        coords = [-1, PHI, 0, 1, PHI, 0, -1, -PHI, 0, 1, -PHI, 0,
-                  0, -1, PHI, 0, 1, PHI, 0, -1, -PHI, 0, 1, -PHI,
-                  PHI, 0, -1, PHI, 0, 1, -PHI, 0, -1, -PHI, 0, 1]
-        coords = np.reshape(coords, (-1,3))
-        coords = coords/radius
-        faces = [0, 11, 5, 0, 5, 1, 0, 1, 7, 0, 7, 10, 0, 10, 11,
-                 1, 5, 9, 5, 11, 4, 11, 10, 2, 10, 7, 6, 7, 1, 8,
-                 3, 9, 4, 3, 4, 2, 3, 2, 6, 3, 6, 8, 3, 8, 9,
-                 4, 9, 5, 2, 4, 11, 6, 2, 10, 8, 6, 7, 9, 8, 1]
-        self.faces = np.reshape(faces, (20, 3))
-        self.level = level
-        self.intp = None
+        self.subdivisions = subdivisions
+        self.dual = dual
 
-        coords = self._upward(coords, self.faces)
-        self.coords = coords
+        # Vertices as the corners of three orthogonal golden planes.
+        φ = scipy.constants.golden_ratio
+        vertices = np.array([
+            [-1, φ, 0], [1, φ, 0], [-1, -φ, 0], [1, -φ, 0],
+            [0, -1, φ], [0, 1, φ], [0, -1, -φ], [0, 1, -φ],
+            [φ, 0, -1], [φ, 0, 1], [-φ, 0, -1], [-φ, 0, 1],
+        ]) / np.sqrt(φ**2+1)
+        faces = np.array([
+            # Faces around vertex 0.
+            [0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11],
+            # Adjacent faces.
+            [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8],
+            # Faces around vertex 3.
+            [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
+            # Adjacent faces.
+            [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1],
+        ])
 
         trimesh = _import_trimesh()
-        mesh = trimesh.Trimesh(coords, faces)
+        mesh = trimesh.Trimesh(vertices, faces)
 
         def normalize(vertices):
             """Project the vertices on the sphere."""
             vertices /= np.linalg.norm(vertices, axis=1)[:, None]
 
-        for i in range(level):
+        for _ in range(subdivisions):
             mesh = mesh.subdivide()
+            # TODO: shall we project between subdivisions? Some do, some don't.
+            # Projecting pushes points away from the 12 base vertices, which
+            # may make the point density more uniform.
+            # See "A Comparison of Popular Point Configurations on S^2".
             normalize(mesh.vertices)
 
-        if sampling=='face':
-            self.coords = self.coords[self.faces].mean(axis=1)
+        if not dual:
+            vertices = mesh.vertices
+        else:
+            vertices = mesh.vertices[mesh.faces].mean(axis=1)
+            normalize(vertices)
 
-        self.lat, self.lon = utils.xyz2latlon()
+        super(SphereIcosahedron, self).__init__(vertices, **kwargs)
 
-        self.npix = len(self.coords)
-        self.nf = 20 * 4**self.level
-        self.ne = 30 * 4**self.level
-        self.nv = self.ne - self.nf + 2
-        self.nv_prev = int((self.ne / 4) - (self.nf / 4) + 2)
-        self.nv_next = int((self.ne * 4) - (self.nf * 4) + 2)
+        lat, lon = utils.xyz2latlon(*vertices.T)
+        self.signals['lat'] = lat
+        self.signals['lon'] = lon
 
-        plotting = {
-            'vertex_size': 80,
-            "limits": np.array([-1, 1, -1, 1, -1, 1])
+    def _get_extra_repr(self):
+        attrs = {
+            'subdivisions': self.subdivisions,
+            'dual': self.dual,
         }
-
-        # change kind to 'radius', and add radius parameter. k will be ignored
-        neighbours = 3 if 'face' in sampling else (5 if level == 0 else 6)
-        super(SphereIcosahedron, self).__init__(self.coords, k=neighbours, plotting=plotting, **kwargs)
-
-    def _upward(self, V_ico, F_ico, ind=11):
-        V0 = V_ico[ind]
-        Z0 = np.array([0, 0, 1])
-        k = np.cross(V0, Z0)
-        ct = np.dot(V0, Z0)
-        st = -np.linalg.norm(k)
-        R = self._rot_matrix(k, ct, st)
-        V_ico = V_ico.dot(R)
-        # rotate a neighbor to align with (+y)
-        ni = self._find_neighbor(F_ico, ind)[0]
-        vec = V_ico[ni].copy()
-        vec[2] = 0
-        vec = vec/np.linalg.norm(vec)
-        y_ = np.eye(3)[1]
-
-        k = np.eye(3)[2]
-        crs = np.cross(vec, y_)
-        ct = -np.dot(vec, y_)
-        st = -np.sign(crs[-1])*np.linalg.norm(crs)
-        R2 = self._rot_matrix(k, ct, st)
-        V_ico = V_ico.dot(R2)
-        return V_ico
-
-    def _find_neighbor(self, F, ind):
-        """find a icosahedron neighbor of vertex i"""
-        FF = [F[i] for i in range(F.shape[0]) if ind in F[i]]
-        FF = np.concatenate(FF)
-        FF = np.unique(FF)
-        neigh = [f for f in FF if f != ind]
-        return neigh
-
-    def _rot_matrix(self, rot_axis, cos_t, sin_t):
-        k = rot_axis / np.linalg.norm(rot_axis)
-        I = np.eye(3)
-
-        R = []
-        for i in range(3):
-            v = I[i]
-            vr = v*cos_t+np.cross(k, v)*sin_t+k*(k.dot(v))*(1-cos_t)
-            R.append(vr)
-        R = np.stack(R, axis=-1)
-        return R
-
-    def _ico_rot_matrix(self, ind):
-        """
-        return rotation matrix to perform permutation corresponding to
-        moving a certain icosahedron node to the top
-        """
-        v0_ = self.v0.copy()
-        f0_ = self.f0.copy()
-        V0 = v0_[ind]
-        Z0 = np.array([0, 0, 1])
-
-        # rotate the point to the top (+z)
-        k = np.cross(V0, Z0)
-        ct = np.dot(V0, Z0)
-        st = -np.linalg.norm(k)
-        R = self._rot_matrix(k, ct, st)
-        v0_ = v0_.dot(R)
-
-        # rotate a neighbor to align with (+y)
-        ni = self._find_neighbor(f0_, ind)[0]
-        vec = v0_[ni].copy()
-        vec[2] = 0
-        vec = vec/np.linalg.norm(vec)
-        y_ = np.eye(3)[1]
-
-        k = np.eye(3)[2]
-        crs = np.cross(vec, y_)
-        ct = np.dot(vec, y_)
-        st = -np.sign(crs[-1])*np.linalg.norm(crs)
-
-        R2 = self._rot_matrix(k, ct, st)
-        return R.dot(R2)
-
-    def _rotseq(self, V, acc=9):
-        """sequence to move an original node on icosahedron to top"""
-        seq = []
-        for i in range(11):
-            Vr = V.dot(self._ico_rot_matrix(i))
-            # lexsort
-            s1 = np.lexsort(np.round(V.T, acc))
-            s2 = np.lexsort(np.round(Vr.T, acc))
-            s = s1[np.argsort(s2)]
-            seq.append(s)
-        return tuple(seq)
+        attrs.update(super(SphereIcosahedron, self)._get_extra_repr())
+        return attrs

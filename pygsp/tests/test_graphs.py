@@ -551,6 +551,22 @@ class TestCase(unittest.TestCase):
         self.assertRaises(NotImplementedError, graphs.SphereGaussLegendre,
                           reduced='glesp-equal-area')
 
+    def test_sphere_icosahedron(self, subdivisions=3):
+        n_faces = 20 * 4**subdivisions
+        n_edges = 30 * 4**subdivisions
+        n_vertices = n_edges - n_faces + 2
+        graph = graphs.SphereIcosahedron(subdivisions, kind='radius',
+                                         radius=1.6/2**subdivisions)
+        self.assertEqual(graph.n_vertices, n_vertices)
+        self.assertEqual(graph.n_edges, n_edges)
+        self._test_sphere(graph)
+        self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*2**subdivisions)
+        graph = graphs.SphereIcosahedron(subdivisions, dual=True, k=3)
+        self.assertEqual(graph.n_vertices, n_faces)
+        self.assertEqual(graph.n_edges, n_edges)
+        self._test_sphere(graph)
+        self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*2**subdivisions)
+
     def test_sphere_healpix(self, subdivisions=2):
         nside = 2**subdivisions
         graph = graphs.SphereHealpix(subdivisions)
