@@ -507,6 +507,24 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 1)
         self._test_sphere(graphs.Sphere())
 
+    def test_sphere_equiangular(self, size=7):
+        for poles in [0, 1, 2]:
+            graph = graphs.SphereEquiangular(size, poles)
+            self.assertEqual(graph.n_vertices, size**2)
+            self._test_sphere(graph)
+            graph = graphs.SphereEquiangular((size, 2*size), poles)
+            self.assertEqual(graph.n_vertices, 2*size**2)
+            self._test_sphere(graph)
+            # Vertices at poles: 0, 1, or 2 rings.
+            lat = graph.signals['lat']
+            self.assertEqual(np.sum(abs(lat) == np.pi/2), poles*2*size)
+            # Constant angle between vertices.
+            lat = graph.signals['lat'].reshape((size, -1))[:, 0]
+            dlat = np.pi/size if (poles != 2) else np.pi/(size-1)
+            np.testing.assert_allclose(lat[:-1] - lat[1:], dlat)
+            lon = graph.signals['lon'].reshape((size, -1))[0, :]
+            np.testing.assert_allclose(lon[1:] - lon[:-1], np.pi/size)
+
     def test_sphere_gausslegendre(self, nrings=11):
         graph = graphs.SphereGaussLegendre(nrings, reduced=False)
         self.assertEqual(graph.n_vertices, 2*nrings**2)

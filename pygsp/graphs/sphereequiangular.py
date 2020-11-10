@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import warnings
 import numpy as np
 from scipy import sparse
 
 from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
+from pygsp import utils
 
 
 class SphereEquiangular(Graph):
@@ -82,52 +82,28 @@ class SphereEquiangular(Graph):
     >>> ax4.set_zlim([0.5, 1.])
 
     """
-    # TODO move OD in different file, as well as the cylinder
-    def __init__(self, bandwidth=64, sampling='SOFT', **kwargs):
-        if isinstance(bandwidth, int):
-            bandwidth = (bandwidth, bandwidth)
-        elif len(bandwidth)>2:
-            raise ValueError('Cannot have more than two bandwidths')
-        self.bandwidth = bandwidth
-        self.sampling = sampling
-        if sampling not in ['Driscoll-Healy', 'SOFT', 'Clenshaw-Curtis', 'Gauss-Legendre']:
-            raise ValueError('Unknown sampling type:' + sampling)
+    def __init__(self, size=(4, 8), poles=0, **kwargs):
 
-        ## sampling and coordinates calculation
-        if sampling == 'Driscoll-Healy':
-            beta = np.arange(2 * bandwidth[0]) * np.pi / (2. * bandwidth[0])  # Driscoll-Heally
-            alpha = np.arange(2 * bandwidth[1]) * np.pi / bandwidth[1]
-        elif sampling == 'SOFT':  # SO(3) Fourier Transform optimal
-            beta = np.pi * (2 * np.arange(2 * bandwidth[0]) + 1) / (4. * bandwidth[0])
-            alpha = np.arange(2 * bandwidth[1]) * np.pi / bandwidth[1]
-        elif sampling == 'Clenshaw-Curtis':  # Clenshaw-Curtis
-            warnings.warn("The weight matrix may not be optimal for this sampling scheme as it was not tested.", UserWarning)
-            beta = np.linspace(0, np.pi, 2 * bandwidth[0] + 1)
-            alpha = np.linspace(0, 2 * np.pi, 2 * bandwidth[1] + 2, endpoint=False)
-        elif sampling == 'Gauss-Legendre':  # Gauss-legendre
-            warnings.warn("The weight matrix may not be optimal for this sampling scheme as it was not tested.", UserWarning)
-            try:
-                from numpy.polynomial.legendre import leggauss
-            except:
-                raise ImportError("cannot import legendre quadrature from numpy."
-                                  "Choose another sampling type or upgrade numpy.")
-            quad, _ = leggauss(bandwidth[0] + 1)  # TODO: leggauss docs state that this may not be only stable for orders > 100
-            beta = np.arccos(quad)
-            alpha = np.arange(2 * bandwidth[1] + 2) * np.pi / (bandwidth[1] + 1)
-        theta, phi = np.meshgrid(*(beta, alpha), indexing='ij')
-        self.lat, self.lon = theta-np.pi/2, phi
-        self.bwlat, self.bwlon = theta.shape
-        ct = np.cos(theta).flatten()
-        st = np.sin(theta).flatten()
-        cp = np.cos(phi).flatten()
-        sp = np.sin(phi).flatten()
-        x = st * cp
-        y = st * sp
-        z = ct
-        coords = np.vstack([x, y, z]).T
-        coords = np.asarray(coords, dtype=np.float32)
-        self.npix = len(coords)
+        if isinstance(size, int):
+            nlat, nlon = size, size
+        else:
+            nlat, nlon = size
 
+        self.nlat = nlat
+        self.nlon = nlon
+        self.poles = poles
+
+        lon = np.linspace(0, 2*np.pi, nlon, endpoint=False)
+        lat = np.linspace(np.pi/2, -np.pi/2, nlat, endpoint=(poles == 2))
+        if poles == 0:
+            lat -= np.pi/2/nlat
+
+        lat, lon = np.meshgrid(lat, lon, indexing='ij')
+        lat, lon = lat.flatten(), lon.flatten()
+        coords = np.stack(utils.latlon2xyz(lat, lon), axis=1)
+
+        self.npix = nlat*nlon
+        self.bwlon = nlon
         ## neighbors and weight matrix calculation
         def south(x):
             if x >= self.npix - self.bwlon:
@@ -206,38 +182,15 @@ class SphereEquiangular(Graph):
         W = sparse.csr_matrix(
             (weights, (row_index, col_index)), shape=(self.npix, self.npix), dtype=np.float32)
 
-        plotting = {"limits": np.array([-1, 1, -1, 1, -1, 1])}
         super(SphereEquiangular, self).__init__(adjacency=W, coords=coords,
-                                                plotting=plotting, **kwargs)
+                                                **kwargs)
 
+        self.signals['lat'] = lat
+        self.signals['lon'] = lon
 
-if __name__=='__main__':
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
-    G1 = SphereEquiangular(bandwidth=6, sampling='Driscoll-Healy')  # (384, 576)
-    G2 = SphereEquiangular(bandwidth=6, sampling='SOFT')
-    G3 = SphereEquiangular(bandwidth=6, sampling='Clenshaw-Curtis')
-    G4 = SphereEquiangular(bandwidth=6, sampling='Gauss-Legendre')
-    fig = plt.figure()
-    plt.subplots_adjust(wspace=1.)
-    ax1 = fig.add_subplot(221, projection='3d')
-    ax2 = fig.add_subplot(222, projection='3d')
-    ax3 = fig.add_subplot(223, projection='3d')
-    ax4 = fig.add_subplot(224, projection='3d')
-    _ = G1.plot(ax=ax1, title='Driscoll-Healy', vertex_size=10)
-    _ = G2.plot(ax=ax2, title='SOFT', vertex_size=10)
-    _ = G3.plot(ax=ax3, title='Clenshaw-Curtis', vertex_size=10)
-    _ = G4.plot(ax=ax4, title='Gauss-Legendre', vertex_size=10)
-    ax1.set_xlim([0, 1])
-    ax1.set_ylim([-1, 0.])
-    ax1.set_zlim([0.5, 1.])
-    ax2.set_xlim([0, 1])
-    ax2.set_ylim([-1, 0.])
-    ax2.set_zlim([0.5, 1.])
-    ax3.set_xlim([0, 1])
-    ax3.set_ylim([-1, 0.])
-    ax3.set_zlim([0.5, 1.])
-    ax4.set_xlim([0, 1])
-    ax4.set_ylim([-1, 0.])
-    ax4.set_zlim([0.5, 1.])
-    plt.show()
+    def _get_extra_repr(self):
+        return {
+            'nlat': self.nlat,
+            'nlon': self.nlon,
+            'poles': self.poles,
+        }
