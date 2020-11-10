@@ -3,6 +3,7 @@
 import numpy as np
 
 from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
+from pygsp import utils
 
 
 class Sphere(NNGraph):
@@ -46,6 +47,11 @@ class Sphere(NNGraph):
         }
 
         super(Sphere, self).__init__(coords, plotting=plotting, **kwargs)
+
+        if dim == 3:
+            lat, lon = utils.xyz2latlon(*coords.T)
+            self.signals['lat'] = lat
+            self.signals['lon'] = lon
 
     def _get_extra_repr(self):
         attrs = {

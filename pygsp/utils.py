@@ -345,6 +345,79 @@ def compute_log_scales(lmin, lmax, Nscales, t1=1, t2=2):
     return np.exp(np.linspace(np.log(scale_max), np.log(scale_min), Nscales))
 
 
+def latlon2xyz(lat, lon):
+    r"""
+    Convert latitude and longitude to 3D spherical coordinates.
+
+    Parameters
+    ----------
+    lat : array_like
+        Latitude in [-π/2, π/2].
+    lon : array_like
+        Longitude in [0, 2π[.
+
+    Returns
+    -------
+    x, y, z : :class:`numpy.ndarray`
+        3D coordinates.
+
+    See Also
+    --------
+    xyz2latlon : inverse transformation
+
+    Examples
+    --------
+    >>> utils.latlon2xyz(0, 0)
+    (1.0, 0.0, 0.0)
+    >>> utils.latlon2xyz(0, np.pi/2)
+    (6.123233995736766e-17, 1.0, 0.0)
+    >>> utils.latlon2xyz(np.pi/2, 0)
+    (6.123233995736766e-17, 0.0, 1.0)
+
+    """
+    coslat = np.cos(lat)
+    x = coslat * np.cos(lon)
+    y = coslat * np.sin(lon)
+    z = np.sin(lat)
+    return x, y, z
+
+
+def xyz2latlon(x, y, z):
+    r"""
+    Convert 3D spherical coordinates to latitude and longitude.
+
+    Parameters
+    ----------
+    x, y, z : array_like
+        3D coordinates.
+
+    Returns
+    -------
+    lat : :class:`numpy.ndarray`
+        Latitude in [-π/2, π/2].
+    lon : :class:`numpy.ndarray`
+        Longitude in [0, 2π[.
+
+    See Also
+    --------
+    latlon2xyz : inverse transformation
+
+    Examples
+    --------
+    >>> utils.xyz2latlon(1, 0, 0)
+    (0.0, 0.0)
+    >>> utils.xyz2latlon(0, 1, 0)
+    (0.0, 1.5707963267948966)
+    >>> utils.xyz2latlon(0, 0, 1)
+    (1.5707963267948966, 0.0)
+
+    """
+    lon = np.arctan2(y, x)
+    lon += (lon < 0) * 2*np.pi  # signed [-π,π] to unsigned [0,2π]
+    lat = np.arctan2(z, np.sqrt(x**2 + y**2))
+    return lat, lon
+
+
 def import_modules(names, src, dst):
     """Import modules in package."""
     for name in names:

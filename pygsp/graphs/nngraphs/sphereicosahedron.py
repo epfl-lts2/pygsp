@@ -3,6 +3,7 @@
 import numpy as np
 
 from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
+from pygsp import utils
 
 
 
@@ -67,7 +68,7 @@ class SphereIcosahedron(NNGraph):
         if sampling=='face':
             self.coords = self.coords[self.faces].mean(axis=1)
 
-        self.lat, self.lon = self.xyz2latlong()
+        self.lat, self.lon = utils.xyz2latlon()
 
         self.npix = len(self.coords)
         self.nf = 20 * 4**self.level
@@ -139,13 +140,6 @@ class SphereIcosahedron(NNGraph):
         unit = vectors / scalar.reshape((-1, 1))
         offset = radius - scalar
         self.coords += unit * offset.reshape((-1, 1))
-
-    def xyz2latlong(self):
-        x, y, z = self.coords[:, 0], self.coords[:, 1], self.coords[:, 2]
-        long = np.arctan2(y, x) + np.pi
-        xy2 = x**2 + y**2
-        lat = np.arctan2(z, np.sqrt(xy2))
-        return lat, long
 
     def _upward(self, V_ico, F_ico, ind=11):
         V0 = V_ico[ind]
