@@ -82,10 +82,11 @@ class SphereHealpix(NNGraph):
 
     """
 
-    def __init__(self, nside=2, indexes=None, nest=False, **kwargs):
+    def __init__(self, subdivisions=2, indexes=None, nest=False, **kwargs):
         hp = _import_hp()
 
-        self.nside = nside
+        nside = hp.order2nside(subdivisions)
+        self.subdivisions = subdivisions
         self.nest = nest
 
         if indexes is None:
@@ -93,8 +94,7 @@ class SphereHealpix(NNGraph):
             indexes = np.arange(npix)
 
         x, y, z = hp.pix2vec(nside, indexes, nest=nest)
-        coords = np.vstack([x, y, z]).transpose()
-        coords = np.asarray(coords, dtype=np.float32)
+        coords = np.stack([x, y, z], axis=1)
 
         k = kwargs.pop('k', 20)
         try:
@@ -106,17 +106,21 @@ class SphereHealpix(NNGraph):
                 raise ValueError('No known optimal kernel width for {} '
                                  'neighbors and nside={}.'.format(k, nside))
 
-        plotting = {
-            'vertex_size': 80,
-            'limits': np.array([-1, 1, -1, 1, -1, 1])
-        }
         super(SphereHealpix, self).__init__(coords, k=k,
                                             kernel_width=kernel_width,
-                                            plotting=plotting, **kwargs)
+                                            **kwargs)
 
         lat, lon = hp.pix2ang(nside, indexes, nest=nest, lonlat=False)
-        self.signals['lat'] = lat - np.pi/2  # colatitude to latitude
+        self.signals['lat'] = np.pi/2 - lat  # colatitude to latitude
         self.signals['lon'] = lon
+
+    def _get_extra_repr(self):
+        attrs = {
+            'subdivisions': self.subdivisions,
+            'nest': self.nest,
+        }
+        attrs.update(super(SphereHealpix, self)._get_extra_repr())
+        return attrs
 
 
 # TODO: find an interpolation between nside and k (#neighbors).

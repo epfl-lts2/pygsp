@@ -507,17 +507,17 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 1)
         self._test_sphere(graphs.Sphere())
 
-    def test_sphere_healpix(self, nside=4):
-        graph = graphs.SphereHealpix(nside)
+    def test_sphere_healpix(self, subdivisions=2):
+        nside = 2**subdivisions
+        graph = graphs.SphereHealpix(subdivisions)
         self.assertEqual(graph.n_vertices, 12*nside**2)
-        self._test_spheres(graph)
-        graphs.SphereHealpix(nside, k=20)
-        graphs.SphereHealpix(nside, k=21, kernel_width=0.1)
-        self.assertRaises(ValueError, graphs.SphereHealpix, nside=2, k=21)
-        graphs.SphereHealpix(nside=4, indexes=range(10), k=8)
-        graphs.SphereHealpix(nside, nest=True)
-        n_pixels_at_equator = np.sum(graph.coords[:, 2] == 0)
-        self.assertEqual(n_pixels_at_equator, 4*nside)
+        self._test_sphere(graph)
+        graphs.SphereHealpix(subdivisions, k=20)
+        graphs.SphereHealpix(subdivisions, k=21, kernel_width=0.1)
+        self.assertRaises(ValueError, graphs.SphereHealpix, subdivisions, k=21)
+        graphs.SphereHealpix(subdivisions, indexes=range(10), k=8)
+        graphs.SphereHealpix(subdivisions, nest=True)
+        self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*nside)
 
     def test_twomoons(self):
         graphs.TwoMoons(moontype='standard')
