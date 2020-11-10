@@ -489,6 +489,8 @@ class TestCase(unittest.TestCase):
         self.assertTrue(np.all(graph.coords <= 1))
 
     def _test_sphere(self, graph):
+        self.assertFalse(graph.is_directed())
+        self.assertTrue(graph.is_connected())
         np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 1)
         self.assertTrue(np.all(graph.signals['lon'] >= 0))
         self.assertTrue(np.all(graph.signals['lon'] < 2*np.pi))
@@ -511,9 +513,11 @@ class TestCase(unittest.TestCase):
         for poles in [0, 1, 2]:
             graph = graphs.SphereEquiangular(size, poles)
             self.assertEqual(graph.n_vertices, size**2)
+            self.assertEqual(graph.n_edges, 2*size**2-size-1)
             self._test_sphere(graph)
             graph = graphs.SphereEquiangular((size, 2*size), poles)
             self.assertEqual(graph.n_vertices, 2*size**2)
+            self.assertEqual(graph.n_edges, 4*size**2-2*size-1)
             self._test_sphere(graph)
             # Vertices at poles: 0, 1, or 2 rings.
             lat = graph.signals['lat']

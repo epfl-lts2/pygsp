@@ -92,6 +92,7 @@ class SphereEquiangular(Graph):
         self.nlat = nlat
         self.nlon = nlon
         self.poles = poles
+        npix = nlat*nlon
 
         lon = np.linspace(0, 2*np.pi, nlon, endpoint=False)
         lat = np.linspace(np.pi/2, -np.pi/2, nlat, endpoint=(poles == 2))
@@ -102,88 +103,21 @@ class SphereEquiangular(Graph):
         lat, lon = lat.flatten(), lon.flatten()
         coords = np.stack(utils.latlon2xyz(lat, lon), axis=1)
 
-        self.npix = nlat*nlon
-        self.bwlon = nlon
-        ## neighbors and weight matrix calculation
-        def south(x):
-            if x >= self.npix - self.bwlon:
-                return (x + self.bwlon//2) % self.bwlon + self.npix - self.bwlon
-            return x + self.bwlon
+        sources_vert = np.arange(0, npix-nlon)
+        targets_vert = np.arange(nlon, npix)
+        sources_horiz = np.arange(0, npix-1)
+        targets_horiz = np.arange(1, npix)
+        targets_horiz[nlon-1::nlon] -= nlon  # across meridian at 0
+        sources = np.concatenate([sources_vert, sources_horiz])
+        targets = np.concatenate([targets_vert, targets_horiz])
 
-        def north(x):
-            if x < self.bwlon:
-                return (x + self.bwlon//2)%self.bwlon
-            return x - self.bwlon
+        distances = np.linalg.norm((coords[sources] - coords[targets]), axis=1)
+        weights = 1 / distances
 
-        def west(x):
-            if x % self.bwlon < 1:
-                try:
-                    assert x//self.bwlon == (x-1+self.bwlon)//self.bwlon
-                except:
-                    raise
-                x += self.bwlon
-            else:
-                try:
-                    assert x//self.bwlon == (x-1)//self.bwlon
-                except:
-                    raise
-            return x - 1
+        adj = sparse.csr_matrix((weights, (sources, targets)), (npix, npix))
+        adj = utils.symmetrize(adj, 'maximum')
 
-        def east(x):
-            if x % self.bwlon >= self.bwlon-1:
-                try:
-                    assert x//self.bwlon == (x+1-self.bwlon)//self.bwlon
-                except:
-                    raise
-                x -= self.bwlon
-            else:
-                try:
-                    assert x//self.bwlon == (x+1)//self.bwlon
-                except:
-                    raise
-            return x + 1
-
-        col_index = []
-        for ind in range(self.npix):
-            # if neighbors==8:
-            #     neighbor = [south(west(ind)), west(ind), north(west(ind)), north(ind),
-            #                 north(east(ind)), east(ind), south(east(ind)), south(ind)]
-            # elif neighbors==4:
-            # if self.sampling == 'DH' and x < self.lon:
-            #     neighbor = []
-            neighbor = [west(ind), north(ind), east(ind), south(ind)]
-            # else:
-            #     neighbor = []
-            col_index += neighbor
-        col_index = np.asarray(col_index)
-        row_index = np.repeat(np.arange(self.npix), 4)
-
-        keep = (col_index < self.npix)
-        keep &= (col_index >= 0)
-        col_index = col_index[keep]
-        row_index = row_index[keep]
-
-        distances = np.sum((coords[row_index] - coords[col_index])**2, axis=1)
-        # Alternative: geodesic distances.
-        # Same in practice as the sphere is locally Euclidean.
-        # hp = _import_hp()
-        # distances = np.zeros(len(row_index))
-        # for i, (p1, p2) in enumerate(zip(coords[row_index], coords[col_index])):
-        #     d1 = hp.rotator.vec2dir(p1.T, lonlat=False).T
-        #     d2 = hp.rotator.vec2dir(p2.T, lonlat=False).T
-        #     distances[i] = hp.rotator.angdist(d1, d2, lonlat=False)
-
-        # Compute similarities / edge weights.
-        # kernel_width = np.mean(distances)
-
-        # weights = np.exp(-distances / (2 * kernel_width))
-        weights = 1/(distances+1e-8)   # TODO: find a better representation for sampling 'Driscoll-Heally'
-
-        W = sparse.csr_matrix(
-            (weights, (row_index, col_index)), shape=(self.npix, self.npix), dtype=np.float32)
-
-        super(SphereEquiangular, self).__init__(adjacency=W, coords=coords,
-                                                **kwargs)
+        super(SphereEquiangular, self).__init__(adj, coords=coords, **kwargs)
 
         self.signals['lat'] = lat
         self.signals['lon'] = lon
