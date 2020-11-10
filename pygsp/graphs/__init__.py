@@ -206,6 +206,7 @@ _NNGRAPHS = [
     'Grid2dImgPatches',
     'Sensor',
     'Sphere',
+    'SphereGaussLegendre',
     'SphereHealpix',
     'SphereIcosahedron',
     'TwoMoons'

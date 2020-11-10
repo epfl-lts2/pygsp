@@ -507,6 +507,32 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 1)
         self._test_sphere(graphs.Sphere())
 
+    def test_sphere_gausslegendre(self, nrings=11):
+        graph = graphs.SphereGaussLegendre(nrings, reduced=False)
+        self.assertEqual(graph.n_vertices, 2*nrings**2)
+        self._test_sphere(graph)
+        n_pixels_at_equator = np.sum(graph.coords[:, 2] == 0)
+        self.assertEqual(n_pixels_at_equator, 2*nrings)
+
+        graph = graphs.SphereGaussLegendre(10, reduced='ecmwf-octahedral')
+        self.assertEqual(graph.n_vertices, 280)
+        self._test_sphere(graph)
+        graph = graphs.SphereGaussLegendre(11, reduced='ecmwf-octahedral')
+        self.assertEqual(graph.n_vertices, 320)
+        self._test_sphere(graph)
+        self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*6+16)
+        # Comparison with an ECMWF table for O320.
+        graph = graphs.SphereGaussLegendre(640, reduced='ecmwf-octahedral')
+        lat = graph.signals['lat']
+        np.testing.assert_allclose(lat[:20]/np.pi*180, 89.784877, atol=1e-6)
+        np.testing.assert_allclose(lat[210000]/np.pi*180, 0.140515, atol=1e-6)
+
+        self.assertRaises(ValueError, graphs.SphereGaussLegendre, reduced='xx')
+        self.assertRaises(NotImplementedError, graphs.SphereGaussLegendre,
+                          reduced='glesp')
+        self.assertRaises(NotImplementedError, graphs.SphereGaussLegendre,
+                          reduced='glesp-equal-area')
+
     def test_sphere_healpix(self, subdivisions=2):
         nside = 2**subdivisions
         graph = graphs.SphereHealpix(subdivisions)
