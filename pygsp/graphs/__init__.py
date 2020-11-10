@@ -169,8 +169,18 @@ Nearest-neighbors graphs constructed from point clouds
     ImgPatches
     Grid2dImgPatches
     Sensor
-    Sphere
     TwoMoons
+
+Pixelizations of the sphere
+---------------------------
+
+.. autosummary::
+
+    SphereEquiangular
+    SphereGaussLegendre
+    SphereIcosahedron
+    SphereHealpix
+    Sphere
 
 """
 
