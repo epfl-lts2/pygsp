@@ -17,21 +17,15 @@ def _import_hp():
 
 
 class SphereHealpix(NNGraph):
-    r"""Sphere sampled with an HEALPix scheme.
+    r"""Sphere sampled with the HEALPix scheme.
 
-    The Hierarchical Equal Area isoLatitude Pixelisation (HEALPix) [1]_ is a
-    sampling scheme for the sphere whose pixels
-    (1) have equal area, for white noise to remain white,
-    (2) are arranged on isolatitude rings, for an FFT to be computed per ring,
-    (3) is hierarchical, where each pixel is sub-divided into four pixels.
-    HEALPix is used in cosmology for cosmic microwave background (CMB) maps.
+    Background information is found at :doc:`/background/spherical_samplings`.
 
     Parameters
     ----------
-    nside : int
-        Controls the resolution of the sampling. It must be a power of 2.
-        The number of pixels is ``12*npix**2``, and the number of pixels around
-        the equator is ``4*nside``.
+    subdivisions : int
+        Number of recursive subdivisions. Known as ``order`` in HEALPix
+        terminology, with ``nside=2**order`` and ``npix=12*4**order``.
     indexes : array_like of int
         Indexes of the pixels from which to build a graph. Useful to build a
         graph from a subset of the pixels, e.g., for partial sky observations.
@@ -40,49 +34,59 @@ class SphereHealpix(NNGraph):
     kwargs : dict
         Additional keyword parameters are passed to :class:`NNGraph`.
 
+    Attributes
+    ----------
+    signals : dict
+        Vertex position as latitude ``'lat'`` in [-π/2,π/2] and longitude
+        ``'lon'`` in [0,2π[.
+
     See Also
     --------
-    SphereEquiangular, SphereIcosahedron
+    SphereEquiangular, SphereGaussLegendre : based on quadrature theorems
+    SphereIcosahedron : based on subdivided polyhedra
+    SphereRandom : random uniform sampling
 
     Notes
     -----
     Edge weights are computed by :class:`NNGraph`. Gaussian kernel widths have
-    been optimized for some combinations of resolutions `nside` and number of
+    been optimized for some combinations of resolutions `nlat` and number of
     neighbors `k` for the convolutions on the resulting graph to be maximally
     equivariant to rotation [2]_.
 
     References
     ----------
-    .. [1] Gorski K. M., et al., "HEALPix: a Framework for High Resolution
-       Discretization and Fast Analysis of Data Distributed on the Sphere", The
-       Astrophysical Journal, 2005.
-    .. [2] Defferrard, Michaël, et al., "DeepSphere: a graph-based spherical
-       CNN", International Conference on Learning Representations (ICLR), 2019.
+    .. [1] K. M. Gorski et al., HEALPix: a Framework for High Resolution
+       Discretization and Fast Analysis of Data Distributed on the Sphere,
+       2005.
+    .. [2] M. Defferrard et al., DeepSphere: a graph-based spherical CNN, 2019.
 
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> G = graphs.SphereHealpix()
+    >>> G = graphs.SphereHealpix(1, k=8)
     >>> fig = plt.figure()
-    >>> ax1 = fig.add_subplot(121)
-    >>> ax2 = fig.add_subplot(122, projection='3d')
+    >>> ax1 = fig.add_subplot(131)
+    >>> ax2 = fig.add_subplot(132, projection='3d')
+    >>> ax3 = fig.add_subplot(133)
     >>> _ = ax1.spy(G.W, markersize=1.5)
-    >>> _ = _ = G.plot(ax=ax2)
+    >>> _ = G.plot(ax=ax2)
+    >>> G.set_coordinates('sphere', dim=2)
+    >>> _ = G.plot(ax=ax3, indices=True)
 
     Vertex orderings:
 
     >>> import matplotlib.pyplot as plt
     >>> fig, axes = plt.subplots(1, 2)
-    >>> graph = graphs.SphereHealpix(nside=2, nest=False, k=8)
-    >>> graph.coords = np.stack([graph.signals['lon'], graph.signals['lat']]).T
-    >>> graph.plot(indices=True, ax=axes[0], title='RING ordering')
-    >>> graph = graphs.SphereHealpix(nside=2, nest=True, k=8)
-    >>> graph.coords = np.stack([graph.signals['lon'], graph.signals['lat']]).T
-    >>> graph.plot(indices=True, ax=axes[1], title='NESTED ordering')
+    >>> graph = graphs.SphereHealpix(1, nest=False, k=8)
+    >>> graph.set_coordinates('sphere', dim=2)
+    >>> _ = graph.plot(indices=True, ax=axes[0], title='RING ordering')
+    >>> graph = graphs.SphereHealpix(1, nest=True, k=8)
+    >>> graph.set_coordinates('sphere', dim=2)
+    >>> _ = graph.plot(indices=True, ax=axes[1], title='NESTED ordering')
 
     """
 
-    def __init__(self, subdivisions=2, indexes=None, nest=False, **kwargs):
+    def __init__(self, subdivisions=1, indexes=None, nest=False, **kwargs):
         hp = _import_hp()
 
         nside = hp.order2nside(subdivisions)

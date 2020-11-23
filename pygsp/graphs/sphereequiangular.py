@@ -8,78 +8,79 @@ from pygsp import utils
 
 
 class SphereEquiangular(Graph):
-    r"""Spherical-shaped graph using equirectangular sampling scheme.
+    r"""Sphere sampled with an equiangular scheme.
+
+    Background information is found at :doc:`/background/spherical_samplings`.
 
     Parameters
     ----------
-    bandwidth : int or list or tuple
-        Resolution of the sampling scheme, corresponding to the bandwidth (latitude, latitude).
-        Use a list or tuple to have a different resolution for latitude and longitude (default = 64)
-    sampling : {'Driscoll-Heally', 'SOFT', 'Clenshaw-Curtis', 'Gauss-Legendre'}
-        sampling scheme (default = 'SOFT')
-        * Driscoll-Healy is the original sampling scheme of the sphere
-        * SOFT is an upgraded version without the poles
-        * Clenshaw-Curtis use the quadrature of its name to find the position of the latitude rings
-        * Gauss-Legendre use the quadrature of its name to find the position of the latitude rings
-        * Optimal Dimensionality guarranty the use of a minimum number of pixels, different for each latitude ring
+    size : int or (int, int)
+        Size of the discretization in latitude and longitude ``(nlat, nlon)``.
+        ``nlat`` is the number of isolatitude (longitudinal) rings.
+        ``nlon`` is the number of vertices (pixels) per ring.
+        The total number of vertices is ``nlat*nlon``.
+        ``nlat=nlon`` if only one number is given.
+    poles : {0, 1, 2}
+        Whether to sample 0, 1, or the 2 poles:
+        0: nearest rings at ``dlat/2`` from both poles (``dlat=π/nlat``),
+        1: ring at a pole, ring at ``dlat`` from other pole (``dlat=π/nlat``),
+        2: rings at both poles (``dlat=π/(nlat-1)``).
+
+    Attributes
+    ----------
+    signals : dict
+        Vertex position as latitude ``'lat'`` in [-π/2,π/2] and longitude
+        ``'lon'`` in [0,2π[.
 
     See Also
     --------
-    SphereHealpix, SphereIcosahedron
+    SphereGaussLegendre : based on quadrature theorems
+    SphereIcosahedron, SphereHealpix : based on subdivided polyhedra
+    SphereRandom : random uniform sampling
 
     Notes
     ------
-    Driscoll-Heally is the original sampling scheme of the sphere [1]
-    SOFT is an updated sampling scheme, without the poles[2]
-    Clenshaw-Curtis is [3]
-    Gauss-Legendre is [4]
-    The weight matrix is designed following [5]_
+    Edge weights are computed as the reciprocal of the distances between
+    vertices [6]_. This yields a graph convolution that is equivariant to
+    longitudinal and latitudinal rotations, but not general rotations [7]_.
 
     References
     ----------
-    [1] J. R. Driscoll et D. M. Healy, « Computing Fourier Transforms and Convolutions on the 2-Sphere »,
-    Advances in Applied Mathematics, vol. 15, no. 2, pp. 202‑250, June 1994.
-    [2] D. M. Healy, D. N. Rockmore, P. J. Kostelec, et S. Moore, « FFTs for the 2-Sphere-Improvements
-    and Variations », Journal of Fourier Analysis and Applications, vol. 9, no. 4, pp. 341‑385, Jul. 2003.
-    [3] D. Hotta and M. Ujiie, ‘A nestable, multigrid-friendly grid on a sphere for global spectral models
-    based on Clenshaw-Curtis quadrature’, Q J R Meteorol Soc, vol. 144, no. 714, pp. 1382–1397, Jul. 2018.
-    [4] J. Keiner et D. Potts, « Fast evaluation of quadrature formulae on the sphere »,
-    Math. Comp., vol. 77, no. 261, pp. 397‑419, Jan. 2008.
-    [5] P. Frossard and R. Khasanova, ‘Graph-Based Classification of Omnidirectional Images’,
-    in 2017 IEEE International Conference on Computer Vision Workshops (ICCVW), Venice, Italy, 2017, pp. 860–869.
-    [6] Z. Khalid, R. A. Kennedy, et J. D. McEwen, « An Optimal-Dimensionality Sampling Scheme
-    on the Sphere with Fast Spherical Harmonic Transforms », IEEE Transactions on Signal Processing,
-    vol. 62, no. 17, pp. 4597‑4610, Sept. 2014.
+    .. [1] J. R. Driscoll et D. M. Healy, Computing Fourier Transforms and
+       Convolutions on the 2-Sphere, 1994.
+    .. [2] D. M. Healy et al., FFTs for the 2-Sphere-Improvements and
+       Variations, 2003.
+    .. [3] W. Skukowsky, A quadrature formula over the sphere with application
+       to high resolution spherical harmonic analysis, 1986.
+    .. [4] J. Keiner and D. Potts, Fast evaluation of quadrature formulae on
+       the sphere, 2008.
+    .. [5] J. D. McEwen and Y. Wiaux, A novel sampling theorem on the sphere,
+       2011.
+    .. [6] R. Khasanova and P. Frossard, Graph-Based Classification of
+       Omnidirectional Images, 2017.
+    .. [7] M. Defferrard et al., DeepSphere: a graph-based spherical CNN, 2019.
 
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> G1 = graphs.SphereEquiangular(bandwidth=6, sampling='Driscoll-Healy')
-    >>> G2 = graphs.SphereEquiangular(bandwidth=6, sampling='SOFT')
-    >>> G3 = graphs.SphereEquiangular(bandwidth=6, sampling='Clenshaw-Curtis')
-    >>> G4 = graphs.SphereEquiangular(bandwidth=6, sampling='Gauss-Legendre')
+    >>> G = graphs.SphereEquiangular()
     >>> fig = plt.figure()
-    >>> plt.subplots_adjust(wspace=1.)
-    >>> ax1 = fig.add_subplot(221, projection='3d')
-    >>> ax2 = fig.add_subplot(222, projection='3d')
-    >>> ax3 = fig.add_subplot(223, projection='3d')
-    >>> ax4 = fig.add_subplot(224, projection='3d')
-    >>> _ = G1.plot(ax=ax1, title='Driscoll-Healy', vertex_size=10)
-    >>> _ = G2.plot(ax=ax2, title='SOFT', vertex_size=10)
-    >>> _ = G3.plot(ax=ax3, title='Clenshaw-Curtis', vertex_size=10)
-    >>> _ = G4.plot(ax=ax4, title='Gauss-Legendre', vertex_size=10)
-    >>> ax1.set_xlim([0, 1])
-    >>> ax1.set_ylim([-1, 0.])
-    >>> ax1.set_zlim([0.5, 1.])
-    >>> ax2.set_xlim([0, 1])
-    >>> ax2.set_ylim([-1, 0.])
-    >>> ax2.set_zlim([0.5, 1.])
-    >>> ax3.set_xlim([0, 1])
-    >>> ax3.set_ylim([-1, 0.])
-    >>> ax3.set_zlim([0.5, 1.])
-    >>> ax4.set_xlim([0, 1])
-    >>> ax4.set_ylim([-1, 0.])
-    >>> ax4.set_zlim([0.5, 1.])
+    >>> ax1 = fig.add_subplot(131)
+    >>> ax2 = fig.add_subplot(132, projection='3d')
+    >>> ax3 = fig.add_subplot(133)
+    >>> _ = ax1.spy(G.W, markersize=1.5)
+    >>> _ = G.plot(ax=ax2)
+    >>> G.set_coordinates('sphere', dim=2)
+    >>> _ = G.plot(ax=ax3, indices=True)
+
+    Sampling of the poles:
+
+    >>> import matplotlib.pyplot as plt
+    >>> fig = plt.figure()
+    >>> for i in range(3):
+    ...     graph = graphs.SphereEquiangular(poles=i)
+    ...     ax = fig.add_subplot(1, 3, i+1, projection='3d')
+    ...     _ = graph.plot(title=f'poles={i}', ax=ax)
 
     """
     def __init__(self, size=(4, 8), poles=0, **kwargs):

@@ -19,38 +19,71 @@ def _import_trimesh():
 
 
 class SphereIcosahedron(NNGraph):
-    r"""Spherical-shaped graph based on the projection of the icosahedron (NN-graph).
-    Code inspired by Max Jiang [https://github.com/maxjiang93/ugscnn/blob/master/meshcnn/mesh.py]
+    r"""Sphere sampled as a subdivided icosahedron.
+
+    Background information is found at :doc:`/background/spherical_samplings`.
 
     Parameters
     ----------
-    level : int
-        Resolution of the sampling scheme, or how many times the faces are divided (default = 5)
-    sampling : string
-        What the pixels represent. Either a vertex or a face (default = 'vertex')
+    subdivisions : int
+        Number of recursive subdivisions.
+    dual : bool
+        Whether the graph vertices correspond to the vertices (``dual=False``)
+        or the triangular faces (``dual=True``) of the subdivided icosahedron.
+    kwargs : dict
+        Additional keyword parameters are passed to :class:`NNGraph`.
+
+    Attributes
+    ----------
+    signals : dict
+        Vertex position as latitude ``'lat'`` in [-π/2,π/2] and longitude
+        ``'lon'`` in [0,2π[.
 
     See Also
     --------
-    SphereDodecahedron, SphereHealpix, SphereEquiangular
+    SphereEquiangular, SphereGaussLegendre : based on quadrature theorems
+    SphereHealpix : based on subdivided polyhedra
+    SphereRandom : random uniform sampling
 
     Notes
-    ------
-    The icosahedron is the dual of the dodecahedron. Thus the pixels in this graph represent either the vertices \
-    of the icosahedron, or the faces of the dodecahedron.
+    -----
+    Edge weights are computed by :class:`NNGraph`. Gaussian kernel widths have
+    however not been optimized for convolutions on the resulting graph to be
+    maximally equivariant to rotation [3]_.
+
+    References
+    ----------
+    .. [1] https://sinestesia.co/blog/tutorials/python-icospheres/
+    .. [2] M. Tegmark, An icosahedron-based method for pixelizing the celestial
+       sphere, 1996.
+    .. [3] M. Defferrard et al., DeepSphere: a graph-based spherical CNN, 2019.
 
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> from mpl_toolkits.mplot3d import Axes3D
-    >>> G = graphs.SphereIcosahedron(level=1)
+    >>> G = graphs.SphereIcosahedron()
     >>> fig = plt.figure()
-    >>> ax1 = fig.add_subplot(121)
-    >>> ax2 = fig.add_subplot(122, projection='3d')
+    >>> ax1 = fig.add_subplot(131)
+    >>> ax2 = fig.add_subplot(132, projection='3d')
+    >>> ax3 = fig.add_subplot(133)
     >>> _ = ax1.spy(G.W, markersize=1.5)
-    >>> _ = _ = G.plot(ax=ax2)
+    >>> _ = G.plot(ax=ax2)
+    >>> G.set_coordinates('sphere', dim=2)
+    >>> _ = G.plot(ax=ax3, indices=True)
+
+    Primal and dual polyhedrons:
+
+    >>> import matplotlib.pyplot as plt
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> graph = graphs.SphereIcosahedron(0, dual=False, k=5)
+    >>> graph.set_coordinates('sphere', dim=2)
+    >>> _ = graph.plot(indices=True, ax=axes[0], title='Icosahedron')
+    >>> graph = graphs.SphereIcosahedron(0, dual=True, k=3)
+    >>> graph.set_coordinates('sphere', dim=2)
+    >>> _ = graph.plot(indices=True, ax=axes[1], title='Dodecahedron')
 
     """
-    def __init__(self, subdivisions=2, dual=False, **kwargs):
+    def __init__(self, subdivisions=1, dual=False, **kwargs):
 
         self.subdivisions = subdivisions
         self.dual = dual

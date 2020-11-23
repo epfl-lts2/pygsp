@@ -7,7 +7,71 @@ from pygsp import utils
 
 
 class SphereGaussLegendre(NNGraph):
-    r"""Sphere sampled with a Gauss-Legendre scheme.
+    r"""Sphere sampled with a Gauss–Legendre scheme.
+
+    Background information is found at :doc:`/background/spherical_samplings`.
+
+    Parameters
+    ----------
+    nlat : int
+        Number of isolatitude (longitudinal) rings.
+    reduced : {False, 'ecmwf-octahedral'}
+        If ``False``, there are ``2*nlat`` pixels per ring.
+        If ``'ecmwf-octahedral'``, there are ``4*i+16`` pixels per ring, where
+        ``i`` is the ring number from 1 (nearest to the poles) to ``nlat/2``
+        (nearest to the equator).
+    kwargs : dict
+        Additional keyword parameters are passed to :class:`NNGraph`.
+
+    Attributes
+    ----------
+    signals : dict
+        Vertex position as latitude ``'lat'`` in [-π/2,π/2] and longitude
+        ``'lon'`` in [0,2π[.
+
+    See Also
+    --------
+    SphereEquiangular : based on quadrature theorems
+    SphereIcosahedron, SphereHealpix : based on subdivided polyhedra
+    SphereRandom : random uniform sampling
+
+    Notes
+    -----
+    Edge weights are computed by :class:`NNGraph`. Gaussian kernel widths have
+    however not been optimized for convolutions on the resulting graph to be
+    maximally equivariant to rotation [8]_.
+
+    The ECMWF's Integrated Forecast System (IFS) O320 grid is instantiated as
+    ``SphereGaussLegendre(640, reduced='ecmwf-octahedral')`` [6]_ [7]_.
+
+    References
+    ----------
+    .. [1] M. H. Payne, Truncation effects in geopotential modelling, 1971.
+    .. [2] A. G. Doroshkevich et al., Gauss–Legendre sky pixelization (GLESP)
+       for CMB maps, 2005.
+    .. [3] N Schaeffer, Efficient spherical harmonic transforms aimed at
+       pseudospectral numerical simulations, 2013.
+    .. [4] J. Keiner and D. Potts, Fast evaluation of quadrature formulae on
+       the sphere, 2008.
+    .. [5] M. Hortal and A. J. Simmons, Use of reduced Gaussian grids in
+       spectral models, 1991.
+    .. [6] https://confluence.ecmwf.int/display/FCST/Introducing+the+octahedral+reduced+Gaussian+grid
+    .. [7] https://confluence.ecmwf.int/display/OIFS/4.2+OpenIFS%3A+Octahedral+grid
+    .. [8] M. Defferrard et al., DeepSphere: a graph-based spherical CNN, 2019.
+
+    Examples
+    --------
+    >>> import matplotlib.pyplot as plt
+    >>> G = graphs.SphereGaussLegendre()
+    >>> fig = plt.figure()
+    >>> ax1 = fig.add_subplot(131)
+    >>> ax2 = fig.add_subplot(132, projection='3d')
+    >>> ax3 = fig.add_subplot(133)
+    >>> _ = ax1.spy(G.W, markersize=1.5)
+    >>> _ = G.plot(ax=ax2)
+    >>> G.set_coordinates('sphere', dim=2)
+    >>> _ = G.plot(ax=ax3, indices=True)
+
     """
 
     def __init__(self, nlat=4, reduced=False, **kwargs):
