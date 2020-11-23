@@ -10,27 +10,27 @@ class SphereGaussLegendre(NNGraph):
     r"""Sphere sampled with a Gauss-Legendre scheme.
     """
 
-    def __init__(self, nrings=10, reduced=False, **kwargs):
+    def __init__(self, nlat=4, reduced=False, **kwargs):
 
-        self.nrings = nrings
+        self.nlat = nlat
         self.reduced = reduced
 
         # TODO: docstring states that degree > 100 may be problematic.
-        z = -np.polynomial.legendre.leggauss(nrings)[0]
+        z = -np.polynomial.legendre.leggauss(nlat)[0]
         lat_ = np.arcsin(z)
 
         if reduced is False:
-            lon_ = np.linspace(0, 2*np.pi, 2*nrings, endpoint=False)
+            lon_ = np.linspace(0, 2*np.pi, 2*nlat, endpoint=False)
             lat, lon = np.meshgrid(lat_, lon_, indexing='ij')
             lat, lon = lat.flatten(), lon.flatten()
 
         elif reduced == 'ecmwf-octahedral':
-            odd = nrings % 2
-            npix = nrings*(nrings+18) + odd
+            odd = nlat % 2
+            npix = nlat*(nlat+18) + odd
             lon = np.empty(npix)
             lat = np.empty(npix)
             i = 0
-            for ring in range(nrings//2 + odd):
+            for ring in range(nlat//2 + odd):
                 npix_per_ring = 4*(ring+1) + 16
                 lon_ = np.linspace(0, 2*np.pi, npix_per_ring, endpoint=False)
                 lat[i:i+npix_per_ring] = lat_[ring]
@@ -44,7 +44,7 @@ class SphereGaussLegendre(NNGraph):
             raise NotImplementedError
         elif reduced == 'glesp-equal-area':  # [arXiv:astro-ph/0305537].
             # All have about the same area as the square pixels at the equator.
-            dlat = lat_[nrings//2] - lat_[nrings//2-1]
+            dlat = lat_[nlat//2] - lat_[nlat//2-1]
             dlon = 2*np.pi / round(2*np.pi/dlat)
             area = dlat * dlon
             npix = np.round(2*np.pi * np.sqrt(1-z**2) / area)
@@ -62,7 +62,7 @@ class SphereGaussLegendre(NNGraph):
 
     def _get_extra_repr(self):
         attrs = {
-            'nrings': self.nrings,
+            'nlat': self.nlat,
             'reduced': self.reduced,
         }
         attrs.update(super(SphereGaussLegendre, self)._get_extra_repr())
