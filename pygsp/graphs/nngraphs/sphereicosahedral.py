@@ -18,7 +18,7 @@ def _import_trimesh():
     return trimesh
 
 
-class SphereIcosahedron(NNGraph):
+class SphereIcosahedral(NNGraph):
     r"""Sphere sampled as a subdivided icosahedron.
 
     Background information is found at :doc:`/background/spherical_samplings`.
@@ -61,7 +61,7 @@ class SphereIcosahedron(NNGraph):
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> G = graphs.SphereIcosahedron()
+    >>> G = graphs.SphereIcosahedral()
     >>> fig = plt.figure()
     >>> ax1 = fig.add_subplot(131)
     >>> ax2 = fig.add_subplot(132, projection='3d')
@@ -75,10 +75,10 @@ class SphereIcosahedron(NNGraph):
 
     >>> import matplotlib.pyplot as plt
     >>> fig, axes = plt.subplots(1, 2)
-    >>> graph = graphs.SphereIcosahedron(0, dual=False, k=5)
+    >>> graph = graphs.SphereIcosahedral(0, dual=False, k=5)
     >>> graph.set_coordinates('sphere', dim=2)
     >>> _ = graph.plot(indices=True, ax=axes[0], title='Icosahedron')
-    >>> graph = graphs.SphereIcosahedron(0, dual=True, k=3)
+    >>> graph = graphs.SphereIcosahedral(0, dual=True, k=3)
     >>> graph.set_coordinates('sphere', dim=2)
     >>> _ = graph.plot(indices=True, ax=axes[1], title='Dodecahedron')
 
@@ -127,7 +127,7 @@ class SphereIcosahedron(NNGraph):
             vertices = mesh.vertices[mesh.faces].mean(axis=1)
             normalize(vertices)
 
-        super(SphereIcosahedron, self).__init__(vertices, **kwargs)
+        super(SphereIcosahedral, self).__init__(vertices, **kwargs)
 
         lat, lon = utils.xyz2latlon(*vertices.T)
         self.signals['lat'] = lat
@@ -138,5 +138,5 @@ class SphereIcosahedron(NNGraph):
             'subdivisions': self.subdivisions,
             'dual': self.dual,
         }
-        attrs.update(super(SphereIcosahedron, self)._get_extra_repr())
+        attrs.update(super(SphereIcosahedral, self)._get_extra_repr())
         return attrs

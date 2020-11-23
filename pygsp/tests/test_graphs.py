@@ -481,10 +481,10 @@ class TestCase(unittest.TestCase):
     def test_bunny(self):
         graphs.Bunny()
 
-    def test_cube(self):
-        self.assertEqual(graphs.Cube(60).n_vertices, 60)
-        self.assertEqual(graphs.Cube(65).n_vertices, 60)
-        graph = graphs.Cube(30)
+    def test_cube_random(self):
+        self.assertEqual(graphs.CubeRandom(60).n_vertices, 60)
+        self.assertEqual(graphs.CubeRandom(65).n_vertices, 60)
+        graph = graphs.CubeRandom(30)
         self.assertTrue(np.all(graph.coords >= 0))
         self.assertTrue(np.all(graph.coords <= 1))
 
@@ -503,11 +503,11 @@ class TestCase(unittest.TestCase):
         graph.set_coordinates('sphere', dim=3)
         np.testing.assert_allclose(graph.coords, coords, atol=1e-7)
 
-    def test_sphere(self):
-        graph = graphs.Sphere(20, dim=4)
+    def test_sphere_random(self):
+        graph = graphs.SphereRandom(20, dim=4)
         self.assertTupleEqual(graph.coords.shape, (20, 4))
         np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 1)
-        self._test_sphere(graphs.Sphere())
+        self._test_sphere(graphs.SphereRandom())
 
     def test_sphere_equiangular(self, size=7):
         for poles in [0, 1, 2]:
@@ -555,17 +555,17 @@ class TestCase(unittest.TestCase):
         self.assertRaises(NotImplementedError, graphs.SphereGaussLegendre,
                           reduced='glesp-equal-area')
 
-    def test_sphere_icosahedron(self, subdivisions=3):
+    def test_sphere_icosahedral(self, subdivisions=3):
         n_faces = 20 * 4**subdivisions
         n_edges = 30 * 4**subdivisions
         n_vertices = n_edges - n_faces + 2
-        graph = graphs.SphereIcosahedron(subdivisions, kind='radius',
+        graph = graphs.SphereIcosahedral(subdivisions, kind='radius',
                                          radius=1.6/2**subdivisions)
         self.assertEqual(graph.n_vertices, n_vertices)
         self.assertEqual(graph.n_edges, n_edges)
         self._test_sphere(graph)
         self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*2**subdivisions)
-        graph = graphs.SphereIcosahedron(subdivisions, dual=True, k=3)
+        graph = graphs.SphereIcosahedral(subdivisions, dual=True, k=3)
         self.assertEqual(graph.n_vertices, n_faces)
         self.assertEqual(graph.n_edges, n_edges)
         self._test_sphere(graph)

@@ -6,7 +6,7 @@ from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 from pygsp import utils
 
 
-class Sphere(NNGraph):
+class SphereRandom(NNGraph):
     r"""Random uniform sampling of an hypersphere.
 
     Parameters
@@ -29,7 +29,7 @@ class Sphere(NNGraph):
     See Also
     --------
     SphereEquiangular, SphereGaussLegendre : based on quadrature theorems
-    SphereIcosahedron, SphereHealpix : based on subdivided polyhedra
+    SphereIcosahedral, SphereHealpix : based on subdivided polyhedra
     CubeRandom : randomly sampled cube
 
     References
@@ -42,7 +42,7 @@ class Sphere(NNGraph):
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> G = graphs.Sphere(100, seed=42)
+    >>> G = graphs.SphereRandom(100, seed=42)
     >>> fig = plt.figure()
     >>> ax1 = fig.add_subplot(131)
     >>> ax2 = fig.add_subplot(132, projection='3d')
@@ -67,7 +67,7 @@ class Sphere(NNGraph):
             'vertex_size': 80,
         }
 
-        super(Sphere, self).__init__(coords, plotting=plotting, **kwargs)
+        super(SphereRandom, self).__init__(coords, plotting=plotting, **kwargs)
 
         if dim == 3:
             lat, lon = utils.xyz2latlon(*coords.T)
@@ -79,5 +79,5 @@ class Sphere(NNGraph):
             'dim': self.dim,
             'seed': self.seed,
         }
-        attrs.update(super(Sphere, self)._get_extra_repr())
+        attrs.update(super(SphereRandom, self)._get_extra_repr())
         return attrs

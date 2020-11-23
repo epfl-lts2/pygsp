@@ -35,7 +35,7 @@ class SphereEquiangular(Graph):
     See Also
     --------
     SphereGaussLegendre : based on quadrature theorems
-    SphereIcosahedron, SphereHealpix : based on subdivided polyhedra
+    SphereIcosahedral, SphereHealpix : based on subdivided polyhedra
     SphereRandom : random uniform sampling
 
     Notes

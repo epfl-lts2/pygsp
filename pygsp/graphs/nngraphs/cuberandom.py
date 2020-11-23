@@ -5,8 +5,8 @@ import numpy as np
 from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 
 
-class Cube(NNGraph):
-    r"""Randomly sampled cube.
+class CubeRandom(NNGraph):
+    r"""Random uniform sampling of a cube.
 
     Parameters
     ----------
@@ -19,11 +19,12 @@ class Cube(NNGraph):
     See Also
     --------
     Sensor : randomly sampled square
+    SphereRandom : randomly sampled hypersphere
 
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> G = graphs.Cube(seed=42)
+    >>> G = graphs.CubeRandom(seed=42)
     >>> fig = plt.figure()
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')
@@ -54,9 +55,9 @@ class Cube(NNGraph):
             'distance': 9,
         }
 
-        super(Cube, self).__init__(coords, plotting=plotting, **kwargs)
+        super(CubeRandom, self).__init__(coords, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         attrs = {'seed': self.seed}
-        attrs.update(super(Cube, self)._get_extra_repr())
+        attrs.update(super(CubeRandom, self)._get_extra_repr())
         return attrs

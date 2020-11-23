@@ -165,7 +165,7 @@ Nearest-neighbors graphs constructed from point clouds
 
     NNGraph
     Bunny
-    Cube
+    CubeRandom
     ImgPatches
     Grid2dImgPatches
     Sensor
@@ -178,9 +178,9 @@ Pixelizations of the sphere
 
     SphereEquiangular
     SphereGaussLegendre
-    SphereIcosahedron
+    SphereIcosahedral
     SphereHealpix
-    Sphere
+    SphereRandom
 
 """
 
@@ -211,14 +211,14 @@ _GRAPHS = [
 _NNGRAPHS = [
     'NNGraph',
     'Bunny',
-    'Cube',
+    'CubeRandom',
     'ImgPatches',
     'Grid2dImgPatches',
     'Sensor',
-    'Sphere',
+    'SphereRandom',
     'SphereGaussLegendre',
     'SphereHealpix',
-    'SphereIcosahedron',
+    'SphereIcosahedral',
     'TwoMoons'
 ]
 
