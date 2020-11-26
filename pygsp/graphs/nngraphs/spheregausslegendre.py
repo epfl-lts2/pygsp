@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from scipy.special import roots_legendre
 
 from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
 from pygsp import utils
 
 
 class SphereGaussLegendre(NNGraph):
-    r"""Sphere sampled with a Gauss–Legendre scheme.
+    r"""Sphere sampled with a Gauss--Legendre scheme.
 
     Background information is found at :doc:`/background/spherical_samplings`.
 
@@ -79,8 +80,7 @@ class SphereGaussLegendre(NNGraph):
         self.nlat = nlat
         self.reduced = reduced
 
-        # TODO: docstring states that degree > 100 may be problematic.
-        z = -np.polynomial.legendre.leggauss(nlat)[0]
+        z = -roots_legendre(nlat)[0]
         lat_ = np.arcsin(z)
 
         if reduced is False:
