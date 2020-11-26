@@ -176,7 +176,7 @@ class IOMixIn(object):
         True
         >>> graph.vertex_properties['signal'][2]
         2.3
-        >>> graph.edge_properties['weight'][(0, 1)]
+        >>> graph.edge_properties['weight'][graph.edge(0, 1)]
         1.0
         >>> # gt.draw.graph_draw(graph, vertex_text=graph.vertex_index)
 
@@ -373,7 +373,7 @@ class IOMixIn(object):
         >>> v = graph.add_vertex()
         >>> eprop = graph.new_edge_property("double")
         >>> eprop[e1] = 0.2
-        >>> eprop[(1, 2)] = 0.9
+        >>> eprop[graph.edge(1, 2)] = 0.9
         >>> graph.edge_properties["weight"] = eprop
         >>> vprop = graph.new_vertex_property("double", val=np.nan)
         >>> vprop[3] = 3.1416

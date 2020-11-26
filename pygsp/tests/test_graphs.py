@@ -796,8 +796,8 @@ class TestImportExport(unittest.TestCase):
 
         # Graph-tool non-existent weight name.
         prop = graph_gt.new_edge_property("double")
-        prop[(0, 1)] = 2
-        prop[(1, 2)] = 2
+        prop[graph_gt.edge(0, 1)] = 2
+        prop[graph_gt.edge(1, 2)] = 2
         graph_gt.edge_properties["weight"] = prop
         graph_pg = graphs.Graph.from_graphtool(graph_gt)
         np.testing.assert_allclose(graph_pg.W.toarray(), 2*adjacency)
