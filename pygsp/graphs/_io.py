@@ -498,11 +498,9 @@ class IOMixIn(object):
         Supported formats are:
 
         * GraphML_, a comprehensive XML format.
-          `Wikipedia <https://en.wikipedia.org/wiki/GraphML>`_.
           Supported by NetworkX_, graph-tool_, NetworKit_, igraph_, Gephi_,
           Cytoscape_, SocNetV_.
         * GML_ (Graph Modelling Language), a simple non-XML format.
-          `Wikipedia <https://en.wikipedia.org/wiki/Graph_Modelling_Language>`_.
           Supported by NetworkX_, graph-tool_, NetworKit_, igraph_, Gephi_,
           Cytoscape_, SocNetV_, Tulip_.
         * GEXF_ (Graph Exchange XML Format), Gephi's XML format.
@@ -510,8 +508,8 @@ class IOMixIn(object):
 
         If unsure, we recommend GraphML_.
 
-        .. _GraphML: http://graphml.graphdrawing.org
-        .. _GML: https://web.archive.org/web/20190303094704/http://www.fim.uni-passau.de:80/fileadmin/files/lehrstuhl/brandenburg/projekte/gml/gml-technical-report.pdf
+        .. _GraphML: https://en.wikipedia.org/wiki/GraphML
+        .. _GML: https://en.wikipedia.org/wiki/Graph_Modelling_Language
         .. _GEXF: https://gephi.org/gexf/format
         .. _NetworkX: https://networkx.github.io
         .. _graph-tool: https://graph-tool.skewed.de
