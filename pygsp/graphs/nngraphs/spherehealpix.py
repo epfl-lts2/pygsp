@@ -27,8 +27,9 @@ class SphereHealpix(NNGraph):
     Parameters
     ----------
     subdivisions : int
-        Number of recursive subdivisions. Known as ``order`` in HEALPix
-        terminology, with ``nside=2**order`` and ``npix=12*4**order``.
+        Number of edges the dodecahedron's edges are divided into (``nside``),
+        resulting in ``12*subdivisions**2`` vertices (``npix``).
+        It must be a power of 2 if ``nest=True`` (to be hierarchical).
     indexes : array_like of int
         Indexes of the pixels from which to build a graph. Useful to build a
         graph from a subset of the pixels, e.g., for partial sky observations.
@@ -66,7 +67,7 @@ class SphereHealpix(NNGraph):
     Examples
     --------
     >>> import matplotlib.pyplot as plt
-    >>> G = graphs.SphereHealpix(1, k=8)
+    >>> G = graphs.SphereHealpix()
     >>> fig = plt.figure()
     >>> ax1 = fig.add_subplot(131)
     >>> ax2 = fig.add_subplot(132, projection='3d')
@@ -80,27 +81,26 @@ class SphereHealpix(NNGraph):
 
     >>> import matplotlib.pyplot as plt
     >>> fig, axes = plt.subplots(1, 2)
-    >>> graph = graphs.SphereHealpix(1, nest=False, k=8)
+    >>> graph = graphs.SphereHealpix(2, nest=False, k=8)
     >>> graph.set_coordinates('sphere', dim=2)
     >>> _ = graph.plot(indices=True, ax=axes[0], title='RING ordering')
-    >>> graph = graphs.SphereHealpix(1, nest=True, k=8)
+    >>> graph = graphs.SphereHealpix(2, nest=True, k=8)
     >>> graph.set_coordinates('sphere', dim=2)
     >>> _ = graph.plot(indices=True, ax=axes[1], title='NESTED ordering')
 
     """
 
-    def __init__(self, subdivisions=1, indexes=None, nest=False, **kwargs):
+    def __init__(self, subdivisions=2, indexes=None, nest=False, **kwargs):
         hp = _import_hp()
 
-        nside = hp.order2nside(subdivisions)
         self.subdivisions = subdivisions
         self.nest = nest
 
         if indexes is None:
-            npix = hp.nside2npix(nside)
+            npix = hp.nside2npix(subdivisions)
             indexes = np.arange(npix)
 
-        x, y, z = hp.pix2vec(nside, indexes, nest=nest)
+        x, y, z = hp.pix2vec(subdivisions, indexes, nest=nest)
         coords = np.stack([x, y, z], axis=1)
 
         k = kwargs.pop('k', 20)
@@ -108,16 +108,16 @@ class SphereHealpix(NNGraph):
             kernel_width = kwargs.pop('kernel_width')
         except KeyError:
             try:
-                kernel_width = _OPTIMAL_KERNEL_WIDTHS[k][nside]
+                kernel_width = _OPTIMAL_KERNEL_WIDTHS[k][subdivisions]
             except KeyError:
-                raise ValueError('No known optimal kernel width for {} '
-                                 'neighbors and nside={}.'.format(k, nside))
+                raise ValueError('No optimal kernel width for {} neighbors and'
+                                 ' {} subdivisions.'.format(k, subdivisions))
 
         super(SphereHealpix, self).__init__(coords, k=k,
                                             kernel_width=kernel_width,
                                             **kwargs)
 
-        lat, lon = hp.pix2ang(nside, indexes, nest=nest, lonlat=False)
+        lat, lon = hp.pix2ang(subdivisions, indexes, nest=nest, lonlat=False)
         self.signals['lat'] = np.pi/2 - lat  # colatitude to latitude
         self.signals['lon'] = lon
 
@@ -130,7 +130,7 @@ class SphereHealpix(NNGraph):
         return attrs
 
 
-# TODO: find an interpolation between nside and k (#neighbors).
+# TODO: find an interpolation between subdivisions (nside) and k (#neighbors).
 _OPTIMAL_KERNEL_WIDTHS = {
     8: {
         1:    0.02500 * 32,  # extrapolated

@@ -26,7 +26,10 @@ class SphereIcosahedral(NNGraph):
     Parameters
     ----------
     subdivisions : int
-        Number of recursive subdivisions.
+        Number of edges the icosahedron's edges are divided into, resulting in
+        ``10*subdivisions**2+2`` vertices (or ``20*subdivisions**2`` if
+        ``dual=True``).
+        It must be a power of 2 in the current implementation.
     dual : bool
         Whether the graph vertices correspond to the vertices (``dual=False``)
         or the triangular faces (``dual=True``) of the subdivided icosahedron.
@@ -77,15 +80,15 @@ class SphereIcosahedral(NNGraph):
 
     >>> import matplotlib.pyplot as plt
     >>> fig, axes = plt.subplots(1, 2)
-    >>> graph = graphs.SphereIcosahedral(0, dual=False, k=5)
+    >>> graph = graphs.SphereIcosahedral(1, dual=False, k=5)
     >>> graph.set_coordinates('sphere', dim=2)
     >>> _ = graph.plot(indices=True, ax=axes[0], title='Icosahedron')
-    >>> graph = graphs.SphereIcosahedral(0, dual=True, k=3)
+    >>> graph = graphs.SphereIcosahedral(1, dual=True, k=3)
     >>> graph.set_coordinates('sphere', dim=2)
     >>> _ = graph.plot(indices=True, ax=axes[1], title='Dodecahedron')
 
     """
-    def __init__(self, subdivisions=1, dual=False, **kwargs):
+    def __init__(self, subdivisions=2, dual=False, **kwargs):
 
         self.subdivisions = subdivisions
         self.dual = dual
@@ -115,7 +118,11 @@ class SphereIcosahedral(NNGraph):
             """Project the vertices on the sphere."""
             vertices /= np.linalg.norm(vertices, axis=1)[:, None]
 
-        for _ in range(subdivisions):
+        if np.log2(subdivisions) % 1 != 0:
+            raise NotImplementedError('Only recursive subdivisions by two are '
+                                      'implemented. Choose a power of two.')
+
+        for _ in range(int(np.log2(subdivisions))):
             mesh = mesh.subdivide()
             # TODO: shall we project between subdivisions? Some do, some don't.
             # Projecting pushes points away from the 12 base vertices, which

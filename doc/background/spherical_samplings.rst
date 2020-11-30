@@ -148,12 +148,12 @@ Subdivision of the icosahedron (:class:`~pygsp.graphs.SphereIcosahedral`)
 -------------------------------------------------------------------------
 
 The sampling is made of an `icosahedron`_ (a `regular and convex polyhedron`_
-made of 12 vertices and 20 triangular faces) whose faces are recursively
-subdivided (into four triangles) to the desired resolution.
-The result is a :math:`\{3,5+\}_{2^m,0}` `geodesic polyhedron`_ (made of
-:math:`20⋅4^m` triangles, :math:`n=10⋅4^m+2` vertices) or its dual, a
-:math:`\{5+,3\}_{2^m,0}` `Goldberg polyhedron`_ (made of :math:`10⋅4^m-10`
-hexagons, 12 pentagons, :math:`n=20⋅4^m` vertices).
+made of 12 vertices and 20 triangular faces) whose faces are subdivided into
+:math:`m^2` triangles projected to the sphere.
+The result is a :math:`\{3,5+\}_{m,0}` `geodesic polyhedron`_ (made of
+:math:`20⋅m^2` triangles, :math:`n=10⋅m^2+2` vertices) or its dual, a
+:math:`\{5+,3\}_{m,0}` `Goldberg polyhedron`_ (made of :math:`10⋅m^2-10`
+hexagons, 12 pentagons, :math:`n=20⋅m^2` vertices).
 The resulting `polyhedral graph`_ (i.e., a 3-vertex-connected planar graph) is
 the 1-`skeleton`_ of the polyhedron.
 All have `icosahedral symmetry`_.
@@ -176,8 +176,8 @@ SHT.
 Subdivision of the cube (:class:`~pygsp.graphs.SphereCubed`)
 ------------------------------------------------------------
 
-The sampling is made of a cube whose faces are subdivided into finer
-quadrilaterals to the desired resolution.
+The sampling is made of a cube whose faces are subdivided into :math:`m^2`
+finer quadrilaterals projected to the sphere.
 The result is a convex polyhedron made of :math:`n=6⋅m^2` faces.
 The graph vertices represent the quadrilateral faces.
 
@@ -190,9 +190,9 @@ Subdivision of the rhombic dodecahedron (:class:`~pygsp.graphs.SphereHealpix`)
 ------------------------------------------------------------------------------
 
 The sampling is made of a `rhombic dodecahedron`_ (a convex polyhedron made of
-12 rhombic faces) whose faces are recursively subdivided (into four
-quadrilaterals) to the desired resolution.
-The result is a convex polyhedron made of :math:`n=12⋅4^m` faces.
+12 rhombic faces) whose faces are subdivided into :math:`m^2` finer
+quadrilaterals projected to the sphere.
+The result is a convex polyhedron made of :math:`n=12⋅m^2` faces.
 The graph vertices represent the quadrilateral faces.
 
 The Hierarchical Equal Area isoLatitude Pixelisation (`HEALPix`_) [Go]_ was

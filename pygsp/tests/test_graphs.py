@@ -556,21 +556,22 @@ class TestCase(unittest.TestCase):
         self.assertRaises(NotImplementedError, graphs.SphereGaussLegendre,
                           reduced='glesp-equal-area')
 
-    def test_sphere_icosahedral(self, subdivisions=3):
-        n_faces = 20 * 4**subdivisions
-        n_edges = 30 * 4**subdivisions
+    def test_sphere_icosahedral(self, subdivisions=8):
+        n_faces = 20 * subdivisions**2
+        n_edges = 30 * subdivisions**2
         n_vertices = n_edges - n_faces + 2
         graph = graphs.SphereIcosahedral(subdivisions, kind='radius',
-                                         radius=1.6/2**subdivisions)
+                                         radius=1.6/subdivisions)
         self.assertEqual(graph.n_vertices, n_vertices)
         self.assertEqual(graph.n_edges, n_edges)
         self._test_sphere(graph)
-        self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*2**subdivisions)
+        self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*subdivisions)
         graph = graphs.SphereIcosahedral(subdivisions, dual=True, k=3)
         self.assertEqual(graph.n_vertices, n_faces)
         self.assertEqual(graph.n_edges, n_edges)
         self._test_sphere(graph)
-        self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*2**subdivisions)
+        self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*subdivisions)
+        self.assertRaises(NotImplementedError, graphs.SphereIcosahedral, 3)
 
     def test_sphere_cubed(self, subdivisions=9):
         for spacing in ['equiangular', 'equidistant']:
@@ -585,17 +586,20 @@ class TestCase(unittest.TestCase):
                   [-1, 0, 0], [0, -1, 0], [0, 0, -1]]
         np.testing.assert_allclose(graph.coords, coords)
 
-    def test_sphere_healpix(self, subdivisions=2):
-        nside = 2**subdivisions
+    def test_sphere_healpix(self, subdivisions=4):
         graph = graphs.SphereHealpix(subdivisions)
-        self.assertEqual(graph.n_vertices, 12*nside**2)
+        self.assertEqual(graph.n_vertices, 12*subdivisions**2)
         self._test_sphere(graph)
         graphs.SphereHealpix(subdivisions, k=20)
         graphs.SphereHealpix(subdivisions, k=21, kernel_width=0.1)
         self.assertRaises(ValueError, graphs.SphereHealpix, subdivisions, k=21)
         graphs.SphereHealpix(subdivisions, indexes=range(10), k=8)
         graphs.SphereHealpix(subdivisions, nest=True)
-        self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*nside)
+        self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*subdivisions)
+        # Subdivisions must be powers of 2 for NESTED ordering.
+        graphs.SphereHealpix(3, nest=False, kernel_width=1)
+        self.assertRaises(ValueError, graphs.SphereHealpix, 3, nest=True,
+                          kernel_width=1)
 
     def test_twomoons(self):
         graphs.TwoMoons(moontype='standard')
