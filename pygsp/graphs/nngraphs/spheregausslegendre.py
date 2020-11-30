@@ -18,12 +18,14 @@ class SphereGaussLegendre(NNGraph):
     Parameters
     ----------
     nlat : int
-        Number of isolatitude (longitudinal) rings.
-    reduced : {False, 'ecmwf-octahedral'}
-        If ``False``, there are ``2*nlat`` pixels per ring.
-        If ``'ecmwf-octahedral'``, there are ``4*i+16`` pixels per ring, where
-        ``i`` is the ring number from 1 (nearest to the poles) to ``nlat/2``
-        (nearest to the equator).
+        Number of rings of constant latitude.
+    nlon : int or {'ecmwf-octahedral'}
+        Number of vertices per ring for full grids, resulting in ``nlat*nlon``
+        vertices. The default is ``2*nlat``.
+        Reduced grids are named.
+        If ``'ecmwf-octahedral'``, there are ``4*i+16`` vertices per ring,
+        where ``i`` is the ring number from 1 (nearest to the poles) to
+        ``nlat/2`` (nearest to the equator).
     kwargs : dict
         Additional keyword parameters are passed to :class:`NNGraph`.
 
@@ -79,20 +81,23 @@ class SphereGaussLegendre(NNGraph):
 
     """
 
-    def __init__(self, nlat=4, reduced=False, **kwargs):
+    def __init__(self, nlat=4, nlon=None, **kwargs):
+
+        if nlon is None:
+            nlon = 2 * nlat
 
         self.nlat = nlat
-        self.reduced = reduced
+        self.nlon = nlon
 
         z = -roots_legendre(nlat)[0]
         lat_ = np.arcsin(z)
 
-        if reduced is False:
-            lon_ = np.linspace(0, 2*np.pi, 2*nlat, endpoint=False)
+        if type(nlon) is not str:
+            lon_ = np.linspace(0, 2*np.pi, nlon, endpoint=False)
             lat, lon = np.meshgrid(lat_, lon_, indexing='ij')
             lat, lon = lat.flatten(), lon.flatten()
 
-        elif reduced == 'ecmwf-octahedral':
+        elif nlon == 'ecmwf-octahedral':
             odd = nlat % 2
             npix = nlat*(nlat+18) + odd
             lon = np.empty(npix)
@@ -107,10 +112,10 @@ class SphereGaussLegendre(NNGraph):
                 lon[npix-i-npix_per_ring:npix-i] = lon_
                 i += npix_per_ring
 
-        elif reduced == 'glesp':  # Newer GLESP-pol (grS) [arXiv:0904.2517].
+        elif nlon == 'glesp':  # Newer GLESP-pol (grS) [arXiv:0904.2517].
             # npix_per_ring = 4*(ring+1) + 10
             raise NotImplementedError
-        elif reduced == 'glesp-equal-area':  # [arXiv:astro-ph/0305537].
+        elif nlon == 'glesp-equal-area':  # [arXiv:astro-ph/0305537].
             # All have about the same area as the square pixels at the equator.
             dlat = lat_[nlat//2] - lat_[nlat//2-1]
             dlon = 2*np.pi / round(2*np.pi/dlat)
@@ -119,7 +124,7 @@ class SphereGaussLegendre(NNGraph):
             raise NotImplementedError('Must be checked and fixed.')
 
         else:
-            raise ValueError('Unexpected reduced={}.'.format(reduced))
+            raise ValueError('Unexpected nlon={}.'.format(nlon))
 
         coords = np.stack(utils.latlon2xyz(lat, lon), axis=1)
 
@@ -131,7 +136,7 @@ class SphereGaussLegendre(NNGraph):
     def _get_extra_repr(self):
         attrs = {
             'nlat': self.nlat,
-            'reduced': self.reduced,
+            'nlon': self.nlon,
         }
         attrs.update(super(SphereGaussLegendre, self)._get_extra_repr())
         return attrs

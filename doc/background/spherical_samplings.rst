@@ -132,14 +132,14 @@ Gauss--Legendre quadrature (:class:`~pygsp.graphs.SphereGaussLegendre`)
 
 The sphere is sampled at rings of constant latitudes, where the latitudes
 are given by the zeros of the Legendre polynomial.
-The number of samples per ring is constant (``reduced=False``) or reduced
-towards the poles (``reduced='scheme-name'``).
+The number of samples per ring is constant (``nlon``) or reduced towards the
+poles (``nlon='reduction-scheme-name'``).
 
 The scheme is used in geophysics and astrophysics for its sampling theorem and
 :math:`O^{3/2}` SHT, while requiring less samples than the equiangular scheme.
 An exact `Gauss--Legendre quadrature`_ for signals with bandwidth (band-limit)
-:math:`L` (polynomials of degree less than :math:`L`) requires ``nlat=L`` (and
-``nlon=2*nlat=2*L`` if ``reduced=False``) [KP]_.
+:math:`L` (polynomials of degree less than :math:`L`) requires ``nlat=L`` and
+``nlon=2*nlat=2*L`` [KP]_.
 It is neither hierarchical nor equiarea (though reduced schemes help).
 
 .. _Gauss--Legendre quadrature: https://en.wikipedia.org/wiki/Gaussian_quadrature

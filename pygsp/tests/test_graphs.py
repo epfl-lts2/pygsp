@@ -509,52 +509,57 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(np.linalg.norm(graph.coords, axis=1), 1)
         self._test_sphere(graphs.SphereRandom())
 
-    def test_sphere_equiangular(self, size=7):
+    def test_sphere_equiangular(self, nlat=11, nlon=20):
+        npix = nlat * nlon
         for poles in [0, 1, 2]:
-            graph = graphs.SphereEquiangular(size, poles)
-            self.assertEqual(graph.n_vertices, size**2)
-            self.assertEqual(graph.n_edges, 2*size**2-size-1)
-            self._test_sphere(graph)
-            graph = graphs.SphereEquiangular((size, 2*size), poles)
-            self.assertEqual(graph.n_vertices, 2*size**2)
-            self.assertEqual(graph.n_edges, 4*size**2-2*size-1)
+            graph = graphs.SphereEquiangular(nlat, nlon, poles)
+            self.assertEqual(graph.n_vertices, nlat*nlon)
+            self.assertEqual(graph.n_edges, 2*npix-nlon-1)
             self._test_sphere(graph)
             # Vertices at poles: 0, 1, or 2 rings.
             lat = graph.signals['lat']
-            self.assertEqual(np.sum(abs(lat) == np.pi/2), poles*2*size)
+            self.assertEqual(np.sum(abs(lat) == np.pi/2), poles*nlon)
             # Constant angle between vertices.
-            lat = graph.signals['lat'].reshape((size, -1))[:, 0]
-            dlat = np.pi/size if (poles != 2) else np.pi/(size-1)
+            lat = graph.signals['lat'].reshape((nlat, nlon))[:, 0]
+            dlat = np.pi/nlat if (poles != 2) else np.pi/(nlat-1)
             np.testing.assert_allclose(lat[:-1] - lat[1:], dlat)
-            lon = graph.signals['lon'].reshape((size, -1))[0, :]
-            np.testing.assert_allclose(lon[1:] - lon[:-1], np.pi/size)
+            lon = graph.signals['lon'].reshape((nlat, nlon))[0, :]
+            np.testing.assert_allclose(lon[1:] - lon[:-1], 2*np.pi/nlon)
+            # Default nlon.
+            graph = graphs.SphereEquiangular(nlat, poles=poles)
+            self.assertEqual(graph.n_vertices, 2*nlat**2)
+            self.assertEqual(graph.n_edges, 4*nlat**2-2*nlat-1)
+            self._test_sphere(graph)
         self.assertRaises(ValueError, graphs.SphereEquiangular, poles=4)
 
-    def test_sphere_gausslegendre(self, nrings=11):
-        graph = graphs.SphereGaussLegendre(nrings, reduced=False)
-        self.assertEqual(graph.n_vertices, 2*nrings**2)
+    def test_sphere_gausslegendre(self, nlat=11, nlon=20):
+        graph = graphs.SphereGaussLegendre(nlat)
+        self.assertEqual(graph.n_vertices, 2*nlat**2)
+        self._test_sphere(graph)
+        graph = graphs.SphereGaussLegendre(nlat, nlon)
+        self.assertEqual(graph.n_vertices, nlat*nlon)
         self._test_sphere(graph)
         n_pixels_at_equator = np.sum(graph.coords[:, 2] == 0)
-        self.assertEqual(n_pixels_at_equator, 2*nrings)
+        self.assertEqual(n_pixels_at_equator, nlon)
 
-        graph = graphs.SphereGaussLegendre(10, reduced='ecmwf-octahedral')
+        graph = graphs.SphereGaussLegendre(10, nlon='ecmwf-octahedral')
         self.assertEqual(graph.n_vertices, 280)
         self._test_sphere(graph)
-        graph = graphs.SphereGaussLegendre(11, reduced='ecmwf-octahedral')
+        graph = graphs.SphereGaussLegendre(11, nlon='ecmwf-octahedral')
         self.assertEqual(graph.n_vertices, 320)
         self._test_sphere(graph)
         self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*6+16)
         # Comparison with an ECMWF table for O320.
-        graph = graphs.SphereGaussLegendre(640, reduced='ecmwf-octahedral')
+        graph = graphs.SphereGaussLegendre(640, nlon='ecmwf-octahedral')
         lat = graph.signals['lat']
         np.testing.assert_allclose(lat[:20]/np.pi*180, 89.784877, atol=1e-6)
         np.testing.assert_allclose(lat[210000]/np.pi*180, 0.140515, atol=1e-6)
 
-        self.assertRaises(ValueError, graphs.SphereGaussLegendre, reduced='xx')
+        self.assertRaises(ValueError, graphs.SphereGaussLegendre, nlon='xx')
         self.assertRaises(NotImplementedError, graphs.SphereGaussLegendre,
-                          reduced='glesp')
+                          nlon='glesp')
         self.assertRaises(NotImplementedError, graphs.SphereGaussLegendre,
-                          reduced='glesp-equal-area')
+                          nlon='glesp-equal-area')
 
     def test_sphere_icosahedral(self, subdivisions=8):
         n_faces = 20 * subdivisions**2

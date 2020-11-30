@@ -17,12 +17,11 @@ class SphereEquiangular(Graph):
 
     Parameters
     ----------
-    size : int or (int, int)
-        Size of the discretization in latitude and longitude ``(nlat, nlon)``.
-        ``nlat`` is the number of isolatitude (longitudinal) rings.
-        ``nlon`` is the number of vertices (pixels) per ring.
-        The total number of vertices is ``nlat*nlon``.
-        ``nlat=nlon`` if only one number is given.
+    nlat : int
+        Number of rings of constant latitude.
+    nlon : int
+        Number of vertices per ring, resulting in ``nlat*nlon`` vertices.
+        The default is ``2*nlat``.
     poles : {0, 1, 2}
         Whether to sample 0, 1, or the 2 poles:
         0: nearest rings at ``dlat/2`` from both poles (``dlat=π/nlat``),
@@ -87,12 +86,10 @@ class SphereEquiangular(Graph):
     ...     _ = graph.plot(title=f'poles={i}', ax=ax)
 
     """
-    def __init__(self, size=(4, 8), poles=0, **kwargs):
+    def __init__(self, nlat=4, nlon=None, poles=0, **kwargs):
 
-        if isinstance(size, int):
-            nlat, nlon = size, size
-        else:
-            nlat, nlon = size
+        if nlon is None:
+            nlon = 2 * nlat
 
         if poles not in [0, 1, 2]:
             raise ValueError('poles must be 0, 1, or 2.')
