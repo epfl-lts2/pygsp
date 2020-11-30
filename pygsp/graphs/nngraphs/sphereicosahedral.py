@@ -49,14 +49,16 @@ class SphereIcosahedral(NNGraph):
     -----
     Edge weights are computed by :class:`NNGraph`. Gaussian kernel widths have
     however not been optimized for convolutions on the resulting graph to be
-    maximally equivariant to rotation [3]_.
+    maximally equivariant to rotation [4]_.
 
     References
     ----------
-    .. [1] https://sinestesia.co/blog/tutorials/python-icospheres/
+    .. [1] J. R. Baumgardner, P. O. Frederickson, Icosahedral discretization of
+       the two-sphere, 1985.
     .. [2] M. Tegmark, An icosahedron-based method for pixelizing the celestial
        sphere, 1996.
-    .. [3] M. Defferrard et al., DeepSphere: a graph-based spherical CNN, 2019.
+    .. [3] https://sinestesia.co/blog/tutorials/python-icospheres/
+    .. [4] M. Defferrard et al., DeepSphere: a graph-based spherical CNN, 2019.
 
     Examples
     --------

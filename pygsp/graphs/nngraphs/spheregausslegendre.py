@@ -10,6 +10,9 @@ from pygsp import utils
 class SphereGaussLegendre(NNGraph):
     r"""Sphere sampled with a Gauss--Legendre scheme.
 
+    The sphere is sampled at rings of constant latitude, where the latitudes
+    are given by the zeros of the Legendre polynomial.
+
     Background information is found at :doc:`/background/spherical_samplings`.
 
     Parameters

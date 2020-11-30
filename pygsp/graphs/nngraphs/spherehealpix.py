@@ -19,6 +19,9 @@ def _import_hp():
 class SphereHealpix(NNGraph):
     r"""Sphere sampled with the HEALPix scheme.
 
+    The HEALPix scheme is based on a subdivided rhombic dodecahedron, whose
+    pixels are of equal area and arranged on isolatitude rings.
+
     Background information is found at :doc:`/background/spherical_samplings`.
 
     Parameters

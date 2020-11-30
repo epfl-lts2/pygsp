@@ -10,6 +10,9 @@ from pygsp import utils
 class SphereEquiangular(Graph):
     r"""Sphere sampled with an equiangular scheme.
 
+    The sphere is sampled as a grid whose vertices are separated by equal
+    latitudinal and longitudinal angles.
+
     Background information is found at :doc:`/background/spherical_samplings`.
 
     Parameters
