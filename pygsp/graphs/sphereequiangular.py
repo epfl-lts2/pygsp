@@ -90,6 +90,9 @@ class SphereEquiangular(Graph):
         else:
             nlat, nlon = size
 
+        if poles not in [0, 1, 2]:
+            raise ValueError('poles must be 0, 1, or 2.')
+
         self.nlat = nlat
         self.nlon = nlon
         self.poles = poles

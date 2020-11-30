@@ -528,6 +528,7 @@ class TestCase(unittest.TestCase):
             np.testing.assert_allclose(lat[:-1] - lat[1:], dlat)
             lon = graph.signals['lon'].reshape((size, -1))[0, :]
             np.testing.assert_allclose(lon[1:] - lon[:-1], np.pi/size)
+        self.assertRaises(ValueError, graphs.SphereEquiangular, poles=4)
 
     def test_sphere_gausslegendre(self, nrings=11):
         graph = graphs.SphereGaussLegendre(nrings, reduced=False)
