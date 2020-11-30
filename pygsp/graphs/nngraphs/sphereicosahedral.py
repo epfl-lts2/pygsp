@@ -79,13 +79,14 @@ class SphereIcosahedral(NNGraph):
     Primal and dual polyhedrons:
 
     >>> import matplotlib.pyplot as plt
-    >>> fig, axes = plt.subplots(1, 2)
-    >>> graph = graphs.SphereIcosahedral(1, dual=False, k=5)
+    >>> fig, ax = plt.subplots()
+    >>> graph = graphs.SphereIcosahedral(2, dual=False, k=5)
     >>> graph.set_coordinates('sphere', dim=2)
-    >>> _ = graph.plot(indices=True, ax=axes[0], title='Icosahedron')
-    >>> graph = graphs.SphereIcosahedral(1, dual=True, k=3)
+    >>> _ = graph.plot('C0', indices=True, ax=ax)
+    >>> graph = graphs.SphereIcosahedral(2, dual=True, k=3)
     >>> graph.set_coordinates('sphere', dim=2)
-    >>> _ = graph.plot(indices=True, ax=axes[1], title='Dodecahedron')
+    >>> _ = graph.plot('C1', indices=True, ax=ax)
+    >>> _ = ax.set_title('Duality of polyhedrons')
 
     """
     def __init__(self, subdivisions=2, dual=False, **kwargs):
