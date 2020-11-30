@@ -413,7 +413,8 @@ def xyz2latlon(x, y, z):
 
     """
     lon = np.arctan2(y, x)
-    lon += (lon < 0) * 2*np.pi  # signed [-π,π] to unsigned [0,2π]
+    lon += (lon < 0) * 2*np.pi  # signed [-π,π] to unsigned [0,2π[
+    lon[lon == 2*np.pi] = 0  # 2*np.pi-x == 2*np.pi if x < np.spacing(2*np.pi)
     lat = np.arctan2(z, np.sqrt(x**2 + y**2))
     return lat, lon
 
