@@ -79,6 +79,18 @@ class SphereGaussLegendre(NNGraph):
     >>> G.set_coordinates('sphere', dim=2)
     >>> _ = G.plot(ax=ax3, indices=True)
 
+    Full and reduced grids:
+
+    >>> import matplotlib.pyplot as plt
+    >>> fig, ax = plt.subplots()
+    >>> graph = graphs.SphereGaussLegendre(20, 2*20+16)
+    >>> graph.set_coordinates('sphere', dim=2)
+    >>> _ = graph.plot('C0', 20, edges=False, ax=ax)
+    >>> graph = graphs.SphereGaussLegendre(20, 'ecmwf-octahedral')
+    >>> graph.set_coordinates('sphere', dim=2)
+    >>> _ = graph.plot('C1', 20, edges=False, ax=ax)
+    >>> _ = ax.set_title('Full and reduced grids')
+
     """
 
     def __init__(self, nlat=4, nlon=None, **kwargs):
