@@ -173,6 +173,19 @@ SHT.
 .. _geodesic grid: https://en.wikipedia.org/wiki/Geodesic_grid
 .. _icosahedral symmetry: https://en.wikipedia.org/wiki/Icosahedral_symmetry
 
+Subdivision of the cube (:class:`~pygsp.graphs.SphereCubed`)
+------------------------------------------------------------
+
+The sampling is made of a cube whose faces are subdivided into finer
+quadrilaterals to the desired resolution.
+The result is a convex polyhedron made of :math:`n=6⋅m^2` faces.
+The graph vertices represent the quadrilateral faces.
+
+The sampling is used in weather and climate modeling because edges and faces
+are of approximately equal length and area (better when
+``spacing='equiangular'``). It is hierarchical (for subdivisions arranged in
+powers of 2) but doesn't have a sampling theorem nor a fast SHT.
+
 Subdivision of the rhombic dodecahedron (:class:`~pygsp.graphs.SphereHealpix`)
 ------------------------------------------------------------------------------
 

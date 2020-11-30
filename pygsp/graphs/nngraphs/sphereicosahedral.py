@@ -42,7 +42,7 @@ class SphereIcosahedral(NNGraph):
     See Also
     --------
     SphereEquiangular, SphereGaussLegendre : based on quadrature theorems
-    SphereHealpix : based on subdivided polyhedra
+    SphereCubed, SphereHealpix : based on subdivided polyhedra
     SphereRandom : random uniform sampling
 
     Notes
@@ -121,6 +121,7 @@ class SphereIcosahedral(NNGraph):
             # Projecting pushes points away from the 12 base vertices, which
             # may make the point density more uniform.
             # See "A Comparison of Popular Point Configurations on S^2".
+            # As the equiangular vs equidistant spacing on the subdivided cube.
             normalize(mesh.vertices)
 
         if not dual:

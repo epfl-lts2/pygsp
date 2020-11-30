@@ -572,6 +572,19 @@ class TestCase(unittest.TestCase):
         self._test_sphere(graph)
         self.assertEqual(np.sum(graph.signals['lat'] == 0), 4*2**subdivisions)
 
+    def test_sphere_cubed(self, subdivisions=9):
+        for spacing in ['equiangular', 'equidistant']:
+            graph = graphs.SphereCubed(subdivisions, spacing)
+            self.assertEqual(graph.n_vertices, 6*subdivisions**2)
+            self._test_sphere(graph)
+            n_pixels_at_equator = sum(abs(graph.signals['lat']) < 1e-10)
+            self.assertEqual(n_pixels_at_equator, 4*subdivisions)
+        # Ordering of the faces.
+        graph = graphs.SphereCubed(1, k=2)
+        coords = [[0, 0, 1], [1, 0, 0], [0, 1, 0],
+                  [-1, 0, 0], [0, -1, 0], [0, 0, -1]]
+        np.testing.assert_allclose(graph.coords, coords)
+
     def test_sphere_healpix(self, subdivisions=2):
         nside = 2**subdivisions
         graph = graphs.SphereHealpix(subdivisions)

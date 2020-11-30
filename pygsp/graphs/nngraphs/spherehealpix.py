@@ -46,7 +46,7 @@ class SphereHealpix(NNGraph):
     See Also
     --------
     SphereEquiangular, SphereGaussLegendre : based on quadrature theorems
-    SphereIcosahedral : based on subdivided polyhedra
+    SphereIcosahedral, SphereCubed : based on subdivided polyhedra
     SphereRandom : random uniform sampling
 
     Notes

@@ -29,7 +29,8 @@ class SphereRandom(NNGraph):
     See Also
     --------
     SphereEquiangular, SphereGaussLegendre : based on quadrature theorems
-    SphereIcosahedral, SphereHealpix : based on subdivided polyhedra
+    SphereIcosahedral, SphereCubed, SphereHealpix :
+        based on subdivided polyhedra
     CubeRandom : randomly sampled cube
 
     References

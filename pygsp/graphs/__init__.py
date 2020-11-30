@@ -179,6 +179,7 @@ Pixelizations of the sphere
     SphereEquiangular
     SphereGaussLegendre
     SphereIcosahedral
+    SphereCubed
     SphereHealpix
     SphereRandom
 
@@ -219,6 +220,7 @@ _NNGRAPHS = [
     'SphereGaussLegendre',
     'SphereHealpix',
     'SphereIcosahedral',
+    'SphereCubed',
     'TwoMoons'
 ]
 
