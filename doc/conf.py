@@ -7,7 +7,6 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.mathjax',
     'sphinx.ext.inheritance_diagram',
-    'sphinxcontrib.bibtex',
 ]
 
 extensions.append('sphinx.ext.autodoc')
@@ -58,6 +57,9 @@ sphinx_gallery_conf = {
 
 extensions.append('sphinx_copybutton')
 copybutton_prompt_text = ">>> "
+
+extensions.append('sphinxcontrib.bibtex')
+bibtex_bibfiles = ['references.bib']
 
 exclude_patterns = ['_build']
 source_suffix = '.rst'
