@@ -25,7 +25,11 @@ class LineGraph(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> graph = graphs.Sensor(5, k=2, seed=10)
+    >>> graph
+    Sensor(n_vertices=5, n_edges=6, k=2, distributed=False, seed=10)
     >>> line_graph = graphs.LineGraph(graph)
+    >>> line_graph
+    LineGraph(n_vertices=6, n_edges=10)
     >>> fig, ax = plt.subplots()
     >>> fig, ax = graph.plot('blue', edge_color='blue', indices=True, ax=ax)
     >>> fig, ax = line_graph.plot('red', edge_color='red', indices=True, ax=ax)

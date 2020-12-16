@@ -43,6 +43,8 @@ class Path(Graph):
     ...     G = graphs.Path(N=10, directed=directed)
     ...     _ = axes[i, 0].spy(G.W)
     ...     _ = G.plot(ax=axes[i, 1])
+    >>> G
+    Path(n_vertices=10, n_edges=9, directed=True)
 
     The GFT of the path graph is the classical DCT.
 

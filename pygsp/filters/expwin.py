@@ -37,6 +37,8 @@ class Expwin(Filter):
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
     >>> g = filters.Expwin(G, band_min=0.1, band_max=0.7, slope=5)
+    >>> g
+    Expwin(in=1, out=1, band_min=0.10, band_max=0.70, slope=5)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = g.plot(ax=axes[0])

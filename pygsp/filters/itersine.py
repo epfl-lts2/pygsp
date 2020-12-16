@@ -31,6 +31,8 @@ class Itersine(Filter):
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
     >>> g = filters.Itersine(G)
+    >>> g
+    Itersine(in=1, out=6, overlap=2.00)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = g.plot(ax=axes[0])

@@ -15,6 +15,8 @@ class Bunny(NNGraph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.Bunny()
+    >>> G  # doctest: +ELLIPSIS
+    Bunny(n_vertices=2503, n_edges=78292, NNtype=radius, ..., order=0)
     >>> fig = plt.figure()
     >>> ax1 = fig.add_subplot(121)
     >>> ax2 = fig.add_subplot(122, projection='3d')

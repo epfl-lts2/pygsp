@@ -39,12 +39,16 @@ class Sensor(NNGraph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.Sensor(N=64, seed=42)
+    >>> G
+    Sensor(n_vertices=64, n_edges=229, k=6, distributed=False, seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
     >>> _ = G.plot(ax=axes[1])
 
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.Sensor(N=64, distributed=True, seed=42)
+    >>> G
+    Sensor(n_vertices=64, n_edges=228, k=6, distributed=True, seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)
     >>> _ = G.plot(ax=axes[1])

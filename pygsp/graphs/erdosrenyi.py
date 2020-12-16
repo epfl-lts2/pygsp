@@ -32,6 +32,8 @@ class ErdosRenyi(StochasticBlockModel):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.ErdosRenyi(N=64, seed=42)
+    >>> G  # doctest: +ELLIPSIS
+    ErdosRenyi(n_vertices=64, n_edges=219, k=1, p=0.10, q=0.30, ..., seed=42)
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=2)

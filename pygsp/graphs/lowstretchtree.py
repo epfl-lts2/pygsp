@@ -22,6 +22,8 @@ class LowStretchTree(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.LowStretchTree(k=2)
+    >>> G
+    LowStretchTree(n_vertices=16, n_edges=30, k=2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W)
     >>> _ = G.plot(ax=axes[1])

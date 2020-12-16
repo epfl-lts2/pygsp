@@ -38,6 +38,8 @@ class TwoMoons(NNGraph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.TwoMoons()
+    >>> G  # doctest: +ELLIPSIS
+    TwoMoons(n_vertices=2000, n_edges=6132, moontype=standard, ..., order=0)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=0.5)
     >>> _ = G.plot(edges=True, ax=axes[1])

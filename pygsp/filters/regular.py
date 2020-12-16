@@ -44,6 +44,8 @@ class Regular(Filter):
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
     >>> g = filters.Regular(G)
+    >>> g
+    Regular(in=1, out=2)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = g.plot(ax=axes[0])

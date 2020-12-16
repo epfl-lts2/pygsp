@@ -19,6 +19,8 @@ class FullConnected(Graph):
     --------
     >>> import matplotlib.pyplot as plt
     >>> G = graphs.FullConnected(N=20)
+    >>> G
+    FullConnected(n_vertices=20, n_edges=190)
     >>> G.set_coordinates(kind='spring', seed=42)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = axes[0].spy(G.W, markersize=5)

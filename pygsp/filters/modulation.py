@@ -88,6 +88,8 @@ class Modulation(Filter):
     >>> g1 = filters.Modulation(G, g, modulation_first=False)
     >>> g2 = filters.Modulation(G, g, modulation_first=True)
     >>> _ = g1.plot(sum=False)
+    >>> g1
+    Modulation(in=1, out=90)
     >>>
     >>> # Signal.
     >>> s = np.empty(G.N)

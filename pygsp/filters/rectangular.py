@@ -48,6 +48,8 @@ class Rectangular(Filter):
     >>> G.estimate_lmax()
     >>> G.set_coordinates('line1D')
     >>> g = filters.Rectangular(G, band_min=0.1, band_max=0.5)
+    >>> g
+    Rectangular(in=1, out=1, band_min=0.10, band_max=0.50)
     >>> s = g.localize(G.N // 2)
     >>> fig, axes = plt.subplots(1, 2)
     >>> _ = g.plot(ax=axes[0])
