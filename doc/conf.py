@@ -24,7 +24,7 @@ intersphinx_mapping = {
     'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
     'matplotlib': ('https://matplotlib.org', None),
     'pyunlocbox': ('https://pyunlocbox.readthedocs.io/en/stable', None),
-    'networkx': ('https://networkx.github.io/documentation/stable', None),
+    'networkx': ('https://networkx.org/documentation/stable', None),
     'graph_tool': ('https://graph-tool.skewed.de/static/doc', None),
 }
 

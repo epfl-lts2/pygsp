@@ -59,7 +59,7 @@ properties (i.e., not the graph itself).
 Those three tools are complementary and work well together with the provided
 import / export facility.
 
-.. _NetworkX: https://networkx.github.io
+.. _NetworkX: https://networkx.org
 .. _graph-tool: https://graph-tool.skewed.de
 
 The following demonstrates how to instantiate a graph and a filter, the two

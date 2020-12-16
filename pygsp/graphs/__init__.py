@@ -103,7 +103,7 @@ We ourselves leverage NetworkX and graph-tool to save and load graphs.
 Note: to tie a signal with the graph, such that they are exported together,
 attach it first with :meth:`Graph.set_signal`.
 
-.. _NetworkX: https://networkx.github.io
+.. _NetworkX: https://networkx.org
 .. _graph-tool: https://graph-tool.skewed.de
 
 .. autosummary::
@@ -136,7 +136,7 @@ networks (see :mod:`graph_tool.collection`).
 Any graph created by NetworkX or graph-tool can be imported in the PyGSP with
 :meth:`Graph.from_networkx` and :meth:`Graph.from_graphtool`.
 
-.. _NetworkX's documentation: https://networkx.github.io/documentation/stable/reference/generators.html
+.. _NetworkX's documentation: https://networkx.org/documentation/stable/reference/generators.html
 
 Graphs built from other graphs
 ------------------------------
