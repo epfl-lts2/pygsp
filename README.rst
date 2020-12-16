@@ -132,7 +132,7 @@ research purpose at the `EPFL LTS2 laboratory <https://lts2.epfl.ch>`_.
 This project has been partly funded by the Swiss National Science Foundation
 under grant 200021_154350 "Towards Signal Processing on Graphs".
 
-The code in this repository is released under the terms of the `BSD 3-Clause license <LICENSE.txt>`_.
+It is released under the terms of the BSD 3-Clause license.
 
 If you are using the library for your research, for the sake of
 reproducibility, please cite the version you used as indexed by
