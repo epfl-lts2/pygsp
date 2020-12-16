@@ -17,20 +17,14 @@ Moreover, the following modules provide additional functionality:
 
 """
 
-from pygsp import utils as _utils
-
-__all__ = [
-    'graphs',
-    'filters',
-    'plotting',
-    'reduction',
-    'features',
-    'learning',
-    'optimization',
-    'utils',
-]
-
-_utils.import_modules(__all__[::-1], 'pygsp', 'pygsp')
+from . import graphs  # noqa: F401
+from . import filters  # noqa: F401
+from . import plotting  # noqa: F401
+from . import reduction  # noqa: F401
+from . import features  # noqa: F401
+from . import learning  # noqa: F401
+from . import optimization  # noqa: F401
+from . import utils  # noqa: F401
 
 # Users only call the plot methods from the objects.
 # It's thus more convenient for them to have the doc there.
@@ -47,3 +41,11 @@ except AttributeError:
 
 __version__ = '0.5.1'
 __release_date__ = '2017-12-15'
+
+
+def test():  # pragma: no cover
+    """Run the test suite."""
+    import unittest
+    # Lazy as it might be slow and require additional dependencies.
+    from pygsp.tests import suite
+    unittest.TextTestRunner(verbosity=2).run(suite)

@@ -73,10 +73,10 @@ class SimpleTight(Filter):
             r3ind = (x >= l2) * (x < l3)
 
             r = np.zeros(x.shape)
-            if kerneltype is 'sf':
+            if kerneltype == 'sf':
                 r[r1ind] = 1.
                 r[r2ind] = np.sqrt(1 - h(4*x[r2ind] - 1)**2)
-            elif kerneltype is 'wavelet':
+            elif kerneltype == 'wavelet':
                 r[r2ind] = h(4*(x[r2ind] - 1/4.))
                 r[r3ind] = np.sqrt(1 - h(2*x[r3ind] - 1)**2)
             else:

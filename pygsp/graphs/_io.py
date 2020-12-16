@@ -176,7 +176,7 @@ class IOMixIn(object):
         True
         >>> graph.vertex_properties['signal'][2]
         2.3
-        >>> graph.edge_properties['weight'][(0, 1)]
+        >>> graph.edge_properties['weight'][graph.edge(0, 1)]
         1.0
         >>> # gt.draw.graph_draw(graph, vertex_text=graph.vertex_index)
 
@@ -373,7 +373,7 @@ class IOMixIn(object):
         >>> v = graph.add_vertex()
         >>> eprop = graph.new_edge_property("double")
         >>> eprop[e1] = 0.2
-        >>> eprop[(1, 2)] = 0.9
+        >>> eprop[graph.edge(1, 2)] = 0.9
         >>> graph.edge_properties["weight"] = eprop
         >>> vprop = graph.new_vertex_property("double", val=np.nan)
         >>> vprop[3] = 3.1416
@@ -498,11 +498,9 @@ class IOMixIn(object):
         Supported formats are:
 
         * GraphML_, a comprehensive XML format.
-          `Wikipedia <https://en.wikipedia.org/wiki/GraphML>`_.
           Supported by NetworkX_, graph-tool_, NetworKit_, igraph_, Gephi_,
           Cytoscape_, SocNetV_.
         * GML_ (Graph Modelling Language), a simple non-XML format.
-          `Wikipedia <https://en.wikipedia.org/wiki/Graph_Modelling_Language>`_.
           Supported by NetworkX_, graph-tool_, NetworKit_, igraph_, Gephi_,
           Cytoscape_, SocNetV_, Tulip_.
         * GEXF_ (Graph Exchange XML Format), Gephi's XML format.
@@ -510,10 +508,10 @@ class IOMixIn(object):
 
         If unsure, we recommend GraphML_.
 
-        .. _GraphML: http://graphml.graphdrawing.org
-        .. _GML: https://web.archive.org/web/20190303094704/http://www.fim.uni-passau.de:80/fileadmin/files/lehrstuhl/brandenburg/projekte/gml/gml-technical-report.pdf
+        .. _GraphML: https://en.wikipedia.org/wiki/GraphML
+        .. _GML: https://en.wikipedia.org/wiki/Graph_Modelling_Language
         .. _GEXF: https://gephi.org/gexf/format
-        .. _NetworkX: https://networkx.github.io
+        .. _NetworkX: https://networkx.org
         .. _graph-tool: https://graph-tool.skewed.de
         .. _NetworKit: https://networkit.github.io
         .. _igraph: https://igraph.org

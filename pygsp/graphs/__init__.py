@@ -103,7 +103,7 @@ We ourselves leverage NetworkX and graph-tool to save and load graphs.
 Note: to tie a signal with the graph, such that they are exported together,
 attach it first with :meth:`Graph.set_signal`.
 
-.. _NetworkX: https://networkx.github.io
+.. _NetworkX: https://networkx.org
 .. _graph-tool: https://graph-tool.skewed.de
 
 .. autosummary::
@@ -136,7 +136,7 @@ networks (see :mod:`graph_tool.collection`).
 Any graph created by NetworkX or graph-tool can be imported in the PyGSP with
 :meth:`Graph.from_networkx` and :meth:`Graph.from_graphtool`.
 
-.. _NetworkX's documentation: https://networkx.github.io/documentation/stable/reference/generators.html
+.. _NetworkX's documentation: https://networkx.org/documentation/stable/reference/generators.html
 
 Graphs built from other graphs
 ------------------------------
@@ -185,42 +185,32 @@ Nearest-neighbors graphs constructed from point clouds
 
 """
 
-from pygsp import utils as _utils
+from .graph import Graph  # noqa: F401
+from .airfoil import Airfoil  # noqa: F401
+from .barabasialbert import BarabasiAlbert  # noqa: F401
+from .comet import Comet  # noqa: F401
+from .community import Community  # noqa: F401
+from .davidsensornet import DavidSensorNet  # noqa: F401
+from .erdosrenyi import ErdosRenyi  # noqa: F401
+from .fullconnected import FullConnected  # noqa: F401
+from .grid2d import Grid2d  # noqa: F401
+from .linegraph import LineGraph  # noqa: F401
+from .logo import Logo  # noqa: F401
+from .lowstretchtree import LowStretchTree  # noqa: F401
+from .minnesota import Minnesota  # noqa: F401
+from .path import Path  # noqa: F401
+from .randomregular import RandomRegular  # noqa: F401
+from .randomring import RandomRing  # noqa: F401
+from .ring import Ring  # noqa: F401
+from .stochasticblockmodel import StochasticBlockModel  # noqa: F401
+from .swissroll import SwissRoll  # noqa: F401
+from .torus import Torus  # noqa: F401
 
-_GRAPHS = [
-    'Graph',
-    'Airfoil',
-    'BarabasiAlbert',
-    'Comet',
-    'Community',
-    'DavidSensorNet',
-    'ErdosRenyi',
-    'FullConnected',
-    'Grid2d',
-    'LineGraph',
-    'Logo',
-    'LowStretchTree',
-    'Minnesota',
-    'Path',
-    'RandomRegular',
-    'RandomRing',
-    'Ring',
-    'StochasticBlockModel',
-    'SwissRoll',
-    'Torus'
-]
-_NNGRAPHS = [
-    'NNGraph',
-    'Bunny',
-    'Cube',
-    'ImgPatches',
-    'Grid2dImgPatches',
-    'Sensor',
-    'Sphere',
-    'TwoMoons'
-]
-
-__all__ = _GRAPHS + _NNGRAPHS
-
-_utils.import_classes(_GRAPHS, 'graphs', 'graphs')
-_utils.import_classes(_NNGRAPHS, 'graphs.nngraphs', 'graphs')
+from .nngraphs.nngraph import NNGraph  # noqa: F401
+from .nngraphs.bunny import Bunny  # noqa: F401
+from .nngraphs.cube import Cube  # noqa: F401
+from .nngraphs.imgpatches import ImgPatches  # noqa: F401
+from .nngraphs.grid2dimgpatches import Grid2dImgPatches  # noqa: F401
+from .nngraphs.sensor import Sensor  # noqa: F401
+from .nngraphs.sphere import Sphere  # noqa: F401
+from .nngraphs.twomoons import TwoMoons  # noqa: F401

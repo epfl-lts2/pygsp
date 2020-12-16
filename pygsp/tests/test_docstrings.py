@@ -33,11 +33,10 @@ def setup(doctest):
     }
 
 
-# Docstrings from reference documentation.
+# Docstrings from API reference.
 suite_reference = test_docstrings('pygsp', '.py', setup)
 
-# Docstrings from tutorials.
-# No setup to not forget imports.
+# Docstrings from tutorials. No setup to not forget imports.
 suite_tutorials = test_docstrings('.', '.rst')
 
 suite = unittest.TestSuite([suite_reference, suite_tutorials])

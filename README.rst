@@ -28,14 +28,14 @@ A (mostly unmaintained) `Matlab version <https://epfl-lts2.github.io/gspbox-html
    :target: https://github.com/epfl-lts2/pygsp/blob/master/LICENSE.txt
 .. |pyversions| image:: https://img.shields.io/pypi/pyversions/pygsp.svg
    :target: https://pypi.org/project/PyGSP
-.. |travis| image:: https://img.shields.io/travis/epfl-lts2/pygsp.svg
-   :target: https://travis-ci.org/epfl-lts2/pygsp
+.. |travis| image:: https://img.shields.io/travis/com/epfl-lts2/pygsp.svg
+   :target: https://travis-ci.com/epfl-lts2/pygsp
 .. |coveralls| image:: https://img.shields.io/coveralls/epfl-lts2/pygsp.svg
    :target: https://coveralls.io/github/epfl-lts2/pygsp
 .. |github| image:: https://img.shields.io/github/stars/epfl-lts2/pygsp.svg?style=social
    :target: https://github.com/epfl-lts2/pygsp
-.. |binder| image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=playground.ipynb
+.. |binder| image:: https://static.mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?urlpath=lab/tree/examples/playground.ipynb
 .. |conda| image:: https://anaconda.org/conda-forge/pygsp/badges/installer/conda.svg
    :target: https://anaconda.org/conda-forge/pygsp
 
@@ -59,7 +59,7 @@ properties (i.e., not the graph itself).
 Those three tools are complementary and work well together with the provided
 import / export facility.
 
-.. _NetworkX: https://networkx.github.io
+.. _NetworkX: https://networkx.org
 .. _graph-tool: https://graph-tool.skewed.de
 
 The following demonstrates how to instantiate a graph and a filter, the two
@@ -95,7 +95,7 @@ structure!
     :alt:
 
 You can
-`try it online <https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=playground.ipynb>`_,
+`try it online <https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?urlpath=lab/tree/examples/playground.ipynb>`_,
 look at the
 `tutorials <https://pygsp.readthedocs.io/en/stable/tutorials/index.html>`_
 to learn how to use it, or look at the
@@ -132,7 +132,7 @@ research purpose at the `EPFL LTS2 laboratory <https://lts2.epfl.ch>`_.
 This project has been partly funded by the Swiss National Science Foundation
 under grant 200021_154350 "Towards Signal Processing on Graphs".
 
-The code in this repository is released under the terms of the `BSD 3-Clause license <LICENSE.txt>`_.
+It is released under the terms of the BSD 3-Clause license.
 
 If you are using the library for your research, for the sake of
 reproducibility, please cite the version you used as indexed by
