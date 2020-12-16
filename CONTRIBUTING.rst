@@ -28,7 +28,7 @@ If you have a nice example to demonstrate the use of the introduced
 functionality, please consider adding a tutorial in ``doc/tutorials`` or a
 short example in ``examples``.
 
-Update ``README.rst`` and ``doc/history.rst`` if applicable.
+Update ``README.rst`` and ``CHANGELOG.rst`` if applicable.
 
 After making any change, please check the style, run the tests, and build the
 documentation with the following (enforced by Travis CI)::
@@ -51,7 +51,7 @@ Making a release
 ----------------
 
 #. Update the version number and release date in ``setup.py``,
-   ``pygsp/__init__.py`` and ``doc/history.rst``.
+   ``pygsp/__init__.py`` and ``CHANGELOG.rst``.
 #. Create a git tag with ``git tag -a v0.5.0 -m "PyGSP v0.5.0"``.
 #. Push the tag to GitHub with ``git push github v0.5.0``. The tag should now
    appear in the releases and tags tab.

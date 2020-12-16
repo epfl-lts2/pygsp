@@ -1,4 +1,4 @@
-NB = $(sort $(wildcard *.ipynb))
+NB = $(sort $(wildcard examples/*.ipynb))
 .PHONY: help clean lint test doc dist release
 
 help:

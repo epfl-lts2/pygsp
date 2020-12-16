@@ -7,7 +7,6 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.mathjax',
     'sphinx.ext.inheritance_diagram',
-    'sphinxcontrib.bibtex',
 ]
 
 extensions.append('sphinx.ext.autodoc')
@@ -19,12 +18,13 @@ autodoc_default_options = {
 
 extensions.append('sphinx.ext.intersphinx')
 intersphinx_mapping = {
-    'pyunlocbox': ('https://pyunlocbox.readthedocs.io/en/stable', None),
-    'networkx': ('https://networkx.github.io/documentation/stable', None),
-    'graph_tool': ('https://graph-tool.skewed.de/static/doc', None),
-    'numpy': ('https://docs.scipy.org/doc/numpy', None),
+    'python': ('https://docs.python.org/3', None),
+    'numpy': ('https://numpy.org/doc/stable', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
     'matplotlib': ('https://matplotlib.org', None),
+    'pyunlocbox': ('https://pyunlocbox.readthedocs.io/en/stable', None),
+    'networkx': ('https://networkx.org/documentation/stable', None),
+    'graph_tool': ('https://graph-tool.skewed.de/static/doc', None),
 }
 
 extensions.append('numpydoc')
@@ -54,6 +54,12 @@ sphinx_gallery_conf = {
     'doc_module': 'pygsp',
     'show_memory': True,
 }
+
+extensions.append('sphinx_copybutton')
+copybutton_prompt_text = ">>> "
+
+extensions.append('sphinxcontrib.bibtex')
+bibtex_bibfiles = ['references.bib']
 
 exclude_patterns = ['_build']
 source_suffix = '.rst'

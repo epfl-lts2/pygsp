@@ -179,11 +179,10 @@ class TestCase(unittest.TestCase):
         z = h.filter(y, method='exact')
         np.testing.assert_allclose(z, self._signal)
         # Not invertible if not a frame.
-        if sys.version_info > (3, 4):
-            g = filters.Expwin(self._G)
-            with self.assertLogs(level='WARNING'):
-                h = g.inverse()
-                h.evaluate(self._G.e)
+        g = filters.Expwin(self._G)
+        with self.assertLogs(level='WARNING'):
+            h = g.inverse()
+            h.evaluate(self._G.e)
         # If the frame is tight, inverse is h=g/A.
         g += g.complement(frame_bound)
         h = g.inverse()

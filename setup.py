@@ -14,9 +14,10 @@ setup(
     url='https://github.com/epfl-lts2/pygsp',
     project_urls={
         'Documentation': 'https://pygsp.readthedocs.io',
+        'Download': 'https://pypi.org/project/PyGSP',
         'Source Code': 'https://github.com/epfl-lts2/pygsp',
         'Bug Tracker': 'https://github.com/epfl-lts2/pygsp/issues',
-        'Try It Online': 'https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?filepath=playground.ipynb',
+        'Try It Online': 'https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?urlpath=lab/tree/examples/playground.ipynb',
     },
     packages=[
         'pygsp',
@@ -26,7 +27,7 @@ setup(
         'pygsp.tests',
     ],
     package_data={'pygsp': ['data/pointclouds/*.mat']},
-    test_suite='pygsp.tests.test_all.suite',
+    test_suite='pygsp.tests.suite',
     install_requires=[
         'numpy',
         'scipy',
@@ -41,8 +42,7 @@ setup(
             # Construct patch graphs from images.
             'scikit-image',
             # Approximate nearest neighbors for kNN graphs.
-            'pyflann; python_version == "2.*"',
-            'pyflann3; python_version == "3.*"',
+            'pyflann3',
             # Convex optimization on graph.
             'pyunlocbox',
             # Plot graphs, signals, and filters.
@@ -50,10 +50,7 @@ setup(
             # Interactive graph visualization.
             'pyqtgraph',
             'PyOpenGL',
-            # PyQt5 is only available on PyPI as wheels for Python 3.5 and up.
-            'PyQt5; python_version >= "3.5"',
-            # No source package for PyQt5 on PyPI, fall back to PySide.
-            'PySide; python_version < "3.5"',
+            'PyQt5',
             # Run the tests.
             'flake8',
             'coverage',
@@ -65,6 +62,7 @@ setup(
             'sphinx-gallery',
             'memory_profiler',
             'sphinx-rtd-theme',
+            'sphinx-copybutton',
             # Build and upload packages.
             'wheel',
             'twine',
@@ -74,18 +72,18 @@ setup(
     keywords='graph signal processing',
     platforms='any',
     classifiers=[
-        'Topic :: Scientific/Engineering :: Mathematics',
-        'Environment :: Console',
         'Development Status :: 4 - Beta',
+        'Topic :: Scientific/Engineering',
         'Intended Audience :: Developers',
         'Intended Audience :: Education',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
-        'Natural Language :: English',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
 )

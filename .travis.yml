@@ -1,27 +1,19 @@
+dist: bionic
 language: python
 
 python:
-  - 3.5
   - 3.6
   - 3.7
-
-matrix:
-  include:
-    - python: 2.7
-      dist: trusty  # "cannot import name QtOpenGL" with xenial
-      cache: pip  # avoid PySide wheel build
+  - 3.8
+  - 3.9
 
 addons:
   apt:
     sources:
-    - sourceline: 'deb https://downloads.skewed.de/apt/xenial xenial universe'
+    - sourceline: 'deb https://downloads.skewed.de/apt bionic main'
       key_url: 'http://ha.pool.sks-keyservers.net/pks/lookup?op=get&search=0x612DEFB798507F25'
-    # TODO: remove the below once we drop python 2.7.
-    - ubuntu-toolchain-r-test
-    - sourceline: 'deb http://downloads.skewed.de/apt/trusty trusty universe'
     packages:
     - python3-graph-tool
-    - python-graph-tool
     - libqt5gui5  # pyqt5>5.11 fails to load the xcb platform plugin without it
 
 install:
@@ -31,10 +23,7 @@ install:
 before_script:
   # As graph-tool cannot be installed by pip, link to the system installation
   # from the virtual environment.
-  # TODO: remove the condition once we drop python 2.7.
-  - if [[ $(python -c 'import sys; print(sys.version_info[0])') = 3 ]] ;
-    then ln -s "/usr/lib/python3/dist-packages/graph_tool" $(python -c "import site; print(site.getsitepackages()[0])");
-    else ln -s "/usr/lib/python2.7/dist-packages/graph_tool" $(python -c "import site; print(site.getsitepackages()[0])"); fi
+  - ln -s "/usr/lib/python3/dist-packages/graph_tool" $(python -c "import site; print(site.getsitepackages()[0])")
 
 script:
 # - make lint

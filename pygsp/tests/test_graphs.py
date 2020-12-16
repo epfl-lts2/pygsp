@@ -75,11 +75,10 @@ class TestCase(unittest.TestCase):
         self.assertRaises(ValueError, graphs.Graph, np.ones((3, 3, 4)))
         self.assertRaises(ValueError, graphs.Graph, [[0, np.nan], [0, 0]])
         self.assertRaises(ValueError, graphs.Graph, [[0, np.inf], [0, 0]])
-        if sys.version_info > (3, 4):  # no assertLogs in python 2.7
-            with self.assertLogs(level='WARNING'):
-                graphs.Graph([[0, -1], [-1, 0]])
-            with self.assertLogs(level='WARNING'):
-                graphs.Graph([[1, 1], [1, 0]])
+        with self.assertLogs(level='WARNING'):
+            graphs.Graph([[0, -1], [-1, 0]])
+        with self.assertLogs(level='WARNING'):
+            graphs.Graph([[1, 1], [1, 0]])
         for attr in ['A', 'd', 'dw', 'lmax', 'U', 'e', 'coherence', 'D']:
             # FIXME: The Laplacian L should be there as well.
             self.assertRaises(AttributeError, setattr, G, attr, None)
@@ -479,9 +478,8 @@ class TestCase(unittest.TestCase):
         ]
         np.testing.assert_equal(graph.W.toarray(), adjacency)
         np.testing.assert_equal(graph.coords, coords)
-        if sys.version_info > (3, 4):  # no assertLogs in python 2.7
-            with self.assertLogs(level='WARNING'):
-                graphs.LineGraph(graphs.Graph([[0, 2], [2, 0]]))
+        with self.assertLogs(level='WARNING'):
+            graphs.LineGraph(graphs.Graph([[0, 2], [2, 0]]))
 
     def test_subgraph(self, n_vertices=100):
         self._G.set_signal(self._G.coords, 'coords')
@@ -657,7 +655,6 @@ class TestImportExport(unittest.TestCase):
         np.testing.assert_array_equal(nx.adjacency_matrix(g_nx).todense(),
                                       nx.adjacency_matrix(g).todense())
 
-    @unittest.skipIf(sys.version_info < (3,), 'old graph-tool')
     def test_graphtool_export_import(self):
         # Export to graph tool and reimport to PyGSP directly
         # The exported graph is a simple one without an associated Signal
@@ -666,7 +663,6 @@ class TestImportExport(unittest.TestCase):
         g2 = graphs.Graph.from_graphtool(g_gt)
         np.testing.assert_array_equal(g.W.todense(), g2.W.todense())
 
-    @unittest.skipIf(sys.version_info < (3,), 'old graph-tool')
     def test_graphtool_multiedge_import(self):
         # Manualy create a graph with multiple edges
         g_gt = gt.Graph()
@@ -688,7 +684,6 @@ class TestImportExport(unittest.TestCase):
         g3 = graphs.Graph.from_graphtool(g_gt)
         self.assertEqual(g3.W[3, 6], 9.0)
 
-    @unittest.skipIf(sys.version_info < (3,), 'old graph-tool')
     def test_graphtool_import_export(self):
         # Import to PyGSP and export again to graph tool directly
         # create a random graphTool graph that does not contain multiple edges and no signal
@@ -745,7 +740,6 @@ class TestImportExport(unittest.TestCase):
         graph.set_signal(np.array(['a', 'b', 'c']), 'sig')
         self.assertRaises(TypeError, graph.to_graphtool)
 
-    @unittest.skipIf(sys.version_info < (3,), 'old graph-tool')
     def test_graphtool_signal_import(self):
         g_gt = gt.Graph()
         g_gt.add_vertex(10)
@@ -802,8 +796,8 @@ class TestImportExport(unittest.TestCase):
 
         # Graph-tool non-existent weight name.
         prop = graph_gt.new_edge_property("double")
-        prop[(0, 1)] = 2
-        prop[(1, 2)] = 2
+        prop[graph_gt.edge(0, 1)] = 2
+        prop[graph_gt.edge(1, 2)] = 2
         graph_gt.edge_properties["weight"] = prop
         graph_pg = graphs.Graph.from_graphtool(graph_gt)
         np.testing.assert_allclose(graph_pg.W.toarray(), 2*adjacency)
@@ -823,14 +817,12 @@ class TestImportExport(unittest.TestCase):
         graph2 = graphs.Graph.from_graphtool(graph2)
         np.testing.assert_allclose(graph2.signals['coords'], graph1.coords)
         # save and load (need ordered dicts)
-        if sys.version_info >= (3, 6):
-            filename = 'graph.graphml'
-            graph1.save(filename)
-            graph2 = graphs.Graph.load(filename)
-            np.testing.assert_allclose(graph2.signals['coords'], graph1.coords)
-            os.remove(filename)
+        filename = 'graph.graphml'
+        graph1.save(filename)
+        graph2 = graphs.Graph.load(filename)
+        np.testing.assert_allclose(graph2.signals['coords'], graph1.coords)
+        os.remove(filename)
 
-    @unittest.skipIf(sys.version_info < (3, 6), 'need ordered dicts')
     def test_save_load(self):
 
         # TODO: test with multiple graphs and signals
@@ -866,7 +858,6 @@ class TestImportExport(unittest.TestCase):
         self.assertRaises(ValueError, G1.save, 'g.gml', fmt='?')
         self.assertRaises(ValueError, G1.save, 'g.gml', backend='?')
 
-    @unittest.skipIf(sys.version_info < (3, 3), 'need unittest.mock')
     def test_import_errors(self):
         from unittest.mock import patch
         graph = graphs.Sensor()

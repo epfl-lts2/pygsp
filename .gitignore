@@ -37,3 +37,6 @@ output/*/index.html
 
 # Jupyter notebook
 .ipynb_checkpoints/
+
+# Visual Studio Code
+.vscode/

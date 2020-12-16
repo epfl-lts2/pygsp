@@ -7,6 +7,6 @@
    tutorials/index
    examples/index
    reference/index
+   changelog
    contributing
-   history
    references
