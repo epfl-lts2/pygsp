@@ -188,11 +188,12 @@ class TestFilters(unittest.TestCase):
 
     def test_all_filters(self):
         """Plot all filters."""
-        for classname in set(filters.__all__):
-            Filter = getattr(filters, classname)
-            if ('cheby' in classname) or ('lanczos' in classname):
+        for classname in dir(filters):
+            if not classname[0].isupper():
+                # Not a Filter class but a submodule or private stuff.
                 continue
-            elif classname in ['Filter', 'Modulation', 'Gabor']:
+            Filter = getattr(filters, classname)
+            if classname in ['Filter', 'Modulation', 'Gabor']:
                 g = Filter(self._graph, filters.Heat(self._graph))
             else:
                 g = Filter(self._graph)
