@@ -454,7 +454,7 @@ class Filter(object):
         minimum and maximum of their squared sum (the black curve):
 
         >>> def plot(g, ax):
-        ...     g.plot(ax=ax, title='')
+        ...     g.plot(ax=ax, labels=False, title='')
         ...     ax.hlines(B, 0, G.lmax, colors='r', zorder=3,
         ...               label='upper bound $B={:.2f}$'.format(B))
         ...     ax.hlines(A, 0, G.lmax, colors='b', zorder=3,
@@ -750,9 +750,9 @@ class Filter(object):
 
         return Filter(self.G, kernels)
 
-    def plot(self, n=500, eigenvalues=None, sum=None, title=None,
+    def plot(self, n=500, eigenvalues=None, sum=None, labels=None, title=None,
              ax=None, **kwargs):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_filter
         return _plot_filter(self, n=n, eigenvalues=eigenvalues, sum=sum,
-                            title=title, ax=ax, **kwargs)
+                            labels=labels, title=title, ax=ax, **kwargs)

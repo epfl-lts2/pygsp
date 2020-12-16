@@ -9,22 +9,22 @@ import unittest
 import os
 
 import numpy as np
+from matplotlib import pyplot as plt
 from skimage import data, img_as_float
 
-from pygsp import graphs, plotting
+from pygsp import graphs, filters, plotting
 
 
-class TestCase(unittest.TestCase):
+class TestGraphs(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         cls._img = img_as_float(data.camera()[::16, ::16])
 
-    @classmethod
-    def tearDownClass(cls):
-        pass
+    def tearDown(cls):
+        plotting.close_all()
 
-    def test_plot_graphs(self):
+    def test_all_graphs(self):
         r"""
         Plot all graphs which have coordinates.
         With and without signal.
@@ -176,4 +176,89 @@ class TestCase(unittest.TestCase):
         self.assertRaises(ValueError, G.plot, backend='abc')
 
 
-suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)
+class TestFilters(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls._graph = graphs.Sensor(20, seed=42)
+        cls._graph.compute_fourier_basis()
+
+    def tearDown(cls):
+        plotting.close_all()
+
+    def test_all_filters(self):
+        """Plot all filters."""
+        for classname in dir(filters):
+            if not classname[0].isupper():
+                # Not a Filter class but a submodule or private stuff.
+                continue
+            Filter = getattr(filters, classname)
+            if classname in ['Filter', 'Modulation', 'Gabor']:
+                g = Filter(self._graph, filters.Heat(self._graph))
+            else:
+                g = Filter(self._graph)
+            g.plot()
+            plotting.close_all()
+
+    def test_evaluation_points(self):
+        """Change number of evaluation points."""
+        def check(ax, n_lines, n_points):
+            self.assertEqual(len(ax.lines), n_lines)  # n_filters + sum
+            x, y = ax.lines[0].get_data()
+            self.assertEqual(len(x), n_points)
+            self.assertEqual(len(y), n_points)
+        g = filters.Abspline(self._graph, 5)
+        fig, ax = g.plot(eigenvalues=False)
+        check(ax, 6, 500)
+        fig, ax = g.plot(40, eigenvalues=False)
+        check(ax, 6, 40)
+        fig, ax = g.plot(n=20, eigenvalues=False)
+        check(ax, 6, 20)
+
+    def test_eigenvalues(self):
+        """Plot with and without showing the eigenvalues."""
+        graph = graphs.Sensor(20, seed=42)
+        graph.estimate_lmax()
+        filters.Heat(graph).plot()
+        filters.Heat(graph).plot(eigenvalues=False)
+        graph.compute_fourier_basis()
+        filters.Heat(graph).plot()
+        filters.Heat(graph).plot(eigenvalues=True)
+        filters.Heat(graph).plot(eigenvalues=False)
+
+    def test_sum_and_labels(self):
+        """Plot with and without sum or labels."""
+        def test(g):
+            for sum in [None, True, False]:
+                for labels in [None, True, False]:
+                    g.plot(sum=sum, labels=labels)
+        test(filters.Heat(self._graph, 10))  # one filter
+        test(filters.Heat(self._graph, [10, 100]))  # multiple filters
+
+    def test_title(self):
+        """Check plot title."""
+        fig, ax = filters.Wave(self._graph, 2, 1).plot()
+        assert ax.get_title() == 'Wave(in=1, out=1, time=[2.00], speed=[1.00])'
+        fig, ax = filters.Wave(self._graph).plot(title='test')
+        assert ax.get_title() == 'test'
+
+    def test_ax(self):
+        """Axes are returned, but automatically created if not passed."""
+        fig, ax = plt.subplots()
+        fig2, ax2 = filters.Heat(self._graph).plot(ax=ax)
+        self.assertIs(fig2, fig)
+        self.assertIs(ax2, ax)
+
+    def test_kwargs(self):
+        """Additional parameters can be passed to the mpl functions."""
+        g = filters.Heat(self._graph)
+        g.plot(alpha=1)
+        g.plot(linewidth=2)
+        g.plot(linestyle='-')
+        g.plot(label='myfilter')
+
+
+suite = unittest.TestSuite([
+    unittest.TestLoader().loadTestsFromTestCase(TestGraphs),
+    unittest.TestLoader().loadTestsFromTestCase(TestFilters),
+])
