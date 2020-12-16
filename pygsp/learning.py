@@ -98,12 +98,12 @@ def classification_tikhonov_simplex(G, y, M, tau=0.1, **kwargs):
 
     >>> prediction = np.argmax(recovery, axis=1)
     >>> fig, ax = plt.subplots(2, 3, sharey=True, figsize=(10, 6))
-    >>> _ = G.plot_signal(signal, ax=ax[0, 0], title='Ground truth')
-    >>> _ = G.plot_signal(measures, ax=ax[0, 1], title='Measurements')
-    >>> _ = G.plot_signal(prediction, ax=ax[0, 2], title='Recovered class')
-    >>> _ = G.plot_signal(recovery[:, 0], ax=ax[1, 0], title='Logit 0')
-    >>> _ = G.plot_signal(recovery[:, 1], ax=ax[1, 1], title='Logit 1')
-    >>> _ = G.plot_signal(recovery[:, 2], ax=ax[1, 2], title='Logit 2')
+    >>> _ = G.plot(signal, ax=ax[0, 0], title='Ground truth')
+    >>> _ = G.plot(measures, ax=ax[0, 1], title='Measurements')
+    >>> _ = G.plot(prediction, ax=ax[0, 2], title='Recovered class')
+    >>> _ = G.plot(recovery[:, 0], ax=ax[1, 0], title='Logit 0')
+    >>> _ = G.plot(recovery[:, 1], ax=ax[1, 1], title='Logit 1')
+    >>> _ = G.plot(recovery[:, 2], ax=ax[1, 2], title='Logit 2')
     >>> _ = fig.tight_layout()
 
     """
@@ -238,12 +238,12 @@ def classification_tikhonov(G, y, M, tau=0):
 
     >>> prediction = np.argmax(recovery, axis=1)
     >>> fig, ax = plt.subplots(2, 3, sharey=True, figsize=(10, 6))
-    >>> _ = G.plot_signal(signal, ax=ax[0, 0], title='Ground truth')
-    >>> _ = G.plot_signal(measures, ax=ax[0, 1], title='Measurements')
-    >>> _ = G.plot_signal(prediction, ax=ax[0, 2], title='Recovered class')
-    >>> _ = G.plot_signal(recovery[:, 0], ax=ax[1, 0], title='Logit 0')
-    >>> _ = G.plot_signal(recovery[:, 1], ax=ax[1, 1], title='Logit 1')
-    >>> _ = G.plot_signal(recovery[:, 2], ax=ax[1, 2], title='Logit 2')
+    >>> _ = G.plot(signal, ax=ax[0, 0], title='Ground truth')
+    >>> _ = G.plot(measures, ax=ax[0, 1], title='Measurements')
+    >>> _ = G.plot(prediction, ax=ax[0, 2], title='Recovered class')
+    >>> _ = G.plot(recovery[:, 0], ax=ax[1, 0], title='Logit 0')
+    >>> _ = G.plot(recovery[:, 1], ax=ax[1, 1], title='Logit 1')
+    >>> _ = G.plot(recovery[:, 2], ax=ax[1, 2], title='Logit 2')
     >>> _ = fig.tight_layout()
 
     """
@@ -310,9 +310,9 @@ def regression_tikhonov(G, y, M, tau=0):
 
     >>> fig, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(10, 3))
     >>> limits = [signal.min(), signal.max()]
-    >>> _ = G.plot_signal(signal, ax=ax1, limits=limits, title='Ground truth')
-    >>> _ = G.plot_signal(measures, ax=ax2, limits=limits, title='Measures')
-    >>> _ = G.plot_signal(recovery, ax=ax3, limits=limits, title='Recovery')
+    >>> _ = G.plot(signal, ax=ax1, limits=limits, title='Ground truth')
+    >>> _ = G.plot(measures, ax=ax2, limits=limits, title='Measures')
+    >>> _ = G.plot(recovery, ax=ax3, limits=limits, title='Recovery')
     >>> _ = fig.tight_layout()
 
     """

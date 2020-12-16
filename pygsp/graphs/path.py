@@ -27,6 +27,7 @@ class Path(Graph):
     --------
     Ring : 1D line with periodic boundary conditions
     Grid2d : Kronecker product of two path graphs
+    Comet : Generalization with a star at one end
 
     References
     ----------

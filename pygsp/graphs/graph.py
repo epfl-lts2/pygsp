@@ -146,13 +146,15 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             # TODO: self.coords should be None if unset.
             self.coords = np.asanyarray(coords)
 
-        self.plotting = {'vertex_size': 100,
-                         'vertex_color': (0.12, 0.47, 0.71, 0.5),
-                         'edge_color': (0.5, 0.5, 0.5, 0.5),
-                         'edge_width': 2,
-                         'edge_style': '-',
-                         'highlight_color': 'C1',
-                         'normalize_intercept': .25}
+        self.plotting = {
+                'vertex_size': 100,
+                'vertex_color': (0.12, 0.47, 0.71, 0.5),
+                'edge_color': (0.5, 0.5, 0.5, 0.5),
+                'edge_width': 2,
+                'edge_style': '-',
+                'highlight_color': 'C1',
+                'normalize_intercept': .25,
+        }
         self.plotting.update(plotting)
         self.signals = dict()
 

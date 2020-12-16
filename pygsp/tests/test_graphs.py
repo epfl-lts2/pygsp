@@ -525,8 +525,39 @@ class TestCase(unittest.TestCase):
     def test_torus(self):
         graphs.Torus()
 
-    def test_comet(self):
-        graphs.Comet()
+    def test_comet(self, n=100, k=10):
+        graph = graphs.Comet(n, k)
+        self.assertEqual(graph.n_vertices, n)
+        self.assertEqual(graph.n_edges, n-1)
+        self.assertEqual(graph.dw[0], k)
+        graph = graphs.Comet(7, 4)
+        adjacency = [
+            [0, 1, 1, 1, 1, 0, 0],  # center
+            [1, 0, 0, 0, 0, 0, 0],  # branch
+            [1, 0, 0, 0, 0, 0, 0],  # branch
+            [1, 0, 0, 0, 0, 0, 0],  # branch
+            [1, 0, 0, 0, 0, 1, 0],  # tail
+            [0, 0, 0, 0, 1, 0, 1],  # tail
+            [0, 0, 0, 0, 0, 1, 0],  # tail
+        ]
+        np.testing.assert_array_equal(graph.W.toarray(), adjacency)
+        coords = [[0, 0], [0, 1], [-1, 0], [0, -1], [1, 0], [2, 0], [3, 0]]
+        np.testing.assert_allclose(graph.coords, coords, atol=1e-10)
+        # Comet generalizes Path.
+        g1 = graphs.Comet(n, 0)
+        g2 = graphs.Path(n)
+        np.testing.assert_array_equal(g1.W.toarray(), g2.W.toarray())
+        # Comet generalizes Star.
+        g1 = graphs.Comet(n, n-1)
+        g2 = graphs.Star(n)
+        np.testing.assert_array_equal(g1.W.toarray(), g2.W.toarray())
+
+    def test_star(self, n=20):
+        graph = graphs.Star(n)
+        self.assertEqual(graph.n_vertices, n)
+        self.assertEqual(graph.n_edges, n-1)
+        np.testing.assert_array_equal(graph.d, [n-1] + (n-1) * [1])
+        np.testing.assert_allclose(np.linalg.norm(graph.coords[1:], axis=1), 1)
 
     def test_lowstretchtree(self):
         graphs.LowStretchTree()
@@ -592,8 +623,28 @@ class TestCase(unittest.TestCase):
     def test_logo(self):
         graphs.Logo()
 
-    def test_path(self):
-        graphs.Path()
+    def test_path(self, n=5):
+        graph = graphs.Path(n, directed=False)
+        adjacency = [
+            [0, 1, 0, 0, 0],
+            [1, 0, 1, 0, 0],
+            [0, 1, 0, 1, 0],
+            [0, 0, 1, 0, 1],
+            [0, 0, 0, 1, 0],
+        ]
+        coords = [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0]]
+        np.testing.assert_array_equal(graph.W.toarray(), adjacency)
+        np.testing.assert_array_equal(graph.coords, coords)
+        graph = graphs.Path(n, directed=True)
+        adjacency = [
+            [0, 1, 0, 0, 0],
+            [0, 0, 1, 0, 0],
+            [0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0],
+        ]
+        np.testing.assert_array_equal(graph.W.toarray(), adjacency)
+        np.testing.assert_array_equal(graph.coords, coords)
 
     def test_randomring(self):
         graphs.RandomRing()

@@ -165,6 +165,7 @@ Generated graphs
     RandomRegular
     RandomRing
     Ring
+    Star
     StochasticBlockModel
     SwissRoll
     Torus
@@ -202,6 +203,7 @@ from .path import Path  # noqa: F401
 from .randomregular import RandomRegular  # noqa: F401
 from .randomring import RandomRing  # noqa: F401
 from .ring import Ring  # noqa: F401
+from .star import Star  # noqa: F401
 from .stochasticblockmodel import StochasticBlockModel  # noqa: F401
 from .swissroll import SwissRoll  # noqa: F401
 from .torus import Torus  # noqa: F401
