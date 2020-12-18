@@ -34,31 +34,35 @@ def _analysis(g, s, **kwargs):
     return s.swapaxes(1, 2).reshape(-1, s.shape[1], order='F')
 
 
-def graph_sparsify(M, epsilon, maxiter=10):
+def graph_sparsify(M, epsilon, maxiter=10, seed=None):
     r"""Sparsify a graph (with Spielman-Srivastava).
 
     Parameters
     ----------
     M : Graph or sparse matrix
         Graph structure or a Laplacian matrix
-    epsilon : int
-        Sparsification parameter
+    epsilon : float
+        Sparsification parameter, which must be between ``1/sqrt(N)`` and 1.
+    maxiter : int, optional
+        Maximum number of iterations.
+    seed : {None, int, RandomState, Generator}, optional
+        Seed for the random number generator (for reproducible sparsification).
 
     Returns
     -------
     Mnew : Graph or sparse matrix
         New graph structure or sparse matrix
 
-    Notes
-    -----
-    Epsilon should be between 1/sqrt(N) and 1
-
     Examples
     --------
     >>> from pygsp import reduction
-    >>> G = graphs.Sensor(256, k=20, distributed=True)
-    >>> epsilon = 0.4
-    >>> G2 = reduction.graph_sparsify(G, epsilon)
+    >>> from matplotlib import pyplot as plt
+    >>> G = graphs.Sensor(100, k=20, distributed=True, seed=1)
+    >>> Gs = reduction.graph_sparsify(G, epsilon=0.4, seed=1)
+    >>> fig, axes = plt.subplots(1, 2)
+    >>> _ = G.plot(ax=axes[0], title='original')
+    >>> Gs.coords = G.coords
+    >>> _ = Gs.plot(ax=axes[1], title='sparsified')
 
     References
     ----------
@@ -100,6 +104,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
     Re = np.maximum(0, resistance_distances[start_nodes, end_nodes])
     Pe = weights * Re
     Pe = Pe / np.sum(Pe)
+    dist = stats.rv_discrete(values=(np.arange(len(Pe)), Pe), seed=seed)
 
     for i in range(maxiter):
         # Rudelson, 1996 Random Vectors in the Isotropic Position
@@ -109,7 +114,7 @@ def graph_sparsify(M, epsilon, maxiter=10):
         C = 4 * C0
         q = round(N * np.log(N) * 9 * C**2 / (epsilon**2))
 
-        results = stats.rv_discrete(values=(np.arange(np.shape(Pe)[0]), Pe)).rvs(size=int(q))
+        results = dist.rvs(size=int(q))
         spin_counts = stats.itemfreq(results).astype(int)
         per_spin_weights = weights / (q * Pe)
 
