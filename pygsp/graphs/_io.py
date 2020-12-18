@@ -519,7 +519,7 @@ class IOMixIn(object):
         .. _Gephi: https://gephi.org
         .. _Cytoscape: https://cytoscape.org
         .. _SocNetV: https://socnetv.org
-        .. _Tulip: http://tulip.labri.fr
+        .. _Tulip: https://tulip.labri.fr
 
         Parameters
         ----------
