@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy import sparse
+from scipy import sparse, linalg
 
 from pygsp import utils
 
@@ -171,7 +171,7 @@ class FourierMixIn(object):
 
         # TODO: handle non-symmetric Laplacians. Test lap_type?
         if n_eigenvectors == self.n_vertices:
-            self._e, self._U = np.linalg.eigh(self.L.toarray())
+            self._e, self._U = linalg.eigh(self.L.toarray(order='F'), overwrite_a=True)
         else:
             # fast partial eigendecomposition of hermitian matrices
             self._e, self._U = sparse.linalg.eigsh(self.L,
