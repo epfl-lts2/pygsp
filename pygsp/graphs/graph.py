@@ -348,7 +348,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             adjacencies.append(self.W.T)
 
         for adjacency in adjacencies:
-            visited = np.zeros(self.n_vertices, dtype=np.bool)
+            visited = np.zeros(self.n_vertices, dtype=bool)
             stack = set([0])
 
             while stack:

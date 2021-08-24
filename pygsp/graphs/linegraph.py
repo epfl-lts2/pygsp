@@ -43,8 +43,8 @@ class LineGraph(Graph):
         # incidence = np.abs(graph.D)  # weighted?
         incidence = (graph.D != 0)
 
-        adjacency = incidence.T.dot(incidence).astype(np.int)
-        adjacency -= sparse.identity(graph.n_edges, dtype=np.int)
+        adjacency = incidence.T.dot(incidence).astype(int)
+        adjacency -= sparse.identity(graph.n_edges, dtype=int)
 
         try:
             coords = incidence.T.dot(graph.coords) / 2

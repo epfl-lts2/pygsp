@@ -416,10 +416,10 @@ class TestCase(unittest.TestCase):
 
         test(W)
         test(W.astype(np.float32))
-        test(W.astype(np.int))
+        test(W.astype(int))
         test(sparse.csr_matrix(W))
         test(sparse.csr_matrix(W, dtype=np.float32))
-        test(sparse.csr_matrix(W, dtype=np.int))
+        test(sparse.csr_matrix(W, dtype=int))
         test(sparse.csc_matrix(W))
         test(sparse.coo_matrix(W))
 

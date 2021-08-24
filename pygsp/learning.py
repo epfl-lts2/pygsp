@@ -115,7 +115,7 @@ def classification_tikhonov_simplex(G, y, M, tau=0.1, **kwargs):
 
     y = y.copy()
     y[M == False] = 0
-    Y = _to_logits(y.astype(np.int))
+    Y = _to_logits(y.astype(int))
     Y[M == False, :] = 0
 
     def proj_simplex(y):
@@ -249,7 +249,7 @@ def classification_tikhonov(G, y, M, tau=0):
     """
     y = y.copy()
     y[M == False] = 0
-    Y = _to_logits(y.astype(np.int))
+    Y = _to_logits(y.astype(int))
     return regression_tikhonov(G, Y, M, tau)
 
 
