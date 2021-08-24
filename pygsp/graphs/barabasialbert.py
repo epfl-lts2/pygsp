@@ -51,13 +51,13 @@ class BarabasiAlbert(Graph):
         self.seed = seed
 
         W = sparse.lil_matrix((N, N))
-        rs = np.random.RandomState(seed)
+        rng = np.random.default_rng(seed)
 
         for i in range(m0, N):
             distr = W.sum(axis=1)
             distr += np.concatenate((np.ones((i, 1)), np.zeros((N-i, 1))))
 
-            connections = rs.choice(
+            connections = rng.choice(
                 N, size=m, replace=False, p=np.ravel(distr / distr.sum()))
             for elem in connections:
                 W[elem, i] = 1

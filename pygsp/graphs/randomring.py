@@ -36,8 +36,8 @@ class RandomRing(Graph):
         self.seed = seed
 
         if angles is None:
-            rs = np.random.RandomState(seed)
-            angles = np.sort(rs.uniform(0, 2*np.pi, size=N), axis=0)
+            rng = np.random.default_rng(seed)
+            angles = np.sort(rng.uniform(0, 2*np.pi, size=N), axis=0)
         else:
             angles = np.asanyarray(angles)
             angles.sort()  # Need to be sorted to take the difference.

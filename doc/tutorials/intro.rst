@@ -38,14 +38,14 @@ follows.
 .. plot::
     :context: close-figs
 
-    >>> rs = np.random.RandomState(42)  # Reproducible results.
-    >>> W = rs.uniform(size=(30, 30))  # Full graph.
+    >>> rng = np.random.default_rng(1)  # Reproducible results.
+    >>> W = rng.uniform(size=(30, 30))  # Full graph.
     >>> W[W < 0.93] = 0  # Sparse graph.
     >>> W = W + W.T  # Symmetric graph.
     >>> np.fill_diagonal(W, 0)  # No self-loops.
     >>> G = graphs.Graph(W)
     >>> print('{} nodes, {} edges'.format(G.N, G.Ne))
-    30 nodes, 60 edges
+    30 nodes, 64 edges
 
 The :class:`pygsp.graphs.Graph` class we just instantiated is the base class
 for all graph objects, which offers many methods and attributes.
@@ -98,7 +98,7 @@ smoothness of a signal.
 
     >>> G.compute_differential_operator()
     >>> G.D.shape
-    (30, 60)
+    (30, 64)
 
 .. note::
     Note that we called :meth:`pygsp.graphs.Graph.compute_fourier_basis` and
@@ -216,7 +216,7 @@ Let's create a graph signal and add some random noise.
     >>> s[G.info['idx_g']] = -1
     >>> s[G.info['idx_s']] = 0
     >>> s[G.info['idx_p']] = 1
-    >>> s += rs.uniform(-0.5, 0.5, size=G.N)
+    >>> s += rng.uniform(-0.5, 0.5, size=G.N)
 
 We can now try to denoise that signal by filtering it with the above defined
 low-pass filter.

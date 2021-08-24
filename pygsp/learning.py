@@ -83,8 +83,8 @@ def classification_tikhonov_simplex(G, y, M, tau=0.1, **kwargs):
 
     Construct a measurement signal from a binary mask:
 
-    >>> rs = np.random.RandomState(42)
-    >>> mask = rs.uniform(0, 1, G.n_vertices) > 0.5
+    >>> rng = np.random.default_rng(42)
+    >>> mask = rng.uniform(0, 1, G.n_vertices) > 0.5
     >>> measures = signal.copy()
     >>> measures[~mask] = np.nan
 
@@ -224,8 +224,8 @@ def classification_tikhonov(G, y, M, tau=0):
 
     Construct a measurement signal from a binary mask:
 
-    >>> rs = np.random.RandomState(42)
-    >>> mask = rs.uniform(0, 1, G.n_vertices) > 0.5
+    >>> rng = np.random.default_rng(42)
+    >>> mask = rng.uniform(0, 1, G.n_vertices) > 0.5
     >>> measures = signal.copy()
     >>> measures[~mask] = np.nan
 
@@ -293,12 +293,12 @@ def regression_tikhonov(G, y, M, tau=0):
 
     >>> filt = lambda x: 1 / (1 + 10*x)
     >>> filt = filters.Filter(G, filt)
-    >>> rs = np.random.RandomState(42)
-    >>> signal = filt.analyze(rs.normal(size=G.n_vertices))
+    >>> rng = np.random.default_rng(42)
+    >>> signal = filt.analyze(rng.normal(size=G.n_vertices))
 
     Construct a measurement signal from a binary mask:
 
-    >>> mask = rs.uniform(0, 1, G.n_vertices) > 0.5
+    >>> mask = rng.uniform(0, 1, G.n_vertices) > 0.5
     >>> measures = signal.copy()
     >>> measures[~mask] = np.nan
 

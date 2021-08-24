@@ -5,7 +5,7 @@ import numpy as np
 
 class LayoutMixIn(object):
 
-    def set_coordinates(self, kind='spring', **kwargs):
+    def set_coordinates(self, kind='spring', seed=None, **kwargs):
         r"""Set node's coordinates (their position when plotting).
 
         Parameters
@@ -17,6 +17,9 @@ class LayoutMixIn(object):
             algorithm. Available algorithms: community2D, random2D, random3D,
             ring2D, line1D, spring, laplacian_eigenmap2D, laplacian_eigenmap3D.
             Default is 'spring'.
+        seed : int
+            Seed for the random number generator when `kind` is `'random'`,
+            `'community'`, or `'spring'`.
         kwargs : dict
             Additional parameters to be passed to the Fruchterman-Reingold
             force-directed algorithm when kind is spring.
@@ -50,13 +53,15 @@ class LayoutMixIn(object):
             self.coords = np.stack([np.cos(angle), np.sin(angle)], axis=1)
 
         elif kind == 'random2D':
-            self.coords = np.random.uniform(size=(self.N, 2))
+            rng = np.random.default_rng(seed)
+            self.coords = rng.uniform(size=(self.N, 2))
 
         elif kind == 'random3D':
-            self.coords = np.random.uniform(size=(self.N, 3))
+            rng = np.random.default_rng(seed)
+            self.coords = rng.uniform(size=(self.N, 3))
 
         elif kind == 'spring':
-            self.coords = self._fruchterman_reingold_layout(**kwargs)
+            self.coords = self._fruchterman_reingold(seed=seed, **kwargs)
 
         elif kind == 'community2D':
             if not hasattr(self, 'info') or 'node_com' not in self.info:
@@ -79,7 +84,8 @@ class LayoutMixIn(object):
                     np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc))))
 
             # Coordinates of the nodes inside their communities
-            coords = np.random.rand(self.N, 2)
+            rng = np.random.default_rng(seed)
+            coords = rng.uniform(size=(self.N, 2))
             self.coords = np.array([[elem[0] * np.cos(2 * np.pi * elem[1]),
                                      elem[0] * np.sin(2 * np.pi * elem[1])]
                                     for elem in coords])
@@ -100,9 +106,9 @@ class LayoutMixIn(object):
         else:
             raise ValueError('Unexpected argument kind={}.'.format(kind))
 
-    def _fruchterman_reingold_layout(self, dim=2, k=None, pos=None, fixed=[],
-                                     iterations=50, scale=1.0, center=None,
-                                     seed=None):
+    def _fruchterman_reingold(self, dim=2, k=None, pos=None, fixed=[],
+                              iterations=50, scale=1.0, center=None,
+                              seed=None):
         # TODO doc
         # fixed: list of nodes with fixed coordinates
         # Position nodes using Fruchterman-Reingold force-directed algorithm.
@@ -120,7 +126,8 @@ class LayoutMixIn(object):
         else:
             # Determine size of existing domain to adjust initial positions
             dom_size = np.max(pos)
-            pos_arr = np.random.RandomState(seed).uniform(size=(self.N, dim))
+            rng = np.random.default_rng(seed)
+            pos_arr = rng.uniform(size=(self.N, dim))
             pos_arr = pos_arr * dom_size + center
             for i in range(self.N):
                 pos_arr[i] = np.asanyarray(pos[i])
@@ -150,7 +157,8 @@ def _sparse_fruchterman_reingold(A, dim, k, pos, fixed, iterations, seed):
 
     if pos is None:
         # random initial positions
-        pos = np.random.RandomState(seed).uniform(size=(nnodes, dim))
+        rng = np.random.default_rng(seed)
+        pos = rng.uniform(size=(nnodes, dim))
 
     # optimal distance between nodes
     if k is None:

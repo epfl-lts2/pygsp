@@ -137,7 +137,7 @@ class DifferenceMixIn(object):
 
         >>> G = graphs.Logo()
         >>> G.compute_differential_operator()
-        >>> s = np.random.normal(size=G.N)
+        >>> s = np.random.default_rng().normal(size=G.N)
         >>> s_grad = G.D.T.dot(s)
         >>> s_lap = G.D.dot(s_grad)
         >>> np.linalg.norm(s_lap - G.L.dot(s)) < 1e-10

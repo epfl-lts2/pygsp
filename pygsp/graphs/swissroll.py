@@ -58,9 +58,9 @@ class SwissRoll(Graph):
         self.srtype = srtype
         self.seed = seed
 
-        rs = np.random.RandomState(seed)
-        y1 = rs.rand(N)
-        y2 = rs.rand(N)
+        rng = np.random.default_rng(seed)
+        y1 = rng.uniform(size=N)
+        y2 = rng.uniform(size=N)
 
         if srtype == 'uniform':
             tt = np.sqrt((b * b - a * a) * y1 + a * a)
@@ -74,7 +74,7 @@ class SwissRoll(Graph):
             x = np.array((tt * np.cos(tt), 21 * y2, tt * np.sin(tt)))
 
         if noise:
-            x += rs.randn(*x.shape)
+            x += rng.normal(size=x.shape)
 
         self.x = x
         self.dim = dim

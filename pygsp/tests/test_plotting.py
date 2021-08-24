@@ -122,11 +122,12 @@ class TestGraphs(unittest.TestCase):
         """Test the different kind of signals that can be plotted."""
         G = graphs.Sensor()
         G.plot()
+        rng = np.random.default_rng(42)
         def test_color(param, length):
             for value in ['r', 4*(.5,), length*(2,), np.ones([1, length]),
-                          np.random.RandomState(42).uniform(size=length),
+                          rng.random(length),
                           np.ones([length, 3]), ["red"] * length,
-                          np.random.RandomState(42).rand(length, 4)]:
+                          rng.random([length, 4])]:
                 params = {param: value}
                 G.plot(**params)
             for value in [10, (0.5, 0.5), np.ones([length, 2]),
@@ -141,7 +142,7 @@ class TestGraphs(unittest.TestCase):
         test_color('edge_color', G.n_edges)
         def test_size(param, length):
             for value in [15, length*(2,), np.ones([1, length]),
-                          np.random.RandomState(42).uniform(size=length)]:
+                          rng.random(length)]:
                 params = {param: value}
                 G.plot(**params)
             for value in [(2, 3, 4, 5), np.ones([2, length]),

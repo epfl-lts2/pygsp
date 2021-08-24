@@ -45,11 +45,11 @@ class TwoMoons(NNGraph):
     """
 
     def _create_arc_moon(self, N, sigmad, distance, number, seed):
-        rs = np.random.RandomState(seed)
-        phi = rs.rand(N, 1) * np.pi
+        rng = np.random.default_rng(seed)
+        phi = rng.uniform(size=(N, 1)) * np.pi
         r = 1
-        rb = sigmad * rs.normal(size=(N, 1))
-        ab = rs.rand(N, 1) * 2 * np.pi
+        rb = sigmad * rng.normal(size=(N, 1))
+        ab = rng.uniform(size=(N, 1)) * 2 * np.pi
         b = rb * np.exp(1j * ab)
         bx = np.real(b)
         by = np.imag(b)

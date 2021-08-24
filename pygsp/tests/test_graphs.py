@@ -29,9 +29,10 @@ class TestCase(unittest.TestCase):
     def setUpClass(cls):
         cls._G = graphs.Logo()
         cls._G.compute_fourier_basis()
+        cls._G.compute_differential_operator()
 
-        cls._rs = np.random.RandomState(42)
-        cls._signal = cls._rs.uniform(size=cls._G.N)
+        cls._rng = np.random.default_rng(42)
+        cls._signal = cls._rng.uniform(size=cls._G.N)
 
         cls._img = img_as_float(data.camera()[::16, ::16])
 
@@ -310,10 +311,10 @@ class TestCase(unittest.TestCase):
         np.testing.assert_allclose(U6[:, ::-1], U1, atol=1e-10)
 
     def test_fourier_transform(self):
-        s = self._rs.uniform(size=(self._G.N, 99, 21))
+        s = self._rng.uniform(size=(self._G.N, 99, 21))
         s_hat = self._G.gft(s)
         s_star = self._G.igft(s_hat)
-        np.testing.assert_allclose(s, s_star)
+        np.testing.assert_allclose(s, s_star, rtol=1e-6)
 
     def test_edge_list(self):
         for directed in [False, True]:
@@ -360,7 +361,7 @@ class TestCase(unittest.TestCase):
 
     def test_dirichlet_energy(self, n_vertices=100):
         r"""The Dirichlet energy is defined as the norm of the gradient."""
-        signal = np.random.RandomState(42).uniform(size=n_vertices)
+        signal = np.random.default_rng(42).uniform(size=n_vertices)
         for lap_type in ['combinatorial', 'normalized']:
             graph = graphs.BarabasiAlbert(n_vertices, lap_type=lap_type)
             graph.compute_differential_operator()
@@ -401,8 +402,8 @@ class TestCase(unittest.TestCase):
 
     def test_adjacency_types(self, n_vertices=10):
 
-        rs = np.random.RandomState(42)
-        W = 10 * np.abs(rs.normal(size=(n_vertices, n_vertices)))
+        rng = np.random.default_rng(42)
+        W = 10 * np.abs(rng.normal(size=(n_vertices, n_vertices)))
         W = W + W.T
         W = W - np.diag(np.diag(W))
 
@@ -432,7 +433,7 @@ class TestCase(unittest.TestCase):
 
     def test_set_coordinates(self):
         G = graphs.FullConnected()
-        coords = self._rs.uniform(size=(G.N, 2))
+        coords = self._rng.uniform(size=(G.N, 2))
         G.set_coordinates(coords)
         G.set_coordinates('ring2D')
         G.set_coordinates('random2D')
@@ -491,8 +492,8 @@ class TestCase(unittest.TestCase):
         self.assertEqual(graph.plotting, self._G.plotting)
 
     def test_nngraph(self, n_vertices=30):
-        rs = np.random.RandomState(42)
-        Xin = rs.normal(size=(n_vertices, 3))
+        rng = np.random.default_rng(42)
+        Xin = rng.normal(size=(n_vertices, 3))
         dist_types = ['euclidean', 'manhattan', 'max_dist', 'minkowski']
 
         for dist_type in dist_types:
@@ -738,7 +739,8 @@ class TestImportExport(unittest.TestCase):
     def test_graphtool_import_export(self):
         # Import to PyGSP and export again to graph tool directly
         # create a random graphTool graph that does not contain multiple edges and no signal
-        graph_gt = gt.generation.random_graph(100, lambda : (np.random.poisson(4), np.random.poisson(4)))
+        rng = np.random.default_rng(42)
+        graph_gt = gt.generation.random_graph(100, lambda: (rng.poisson(4), rng.poisson(4)))
 
         eprop_double = graph_gt.new_edge_property("double")
         for e in graph_gt.edges():
@@ -760,9 +762,9 @@ class TestImportExport(unittest.TestCase):
 
     def test_networkx_signal_export(self):
         graph = graphs.BarabasiAlbert(N=100, seed=42)
-        rs = np.random.RandomState(42)
-        signal1 = rs.normal(size=graph.N)
-        signal2 = rs.normal(size=graph.N)
+        rng = np.random.default_rng(42)
+        signal1 = rng.normal(0, 1, graph.N)
+        signal2 = rng.integers(0, 1, graph.N)
         graph.set_signal(signal1, "signal1")
         graph.set_signal(signal2, "signal2")
         graph_nx = graph.to_networkx()
@@ -776,9 +778,9 @@ class TestImportExport(unittest.TestCase):
 
     def test_graphtool_signal_export(self):
         g = graphs.Logo()
-        rs = np.random.RandomState(42)
-        s = rs.normal(size=g.N)
-        s2 = rs.normal(size=g.N)
+        rng = np.random.default_rng(42)
+        s = rng.normal(0, 1, size=g.N)
+        s2 = rng.integers(0, 1, size=g.N)
         g.set_signal(s, "signal1")
         g.set_signal(s2, "signal2")
         g_gt = g.to_graphtool()
@@ -882,7 +884,7 @@ class TestImportExport(unittest.TestCase):
 
         G1 = graphs.Sensor(seed=42)
         W = G1.W.toarray()
-        sig = np.random.RandomState(42).normal(size=G1.N)
+        sig = np.random.default_rng(42).normal(size=G1.N)
         G1.set_signal(sig, 's')
 
         for fmt in ['graphml', 'gml', 'gexf']:
