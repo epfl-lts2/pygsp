@@ -29,14 +29,14 @@ A (mostly unmaintained) `Matlab version <https://epfl-lts2.github.io/gspbox-html
 .. |pyversions| image:: https://img.shields.io/pypi/pyversions/pygsp.svg
    :target: https://pypi.org/project/PyGSP
 .. |travis| image:: https://img.shields.io/travis/com/epfl-lts2/pygsp.svg
-   :target: https://travis-ci.com/epfl-lts2/pygsp
-.. |coveralls| image:: https://img.shields.io/coveralls/epfl-lts2/pygsp.svg
+   :target: https://app.travis-ci.com/github/epfl-lts2/pygsp
+.. |coveralls| image:: https://img.shields.io/coveralls/github/epfl-lts2/pygsp.svg
    :target: https://coveralls.io/github/epfl-lts2/pygsp
 .. |github| image:: https://img.shields.io/github/stars/epfl-lts2/pygsp.svg?style=social
    :target: https://github.com/epfl-lts2/pygsp
 .. |binder| image:: https://static.mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?urlpath=lab/tree/examples/playground.ipynb
-.. |conda| image:: https://anaconda.org/conda-forge/pygsp/badges/installer/conda.svg
+.. |conda| image:: https://img.shields.io/conda/vn/conda-forge/pygsp.svg
    :target: https://anaconda.org/conda-forge/pygsp
 
 The PyGSP facilitates a wide variety of operations on graphs, like computing

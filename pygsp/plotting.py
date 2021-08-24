@@ -2,7 +2,7 @@
 
 r"""
 The :mod:`pygsp.plotting` module implements functionality to plot PyGSP objects
-with a `pyqtgraph <http://www.pyqtgraph.org>`_ or `matplotlib
+with a `pyqtgraph <https://www.pyqtgraph.org>`_ or `matplotlib
 <https://matplotlib.org>`_ drawing backend (which can be controlled by the
 :data:`BACKEND` constant or individually for each plotting call).
 
