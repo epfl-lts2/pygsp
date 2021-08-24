@@ -79,12 +79,7 @@ class IOMixIn(object):
         >>> graph.set_signal(np.full(4, 2.3), 'signal')
         >>> graph = graph.to_networkx()
         >>> print(nx.info(graph))
-        Name: Path
-        Type: DiGraph
-        Number of nodes: 4
-        Number of edges: 3
-        Average in degree:   0.7500
-        Average out degree:   0.7500
+        DiGraph named 'Path' with 4 nodes and 3 edges
         >>> nx.is_directed(graph)
         True
         >>> graph.nodes()
