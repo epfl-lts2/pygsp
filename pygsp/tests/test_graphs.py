@@ -362,7 +362,7 @@ class TestCase(unittest.TestCase):
         r"""The Dirichlet energy is defined as the norm of the gradient."""
         signal = np.random.RandomState(42).uniform(size=n_vertices)
         for lap_type in ['combinatorial', 'normalized']:
-            graph = graphs.BarabasiAlbert(n_vertices)
+            graph = graphs.BarabasiAlbert(n_vertices, lap_type=lap_type)
             graph.compute_differential_operator()
             energy = graph.dirichlet_energy(signal)
             grad_norm = np.sum(graph.grad(signal)**2)
