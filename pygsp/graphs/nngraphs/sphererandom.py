@@ -60,8 +60,8 @@ class SphereRandom(NNGraph):
         self.dim = dim
         self.seed = seed
 
-        rs = np.random.RandomState(seed)
-        coords = rs.normal(0, 1, (N, dim))
+        rng = np.random.default_rng(seed)
+        coords = rng.normal(0, 1, (N, dim))
         coords /= np.linalg.norm(coords, axis=1)[:, np.newaxis]
 
         plotting = {

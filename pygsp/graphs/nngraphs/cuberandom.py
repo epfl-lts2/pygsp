@@ -38,8 +38,8 @@ class CubeRandom(NNGraph):
         self.seed = seed
 
         n = N // 6
-        rs = np.random.RandomState(seed)
-        coords = rs.uniform(0, 1, (6*n, 3))
+        rng = np.random.default_rng(seed)
+        coords = rng.uniform(0, 1, (6*n, 3))
 
         coords[0*n:1*n, 0] = np.zeros(n)  # face 1
         coords[1*n:2*n, 0] = np.ones(n)  # face 2
