@@ -34,7 +34,6 @@ from pygsp import utils
 _logger = utils.build_logger(__name__)
 
 BACKEND = 'matplotlib'
-_qtg_windows = []
 _qtg_widgets = []
 _plt_figures = []
 
@@ -108,13 +107,6 @@ def _plt_handle_figure(plot):
 def close_all():
     r"""Close all opened windows."""
 
-    # Windows can be closed by releasing all references to them so they can be
-    # garbage collected. May not be necessary to call close().
-    global _qtg_windows
-    for window in _qtg_windows:
-        window.close()
-    _qtg_windows = []
-
     global _qtg_widgets
     for widget in _qtg_widgets:
         widget.close()
@@ -149,9 +141,8 @@ def _qtg_plot_graph(G, edges, vertex_size, title):
 
     if G.coords.shape[1] == 2:
 
-        window = qtg.GraphicsWindow()
-        window.setWindowTitle(title)
-        view = window.addViewBox()
+        widget = qtg.GraphicsLayoutWidget()
+        view = widget.addViewBox()
         view.setAspectLocked()
 
         if edges:
@@ -165,16 +156,11 @@ def _qtg_plot_graph(G, edges, vertex_size, title):
                           size=vertex_size/10)
         view.addItem(g)
 
-        global _qtg_windows
-        _qtg_windows.append(window)
-
     elif G.coords.shape[1] == 3:
         if not QtGui.QApplication.instance():
             QtGui.QApplication([])  # We want only one application.
         widget = gl.GLViewWidget()
         widget.opts['distance'] = 10
-        widget.show()
-        widget.setWindowTitle(title)
 
         if edges:
             x, y, z = _get_coords(G)
@@ -187,8 +173,11 @@ def _qtg_plot_graph(G, edges, vertex_size, title):
                                   color=G.plotting['vertex_color'])
         widget.addItem(gp)
 
-        global _qtg_widgets
-        _qtg_widgets.append(widget)
+    widget.setWindowTitle(title)
+    widget.show()
+
+    global _qtg_widgets
+    _qtg_widgets.append(widget)
 
 
 def _plot_filter(filters, n, eigenvalues, sum, labels, title, ax, **kwargs):
@@ -592,16 +581,14 @@ def _qtg_plot_signal(G, signal, edges, vertex_size, limits, title):
     qtg, gl, QtGui = _import_qtg()
 
     if G.coords.shape[1] == 2:
-        window = qtg.GraphicsWindow(title)
-        view = window.addViewBox()
+        widget = qtg.GraphicsLayoutWidget()
+        view = widget.addViewBox()
 
     elif G.coords.shape[1] == 3:
         if not QtGui.QApplication.instance():
             QtGui.QApplication([])  # We want only one application.
         widget = gl.GLViewWidget()
         widget.opts['distance'] = 10
-        widget.show()
-        widget.setWindowTitle(title)
 
     if edges:
 
@@ -639,12 +626,11 @@ def _qtg_plot_signal(G, signal, edges, vertex_size, limits, title):
                                   color=cmap.map(signal, 'float'))
         widget.addItem(gp)
 
-    if G.coords.shape[1] == 2:
-        global _qtg_windows
-        _qtg_windows.append(window)
-    elif G.coords.shape[1] == 3:
-        global _qtg_widgets
-        _qtg_widgets.append(widget)
+    widget.setWindowTitle(title)
+    widget.show()
+
+    global _qtg_widgets
+    _qtg_widgets.append(widget)
 
 
 def _plot_spectrogram(G, node_idx):
@@ -686,11 +672,9 @@ def _plot_spectrogram(G, node_idx):
 
     spectr = (spectr.astype(float) - min_spec) / (max_spec - min_spec)
 
-    w = qtg.GraphicsWindow()
-    w.setWindowTitle("Spectrogram of {}".format(G.__repr__(limit=4)))
+    widget = qtg.GraphicsLayoutWidget()
     label = 'frequencies {}:{:.2f}:{:.2f}'.format(0, G.lmax/M, G.lmax)
-    v = w.addPlot(labels={'bottom': 'nodes',
-                          'left': label})
+    v = widget.addPlot(labels={'bottom': 'nodes', 'left': label})
     v.setAspectLocked()
 
     spi = qtg.ScatterPlotItem(np.repeat(np.arange(G.N), M),
@@ -701,8 +685,11 @@ def _plot_spectrogram(G, node_idx):
                               brush=cmap.map(spectr, 'qcolor'))
     v.addItem(spi)
 
-    global _qtg_windows
-    _qtg_windows.append(w)
+    widget.setWindowTitle("Spectrogram of {}".format(G.__repr__(limit=4)))
+    widget.show()
+
+    global _qtg_widgets
+    _qtg_widgets.append(widget)
 
 
 def _get_coords(G, edge_list=False):
