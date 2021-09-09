@@ -70,10 +70,10 @@ class StochasticBlockModel(Graph):
         self.n_try = n_try
         self.seed = seed
 
-        rs = np.random.RandomState(seed)
+        rng = np.random.default_rng(seed)
 
         if z is None:
-            z = rs.randint(0, k, N)
+            z = rng.integers(0, k, N)
             z.sort()  # Sort for nice spy plot of W, where blocks are apparent.
         self.z = z
 
@@ -116,7 +116,7 @@ class StochasticBlockModel(Graph):
             for _ in range(N**2):
                 if nb_row != nb_col or self_loops:
                     if nb_row >= nb_col or directed:
-                        if rs.uniform() < M[z[nb_row], z[nb_col]]:
+                        if rng.uniform() < M[z[nb_row], z[nb_col]]:
                             csr_data.append(1)
                             csr_i.append(nb_row)
                             csr_j.append(nb_col)

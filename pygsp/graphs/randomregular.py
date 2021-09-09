@@ -55,7 +55,7 @@ class RandomRegular(Graph):
 
         self.logger = utils.build_logger(__name__)
 
-        rs = np.random.RandomState(seed)
+        rng = np.random.default_rng(seed)
 
         # continue until a proper graph is formed
         if (N * k) % 2 == 1:
@@ -78,8 +78,8 @@ class RandomRegular(Graph):
                                   "{}/{}.".format(edgesTested, N*k/2))
 
             # chose at random 2 half edges
-            i1 = rs.randint(0, np.shape(U)[0])
-            i2 = rs.randint(0, np.shape(U)[0])
+            i1 = rng.integers(0, U.shape[0])
+            i2 = rng.integers(0, U.shape[0])
             v1 = U[i1]
             v2 = U[i2]
 

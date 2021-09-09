@@ -32,11 +32,11 @@ class LowStretchTree(Graph):
 
         self.k = k
 
-        XCoords = np.array([1, 2, 1, 2], dtype=np.int)
-        YCoords = np.array([1, 1, 2, 2], dtype=np.int)
+        XCoords = np.array([1, 2, 1, 2], dtype=int)
+        YCoords = np.array([1, 1, 2, 2], dtype=int)
 
-        ii = np.array([0, 0, 1, 2, 2, 3], dtype=np.int)
-        jj = np.array([1, 2, 1, 3, 0, 2], dtype=np.int)
+        ii = np.array([0, 0, 1, 2, 2, 3], dtype=int)
+        jj = np.array([1, 2, 1, 3, 0, 2], dtype=int)
 
         for p in range(1, k):
             ii = np.concatenate((ii, ii + 4**p, ii + 2*4**p, ii + 3*4**p,
@@ -50,11 +50,11 @@ class LowStretchTree(Graph):
                                  [3*4**p], [4**p - 1], [4**p - 1],
                                  [4**p + (4**(p+1) + 2) // 3 - 1]))
 
-            YCoords = np.kron(np.ones((2), dtype=np.int), YCoords)
+            YCoords = np.kron(np.ones((2), dtype=int), YCoords)
             YCoords = np.concatenate((YCoords, YCoords + 2**p))
 
             XCoords = np.concatenate((XCoords, XCoords + 2**p))
-            XCoords = np.kron(np.ones((2), dtype=np.int), XCoords)
+            XCoords = np.kron(np.ones((2), dtype=int), XCoords)
 
         W = sparse.csc_matrix((np.ones_like(ii), (ii, jj)))
         coords = np.concatenate((XCoords[:, np.newaxis],

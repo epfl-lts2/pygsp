@@ -45,7 +45,7 @@ class DavidSensorNet(Graph):
             coords = data['coords']
 
         else:
-            coords = np.random.RandomState(seed).rand(N, 2)
+            coords = np.random.default_rng(seed).uniform(size=(N, 2))
 
             target_dist_cutoff = -0.125 * N / 436.075 + 0.2183
             T = 0.6

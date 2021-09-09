@@ -214,7 +214,7 @@ class Filter(object):
         >>> import matplotlib.pyplot as plt
         >>> G = graphs.Ring(N=60)
         >>> G.estimate_lmax()
-        >>> s = np.random.RandomState(42).uniform(size=(G.N, 10))
+        >>> s = np.random.default_rng(42).uniform(size=(G.N, 10))
         >>> taus = [1, 10, 100]
         >>> s = filters.Heat(G, taus).filter(s)
         >>> s.shape
@@ -255,7 +255,7 @@ class Filter(object):
         >>> _ = G.plot(s1, ax=axes[0])
         >>> _ = G.plot(s2, ax=axes[1])
         >>> print('{:.5f}'.format(np.linalg.norm(s1 - s2)))
-        0.26808
+        0.27649
 
         Perfect reconstruction with Itersine, a tight frame:
 
@@ -438,7 +438,7 @@ class Filter(object):
         >>> G.compute_fourier_basis()
         >>> g = filters.Abspline(G, 7)
 
-        Estimation quality (loose, precise, exact):
+        Estimation quality vs speed (loose & fast -> exact & slow):
 
         >>> A, B = g.estimate_frame_bounds(np.linspace(0, G.lmax, 5))
         >>> print('A={:.3f}, B={:.3f}'.format(A, B))
@@ -448,7 +448,7 @@ class Filter(object):
         A=1.708, B=2.359
         >>> A, B = g.estimate_frame_bounds(G.e)
         >>> print('A={:.3f}, B={:.3f}'.format(A, B))
-        A=1.723, B=2.359
+        A=1.875, B=2.359
 
         The frame bounds can be seen in the plot of the filter bank as the
         minimum and maximum of their squared sum (the black curve):
@@ -566,7 +566,7 @@ class Filter(object):
         frame analysis operator:
 
         >>> g = filters.MexicanHat(G, Nf=6)
-        >>> s = np.random.uniform(size=G.N)
+        >>> s = np.random.default_rng().uniform(size=G.N)
         >>>
         >>> gL = g.compute_frame()
         >>> gL.shape
@@ -721,7 +721,7 @@ class Filter(object):
         >>> _ = g.plot(ax=axes[0], title='original filter bank')
         >>> _ = h.plot(ax=axes[1], title='inverse filter bank')
         >>> # Filtering with the inverse reconstructs the original signal.
-        >>> x = np.random.RandomState(42).normal(size=G.N)
+        >>> x = np.random.default_rng(42).normal(size=G.N)
         >>> y = g.filter(x, method='exact')
         >>> z = h.filter(y, method='exact')
         >>> np.linalg.norm(x - z) < 1e-10

@@ -58,7 +58,7 @@ class Sensor(NNGraph):
 
         plotting = {'limits': np.array([0, 1, 0, 1])}
 
-        rs = np.random.RandomState(self.seed)
+        rng = np.random.default_rng(self.seed)
 
         if distributed:
 
@@ -69,11 +69,11 @@ class Sensor(NNGraph):
                                  'distributed on a grid.')
 
             coords = np.mgrid[0:1:1/m, 0:1:1/m].reshape(2, -1).T
-            coords += rs.uniform(0, 1/m, (N, 2))
+            coords += rng.uniform(0, 1/m, (N, 2))
 
         else:
 
-            coords = rs.uniform(0, 1, (N, 2))
+            coords = rng.uniform(0, 1, (N, 2))
 
         super(Sensor, self).__init__(Xin=coords, k=k,
                                      rescale=False, center=False,

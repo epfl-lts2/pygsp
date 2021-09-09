@@ -37,11 +37,11 @@ class TestCase(unittest.TestCase):
 
         # Create a smooth signal.
         filt = filters.Filter(G, lambda x: 1 / (1 + 10*x))
-        rs = np.random.RandomState(1)
-        signal = filt.analyze(rs.normal(size=(G.n_vertices, 5)))
+        rng = np.random.default_rng(1)
+        signal = filt.analyze(rng.normal(size=(G.n_vertices, 5)))
 
         # Make the input signal.
-        mask = rs.uniform(0, 1, [G.n_vertices]) > 0.5
+        mask = rng.uniform(0, 1, G.n_vertices) > 0.5
         measures = signal.copy()
         measures[~mask] = np.nan
         measures_bak = measures.copy()
@@ -75,11 +75,11 @@ class TestCase(unittest.TestCase):
 
         # Create a smooth signal.
         filt = filters.Filter(G, lambda x: 1 / (1 + 10*x))
-        rs = np.random.RandomState(1)
-        signal = filt.analyze(rs.normal(size=(G.n_vertices, 6)))
+        rng = np.random.default_rng(1)
+        signal = filt.analyze(rng.normal(size=(G.n_vertices, 6)))
 
         # Make the input signal.
-        mask = rs.uniform(0, 1, G.n_vertices) > 0.5
+        mask = rng.uniform(0, 1, G.n_vertices) > 0.5
         measures = signal.copy()
         measures[~mask] = 18
         measures_bak = measures.copy()
@@ -118,8 +118,8 @@ class TestCase(unittest.TestCase):
         signal[G.info['idx_p']] = 2
 
         # Make the input signal.
-        rs = np.random.RandomState(seed=1)
-        mask = rs.uniform(size=G.n_vertices) > 0.3
+        rng = np.random.default_rng(2)
+        mask = rng.uniform(size=G.n_vertices) > 0.3
 
         measures = signal.copy()
         measures[~mask] = -1

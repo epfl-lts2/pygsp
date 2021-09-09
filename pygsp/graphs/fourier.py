@@ -85,7 +85,7 @@ class FourierMixIn(object):
         >>> graph.compute_fourier_basis()
         >>> minimum = 1 / np.sqrt(graph.n_vertices)
         >>> print('{:.2f} in [{:.2f}, 1]'.format(graph.coherence, minimum))
-        0.75 in [0.12, 1]
+        0.84 in [0.12, 1]
         >>>
         >>> # Plot the most localized eigenvector.
         >>> import matplotlib.pyplot as plt
@@ -218,7 +218,7 @@ class FourierMixIn(object):
         --------
         >>> G = graphs.Logo()
         >>> G.compute_fourier_basis()
-        >>> s = np.random.normal(size=(G.N, 5, 1))
+        >>> s = np.random.default_rng().normal(size=(G.N, 5, 1))
         >>> s_hat = G.gft(s)
         >>> s_star = G.igft(s_hat)
         >>> np.all((s - s_star) < 1e-10)
@@ -253,7 +253,7 @@ class FourierMixIn(object):
         --------
         >>> G = graphs.Logo()
         >>> G.compute_fourier_basis()
-        >>> s_hat = np.random.normal(size=(G.N, 5, 1))
+        >>> s_hat = np.random.default_rng().normal(size=(G.N, 5, 1))
         >>> s = G.igft(s_hat)
         >>> s_hat_star = G.gft(s)
         >>> np.all((s_hat - s_hat_star) < 1e-10)

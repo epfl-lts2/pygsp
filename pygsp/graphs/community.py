@@ -95,7 +95,7 @@ class Community(Graph):
         self.epsilon = epsilon
         self.seed = seed
 
-        rs = np.random.RandomState(seed)
+        rng = np.random.default_rng(seed)
 
         self.logger = utils.build_logger(__name__)
         w_data = [[], [[], []]]
@@ -109,7 +109,7 @@ class Community(Graph):
         # Communities construction #
         if comm_sizes is None:
             mandatory_labels = np.tile(np.arange(Nc), (min_comm,))  # min_comm labels for each of the Nc communities
-            remaining_labels = rs.choice(Nc, N - min_comm * Nc)  # random choice for the remaining labels
+            remaining_labels = rng.choice(Nc, N - min_comm * Nc)  # random choice for the remaining labels
             info['node_com'] = np.sort(np.concatenate((mandatory_labels, remaining_labels)))
         else:
             if len(comm_sizes) != Nc:
@@ -146,7 +146,7 @@ class Community(Graph):
             np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
             np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc))))
 
-        coords = rs.rand(N, 2)  # nodes' coordinates inside the community
+        coords = rng.uniform(size=(N, 2))  # nodes' coordinates inside the community
         coords = np.array([[elem[0] * np.cos(2 * np.pi * elem[1]),
                             elem[0] * np.sin(2 * np.pi * elem[1])] for elem in coords])
 
@@ -164,7 +164,7 @@ class Community(Graph):
             if comm_density is not None:
                 nb_edges = int(comm_density * M)
                 tril_ind = np.tril_indices(com_siz, -1)
-                indices = rs.permutation(int(M))[:nb_edges]
+                indices = rng.permutation(int(M))[:nb_edges]
 
                 w_data[0] += [1] * nb_edges
                 w_data[1][0] += [first_node + tril_ind[1][elem] for elem in indices]
@@ -201,12 +201,12 @@ class Community(Graph):
             # use regression sampling
             inter_edges = set()
             while len(inter_edges) < nb_edges:
-                new_point = rs.randint(0, N, 2)
+                new_point = rng.integers(0, N, 2)
                 if info['node_com'][min(new_point)] != info['node_com'][max(new_point)]:
                     inter_edges.add((min(new_point), max(new_point)))
         else:
             # use random permutation
-            indices = rs.permutation(int(M))[:nb_edges]
+            indices = rng.permutation(int(M))[:nb_edges]
             all_points, first_col = [], 0
             for i in range(Nc - 1):
                 nb_col = info['comm_sizes'][i]

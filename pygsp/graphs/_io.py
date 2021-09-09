@@ -196,48 +196,18 @@ class IOMixIn(object):
 
         """
 
-        # See gt.value_types() for the list of accepted types.
-        # See the definition of _type_alias() for a list of aliases.
-        # Mapping from https://docs.scipy.org/doc/numpy/user/basics.types.html.
-        convert = {
-            np.bool_: 'bool',
-            np.int8: 'int8_t',
-            np.int16: 'int16_t',
-            np.int32: 'int32_t',
-            np.int64: 'int64_t',
-            np.short: 'short',
-            np.intc: 'int',
-            np.uintc: 'unsigned int',
-            np.long: 'long',
-            np.longlong: 'long long',
-            np.uint: 'unsigned long',
-            np.single: 'float',
-            np.double: 'double',
-            np.longdouble: 'long double',
-        }
-
         gt = _import_graphtool()
         graph = gt.Graph(directed=self.is_directed())
 
         sources, targets, weights = self.get_edge_list()
-        graph.add_edge_list(np.asarray((sources, targets)).T)
-        try:
-            dtype = convert[weights.dtype.type]
-        except KeyError:
-            raise TypeError("Type {} of the edge weights is not supported."
-                            .format(weights.dtype))
-        prop = graph.new_edge_property(dtype)
+        graph.add_edge_list(zip(sources, targets))
+        prop = graph.new_edge_property(gt._gt_type(weights.dtype))
         prop.get_array()[:] = weights
         graph.edge_properties['weight'] = prop
 
         self._break_signals()
         for name, signal in self.signals.items():
-            try:
-                dtype = convert[signal.dtype.type]
-            except KeyError:
-                raise TypeError("Type {} of signal {} is not supported."
-                                .format(signal.dtype, name))
-            prop = graph.new_vertex_property(dtype)
+            prop = graph.new_vertex_property(gt._gt_type(signal.dtype))
             prop.get_array()[:] = signal
             graph.vertex_properties[name] = prop
 
