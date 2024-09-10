@@ -62,7 +62,7 @@ class RandomRegular(Graph):
             raise ValueError("input error: N*d must be even!")
 
         # a list of open half-edges
-        U = np.kron(np.ones(k), np.arange(N))
+        U = np.kron(np.ones(k), np.arange(N)).astype(int)
 
         # the graphs adjacency matrix
         A = sparse.lil_matrix(np.zeros((N, N)))
