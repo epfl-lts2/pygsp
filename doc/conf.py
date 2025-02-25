@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pygsp
+from sphinx_gallery.scrapers import matplotlib_scraper
 
 extensions = [
     'sphinx.ext.viewcode',
@@ -44,6 +45,14 @@ import numpy as np
 from pygsp import graphs, filters, utils, plotting
 """
 
+class matplotlib_svg_scraper(object):
+
+    def __repr__(self):
+        return self.__class__.__name__
+
+    def __call__(self, *args, **kwargs):
+        return matplotlib_scraper(*args, format='svg', **kwargs)
+
 extensions.append('sphinx_gallery.gen_gallery')
 sphinx_gallery_conf = {
     'examples_dirs': '../examples',
@@ -53,6 +62,7 @@ sphinx_gallery_conf = {
     'backreferences_dir': 'backrefs',
     'doc_module': 'pygsp',
     'show_memory': True,
+    'image_scrapers': matplotlib_svg_scraper(),
 }
 
 extensions.append('sphinx_copybutton')
