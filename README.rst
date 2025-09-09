@@ -109,6 +109,10 @@ The PyGSP is available on PyPI::
 
     $ pip install pygsp
 
+For faster installation with modern dependency resolution, use `uv <https://github.com/astral-sh/uv>`_::
+
+    $ uv add pygsp
+
 The PyGSP is available on `conda-forge <https://github.com/conda-forge/pygsp-feedstock>`_::
 
     $ conda install -c conda-forge pygsp
@@ -123,6 +127,36 @@ Contributing
 ------------
 
 See the guidelines for contributing in ``CONTRIBUTING.rst``.
+
+Development Setup
+~~~~~~~~~~~~~~~~~
+
+For development, we recommend using `uv <https://github.com/astral-sh/uv>`_ for fast and reliable dependency management:
+
+1. **Clone the repository**::
+
+    $ git clone https://github.com/epfl-lts2/pygsp.git
+    $ cd pygsp
+
+2. **Set up development environment**::
+
+    $ uv venv
+    $ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    $ uv pip install -e ".[dev]"
+
+3. **Run tests**::
+
+    $ pytest
+
+4. **Run linting**::
+
+    $ flake8 pygsp/
+
+5. **Build documentation**::
+
+    $ cd doc && make html
+
+The project uses ``pyproject.toml`` for modern Python packaging and includes all development dependencies like ``pytest``, ``flake8``, ``sphinx``, ``matplotlib``, and ``networkx``.
 
 Acknowledgments
 ---------------
