@@ -123,6 +123,29 @@ The PyGSP is available in the `Arch User Repository <https://aur.archlinux.org/p
    $ cd python-pygsp
    $ makepkg -csi
 
+Optional Dependencies
+~~~~~~~~~~~~~~~~~~~~~
+
+**graph-tool** (optional)
+  
+``graph-tool`` is an optional dependency that enables import/export functionality with the graph-tool library. PyGSP works perfectly without it - it's only needed if you want to use ``Graph.to_graphtool()`` or ``Graph.from_graphtool()`` methods.
+
+**Installation:**
+
+- **macOS** (with Homebrew)::
+
+    $ brew install graph-tool
+
+- **Ubuntu/Debian**::
+
+    $ sudo apt-get install python3-graph-tool
+
+- **conda** (recommended for cross-platform)::
+
+    $ conda install -c conda-forge graph-tool
+
+**Note:** ``graph-tool`` cannot be installed via pip or uv due to its complex system dependencies. If not installed, related tests will be automatically skipped and the library will function normally without import/export capabilities to graph-tool format.
+
 Contributing
 ------------
 

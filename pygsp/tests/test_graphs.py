@@ -16,9 +16,14 @@ import numpy as np
 import scipy.linalg
 from scipy import sparse
 import networkx as nx
-import graph_tool as gt
-import graph_tool.generation
 from skimage import data, img_as_float
+
+try:
+    import graph_tool as gt
+    import graph_tool.generation
+    GRAPH_TOOL_AVAILABLE = True
+except ImportError:
+    GRAPH_TOOL_AVAILABLE = False
 
 from pygsp import graphs
 
@@ -707,6 +712,7 @@ class TestImportExport(unittest.TestCase):
         np.testing.assert_array_equal(nx.adjacency_matrix(g_nx).todense(),
                                       nx.adjacency_matrix(g).todense())
 
+    @unittest.skipUnless(GRAPH_TOOL_AVAILABLE, "graph-tool not available")
     def test_graphtool_export_import(self):
         # Export to graph tool and reimport to PyGSP directly
         # The exported graph is a simple one without an associated Signal
@@ -715,6 +721,7 @@ class TestImportExport(unittest.TestCase):
         g2 = graphs.Graph.from_graphtool(g_gt)
         np.testing.assert_array_equal(g.W.todense(), g2.W.todense())
 
+    @unittest.skipUnless(GRAPH_TOOL_AVAILABLE, "graph-tool not available")
     def test_graphtool_multiedge_import(self):
         # Manualy create a graph with multiple edges
         g_gt = gt.Graph()
@@ -736,6 +743,7 @@ class TestImportExport(unittest.TestCase):
         g3 = graphs.Graph.from_graphtool(g_gt)
         self.assertEqual(g3.W[3, 6], 9.0)
 
+    @unittest.skipUnless(GRAPH_TOOL_AVAILABLE, "graph-tool not available")
     def test_graphtool_import_export(self):
         # Import to PyGSP and export again to graph tool directly
         # create a random graphTool graph that does not contain multiple edges and no signal
@@ -776,6 +784,7 @@ class TestImportExport(unittest.TestCase):
         graph.set_signal(np.array(['a', 'b', 'c']), 'sig')
         self.assertRaises(ValueError, graph.to_networkx)
 
+    @unittest.skipUnless(GRAPH_TOOL_AVAILABLE, "graph-tool not available")
     def test_graphtool_signal_export(self):
         g = graphs.Logo()
         rng = np.random.default_rng(42)
@@ -793,6 +802,7 @@ class TestImportExport(unittest.TestCase):
         graph.set_signal(np.array(['a', 'b', 'c']), 'sig')
         self.assertRaises(TypeError, graph.to_graphtool)
 
+    @unittest.skipUnless(GRAPH_TOOL_AVAILABLE, "graph-tool not available")
     def test_graphtool_signal_import(self):
         g_gt = gt.Graph()
         g_gt.add_vertex(10)

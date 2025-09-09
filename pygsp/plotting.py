@@ -415,7 +415,7 @@ def _plot_graph(G, vertex_color, vertex_size, highlight,
         Set intercept value in G.plotting["normalize_intercept"]
         with value in [0, 1], default is .25.
         """
-        ptp = x.ptp()
+        ptp = np.ptp(x)
         if ptp == 0:
             return np.full(x.shape, 0.5)
         else:
