@@ -146,6 +146,35 @@ Optional Dependencies
 
 **Note:** ``graph-tool`` cannot be installed via pip or uv due to its complex system dependencies. If not installed, related tests will be automatically skipped and the library will function normally without import/export capabilities to graph-tool format.
 
+**FLANN** (optional)
+
+``FLANN`` (Fast Library for Approximate Nearest Neighbors) is an optional dependency that provides faster nearest neighbor searches for large datasets. PyGSP works without it, but FLANN can significantly speed up k-NN graph construction.
+
+**Installation:**
+
+- **macOS** (with Homebrew)::
+
+    $ brew install flann
+    $ export DYLD_LIBRARY_PATH="$(brew --prefix)/lib:${DYLD_LIBRARY_PATH}"
+    # Optional: persist in your shell rc file (.zshrc, .bash_profile, etc.)
+    $ echo 'export DYLD_LIBRARY_PATH="$(brew --prefix)/lib:${DYLD_LIBRARY_PATH}"' >> ~/.zshrc
+
+- **Ubuntu/Debian**::
+
+    $ sudo apt-get install libflann-dev
+
+- **conda** (recommended for cross-platform)::
+
+    $ conda install -c conda-forge flann
+
+After system installation, install the Python bindings::
+
+    $ uv add pyflann3
+    # or
+    $ pip install pyflann3
+
+**Note:** ``pyflann3`` requires the FLANN system library to be installed first. If not available, PyGSP will automatically fall back to scikit-learn's NearestNeighbors (if available), then to SciPy's KDTree implementation. This multi-level fallback ensures robust k-NN graph construction even when FLANN is not properly configured.
+
 Contributing
 ------------
 

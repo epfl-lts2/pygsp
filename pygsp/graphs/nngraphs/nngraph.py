@@ -4,6 +4,7 @@ import traceback
 
 import numpy as np
 from scipy import sparse, spatial
+from scipy.spatial import distance
 
 from pygsp import utils
 from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
@@ -20,6 +21,17 @@ def _import_pfl():
                           'pip (or conda) install pyflann (or pyflann3). '
                           'Original exception: {}'.format(e))
     return pfl
+
+
+def _import_sklearn_neighbors():
+    try:
+        from sklearn.neighbors import NearestNeighbors
+    except Exception as e:
+        raise ImportError('Cannot import sklearn.neighbors. Install scikit-learn '
+                          'for fallback nearest neighbors support: '
+                          'pip install scikit-learn. '
+                          'Original exception: {}'.format(e))
+    return NearestNeighbors
 
 
 class NNGraph(Graph):
@@ -121,20 +133,63 @@ class NNGraph(Graph):
             spv = np.zeros((N * k))
 
             if self.use_flann:
-                pfl = _import_pfl()
-                pfl.set_distance_type(dist_type, order=order)
-                flann = pfl.FLANN()
+                # Try pyflann first
+                try:
+                    pfl = _import_pfl()
+                    pfl.set_distance_type(dist_type, order=order)
+                    flann = pfl.FLANN()
 
-                # Default FLANN parameters (I tried changing the algorithm and
-                # testing performance on huge matrices, but the default one
-                # seems to work best).
-                NN, D = flann.nn(Xout, Xout, num_neighbors=(k + 1),
-                                 algorithm='kdtree')
+                    # Default FLANN parameters (I tried changing the algorithm and
+                    # testing performance on huge matrices, but the default one
+                    # seems to work best).
+                    NN, D = flann.nn(Xout, Xout, num_neighbors=(k + 1),
+                                     algorithm='kdtree')
+                    _logger.debug('Using pyflann for k-NN search')
+                    
+                except ImportError:
+                    _logger.debug('pyflann not available, trying scikit-learn fallback')
+                    try:
+                        # Fallback to scikit-learn
+                        NearestNeighbors = _import_sklearn_neighbors()
+                        
+                        # Map distance types to sklearn metrics
+                        sklearn_metrics = {
+                            'euclidean': 'euclidean',
+                            'manhattan': 'manhattan', 
+                            'max_dist': 'chebyshev',
+                            'minkowski': 'minkowski'
+                        }
+                        
+                        metric = sklearn_metrics.get(dist_type, 'euclidean')
+                        metric_params = {}
+                        if dist_type == 'minkowski':
+                            p_value = dist_translation[dist_type]
+                            # Ensure p is valid for sklearn (must be > 0)
+                            if p_value <= 0:
+                                metric = 'euclidean'  # Fallback to euclidean for invalid p
+                            else:
+                                metric_params['p'] = p_value
+                        
+                        nbrs = NearestNeighbors(n_neighbors=k+1, 
+                                              algorithm='auto',
+                                              metric=metric,
+                                              metric_params=metric_params).fit(Xout)
+                        D, NN = nbrs.kneighbors(Xout)
+                        _logger.debug('Using scikit-learn for k-NN search')
+                        
+                    except ImportError:
+                        _logger.debug('scikit-learn not available, falling back to scipy')
+                        # Final fallback to scipy
+                        kdt = spatial.KDTree(Xout)
+                        D, NN = kdt.query(Xout, k=(k + 1),
+                                          p=dist_translation[dist_type])
+                        _logger.debug('Using scipy KDTree for k-NN search')
 
             else:
                 kdt = spatial.KDTree(Xout)
                 D, NN = kdt.query(Xout, k=(k + 1),
                                   p=dist_translation[dist_type])
+                _logger.debug('Using scipy KDTree for k-NN search')
 
             if self.sigma is None:
                 self.sigma = np.mean(D[:, 1:])  # Discard distance to self.
@@ -148,14 +203,37 @@ class NNGraph(Graph):
         elif self.NNtype == 'radius':
 
             kdt = spatial.KDTree(Xout)
-            D, NN = kdt.query(Xout, k=None, distance_upper_bound=epsilon,
-                              p=dist_translation[dist_type])
+            # Use query_ball_point for radius-based neighbor search
+            NN = [kdt.query_ball_point(point, r=epsilon, p=dist_translation[dist_type]) 
+                  for point in Xout]
+            # Compute distances for the neighbors found
+            D = []
+            for i, neighbors in enumerate(NN):
+                if len(neighbors) > 0:
+                    distances = [distance.minkowski(Xout[i], Xout[j], 
+                                                   p=dist_translation[dist_type]) 
+                               for j in neighbors]
+                    D.append(distances)
+                else:
+                    D.append([])
+            
             if self.sigma is None:
-                # Discard distance to self.
-                self.sigma = np.mean([np.mean(d[1:]) for d in D])
+                # Calculate mean distance excluding self-references
+                all_distances = []
+                for i, neighbors in enumerate(NN):
+                    for idx, j in enumerate(neighbors):
+                        if j != i:  # Exclude self-reference
+                            all_distances.append(D[i][idx])
+                
+                if all_distances:
+                    self.sigma = np.mean(all_distances)
+                else:
+                    # If no neighbors found, set a default sigma
+                    raise ValueError('No neighbors found')
             count = 0
             for i in range(N):
-                count = count + len(NN[i])
+                # Count neighbors excluding self
+                count = count + len([j for j in NN[i] if j != i])
 
             spi = np.zeros((count))
             spj = np.zeros((count))
@@ -163,12 +241,17 @@ class NNGraph(Graph):
 
             start = 0
             for i in range(N):
-                leng = len(NN[i]) - 1
-                spi[start:start + leng] = np.kron(np.ones((leng)), i)
-                spj[start:start + leng] = NN[i][1:]
-                spv[start:start + leng] = np.exp(-np.power(D[i][1:], 2) /
-                                                 float(self.sigma))
-                start = start + leng
+                # Remove self-reference (index i) from neighbors
+                neighbors_no_self = [j for j in NN[i] if j != i]
+                distances_no_self = [D[i][idx] for idx, j in enumerate(NN[i]) if j != i]
+                
+                leng = len(neighbors_no_self)
+                if leng > 0:
+                    spi[start:start + leng] = np.kron(np.ones((leng)), i)
+                    spj[start:start + leng] = neighbors_no_self
+                    spv[start:start + leng] = np.exp(-np.power(distances_no_self, 2) /
+                                                     float(self.sigma))
+                    start = start + leng
 
         else:
             raise ValueError('Unknown NNtype {}'.format(self.NNtype))

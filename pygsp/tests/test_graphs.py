@@ -339,7 +339,7 @@ class TestCase(unittest.TestCase):
             r"""Test that the incidence matrix corresponds to NetworkX."""
             incidence_pg = np.sign(graph.D.toarray())
             G = nx.DiGraph if graph.is_directed() else nx.Graph
-            graph_nx = nx.from_scipy_sparse_matrix(graph.W, create_using=G)
+            graph_nx = nx.from_scipy_sparse_array(graph.W, create_using=G)
             incidence_nx = nx.incidence_matrix(graph_nx, oriented=True)
             np.testing.assert_equal(incidence_pg, incidence_nx.toarray())
         for graph in [graphs.Graph(np.zeros((n_vertices, n_vertices))),
@@ -400,7 +400,7 @@ class TestCase(unittest.TestCase):
                 np.testing.assert_allclose(graph.U, np.identity(n_vertices))
                 np.testing.assert_allclose(graph.e, np.zeros(n_vertices))
             # NetworkX uses the same conventions.
-            G = nx.from_scipy_sparse_matrix(graph.W)
+            G = nx.from_scipy_sparse_array(graph.W)
             self.assertEqual(nx.laplacian_matrix(G).nnz, 0)
             self.assertEqual(nx.normalized_laplacian_matrix(G).nnz, 0)
             self.assertEqual(nx.incidence_matrix(G).nnz, 0)
@@ -505,7 +505,7 @@ class TestCase(unittest.TestCase):
 
             # Only p-norms with 1<=p<=infinity permitted.
             if dist_type != 'minkowski':
-                graphs.NNGraph(Xin, NNtype='radius', dist_type=dist_type)
+                graphs.NNGraph(Xin, NNtype='radius', dist_type=dist_type, epsilon=0.1)
                 graphs.NNGraph(Xin, NNtype='knn', dist_type=dist_type)
 
             # Distance type unsupported in the C bindings,

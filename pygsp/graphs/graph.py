@@ -103,7 +103,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         self.logger = utils.build_logger(__name__)
 
-        if not sparse.isspmatrix(adjacency):
+        if not sparse.issparse(adjacency):
             adjacency = np.asanyarray(adjacency)
 
         if (adjacency.ndim != 2) or (adjacency.shape[0] != adjacency.shape[1]):

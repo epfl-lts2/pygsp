@@ -276,7 +276,7 @@ class IOMixIn(object):
         nx = _import_networkx()
         from .graph import Graph
 
-        adjacency = nx.to_scipy_sparse_matrix(graph, weight=weight)
+        adjacency = nx.to_scipy_sparse_array(graph, weight=weight)
         graph_pg = Graph(adjacency)
 
         for i, node in enumerate(graph.nodes()):

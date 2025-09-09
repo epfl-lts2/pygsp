@@ -45,6 +45,8 @@ dev = [
     "networkx",
     # Construct patch graphs from images
     "scikit-image",
+    # Fallback for nearest neighbors when pyflann is not available
+    "scikit-learn",
     # Approximate nearest neighbors for kNN graphs
     "pyflann3",
     # Convex optimization on graph
