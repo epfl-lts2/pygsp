@@ -1,0 +1,139 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PyGSP"
+version = "0.5.1"
+description = "Graph Signal Processing in Python"
+readme = "README.rst"
+requires-python = ">=3.7"
+license = {text = "BSD"}
+keywords = ["graph", "signal", "processing"]
+authors = [
+    {name = "EPFL LTS2"}
+]
+maintainers = [
+    {name = "EPFL LTS2"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Topic :: Scientific/Engineering",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education", 
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "numpy",
+    "scipy",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Import and export
+    "networkx",
+    # Construct patch graphs from images
+    "scikit-image",
+    # Approximate nearest neighbors for kNN graphs
+    "pyflann3",
+    # Convex optimization on graph
+    "pyunlocbox", 
+    # Plot graphs, signals, and filters
+    "matplotlib",
+    # Interactive graph visualization
+    "pyqtgraph",
+    "PyOpenGL",
+    "PyQt5",
+    # Run the tests
+    "flake8",
+    "coverage",
+    "coveralls",
+    "pytest",
+    "pytest-cov",
+    # Build the documentation
+    "sphinx",
+    "numpydoc", 
+    "sphinxcontrib-bibtex",
+    "sphinx-gallery",
+    "memory_profiler",
+    "sphinx-rtd-theme",
+    "sphinx-copybutton",
+    # Build and upload packages
+    "wheel",
+    "twine",
+]
+
+test = [
+    "pytest",
+    "pytest-cov",
+    "flake8",
+    "coverage",
+]
+
+docs = [
+    "sphinx",
+    "numpydoc",
+    "sphinxcontrib-bibtex", 
+    "sphinx-gallery",
+    "memory_profiler",
+    "sphinx-rtd-theme",
+    "sphinx-copybutton",
+]
+
+plot = [
+    "matplotlib",
+    "pyqtgraph", 
+    "PyOpenGL",
+    "PyQt5",
+]
+
+[project.urls]
+Homepage = "https://github.com/epfl-lts2/pygsp"
+Documentation = "https://pygsp.readthedocs.io"
+Download = "https://pypi.org/project/PyGSP"
+"Source Code" = "https://github.com/epfl-lts2/pygsp"
+"Bug Tracker" = "https://github.com/epfl-lts2/pygsp/issues"
+"Try It Online" = "https://mybinder.org/v2/gh/epfl-lts2/pygsp/master?urlpath=lab/tree/examples/playground.ipynb"
+
+[tool.setuptools.packages.find]
+include = ["pygsp*"]
+
+[tool.setuptools.package-data]
+pygsp = ["data/pointclouds/*.mat"]
+
+[tool.pytest.ini_options]
+testpaths = ["pygsp/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.coverage.run]
+source = ["pygsp"]
+omit = ["*/tests/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+]
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
