@@ -7,7 +7,7 @@ name = "PyGSP"
 version = "0.5.1"
 description = "Graph Signal Processing in Python"
 readme = "README.rst"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = {text = "BSD"}
 keywords = ["graph", "signal", "processing"]
 authors = [
@@ -49,8 +49,8 @@ dev = [
     "scikit-learn",
     # Approximate nearest neighbors for kNN graphs
     "pyflann3",
-    # Convex optimization on graph
-    "pyunlocbox", 
+    # Convex optimization on graph (to be updated once the version on pypi is available)
+    "pyunlocbox @ git+https://github.com/epfl-lts2/pyunlocbox.git@main", 
     # Plot graphs, signals, and filters
     "matplotlib",
     # Interactive graph visualization

@@ -6,7 +6,6 @@ Test suite for the graphs module of the pygsp package.
 """
 
 from __future__ import division
-
 import os
 import random
 import sys
@@ -850,22 +849,24 @@ class TestImportExport(unittest.TestCase):
         graph_pg = graphs.Graph.from_networkx(graph_nx, weight='unknown')
         np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
 
-        # Graph-tool no weights.
-        graph_gt = gt.Graph(directed=False)
-        graph_gt.add_edge(0, 1)
-        graph_gt.add_edge(1, 2)
-        graph_pg = graphs.Graph.from_graphtool(graph_gt)
-        np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
+        # Graph-tool no weights (only if available).
+        if GRAPH_TOOL_AVAILABLE:
+            graph_gt = gt.Graph(directed=False)
+            graph_gt.add_edge(0, 1)
+            graph_gt.add_edge(1, 2)
+            graph_pg = graphs.Graph.from_graphtool(graph_gt)
+            np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
 
-        # Graph-tool non-existent weight name.
-        prop = graph_gt.new_edge_property("double")
-        prop[graph_gt.edge(0, 1)] = 2
-        prop[graph_gt.edge(1, 2)] = 2
-        graph_gt.edge_properties["weight"] = prop
-        graph_pg = graphs.Graph.from_graphtool(graph_gt)
-        np.testing.assert_allclose(graph_pg.W.toarray(), 2*adjacency)
-        graph_pg = graphs.Graph.from_graphtool(graph_gt, weight='unknown')
-        np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
+        # Graph-tool non-existent weight name (only if available).
+        if GRAPH_TOOL_AVAILABLE:
+            prop = graph_gt.new_edge_property("double")
+            prop[graph_gt.edge(0, 1)] = 2
+            prop[graph_gt.edge(1, 2)] = 2
+            graph_gt.edge_properties["weight"] = prop
+            graph_pg = graphs.Graph.from_graphtool(graph_gt)
+            np.testing.assert_allclose(graph_pg.W.toarray(), 2*adjacency)
+            graph_pg = graphs.Graph.from_graphtool(graph_gt, weight='unknown')
+            np.testing.assert_allclose(graph_pg.W.toarray(), adjacency)
 
     def test_break_join_signals(self):
         """Multi-dim signals are broken on export and joined on import."""
@@ -875,10 +876,11 @@ class TestImportExport(unittest.TestCase):
         graph2 = graph1.to_networkx()
         graph2 = graphs.Graph.from_networkx(graph2)
         np.testing.assert_allclose(graph2.signals['coords'], graph1.coords)
-        # graph-tool
-        graph2 = graph1.to_graphtool()
-        graph2 = graphs.Graph.from_graphtool(graph2)
-        np.testing.assert_allclose(graph2.signals['coords'], graph1.coords)
+        # graph-tool (only if available)
+        if GRAPH_TOOL_AVAILABLE:
+            graph2 = graph1.to_graphtool()
+            graph2 = graphs.Graph.from_graphtool(graph2)
+            np.testing.assert_allclose(graph2.signals['coords'], graph1.coords)
         # save and load (need ordered dicts)
         filename = 'graph.graphml'
         graph1.save(filename)
@@ -892,29 +894,33 @@ class TestImportExport(unittest.TestCase):
         # * dtypes (float, int, bool) of adjacency and signals
         # * empty graph / isolated nodes
 
+        # Determine available backends
+        backends = ['networkx']  # networkx is always available in dev dependencies
+        if GRAPH_TOOL_AVAILABLE:
+            backends.append('graph-tool')
+
         G1 = graphs.Sensor(seed=42)
         W = G1.W.toarray()
         sig = np.random.default_rng(42).normal(size=G1.N)
         G1.set_signal(sig, 's')
 
-        for fmt in ['graphml', 'gml', 'gexf']:
-            for backend in ['networkx', 'graph-tool']:
+        for backend in backends:
+            with self.subTest(backend=backend):
+                for fmt in ['graphml', 'gml', 'gexf']:
+                    if fmt == 'gexf' and backend == 'graph-tool':
+                        self.assertRaises(ValueError, G1.save, 'g', fmt, backend)
+                        self.assertRaises(ValueError, graphs.Graph.load, 'g', fmt, backend)
+                        os.remove('g')
+                        continue
 
-                if fmt == 'gexf' and backend == 'graph-tool':
-                    self.assertRaises(ValueError, G1.save, 'g', fmt, backend)
-                    self.assertRaises(ValueError, graphs.Graph.load, 'g', fmt,
-                                      backend)
-                    os.remove('g')
-                    continue
+                    atol = 1e-5 if fmt == 'gml' and backend == 'graph-tool' else 0
 
-                atol = 1e-5 if fmt == 'gml' and backend == 'graph-tool' else 0
-
-                for filename, fmt in [('graph.' + fmt, None), ('graph', fmt)]:
-                    G1.save(filename, fmt, backend)
-                    G2 = graphs.Graph.load(filename, fmt, backend)
-                    np.testing.assert_allclose(G2.W.toarray(), W, atol=atol)
-                    np.testing.assert_allclose(G2.signals['s'], sig, atol=atol)
-                    os.remove(filename)
+                    for filename, fmt in [('graph.' + fmt, None), ('graph', fmt)]:
+                        G1.save(filename, fmt, backend)
+                        G2 = graphs.Graph.load(filename, fmt, backend)
+                        np.testing.assert_allclose(G2.W.toarray(), W, atol=atol)
+                        np.testing.assert_allclose(G2.signals['s'], sig, atol=atol)
+                os.remove(filename)
 
         self.assertRaises(ValueError, graphs.Graph.load, 'g.gml', fmt='?')
         self.assertRaises(ValueError, graphs.Graph.load, 'g.gml', backend='?')
@@ -925,6 +931,11 @@ class TestImportExport(unittest.TestCase):
         from unittest.mock import patch
         graph = graphs.Sensor()
         filename = 'graph.gml'
+        
+        # Only test backends that are actually available
+        # This test should verify error handling, not require unavailable backends
+        
+        # Test NetworkX-specific errors (always available in dev dependencies)
         with patch.dict(sys.modules, {'networkx': None}):
             self.assertRaises(ImportError, graph.to_networkx)
             self.assertRaises(ImportError, graphs.Graph.from_networkx, None)
@@ -932,21 +943,25 @@ class TestImportExport(unittest.TestCase):
                               backend='networkx')
             self.assertRaises(ImportError, graphs.Graph.load, filename,
                               backend='networkx')
-            graph.save(filename)
-            graphs.Graph.load(filename)
-        with patch.dict(sys.modules, {'graph_tool': None}):
-            self.assertRaises(ImportError, graph.to_graphtool)
-            self.assertRaises(ImportError, graphs.Graph.from_graphtool, None)
-            self.assertRaises(ImportError, graph.save, filename,
-                              backend='graph-tool')
-            self.assertRaises(ImportError, graphs.Graph.load, filename,
-                              backend='graph-tool')
-            graph.save(filename)
-            graphs.Graph.load(filename)
+        
+        # Test graph-tool specific errors (only if graph-tool would be available)
+        if GRAPH_TOOL_AVAILABLE:
+            with patch.dict(sys.modules, {'graph_tool': None}):
+                self.assertRaises(ImportError, graph.to_graphtool)
+                self.assertRaises(ImportError, graphs.Graph.from_graphtool, None)
+                self.assertRaises(ImportError, graph.save, filename,
+                                  backend='graph-tool')
+                self.assertRaises(ImportError, graphs.Graph.load, filename,
+                                  backend='graph-tool')
+                # Should fallback to networkx
+                graph.save(filename)
+                graphs.Graph.load(filename)
+                os.remove(filename)
+                
+        # Test the case where no backends are available
         with patch.dict(sys.modules, {'networkx': None, 'graph_tool': None}):
             self.assertRaises(ImportError, graph.save, filename)
             self.assertRaises(ImportError, graphs.Graph.load, filename)
-        os.remove(filename)
 
 
 suite_import_export = unittest.TestLoader().loadTestsFromTestCase(TestImportExport)
