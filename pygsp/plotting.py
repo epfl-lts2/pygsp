@@ -56,13 +56,31 @@ def _import_qtg():
         import pyqtgraph as qtg
         import pyqtgraph.opengl as gl
         from pyqtgraph.Qt import QtGui
+        
+        # Try to import QtWidgets for QApplication (needed for PyQt6)
+        try:
+            from pyqtgraph.Qt import QtWidgets
+        except ImportError:
+            QtWidgets = None
+            
     except Exception as e:
         raise ImportError('Cannot import pyqtgraph. Choose another backend '
                           'or try to install it with '
                           'pip (or conda) install pyqtgraph. You will also '
                           'need PyQt5 (or PySide) and PyOpenGL. '
                           'Original exception: {}'.format(e))
-    return qtg, gl, QtGui
+    return qtg, gl, QtGui, QtWidgets
+
+
+def _get_qapplication(QtGui, QtWidgets):
+    """Get QApplication from the appropriate Qt module."""
+    # Try QtWidgets first (PyQt6), then fall back to QtGui (PyQt5)
+    if QtWidgets and hasattr(QtWidgets, 'QApplication'):
+        return QtWidgets.QApplication
+    elif hasattr(QtGui, 'QApplication'):
+        return QtGui.QApplication
+    else:
+        raise AttributeError("Cannot find QApplication in QtGui or QtWidgets")
 
 
 def _plt_handle_figure(plot):
@@ -137,7 +155,7 @@ def close(*args, **kwargs):
 
 def _qtg_plot_graph(G, edges, vertex_size, title):
 
-    qtg, gl, QtGui = _import_qtg()
+    qtg, gl, QtGui, QtWidgets = _import_qtg()
 
     if G.coords.shape[1] == 2:
 
@@ -157,8 +175,9 @@ def _qtg_plot_graph(G, edges, vertex_size, title):
         view.addItem(g)
 
     elif G.coords.shape[1] == 3:
-        if not QtGui.QApplication.instance():
-            QtGui.QApplication([])  # We want only one application.
+        QApplication = _get_qapplication(QtGui, QtWidgets)
+        if not QApplication.instance():
+            QApplication([])  # We want only one application.
         widget = gl.GLViewWidget()
         widget.opts['distance'] = 10
 
@@ -578,15 +597,16 @@ def _plt_plot_graph(G, vertex_color, vertex_size, highlight,
 
 def _qtg_plot_signal(G, signal, edges, vertex_size, limits, title):
 
-    qtg, gl, QtGui = _import_qtg()
+    qtg, gl, QtGui, QtWidgets = _import_qtg()
 
     if G.coords.shape[1] == 2:
         widget = qtg.GraphicsLayoutWidget()
         view = widget.addViewBox()
 
     elif G.coords.shape[1] == 3:
-        if not QtGui.QApplication.instance():
-            QtGui.QApplication([])  # We want only one application.
+        QApplication = _get_qapplication(QtGui, QtWidgets)
+        if not QApplication.instance():
+            QApplication([])  # We want only one application.
         widget = gl.GLViewWidget()
         widget.opts['distance'] = 10
 
