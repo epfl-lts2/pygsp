@@ -38,7 +38,9 @@ jobs:
           libqt6opengl6-dev \
           xvfb \
           libegl1-mesa-dev \
-          libgl1-mesa-glx \
+          libgl1-mesa-dev \
+          libglu1-mesa-dev \
+          freeglut3-dev \
           libxkbcommon-x11-0 \
           libxcb-icccm4 \
           libxcb-image0 \
