@@ -32,9 +32,13 @@ jobs:
         # Install system packages
         sudo apt-get install -y \
           python3-graph-tool \
-          libqt6-gui6 \
+          qt6-base-dev \
+          libqt6gui6 \
+          libqt6widgets6 \
+          libqt6opengl6-dev \
           xvfb \
-          libegl1-mesa \
+          libegl1-mesa-dev \
+          libgl1-mesa-glx \
           libxkbcommon-x11-0 \
           libxcb-icccm4 \
           libxcb-image0 \
@@ -70,6 +74,8 @@ jobs:
         export DISPLAY=:99
         Xvfb :99 -screen 0 800x600x24 > /dev/null 2>&1 &
         echo "DISPLAY=:99" >> $GITHUB_ENV
+        echo "QT_QPA_PLATFORM=offscreen" >> $GITHUB_ENV
+        echo "QT_QPA_FONTDIR=/usr/share/fonts" >> $GITHUB_ENV
 
     - name: Run linting
       run: |
