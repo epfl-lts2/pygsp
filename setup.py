@@ -27,7 +27,6 @@ setup(
         'pygsp.tests',
     ],
     package_data={'pygsp': ['data/pointclouds/*.mat']},
-    test_suite='pygsp.tests.suite',
     python_requires='>=3.7',
     install_requires=[
         'numpy',

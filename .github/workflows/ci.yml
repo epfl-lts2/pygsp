@@ -78,7 +78,7 @@ jobs:
     - name: Run tests with coverage
       run: |
         export MPLBACKEND=agg
-        coverage run --branch --source pygsp setup.py test
+        coverage run --branch --source pygsp -m pytest
         coverage report
         coverage xml
 

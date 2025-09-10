@@ -45,7 +45,9 @@ __release_date__ = '2017-12-15'
 
 def test():  # pragma: no cover
     """Run the test suite."""
-    import unittest
-    # Lazy as it might be slow and require additional dependencies.
-    from pygsp.tests import suite
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    import subprocess
+    import sys
+    # Run pytest on the tests directory
+    result = subprocess.run([sys.executable, '-m', 'pytest', 'pygsp/tests/', '-v'], 
+                           capture_output=False)
+    return result.returncode == 0

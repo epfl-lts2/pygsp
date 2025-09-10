@@ -569,7 +569,7 @@ class TestCase(unittest.TestCase):
 
     def test_randomregular(self):
         k = 6
-        G = graphs.RandomRegular(k=k)
+        G = graphs.RandomRegular(k=k, seed=42)
         np.testing.assert_equal(G.W.sum(0), k)
         np.testing.assert_equal(G.W.sum(1), k)
 

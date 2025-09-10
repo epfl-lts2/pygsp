@@ -43,9 +43,9 @@ tests reasonably cover the changes you've introduced.
 To iterate faster, you can partially run the test suite, at various degrees of
 granularity, as follows::
 
-   $ python -m unittest pygsp.tests.test_docstrings.suite_reference
-   $ python -m unittest pygsp.tests.test_graphs.TestImportExport
-   $ python -m unittest pygsp.tests.test_graphs.TestImportExport.test_save_load
+   $ python -m pytest pygsp/tests/test_docstrings.py
+   $ python -m pytest pygsp/tests/test_graphs.py::TestGraphs
+   $ python -m pytest pygsp/tests/test_graphs.py::test_save_load
 
 Making a release
 ----------------

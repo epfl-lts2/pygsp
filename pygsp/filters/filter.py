@@ -736,10 +736,14 @@ class Filter(object):
 
         """
 
-        A, _ = self.estimate_frame_bounds()
+        A, B = self.estimate_frame_bounds()
         if A == 0:
             _logger.warning('The filter bank is not invertible as it is not '
                             'a frame (lower frame bound A=0).')
+            
+        elif A / B < 1e-10:
+            _logger.warning('The filter bank is badly conditioned. '
+                            'The inverse will be approximate.')
 
         def kernel(g, i, x):
             y = g.evaluate(x).T
