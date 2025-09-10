@@ -15,7 +15,7 @@ A (mostly unmaintained) `Matlab version <https://epfl-lts2.github.io/gspbox-html
 +-----------------------------------+
 | |zenodo|  |license|  |pyversions| |
 +-----------------------------------+
-| |travis|  |coveralls|  |github|   |
+| |ci|  |coveralls|  |github|   |
 +-----------------------------------+
 
 .. |doc| image:: https://readthedocs.org/projects/pygsp/badge/?version=latest
@@ -28,8 +28,8 @@ A (mostly unmaintained) `Matlab version <https://epfl-lts2.github.io/gspbox-html
    :target: https://github.com/epfl-lts2/pygsp/blob/master/LICENSE.txt
 .. |pyversions| image:: https://img.shields.io/pypi/pyversions/pygsp.svg
    :target: https://pypi.org/project/PyGSP
-.. |travis| image:: https://img.shields.io/travis/com/epfl-lts2/pygsp.svg
-   :target: https://app.travis-ci.com/github/epfl-lts2/pygsp
+.. |ci| image:: https://github.com/epfl-lts2/pygsp/workflows/CI/badge.svg
+   :target: https://github.com/epfl-lts2/pygsp/actions/workflows/ci.yml
 .. |coveralls| image:: https://img.shields.io/coveralls/github/epfl-lts2/pygsp.svg
    :target: https://coveralls.io/github/epfl-lts2/pygsp
 .. |github| image:: https://img.shields.io/github/stars/epfl-lts2/pygsp.svg?style=social

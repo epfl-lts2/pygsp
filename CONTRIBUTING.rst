@@ -31,7 +31,7 @@ short example in ``examples``.
 Update ``README.rst`` and ``CHANGELOG.rst`` if applicable.
 
 After making any change, please check the style, run the tests, and build the
-documentation with the following (enforced by Travis CI)::
+documentation with the following (enforced by GitHub Actions)::
 
     $ make lint
     $ make test
@@ -82,7 +82,7 @@ Repository organization
   Makefile            Targets for make
   setup.py            Meta information about package (published on PyPI)
   .gitignore          Files ignored by the git revision control system
-  .travis.yml         Defines testing on Travis continuous integration
+  .github/workflows/  Defines testing on GitHub Actions continuous integration
 
   pygsp/              Contains the modules (the actual toolbox implementation)
    __init.py__        Load modules at package import
