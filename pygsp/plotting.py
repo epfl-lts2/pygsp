@@ -67,7 +67,7 @@ def _import_qtg():
         raise ImportError('Cannot import pyqtgraph. Choose another backend '
                           'or try to install it with '
                           'pip (or conda) install pyqtgraph. You will also '
-                          'need PyQt5 (or PySide) and PyOpenGL. '
+                          'need PyQt6 (or PyQt5/PySide for older setups) and PyOpenGL. '
                           'Original exception: {}'.format(e))
     return qtg, gl, QtGui, QtWidgets
 

@@ -51,7 +51,7 @@ setup(
             # Interactive graph visualization.
             'pyqtgraph',
             'PyOpenGL',
-            'PyQt5',
+            'PyQt6',
             # Run the tests.
             'flake8',
             'coverage',

@@ -56,7 +56,7 @@ dev = [
     # Interactive graph visualization
     "pyqtgraph",
     "PyOpenGL",
-    "PyQt5",
+    "PyQt6",
     # Run the tests
     "flake8",
     "coverage",
@@ -97,7 +97,7 @@ plot = [
     "matplotlib",
     "pyqtgraph", 
     "PyOpenGL",
-    "PyQt5",
+    "PyQt6",
 ]
 
 [project.urls]
