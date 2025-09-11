@@ -38,9 +38,11 @@ doc:
 	uv run sphinx-build -b linkcheck -d doc/_build/doctrees doc doc/_build/linkcheck
 
 dist: clean
+	uv sync --all-extras
 	uv build
 	ls -lh dist/*
 	uv run twine check dist/*
+	@echo "The built packages are valid and can be uploaded successfully"
 
 release: dist
 	uv publish
