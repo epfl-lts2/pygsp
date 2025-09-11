@@ -479,7 +479,7 @@ class IOMixIn:
 
         .. _GraphML: https://en.wikipedia.org/wiki/GraphML
         .. _GML: https://en.wikipedia.org/wiki/Graph_Modelling_Language
-        .. _GEXF: https://gephi.org/gexf/format
+        .. _GEXF: https://gexf.net/
         .. _NetworkX: https://networkx.org
         .. _graph-tool: https://graph-tool.skewed.de
         .. _NetworKit: https://networkit.github.io
