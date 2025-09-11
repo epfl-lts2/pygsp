@@ -908,11 +908,11 @@ def test_break_join_signals(tmp_path):
         graph2 = graphs.Graph.from_graphtool(graph2)
         np.testing.assert_allclose(graph2.signals['coords'], graph1.coords)
     # save and load (need ordered dicts)
-    filename = tmp_path / 'graph.graphml'
+    filename = str(tmp_path / 'graph.graphml')
     graph1.save(filename)
     graph2 = graphs.Graph.load(filename)
     np.testing.assert_allclose(graph2.signals['coords'], graph1.coords)
-    filename.unlink()
+    os.remove(filename)
 
 def test_save_load(tmp_path):
 
@@ -933,35 +933,34 @@ def test_save_load(tmp_path):
     for backend in backends:
         for fmt in ['graphml', 'gml', 'gexf']:
             if fmt == 'gexf' and backend == 'graph-tool':
-                filename = tmp_path / ('graph.' + fmt)  
+                filename = str(tmp_path / ('graph.' + fmt))  
                 with pytest.raises(ValueError):
                     G1.save(filename, fmt, backend)
                 with pytest.raises(ValueError):
                     graphs.Graph.load('g', fmt, backend)
-                filename.unlink()
                 continue
 
             atol = 1e-5 if fmt == 'gml' and backend == 'graph-tool' else 0
 
-            for filename, fmt in [(tmp_path / ('graph.' + fmt), None), (tmp_path / 'graph', fmt)]:
+            for filename, fmt in [(str(tmp_path / ('graph.' + fmt)), None), (str(tmp_path / 'graph'), fmt)]:
                 G1.save(filename, fmt, backend)
                 G2 = graphs.Graph.load(filename, fmt, backend)
                 np.testing.assert_allclose(G2.W.toarray(), W, atol=atol)
                 np.testing.assert_allclose(G2.signals['s'], sig, atol=atol)
 
     with pytest.raises(ValueError):
-        graphs.Graph.load(tmp_path / 'g.gml', fmt='?')
+        graphs.Graph.load('g.gml', fmt='?')
     with pytest.raises(ValueError):
-        graphs.Graph.load(tmp_path / 'g.gml', backend='?')
+        graphs.Graph.load('g.gml', backend='?')
     with pytest.raises(ValueError):
-        G1.save(tmp_path / 'g.gml', fmt='?')
+        G1.save('g.gml', fmt='?')
     with pytest.raises(ValueError):
-        G1.save(tmp_path / 'g.gml', backend='?')
+        G1.save('g.gml', backend='?')
 
 def test_import_errors(tmp_path):
     from unittest.mock import patch
     graph = graphs.Sensor()
-    filename = tmp_path / 'graph.gml'
+    filename = str(tmp_path / 'graph.gml')
     
     # Only test backends that are actually available
     # This test should verify error handling, not require unavailable backends
