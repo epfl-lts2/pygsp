@@ -37,17 +37,5 @@ except AttributeError:
     graphs.Graph.plot.__func__.__doc__ = plotting._plot_graph.__doc__
     graphs.Graph.plot_spectrogram.__func__.__doc__ = plotting._plot_spectrogram.__doc__
 
-__version__ = "0.5.1"
-__release_date__ = "2017-12-15"
-
-
-def test():  # pragma: no cover
-    """Run the test suite."""
-    import subprocess
-    import sys
-
-    # Run pytest on the tests directory
-    result = subprocess.run(
-        [sys.executable, "-m", "pytest", "pygsp/tests/", "-v"], capture_output=False
-    )
-    return result.returncode == 0
+__version__ = "0.6.0"
+__release_date__ = "2025-09-11"

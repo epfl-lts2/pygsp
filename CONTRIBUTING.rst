@@ -14,12 +14,13 @@ The package can be set up (ideally in a fresh virtual environment) for local
 development with the following::
 
     $ git clone https://github.com/epfl-lts2/pygsp.git
-    $ pip install --upgrade --editable pygsp[dev]
+    $ cd pygsp
+    $ make install
 
-The ``dev`` "extras requirement" ensures that dependencies required for
-development (to run the test suite and build the documentation) are installed.
-Only `graph-tool <https://graph-tool.skewed.de>`_ will be missing: install it
-manually as it cannot be installed by pip.
+The ``make install`` command (which runs ``uv sync --all-extras``) ensures that
+all dependencies required for development (to run the test suite and build the
+documentation) are installed. Only `graph-tool <https://graph-tool.skewed.de>`_
+will be missing: install it manually as it cannot be installed by uv.
 
 You can improve or add functionality in the ``pygsp`` folder, along with
 corresponding unit tests in ``pygsp/tests/test_*.py`` (with reasonable
@@ -63,7 +64,7 @@ Making a release
    binary wheel should be found as ``dist/PyGSP-0.5.0-py2.py3-none-any.whl``.
 #. Test the upload and installation process::
 
-    $ twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+    $ uv publish --publish-url https://test.pypi.org/legacy/ dist/*
     $ pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple pygsp
 
    Log in as the LTS2 user.

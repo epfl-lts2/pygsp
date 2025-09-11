@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "PyGSP"
-version = "0.5.1"
+version = "0.6.0"
 description = "Graph Signal Processing in Python"
 readme = "README.rst"
 requires-python = ">=3.8"
@@ -72,6 +72,7 @@ dev = [
     "sphinx-rtd-theme",
     "sphinx-copybutton",
     # Build and upload packages
+    "build",
     "wheel",
     "twine",
     "pre-commit",
@@ -140,3 +141,8 @@ exclude_lines = [
 [tool.flake8]
 max-line-length = 88
 extend-ignore = ["E203", "W503"]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=3.5.0",
+]
