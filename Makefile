@@ -1,8 +1,9 @@
 NB = $(sort $(wildcard examples/*.ipynb))
-.PHONY: help clean lint test doc dist release
+.PHONY: help clean install lint test doc dist release
 
 help:
 	@echo "clean    remove non-source files and clean source files"
+	@echo "install  install package in development mode with all dependencies"
 	@echo "lint     check style"
 	@echo "test     run tests and check coverage"
 	@echo "doc      generate HTML documentation and check links"
@@ -12,6 +13,9 @@ help:
 clean:
 	git clean -Xdf
 	jupyter nbconvert --inplace --ClearOutputPreprocessor.enabled=True $(NB)
+
+install:
+	uv sync --all-extras
 
 
 lint:
