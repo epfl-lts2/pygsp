@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # prevent circular import in Python < 3.5
 from .stochasticblockmodel import StochasticBlockModel
 
@@ -39,13 +37,25 @@ class ErdosRenyi(StochasticBlockModel):
 
     """
 
-    def __init__(self, N=100, p=0.1, directed=False, self_loops=False,
-                 connected=False, n_try=10, seed=None, **kwargs):
-
-        super(ErdosRenyi, self).__init__(N=N, k=1, p=p,
-                                         directed=directed,
-                                         self_loops=self_loops,
-                                         connected=connected,
-                                         n_try=n_try,
-                                         seed=seed,
-                                         **kwargs)
+    def __init__(
+        self,
+        N=100,
+        p=0.1,
+        directed=False,
+        self_loops=False,
+        connected=False,
+        n_try=10,
+        seed=None,
+        **kwargs,
+    ):
+        super().__init__(
+            N=N,
+            k=1,
+            p=p,
+            directed=directed,
+            self_loops=self_loops,
+            connected=connected,
+            n_try=n_try,
+            seed=seed,
+            **kwargs,
+        )

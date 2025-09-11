@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 r"""
 The :mod:`pygsp.graphs` module implements the graph class hierarchy. A graph
 object is either constructed from an adjacency matrix, or by instantiating one
@@ -186,7 +184,6 @@ Nearest-neighbors graphs constructed from point clouds
 
 """
 
-from .graph import Graph  # noqa: F401
 from .airfoil import Airfoil  # noqa: F401
 from .barabasialbert import BarabasiAlbert  # noqa: F401
 from .comet import Comet  # noqa: F401
@@ -194,11 +191,20 @@ from .community import Community  # noqa: F401
 from .davidsensornet import DavidSensorNet  # noqa: F401
 from .erdosrenyi import ErdosRenyi  # noqa: F401
 from .fullconnected import FullConnected  # noqa: F401
+from .graph import Graph  # noqa: F401
 from .grid2d import Grid2d  # noqa: F401
 from .linegraph import LineGraph  # noqa: F401
 from .logo import Logo  # noqa: F401
 from .lowstretchtree import LowStretchTree  # noqa: F401
 from .minnesota import Minnesota  # noqa: F401
+from .nngraphs.bunny import Bunny  # noqa: F401
+from .nngraphs.cube import Cube  # noqa: F401
+from .nngraphs.grid2dimgpatches import Grid2dImgPatches  # noqa: F401
+from .nngraphs.imgpatches import ImgPatches  # noqa: F401
+from .nngraphs.nngraph import NNGraph  # noqa: F401
+from .nngraphs.sensor import Sensor  # noqa: F401
+from .nngraphs.sphere import Sphere  # noqa: F401
+from .nngraphs.twomoons import TwoMoons  # noqa: F401
 from .path import Path  # noqa: F401
 from .randomregular import RandomRegular  # noqa: F401
 from .randomring import RandomRing  # noqa: F401
@@ -207,12 +213,3 @@ from .star import Star  # noqa: F401
 from .stochasticblockmodel import StochasticBlockModel  # noqa: F401
 from .swissroll import SwissRoll  # noqa: F401
 from .torus import Torus  # noqa: F401
-
-from .nngraphs.nngraph import NNGraph  # noqa: F401
-from .nngraphs.bunny import Bunny  # noqa: F401
-from .nngraphs.cube import Cube  # noqa: F401
-from .nngraphs.imgpatches import ImgPatches  # noqa: F401
-from .nngraphs.grid2dimgpatches import Grid2dImgPatches  # noqa: F401
-from .nngraphs.sensor import Sensor  # noqa: F401
-from .nngraphs.sphere import Sphere  # noqa: F401
-from .nngraphs.twomoons import TwoMoons  # noqa: F401

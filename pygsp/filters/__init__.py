@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 r"""
 The :mod:`pygsp.filters` module implements methods used for filtering and
 defines commonly used filters that can be applied to :mod:`pygsp.graphs`. A
@@ -113,9 +111,15 @@ account the cost of the necessary eigendecomposition of the graph Laplacian).
 
 """
 
-from .filter import Filter  # noqa: F401
 from .abspline import Abspline  # noqa: F401
+from .approximations import cheby_op  # noqa: F401
+from .approximations import cheby_rect  # noqa: F401
+from .approximations import compute_cheby_coeff  # noqa: F401
+from .approximations import compute_jackson_cheby_coeff  # noqa: F401
+from .approximations import lanczos  # noqa: F401
+from .approximations import lanczos_op  # noqa: F401
 from .expwin import Expwin  # noqa: F401
+from .filter import Filter  # noqa: F401
 from .gabor import Gabor  # noqa: F401
 from .halfcosine import HalfCosine  # noqa: F401
 from .heat import Heat  # noqa: F401
@@ -130,10 +134,3 @@ from .regular import Regular  # noqa: F401
 from .simoncelli import Simoncelli  # noqa: F401
 from .simpletight import SimpleTight  # noqa: F401
 from .wave import Wave  # noqa: F401
-
-from .approximations import compute_cheby_coeff  # noqa: F401
-from .approximations import compute_jackson_cheby_coeff  # noqa: F401
-from .approximations import cheby_op  # noqa: F401
-from .approximations import cheby_rect  # noqa: F401
-from .approximations import lanczos  # noqa: F401
-from .approximations import lanczos_op  # noqa: F401

@@ -127,7 +127,7 @@ Optional Dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
 **graph-tool** (optional)
-  
+
 ``graph-tool`` is an optional dependency that enables import/export functionality with the graph-tool library. PyGSP works perfectly without it - it's only needed if you want to use ``Graph.to_graphtool()`` or ``Graph.from_graphtool()`` methods.
 
 **Installation:**

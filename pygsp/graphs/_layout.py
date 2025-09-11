@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 
 
-class LayoutMixIn(object):
-
-    def set_coordinates(self, kind='spring', seed=None, **kwargs):
+class LayoutMixIn:
+    def set_coordinates(self, kind="spring", seed=None, **kwargs):
         r"""Set node's coordinates (their position when plotting).
 
         Parameters
@@ -34,81 +31,104 @@ class LayoutMixIn(object):
 
         if not isinstance(kind, str):
             coords = np.asanyarray(kind).squeeze()
-            check_1d = (coords.ndim == 1)
+            check_1d = coords.ndim == 1
             check_2d_3d = (coords.ndim == 2) and (2 <= coords.shape[1] <= 3)
             if coords.shape[0] != self.N or not (check_1d or check_2d_3d):
-                raise ValueError('Expecting coordinates to be of size N, Nx2, '
-                                 'or Nx3.')
+                raise ValueError(
+                    "Expecting coordinates to be of size N, Nx2, " "or Nx3."
+                )
             self.coords = coords
 
-        elif kind == 'line1D':
+        elif kind == "line1D":
             self.coords = np.arange(self.N)
 
-        elif kind == 'line2D':
+        elif kind == "line2D":
             x, y = np.arange(self.N), np.zeros(self.N)
             self.coords = np.stack([x, y], axis=1)
 
-        elif kind == 'ring2D':
+        elif kind == "ring2D":
             angle = np.arange(self.N) * 2 * np.pi / self.N
             self.coords = np.stack([np.cos(angle), np.sin(angle)], axis=1)
 
-        elif kind == 'random2D':
+        elif kind == "random2D":
             rng = np.random.default_rng(seed)
             self.coords = rng.uniform(size=(self.N, 2))
 
-        elif kind == 'random3D':
+        elif kind == "random3D":
             rng = np.random.default_rng(seed)
             self.coords = rng.uniform(size=(self.N, 3))
 
-        elif kind == 'spring':
+        elif kind == "spring":
             self.coords = self._fruchterman_reingold(seed=seed, **kwargs)
 
-        elif kind == 'community2D':
-            if not hasattr(self, 'info') or 'node_com' not in self.info:
-                ValueError('Missing arguments to the graph to be able to '
-                           'compute community coordinates.')
+        elif kind == "community2D":
+            if not hasattr(self, "info") or "node_com" not in self.info:
+                ValueError(
+                    "Missing arguments to the graph to be able to "
+                    "compute community coordinates."
+                )
 
-            if 'world_rad' not in self.info:
-                self.info['world_rad'] = np.sqrt(self.N)
+            if "world_rad" not in self.info:
+                self.info["world_rad"] = np.sqrt(self.N)
 
-            if 'comm_sizes' not in self.info:
-                counts = Counter(self.info['node_com'])
-                self.info['comm_sizes'] = np.array([cnt[1] for cnt
-                                                    in sorted(counts.items())])
+            if "comm_sizes" not in self.info:
+                counts = Counter(self.info["node_com"])
+                self.info["comm_sizes"] = np.array(
+                    [cnt[1] for cnt in sorted(counts.items())]
+                )
 
-            Nc = self.info['comm_sizes'].shape[0]
+            Nc = self.info["comm_sizes"].shape[0]
 
-            self.info['com_coords'] = self.info['world_rad'] * \
-                np.array(list(zip(
-                    np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
-                    np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc))))
+            self.info["com_coords"] = self.info["world_rad"] * np.array(
+                list(
+                    zip(
+                        np.cos(2 * np.pi * np.arange(1, Nc + 1) / Nc),
+                        np.sin(2 * np.pi * np.arange(1, Nc + 1) / Nc),
+                    )
+                )
+            )
 
             # Coordinates of the nodes inside their communities
             rng = np.random.default_rng(seed)
             coords = rng.uniform(size=(self.N, 2))
-            self.coords = np.array([[elem[0] * np.cos(2 * np.pi * elem[1]),
-                                     elem[0] * np.sin(2 * np.pi * elem[1])]
-                                    for elem in coords])
+            self.coords = np.array(
+                [
+                    [
+                        elem[0] * np.cos(2 * np.pi * elem[1]),
+                        elem[0] * np.sin(2 * np.pi * elem[1]),
+                    ]
+                    for elem in coords
+                ]
+            )
 
             for i in range(self.N):
                 # Set coordinates as an offset from the center of the community
                 # it belongs to
-                comm_idx = self.info['node_com'][i]
-                comm_rad = np.sqrt(self.info['comm_sizes'][comm_idx])
-                self.coords[i] = self.info['com_coords'][comm_idx] + \
-                    comm_rad * self.coords[i]
-        elif kind == 'laplacian_eigenmap2D':
+                comm_idx = self.info["node_com"][i]
+                comm_rad = np.sqrt(self.info["comm_sizes"][comm_idx])
+                self.coords[i] = (
+                    self.info["com_coords"][comm_idx] + comm_rad * self.coords[i]
+                )
+        elif kind == "laplacian_eigenmap2D":
             self.compute_fourier_basis(n_eigenvectors=3)
             self.coords = self.U[:, 1:3]
-        elif kind == 'laplacian_eigenmap3D':
+        elif kind == "laplacian_eigenmap3D":
             self.compute_fourier_basis(n_eigenvectors=4)
             self.coords = self.U[:, 1:4]
         else:
-            raise ValueError('Unexpected argument kind={}.'.format(kind))
+            raise ValueError(f"Unexpected argument kind={kind}.")
 
-    def _fruchterman_reingold(self, dim=2, k=None, pos=None, fixed=[],
-                              iterations=50, scale=1.0, center=None,
-                              seed=None):
+    def _fruchterman_reingold(
+        self,
+        dim=2,
+        k=None,
+        pos=None,
+        fixed=[],
+        iterations=50,
+        scale=1.0,
+        center=None,
+        seed=None,
+    ):
         # TODO doc
         # fixed: list of nodes with fixed coordinates
         # Position nodes using Fruchterman-Reingold force-directed algorithm.
@@ -117,7 +137,7 @@ class LayoutMixIn(object):
             center = np.zeros((1, dim))
 
         if np.shape(center)[1] != dim:
-            self.logger.error('Spring coordinates: center has wrong size.')
+            self.logger.error("Spring coordinates: center has wrong size.")
             center = np.zeros((1, dim))
 
         if pos is None:
@@ -136,8 +156,9 @@ class LayoutMixIn(object):
             # We must adjust k by domain size for layouts that are not near 1x1
             k = dom_size / np.sqrt(self.N)
 
-        pos = _sparse_fruchterman_reingold(self.A, dim, k, pos_arr,
-                                           fixed, iterations, seed)
+        pos = _sparse_fruchterman_reingold(
+            self.A, dim, k, pos_arr, fixed, iterations, seed
+        )
 
         if len(fixed) == 0:
             pos = _rescale_layout(pos, scale=scale) + center
@@ -185,8 +206,9 @@ def _sparse_fruchterman_reingold(A, dim, k, pos, fixed, iterations, seed):
             # the adjacency matrix row
             Ai = A[i, :].toarray()
             # displacement "force"
-            displacement[:, i] += \
-                (delta * (k * k / distance**2 - Ai * distance / k)).sum(axis=1)
+            displacement[:, i] += (
+                delta * (k * k / distance**2 - Ai * distance / k)
+            ).sum(axis=1)
         # update positions
         length = np.sqrt((displacement**2).sum(axis=0))
         length = np.where(length < 0.01, 0.1, length)

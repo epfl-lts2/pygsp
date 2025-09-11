@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from . import Comet  # prevent circular import in Python < 3.5
 
 
@@ -32,8 +30,8 @@ class Star(Comet):
 
     def __init__(self, N=10, **kwargs):
         plotting = dict(limits=[-1.1, 1.1, -1.1, 1.1])
-        plotting.update(kwargs.get('plotting', {}))
-        super(Star, self).__init__(N, N-1, plotting=plotting, **kwargs)
+        plotting.update(kwargs.get("plotting", {}))
+        super().__init__(N, N - 1, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         return dict()  # Suppress Comet repr.

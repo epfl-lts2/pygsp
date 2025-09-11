@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 r"""
 The :mod:`pygsp.features` module implements different feature extraction
 techniques based on :mod:`pygsp.graphs` and :mod:`pygsp.filters`.
@@ -22,7 +20,7 @@ def compute_avg_adj_deg(G):
     G: Graph
         Graph on which the statistic is extracted
     """
-    return np.sum(np.dot(G.A, G.A), axis=1) / (np.sum(G.A, axis=1) + 1.)
+    return np.sum(np.dot(G.A, G.A), axis=1) / (np.sum(G.A, axis=1) + 1.0)
 
 
 @utils.filterbank_handler
@@ -80,15 +78,16 @@ def compute_spectrogram(G, atom=None, M=100, **kwargs):
     """
 
     if not atom:
+
         def atom(x):
-            return np.exp(-M * (x / G.lmax)**2)
+            return np.exp(-M * (x / G.lmax) ** 2)
 
     scale = np.linspace(0, G.lmax, M)
     spectr = np.empty((G.N, M))
 
     for shift_idx in range(M):
         shift_filter = filters.Filter(G, lambda x: atom(x - scale[shift_idx]))
-        tig = compute_norm_tig(shift_filter, **kwargs).squeeze()**2
+        tig = compute_norm_tig(shift_filter, **kwargs).squeeze() ** 2
         spectr[:, shift_idx] = tig
 
     G.spectr = spectr

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 r"""
 The :mod:`pygsp.learning` module provides functions to solve learning problems.
 
@@ -26,15 +24,17 @@ def _import_pyunlocbox():
     try:
         from pyunlocbox import functions, solvers
     except Exception as e:
-        raise ImportError('Cannot import pyunlocbox, which is needed to solve '
-                          'this optimization problem. Try to install it with '
-                          'pip (or conda) install pyunlocbox. '
-                          'Original exception: {}'.format(e))
+        raise ImportError(
+            "Cannot import pyunlocbox, which is needed to solve "
+            "this optimization problem. Try to install it with "
+            "pip (or conda) install pyunlocbox. "
+            "Original exception: {}".format(e)
+        )
     return functions, solvers
 
 
 def _to_logits(x):
-    logits = np.zeros([len(x), np.max(x)+1])
+    logits = np.zeros([len(x), np.max(x) + 1])
     logits[range(len(x)), x] = 1
     return logits
 
@@ -111,7 +111,7 @@ def classification_tikhonov_simplex(G, y, M, tau=0.1, **kwargs):
     functions, solvers = _import_pyunlocbox()
 
     if tau <= 0:
-        raise ValueError('Tau should be greater than 0.')
+        raise ValueError("Tau should be greater than 0.")
 
     y = y.copy()
     y[M == False] = 0
@@ -127,14 +127,14 @@ def classification_tikhonov_simplex(G, y, M, tau=0.1, **kwargs):
             return np.sum(y[idx[k:]] - y[idx[k]]) - 1
 
         def bisectsearch(idx, y):
-            idxL, idxH = 0, d-1
+            idxL, idxH = 0, d - 1
             L = evalpL(y, idxL, idx)
             H = evalpL(y, idxH, idx)
 
             if L < 0:
                 return idxL
 
-            while (idxH-idxL) > 1:
+            while (idxH - idxL) > 1:
                 iMid = int((idxL + idxH) / 2)
                 M = evalpL(y, iMid, idx)
 
@@ -177,7 +177,7 @@ def classification_tikhonov_simplex(G, y, M, tau=0.1, **kwargs):
     step = 0.5 / (1 + tau * G.lmax)
     solver = solvers.forward_backward(step=step)
     ret = solvers.solve([f1, f2], Y.copy(), solver, **kwargs)
-    return ret['sol']
+    return ret["sol"]
 
 
 def classification_tikhonov(G, y, M, tau=0):
@@ -332,8 +332,7 @@ def regression_tikhonov(G, y, M, tau=0):
                 sol = np.empty(shape=y.shape)
                 res = np.empty(shape=y.shape[1])
                 for i in range(y.shape[1]):
-                    sol[:, i], res[i] = sparse.linalg.cg(
-                        LinearOp, y[:, i])
+                    sol[:, i], res[i] = sparse.linalg.cg(LinearOp, y[:, i])
             else:
                 sol, res = sparse.linalg.cg(LinearOp, y)
 
@@ -341,23 +340,21 @@ def regression_tikhonov(G, y, M, tau=0):
             return sol
 
         else:
-
             # Creating this matrix may be problematic in term of memory.
             # Consider using an operator instead...
             if type(G.L).__module__ == np.__name__:
-                LinearOp = np.diag(M*1) + tau * G.L
+                LinearOp = np.diag(M * 1) + tau * G.L
             return np.linalg.solve(LinearOp, M * y)
 
     else:
-
         if np.prod(M.shape) != G.n_vertices:
             raise ValueError("M should be of size [G.n_vertices,]")
 
         indl = M
-        indu = (M == False)
+        indu = M == False
 
         Luu = G.L[indu, :][:, indu]
-        Wul = - G.L[indu, :][:, indl]
+        Wul = -G.L[indu, :][:, indl]
 
         if sparse.issparse(G.L):
             sol_part = sparse.linalg.spsolve(Luu, Wul.dot(y[indl]))

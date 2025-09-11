@@ -1,14 +1,12 @@
-# -*- coding: utf-8 -*-
-
 """
 Test suite for the filters module of the pygsp package.
 
 """
 
-import pytest
 import numpy as np
+import pytest
 
-from pygsp import graphs, filters
+from pygsp import filters, graphs
 
 
 @pytest.fixture(scope="module")
@@ -33,7 +31,7 @@ def test_signal(test_graph, rng):
 
 def generate_coefficients(test_graph, N, Nf, vertex_delta=83):
     """Generate test coefficients."""
-    S = np.zeros((N*Nf, Nf))
+    S = np.zeros((N * Nf, Nf))
     S[vertex_delta] = 1
     for i in range(Nf):
         S[vertex_delta + i * test_graph.N, i] = 1
@@ -54,12 +52,12 @@ def _test_filter_methods(test_graph, test_signal, f, tight, check=True):
         assert B - A > 0.01
 
     # Analysis.
-    s2 = f.filter(test_signal, method='exact')
-    s3 = f.filter(test_signal, method='chebyshev', order=100)
+    s2 = f.filter(test_signal, method="exact")
+    s3 = f.filter(test_signal, method="chebyshev", order=100)
 
     # Synthesis.
-    s4 = f.filter(s2, method='exact')
-    s5 = f.filter(s3, method='chebyshev', order=100)
+    s4 = f.filter(s2, method="exact")
+    s5 = f.filter(s3, method="chebyshev", order=100)
 
     if check:
         # Chebyshev should be close to exact.
@@ -77,11 +75,11 @@ def _test_filter_methods(test_graph, test_signal, f, tight, check=True):
         # It doesn't work (yet) if the number of filters is the same as the
         # number of nodes as f.filter() infers that we want synthesis where
         # we actually want analysis.
-        F = f.compute_frame(method='exact')
+        F = f.compute_frame(method="exact")
         s = F.dot(test_signal).reshape(-1, test_graph.N).T.squeeze()
         np.testing.assert_allclose(s, s2)
 
-        F = f.compute_frame(method='chebyshev', order=100)
+        F = f.compute_frame(method="chebyshev", order=100)
         s = F.dot(test_signal).reshape(-1, test_graph.N).T.squeeze()
         np.testing.assert_allclose(s, s3)
 
@@ -130,7 +128,7 @@ def test_localize(test_graph):
 
     # Localize signal at node by filtering Kronecker delta.
     NODE = 10
-    s1 = g.localize(NODE, method='exact')
+    s1 = g.localize(NODE, method="exact")
 
     # Should be equal to a row / column of the filtering operator.
     gL = test_graph.U.dot(np.diag(g.evaluate(test_graph.e)[0]).dot(test_graph.U.T))
@@ -138,7 +136,7 @@ def test_localize(test_graph):
     np.testing.assert_allclose(s1, s2)
 
     # That is actually a row / column of the analysis operator.
-    F = g.compute_frame(method='exact')
+    F = g.compute_frame(method="exact")
     np.testing.assert_allclose(F, gL)
 
 
@@ -159,12 +157,12 @@ def test_frame_bounds(test_graph):
 def test_frame(test_graph):
     """Test that the frame is a stack of functions of the Laplacian."""
     g = filters.Heat(test_graph, scale=[8, 9])
-    gL1 = g.compute_frame(method='exact')
-    gL2 = g.compute_frame(method='chebyshev', order=30)
-    
+    gL1 = g.compute_frame(method="exact")
+    gL2 = g.compute_frame(method="chebyshev", order=30)
+
     def get_frame(freq_response):
         return test_graph.U.dot(np.diag(freq_response).dot(test_graph.U.T))
-        
+
     gL = np.concatenate([get_frame(gl) for gl in g.evaluate(test_graph.e)])
     np.testing.assert_allclose(gL1, gL)
     np.testing.assert_allclose(gL2, gL, atol=1e-10)
@@ -187,23 +185,23 @@ def test_inverse(test_graph, test_signal, caplog, frame_bound=3):
     Ah, Bh = h.estimate_frame_bounds()
     np.testing.assert_allclose(Ag * Bh, 1)
     np.testing.assert_allclose(Bg * Ah, 1)
-    gL = g.compute_frame(method='exact')
-    hL = h.compute_frame(method='exact')
+    gL = g.compute_frame(method="exact")
+    hL = h.compute_frame(method="exact")
     I = np.identity(test_graph.N)
     np.testing.assert_allclose(hL.T.dot(gL), I, atol=1e-10)
     pinv = np.linalg.inv(gL.T.dot(gL)).dot(gL.T)
     np.testing.assert_allclose(pinv, hL.T, atol=1e-10)
     # The reconstruction is exact for any frame (lower bound A > 0).
-    y = g.filter(test_signal, method='exact')
-    z = h.filter(y, method='exact')
+    y = g.filter(test_signal, method="exact")
+    z = h.filter(y, method="exact")
     np.testing.assert_allclose(z, test_signal)
     # Not invertible if not a frame.
     g = filters.Expwin(test_graph)
-    with caplog.at_level('WARNING'):
+    with caplog.at_level("WARNING"):
         h = g.inverse()
         h.evaluate(test_graph.e)
     # Check that a warning was logged
-    assert any('not invertible' in record.message for record in caplog.records)
+    assert any("not invertible" in record.message for record in caplog.records)
     # If the frame is tight, inverse is h=g/A.
     g += g.complement(frame_bound)
     h = g.inverse()
@@ -213,8 +211,10 @@ def test_inverse(test_graph, test_signal, caplog, frame_bound=3):
 
 def test_custom_filter(test_graph, test_signal):
     """Test custom filter creation."""
+
     def kernel(x):
-        return x / (1. + x)
+        return x / (1.0 + x)
+
     f = filters.Filter(test_graph, kernels=kernel)
     assert f.Nf == 1
     assert f._kernels[0] is kernel
@@ -232,7 +232,7 @@ def test_gabor(test_graph, test_signal):
     f = filters.Rectangular(test_graph, None, 0.1)
     f = filters.Gabor(test_graph, f)
     _test_filter_methods(test_graph, test_signal, f, tight=False, check=False)
-    
+
     with pytest.raises(ValueError):
         filters.Gabor(graphs.Sensor(), f)
     f = filters.Regular(test_graph)
@@ -248,7 +248,7 @@ def test_modulation(test_graph, test_signal):
     # _test_filter_methods(test_graph, test_signal, f, tight=False, check=False)
     f = filters.Modulation(test_graph, f, modulation_first=True)
     _test_filter_methods(test_graph, test_signal, f, tight=False, check=False)
-    
+
     with pytest.raises(ValueError):
         filters.Modulation(graphs.Sensor(), f)
     f = filters.Regular(test_graph)
@@ -361,7 +361,7 @@ def test_wave(test_graph, test_signal):
     _test_filter_methods(test_graph, test_signal, f, tight=False)
     f = filters.Wave(test_graph, time=[1, 2], speed=[1, 1.5])
     _test_filter_methods(test_graph, test_signal, f, tight=False)
-    
+
     # Sequences of differing lengths.
     with pytest.raises(ValueError):
         filters.Wave(test_graph, time=[1, 2, 3], speed=[0, 1])
@@ -406,10 +406,10 @@ def test_approximations(test_graph, test_signal):
     # TODO: done in _test_filter_methods.
 
     f = filters.Heat(test_graph)
-    c_exact = f.filter(test_signal, method='exact')
-    c_cheby = f.filter(test_signal, method='chebyshev')
+    c_exact = f.filter(test_signal, method="exact")
+    c_cheby = f.filter(test_signal, method="chebyshev")
 
     np.testing.assert_allclose(c_exact, c_cheby)
-    
+
     with pytest.raises(ValueError):
-        f.filter(test_signal, method='lanczos')
+        f.filter(test_signal, method="lanczos")

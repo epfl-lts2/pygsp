@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 
 from . import Graph  # prevent circular import in Python < 3.5
@@ -27,8 +25,7 @@ class FullConnected(Graph):
     """
 
     def __init__(self, N=10, **kwargs):
-
         W = np.ones((N, N)) - np.identity(N)
-        plotting = {'limits': np.array([-1, 1, -1, 1])}
+        plotting = {"limits": np.array([-1, 1, -1, 1])}
 
-        super(FullConnected, self).__init__(W, plotting=plotting, **kwargs)
+        super().__init__(W, plotting=plotting, **kwargs)
