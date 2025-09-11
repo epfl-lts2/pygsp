@@ -60,10 +60,10 @@ jobs:
         python -c "import graph_tool.all as gt; print('✅ graph-tool imported successfully')"
 
     - name: Cache pip packages
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml', 'setup.py') }}
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
         restore-keys: |
           ${{ runner.os }}-pip-${{ matrix.python-version }}-
           ${{ runner.os }}-pip-
@@ -143,7 +143,7 @@ jobs:
         sphinx-build -b linkcheck -d doc/_build/doctrees doc doc/_build/linkcheck
 
     - name: Upload documentation artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: documentation
         path: doc/_build/html/

@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import interpolate
 
-from . import Filter  # prevent circular import in Python < 3.5
+from .filter import Filter  # prevent circular import in Python < 3.5
 
 
 class Modulation(Filter):

@@ -5,7 +5,8 @@ from scipy import sparse, spatial
 from scipy.spatial import distance
 
 from pygsp import utils
-from pygsp.graphs import Graph  # prevent circular import in Python < 3.5
+
+from ..graph import Graph  # prevent circular import in Python < 3.5
 
 _logger = utils.build_logger(__name__)
 

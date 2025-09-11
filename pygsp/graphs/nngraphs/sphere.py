@@ -1,6 +1,6 @@
 import numpy as np
 
-from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
+from .nngraph import NNGraph  # prevent circular import in Python < 3.5
 
 
 class Sphere(NNGraph):

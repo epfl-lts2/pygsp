@@ -1,5 +1,6 @@
 from pygsp import utils
-from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
+
+from .nngraph import NNGraph  # prevent circular import in Python < 3.5
 
 
 class Bunny(NNGraph):

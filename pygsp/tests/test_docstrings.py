@@ -163,16 +163,6 @@ def test_tutorial_docstrings():
         )
 
 
-@pytest.mark.skip(
-    reason="External library doctests are version-dependent and not our responsibility"
-)
-def test_external_docstrings():
-    """Test external library docstrings (disabled)."""
-    # This test is disabled because external libraries (sklearn, numpy, etc.)
-    # have version-dependent docstring outputs that we shouldn't test
-    pass
-
-
 # Optional: Test specific known-good examples
 def test_basic_docstring_examples():
     """Test a few basic examples that should always work."""

@@ -1,5 +1,7 @@
 # prevent circular import in Python < 3.5
-from pygsp.graphs import Graph, Grid2d, ImgPatches
+from ..graph import Graph
+from ..grid2d import Grid2d
+from .imgpatches import ImgPatches
 
 
 class Grid2dImgPatches(Graph):

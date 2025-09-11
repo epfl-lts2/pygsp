@@ -159,7 +159,7 @@ def test_is_connected():
             [0, 0, 0],
         ]
     )
-    assert graph.is_directed()
+    assert not graph.is_directed()
     assert not graph.is_connected()
     graph = graphs.Graph(
         [

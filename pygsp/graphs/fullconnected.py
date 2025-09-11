@@ -1,6 +1,6 @@
 import numpy as np
 
-from . import Graph  # prevent circular import in Python < 3.5
+from .graph import Graph  # prevent circular import in Python < 3.5
 
 
 class FullConnected(Graph):
