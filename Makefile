@@ -14,7 +14,7 @@ clean:
 	jupyter nbconvert --inplace --ClearOutputPreprocessor.enabled=True $(NB)
 
 lint:
-	flake8 --doctests --exclude=doc
+	flake8 --doctests --exclude=doc,.venv,build
 
 # Matplotlib doesn't print to screen. Also faster.
 export MPLBACKEND = agg

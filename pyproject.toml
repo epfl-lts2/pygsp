@@ -20,7 +20,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Topic :: Scientific/Engineering",
     "Intended Audience :: Developers",
-    "Intended Audience :: Education", 
+    "Intended Audience :: Education",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
@@ -65,7 +65,7 @@ dev = [
     "pytest-cov",
     # Build the documentation
     "sphinx",
-    "numpydoc", 
+    "numpydoc",
     "sphinxcontrib-bibtex",
     "sphinx-gallery",
     "memory_profiler",
@@ -74,6 +74,7 @@ dev = [
     # Build and upload packages
     "wheel",
     "twine",
+    "pre-commit",
 ]
 
 test = [
@@ -86,7 +87,7 @@ test = [
 docs = [
     "sphinx",
     "numpydoc",
-    "sphinxcontrib-bibtex", 
+    "sphinxcontrib-bibtex",
     "sphinx-gallery",
     "memory_profiler",
     "sphinx-rtd-theme",
@@ -95,7 +96,7 @@ docs = [
 
 plot = [
     "matplotlib",
-    "pyqtgraph", 
+    "pyqtgraph",
     "PyOpenGL",
     "PyQt6",
 ]
