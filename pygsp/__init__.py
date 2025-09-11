@@ -37,5 +37,5 @@ except AttributeError:
     graphs.Graph.plot.__func__.__doc__ = plotting._plot_graph.__doc__
     graphs.Graph.plot_spectrogram.__func__.__doc__ = plotting._plot_spectrogram.__doc__
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 __release_date__ = "2025-09-11"

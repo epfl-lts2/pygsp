@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "PyGSP"
-version = "0.6.0"
+version = "0.6.1"
 description = "Graph Signal Processing in Python"
 readme = "README.rst"
 requires-python = ">=3.8"
