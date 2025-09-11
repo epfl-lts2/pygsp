@@ -184,6 +184,10 @@ class FourierMixIn(object):
         # filter's implementations may not anticipate. Better for plotting too.
         assert -1e-5 < self._e[0] < 1e-5
         self._e[0] = 0
+        
+        # we set the first eigenvector to have positive values:
+        if np.abs(self._U[0, 0]).sum() < 0:
+            self._U[0, :] = -self._U[0, :]
 
         # Bounded spectrum.
         assert self._e[-1] <= self._get_upper_bound() + 1e-5
