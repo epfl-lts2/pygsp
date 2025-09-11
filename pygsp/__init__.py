@@ -39,15 +39,3 @@ except AttributeError:
 
 __version__ = "0.6.0"
 __release_date__ = "2025-09-11"
-
-
-def test():  # pragma: no cover
-    """Run the test suite."""
-    import subprocess
-    import sys
-
-    # Run pytest on the tests directory
-    result = subprocess.run(
-        [sys.executable, "-m", "pytest", "pygsp/tests/", "-v"], capture_output=False
-    )
-    return result.returncode == 0

@@ -15,7 +15,7 @@ clean:
 
 
 lint:
-	flake8 --doctests --exclude=doc,.venv,build --max-line-length=88 --extend-ignore=E203
+	uv run flake8 --doctests --exclude=doc,.venv,build --max-line-length=88 --extend-ignore=E203
 
 # Matplotlib doesn't print to screen. Also faster.
 export MPLBACKEND = agg
@@ -24,20 +24,19 @@ export DISPLAY = :99
 
 test:
 	Xvfb $$DISPLAY -screen 0 800x600x24 &
-	coverage run --branch --source pygsp -m pytest
-	coverage report
-	coverage html
+	uv run coverage run --branch --source pygsp -m pytest
+	uv run coverage report
+	uv run coverage html
 	killall Xvfb
 
 doc:
-	sphinx-build -b html -d doc/_build/doctrees doc doc/_build/html
-	sphinx-build -b linkcheck -d doc/_build/doctrees doc doc/_build/linkcheck
+	uv run sphinx-build -b html -d doc/_build/doctrees doc doc/_build/html
+	uv run sphinx-build -b linkcheck -d doc/_build/doctrees doc doc/_build/linkcheck
 
 dist: clean
-	python setup.py sdist
-	python setup.py bdist_wheel --universal
+	uv build
 	ls -lh dist/*
-	twine check dist/*
+	uv run twine check dist/*
 
 release: dist
-	twine upload dist/*
+	uv publish

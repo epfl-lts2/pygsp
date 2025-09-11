@@ -15,7 +15,7 @@ A (mostly unmaintained) `Matlab version <https://epfl-lts2.github.io/gspbox-html
 +-----------------------------------+
 | |zenodo|  |license|  |pyversions| |
 +-----------------------------------+
-| |ci|  |coveralls|  |github|   |
+| |ci|  |coveralls|  |github|       |
 +-----------------------------------+
 
 .. |doc| image:: https://readthedocs.org/projects/pygsp/badge/?version=latest
