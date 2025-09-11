@@ -6,8 +6,6 @@ Solve the heat equation by filtering the initial conditions with the heat
 kernel :class:`pygsp.filters.Heat`.
 """
 
-from os import path
-
 import numpy as np
 from matplotlib import pyplot as plt
 

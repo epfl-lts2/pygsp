@@ -3,12 +3,10 @@ The :mod:`pygsp.utils` module implements some utility functions used throughout
 the package.
 """
 
-
 import functools
 import io
 import logging
 import pkgutil
-import sys
 
 import numpy as np
 import scipy.io

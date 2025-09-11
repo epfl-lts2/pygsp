@@ -3,7 +3,6 @@ Test suite for the graphs module of the pygsp package.
 
 """
 
-
 import os
 import random
 import sys
@@ -119,7 +118,7 @@ def test_degree():
             [0, 2, 0],
         ]
     )
-    assert graph.is_directed() == False
+    assert not graph.is_directed()
     np.testing.assert_allclose(graph.d, [1, 2, 1])
     np.testing.assert_allclose(graph.dw, [1, 3, 2])
     graph = graphs.Graph(
@@ -129,7 +128,7 @@ def test_degree():
             [0, 2, 0],
         ]
     )
-    assert graph.is_directed() == True
+    assert graph.is_directed()
     np.testing.assert_allclose(graph.d, [0.5, 1.5, 1])
     np.testing.assert_allclose(graph.dw, [0.5, 2.5, 2])
 
@@ -142,8 +141,8 @@ def test_is_connected():
             [0, 2, 0],
         ]
     )
-    assert graph.is_directed() == False
-    assert graph.is_connected() == True
+    assert not graph.is_directed()
+    assert graph.is_connected()
     graph = graphs.Graph(
         [
             [0, 1, 0],
@@ -151,8 +150,8 @@ def test_is_connected():
             [0, 2, 0],
         ]
     )
-    assert graph.is_directed() == True
-    assert graph.is_connected() == False
+    assert graph.is_directed()
+    assert not graph.is_connected()
     graph = graphs.Graph(
         [
             [0, 1, 0],
@@ -160,8 +159,8 @@ def test_is_connected():
             [0, 0, 0],
         ]
     )
-    assert graph.is_directed() == False
-    assert graph.is_connected() == False
+    assert graph.is_directed()
+    assert not graph.is_connected()
     graph = graphs.Graph(
         [
             [0, 1, 0],
@@ -169,8 +168,8 @@ def test_is_connected():
             [3, 0, 0],
         ]
     )
-    assert graph.is_directed() == True
-    assert graph.is_connected() == True
+    assert graph.is_directed()
+    assert graph.is_connected()
 
 
 def test_is_directed():
@@ -183,7 +182,7 @@ def test_is_directed():
         ]
     )
     assert graph.W.nnz == 6
-    assert graph.is_directed() == False
+    assert not graph.is_directed()
     # In-place modification is not allowed anymore.
     # graph.W[0, 1] = 0
     # assert graph.W.nnz == 6
@@ -210,7 +209,7 @@ def test_laplacian():
             [-1, +0, -3, +4],
         ]
     )
-    assert G.is_directed() == False
+    assert not G.is_directed()
     G.compute_laplacian("combinatorial")
     np.testing.assert_allclose(G.L.toarray(), laplacian)
     G.compute_laplacian("normalized")
@@ -224,7 +223,7 @@ def test_laplacian():
             [1, 0, 3, 0],
         ]
     )
-    assert G.is_directed() == True
+    assert G.is_directed()
     G.compute_laplacian("combinatorial")
     np.testing.assert_allclose(G.L.toarray(), laplacian)
     G.compute_laplacian("normalized")
@@ -241,14 +240,14 @@ def test_laplacian():
         np.testing.assert_equal(G.L.diagonal(), 1)
 
     G = graphs.ErdosRenyi(100, directed=False)
-    assert G.is_directed() == False
+    assert not G.is_directed()
     G.compute_laplacian(lap_type="combinatorial")
     test_combinatorial(G)
     G.compute_laplacian(lap_type="normalized")
     test_normalized(G)
 
     G = graphs.ErdosRenyi(100, directed=True)
-    assert G.is_directed() == True
+    assert G.is_directed()
     G.compute_laplacian(lap_type="combinatorial")
     test_combinatorial(G)
     G.compute_laplacian(lap_type="normalized")

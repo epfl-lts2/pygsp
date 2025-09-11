@@ -100,7 +100,8 @@ def test_api_docstrings():
     if significant_failures and failure_count > 0:
         failure_details = "\n".join(failures[:10])  # Show first 10 failures
         pytest.fail(
-            f"PyGSP docstring tests failed: {failure_count}/{test_count}\n{failure_details}"
+            "PyGSP docstring tests failed: "
+            + f"{failure_count}/{test_count}\n{failure_details}"
         )
 
 
@@ -157,7 +158,8 @@ def test_tutorial_docstrings():
     ):  # Allow up to 20% failures for tutorials
         failure_details = "\n".join(failures[:5])  # Show first 5 failures
         pytest.fail(
-            f"PyGSP tutorial docstring tests failed: {failure_count}/{test_count}\n{failure_details}"
+            "PyGSP tutorial docstring tests failed: "
+            + f"{failure_count}/{test_count}\n{failure_details}"
         )
 
 

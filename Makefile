@@ -13,8 +13,9 @@ clean:
 	git clean -Xdf
 	jupyter nbconvert --inplace --ClearOutputPreprocessor.enabled=True $(NB)
 
+
 lint:
-	flake8 --doctests --exclude=doc,.venv,build
+	flake8 --doctests --exclude=doc,.venv,build --max-line-length=88 --extend-ignore=E203
 
 # Matplotlib doesn't print to screen. Also faster.
 export MPLBACKEND = agg

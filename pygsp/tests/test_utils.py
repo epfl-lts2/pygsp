@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 from scipy import sparse
 
-from pygsp import graphs, utils
+from pygsp import utils
 
 
 def test_symmetrize():

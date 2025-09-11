@@ -20,7 +20,6 @@ Filters (from :mod:`pygsp.filters`) are to be plotted with
 
 """
 
-
 import functools
 
 import numpy as np
@@ -291,7 +290,7 @@ def _plt_plot_filter(filters, n, eigenvalues, sum, labels, ax, **kwargs):
         for i, line in enumerate(lines):
             line.set_label(rf"$g_{{{i}}}(\lambda)$")
         if sum:
-            line_sum.set_label(rf"$\sum_i g_i^2(\lambda)$")
+            line_sum.set_label(r"$\sum_i g_i^2(\lambda)$")
         ax.legend()
 
     if eigenvalues:

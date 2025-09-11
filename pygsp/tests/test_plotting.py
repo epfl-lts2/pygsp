@@ -3,8 +3,6 @@ Test suite for the plotting module of the pygsp package.
 
 """
 
-import os
-
 import numpy as np
 import pytest
 from matplotlib import pyplot as plt

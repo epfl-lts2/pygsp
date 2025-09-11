@@ -128,7 +128,8 @@ class Community(Graph):
                 raise ValueError("There should be Nc community sizes.")
             if np.sum(comm_sizes) != N:
                 raise ValueError("The sum of community sizes should be N.")
-            # create labels based on the constraint given for the community sizes. No random assignation here.
+            # create labels based on the constraint given for the community sizes.
+            # No random assignation here.
             info["node_com"] = np.concatenate(
                 [[val] * cnt for (val, cnt) in enumerate(comm_sizes)]
             )
@@ -139,7 +140,8 @@ class Community(Graph):
 
         # Intra-community edges construction #
         if comm_density is not None:
-            # random picking edges following the community density (same for all communities)
+            # random picking edges following the community density
+            # (same for all communities)
             if not 0 <= comm_density <= 1:
                 raise ValueError("comm_density should be between 0 and 1.")
             info["comm_density"] = comm_density
@@ -151,7 +153,8 @@ class Community(Graph):
             info["k_neigh"] = k_neigh
             self.logger.info(f"Constructed using K-NN with k = {k_neigh}")
         else:
-            # epsilon-NN among the nodes in the same community (same eps for all communities)
+            # epsilon-NN among the nodes in the same community
+            # (same eps for all communities)
             info["epsilon"] = epsilon
             self.logger.info(f"Constructed using eps-NN with eps = {epsilon}")
 
@@ -177,7 +180,8 @@ class Community(Graph):
         )
 
         for i in range(N):
-            # set coordinates as an offset from the center of the community it belongs to
+            # set coordinates as an offset from the center of the community
+            # it belongs to
             comm_idx = info["node_com"][i]
             comm_rad = np.sqrt(info["comm_sizes"][comm_idx])
             coords[i] = info["com_coords"][comm_idx] + comm_rad * coords[i]

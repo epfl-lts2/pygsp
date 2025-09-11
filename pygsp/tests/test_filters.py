@@ -187,8 +187,8 @@ def test_inverse(test_graph, test_signal, caplog, frame_bound=3):
     np.testing.assert_allclose(Bg * Ah, 1)
     gL = g.compute_frame(method="exact")
     hL = h.compute_frame(method="exact")
-    I = np.identity(test_graph.N)
-    np.testing.assert_allclose(hL.T.dot(gL), I, atol=1e-10)
+    Id = np.identity(test_graph.N)
+    np.testing.assert_allclose(hL.T.dot(gL), Id, atol=1e-10)
     pinv = np.linalg.inv(gL.T.dot(gL)).dot(gL.T)
     np.testing.assert_allclose(pinv, hL.T, atol=1e-10)
     # The reconstruction is exact for any frame (lower bound A > 0).
@@ -257,7 +257,9 @@ def test_modulation(test_graph, test_signal):
 
 
 def test_modulation_gabor(test_graph, test_signal):
-    """Test that both Modulation and Gabor should be equivalent for deltas centered at the eigenvalues."""
+    """Test that both Modulation and Gabor should be equivalent
+    for deltas centered at the eigenvalues.
+    """
     f = filters.Rectangular(test_graph, 0, 0)
     f1 = filters.Modulation(test_graph, f, modulation_first=True)
     f2 = filters.Gabor(test_graph, f)
