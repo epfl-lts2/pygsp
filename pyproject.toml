@@ -49,8 +49,8 @@ dev = [
     "scikit-learn",
     # Approximate nearest neighbors for kNN graphs
     "pyflann3",
-    # Convex optimization on graph (to be updated once the version on pypi is available)
-    "pyunlocbox @ git+https://github.com/epfl-lts2/pyunlocbox.git@main", 
+    # Convex optimization
+    "pyunlocbox>=0.6.1",
     # Plot graphs, signals, and filters
     "matplotlib",
     # Interactive graph visualization

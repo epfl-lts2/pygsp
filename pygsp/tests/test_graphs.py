@@ -937,7 +937,8 @@ def test_save_load(tmp_path):
                 with pytest.raises(ValueError):
                     G1.save(filename, fmt, backend)
                 with pytest.raises(ValueError):
-                    graphs.Graph.load('g', fmt, backend)
+                    graphs.Graph.load(filename, fmt, backend)
+                os.remove(filename)
                 continue
 
             atol = 1e-5 if fmt == 'gml' and backend == 'graph-tool' else 0
