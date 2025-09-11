@@ -6,9 +6,13 @@ All notable changes to this project will be documented in this file.
 The format is based on `Keep a Changelog <https://keepachangelog.com>`_
 and this project adheres to `Semantic Versioning <https://semver.org>`_.
 
-Unreleased
-----------
+0.6.0 (2025-09-11)
+------------------
 
+* Update to the new python versions 3.8, 3.9, 3.10, 3.11, 3.12, 3.13.
+* Move CI from travis to GitHub Actions.
+* Upgrade test from unittest to pytest.
+* Add a basic pre-commit hooks.
 * Upgrade from PyQt5 to PyQt6.
 * ``print(graph)`` and ``print(filters)`` now show valuable information.
 * Building a graph object is much faster.
@@ -25,7 +29,6 @@ Unreleased
 * ``g.inverse()`` returns the pseudo-inverse of the filter bank.
 * ``g.complement()`` returns the filter that makes the frame tight.
 * Wave filter bank which application simulates the propagation of a wave.
-* Continuous integration with Python 3.7, 3.8, 3.9. Dropped 2.7, 3.4, 3.5, 3.6.
 * New implementation of the Sensor graph that is simpler and scales better.
 * A new learning module with three functions to solve standard semi-supervised
   classification and regression problems.
