@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 
-from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
+from .nngraph import NNGraph  # prevent circular import in Python < 3.5
 
 
 class Sphere(NNGraph):
@@ -34,22 +32,16 @@ class Sphere(NNGraph):
 
     """
 
-    def __init__(self,
-                 radius=1,
-                 nb_pts=300,
-                 nb_dim=3,
-                 sampling='random',
-                 seed=None,
-                 **kwargs):
-
+    def __init__(
+        self, radius=1, nb_pts=300, nb_dim=3, sampling="random", seed=None, **kwargs
+    ):
         self.radius = radius
         self.nb_pts = nb_pts
         self.nb_dim = nb_dim
         self.sampling = sampling
         self.seed = seed
 
-        if self.sampling == 'random':
-
+        if self.sampling == "random":
             rs = np.random.RandomState(seed)
             pts = rs.normal(0, 1, (self.nb_pts, self.nb_dim))
 
@@ -57,22 +49,23 @@ class Sphere(NNGraph):
                 pts[i] /= np.linalg.norm(pts[i])
 
         else:
-
-            raise ValueError('Unknown sampling {}'.format(sampling))
+            raise ValueError(f"Unknown sampling {sampling}")
 
         plotting = {
-            'vertex_size': 80,
+            "vertex_size": 80,
         }
 
-        super(Sphere, self).__init__(Xin=pts, k=10,
-                                     center=False, rescale=False,
-                                     plotting=plotting, **kwargs)
+        super().__init__(
+            Xin=pts, k=10, center=False, rescale=False, plotting=plotting, **kwargs
+        )
 
     def _get_extra_repr(self):
-        attrs = {'radius': '{:.2f}'.format(self.radius),
-                 'nb_pts': self.nb_pts,
-                 'nb_dim': self.nb_dim,
-                 'sampling': self.sampling,
-                 'seed': self.seed}
-        attrs.update(super(Sphere, self)._get_extra_repr())
+        attrs = {
+            "radius": f"{self.radius:.2f}",
+            "nb_pts": self.nb_pts,
+            "nb_dim": self.nb_dim,
+            "sampling": self.sampling,
+            "seed": self.seed,
+        }
+        attrs.update(super()._get_extra_repr())
         return attrs

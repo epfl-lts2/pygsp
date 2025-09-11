@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 r"""
 The :mod:`pygsp.reduction` module implements functionalities for the reduction
 of graphs' vertex set while keeping the graph structure.
@@ -20,8 +18,7 @@ import numpy as np
 from scipy import sparse, stats
 from scipy.sparse import linalg
 
-from pygsp import graphs, filters, utils
-
+from pygsp import filters, graphs, utils
 
 logger = utils.build_logger(__name__)
 
@@ -31,7 +28,7 @@ def _analysis(g, s, **kwargs):
     s = g.filter(s, **kwargs)
     while s.ndim < 3:
         s = np.expand_dims(s, 1)
-    return s.swapaxes(1, 2).reshape(-1, s.shape[1], order='F')
+    return s.swapaxes(1, 2).reshape(-1, s.shape[1], order="F")
 
 
 def graph_sparsify(M, epsilon, maxiter=10, seed=None):
@@ -72,7 +69,7 @@ def graph_sparsify(M, epsilon, maxiter=10, seed=None):
     """
     # Test the input parameters
     if isinstance(M, graphs.Graph):
-        if not M.lap_type == 'combinatorial':
+        if not M.lap_type == "combinatorial":
             raise NotImplementedError
         L = M.L
     else:
@@ -80,8 +77,8 @@ def graph_sparsify(M, epsilon, maxiter=10, seed=None):
 
     N = np.shape(L)[0]
 
-    if not 1./np.sqrt(N) <= epsilon < 1:
-        raise ValueError('GRAPH_SPARSIFY: Epsilon out of required range')
+    if not 1.0 / np.sqrt(N) <= epsilon < 1:
+        raise ValueError("GRAPH_SPARSIFY: Epsilon out of required range")
 
     # Not sparse
     resistance_distances = utils.resistance_distance(L).toarray()
@@ -109,7 +106,7 @@ def graph_sparsify(M, epsilon, maxiter=10, seed=None):
     for i in range(maxiter):
         # Rudelson, 1996 Random Vectors in the Isotropic Position
         # (too hard to figure out actual C0)
-        C0 = 1 / 30.
+        C0 = 1 / 30.0
         # Rudelson and Vershynin, 2007, Thm. 3.1
         C = 4 * C0
         q = round(N * np.log(N) * 9 * C**2 / (epsilon**2))
@@ -122,25 +119,28 @@ def graph_sparsify(M, epsilon, maxiter=10, seed=None):
         counts[spin_counts[:, 0]] = spin_counts[:, 1]
         new_weights = counts * per_spin_weights
 
-        sparserW = sparse.csc_matrix((new_weights, (start_nodes, end_nodes)),
-                                     shape=(N, N))
+        sparserW = sparse.csc_matrix(
+            (new_weights, (start_nodes, end_nodes)), shape=(N, N)
+        )
         sparserW = sparserW + sparserW.T
         sparserL = sparse.diags(sparserW.diagonal(), 0) - sparserW
 
         if graphs.Graph(sparserW).is_connected():
             break
         elif i == maxiter - 1:
-            logger.warning('Despite attempts to reduce epsilon, sparsified graph is disconnected')
+            logger.warning(
+                "Despite attempts to reduce epsilon, sparsified graph is disconnected"
+            )
         else:
-            epsilon -= (epsilon - 1/np.sqrt(N)) / 2.
+            epsilon -= (epsilon - 1 / np.sqrt(N)) / 2.0
 
     if isinstance(M, graphs.Graph):
         sparserW = sparse.diags(sparserL.diagonal(), 0) - sparserL
         if not M.is_directed():
-            sparserW = (sparserW + sparserW.T) / 2.
+            sparserW = (sparserW + sparserW.T) / 2.0
 
         Mnew = graphs.Graph(sparserW)
-        #M.copy_graph_attributes(Mnew)
+        # M.copy_graph_attributes(Mnew)
     else:
         Mnew = sparse.lil_matrix(sparserL)
 
@@ -175,9 +175,10 @@ def interpolate(G, f_subsampled, keep_inds, order=100, reg_eps=0.005, **kwargs):
 
     """
     L_reg = G.L + reg_eps * sparse.eye(G.N)
-    K_reg = getattr(G.mr, 'K_reg', kron_reduction(L_reg, keep_inds))
-    green_kernel = getattr(G.mr, 'green_kernel',
-                           filters.Filter(G, lambda x: 1. / (reg_eps + x)))
+    K_reg = getattr(G.mr, "K_reg", kron_reduction(L_reg, keep_inds))
+    green_kernel = getattr(
+        G.mr, "green_kernel", filters.Filter(G, lambda x: 1.0 / (reg_eps + x))
+    )
 
     alpha = K_reg.dot(f_subsampled)
 
@@ -185,17 +186,23 @@ def interpolate(G, f_subsampled, keep_inds, order=100, reg_eps=0.005, **kwargs):
         Nv = np.shape(f_subsampled)[1]
         f_interpolated = np.zeros((G.N, Nv))
     except IndexError:
-        f_interpolated = np.zeros((G.N))
+        f_interpolated = np.zeros(G.N)
 
     f_interpolated[keep_inds] = alpha
 
     return _analysis(green_kernel, f_interpolated, order=order, **kwargs)
 
 
-def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
-                          downsampling_method='largest_eigenvector',
-                          reduction_method='kron', compute_full_eigen=False,
-                          reg_eps=0.005):
+def graph_multiresolution(
+    G,
+    levels,
+    sparsify=True,
+    sparsify_eps=None,
+    downsampling_method="largest_eigenvector",
+    reduction_method="kron",
+    compute_full_eigen=False,
+    reg_eps=0.005,
+):
     r"""Compute a pyramid of graphs (by Kron reduction).
 
     'graph_multiresolution(G,levels)' computes a multiresolution of
@@ -250,7 +257,7 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
 
     """
     if sparsify_eps is None:
-        sparsify_eps = min(10. / np.sqrt(G.N), 0.3)
+        sparsify_eps = min(10.0 / np.sqrt(G.N), 0.3)
 
     if compute_full_eigen:
         G.compute_fourier_basis()
@@ -258,10 +265,10 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
         G.estimate_lmax()
 
     Gs = [G]
-    Gs[0].mr = {'idx': np.arange(G.N), 'orig_idx': np.arange(G.N)}
+    Gs[0].mr = {"idx": np.arange(G.N), "orig_idx": np.arange(G.N)}
 
     for i in range(levels):
-        if downsampling_method == 'largest_eigenvector':
+        if downsampling_method == "largest_eigenvector":
             if Gs[i]._U is not None:
                 V = Gs[i].U[:, -1]
             else:
@@ -271,28 +278,30 @@ def graph_multiresolution(G, levels, sparsify=True, sparsify_eps=None,
             ind = np.nonzero(V >= 0)[0]
 
         else:
-            raise NotImplementedError('Unknown graph downsampling method.')
+            raise NotImplementedError("Unknown graph downsampling method.")
 
-        if reduction_method == 'kron':
+        if reduction_method == "kron":
             Gs.append(kron_reduction(Gs[i], ind))
 
         else:
-            raise NotImplementedError('Unknown graph reduction method.')
+            raise NotImplementedError("Unknown graph reduction method.")
 
-        if sparsify and Gs[i+1].N > 2:
-            Gs[i+1] = graph_sparsify(Gs[i+1], min(max(sparsify_eps, 2. / np.sqrt(Gs[i+1].N)), 1.))
+        if sparsify and Gs[i + 1].N > 2:
+            Gs[i + 1] = graph_sparsify(
+                Gs[i + 1], min(max(sparsify_eps, 2.0 / np.sqrt(Gs[i + 1].N)), 1.0)
+            )
             # TODO : Make in place modifications instead!
 
         if compute_full_eigen:
-            Gs[i+1].compute_fourier_basis()
+            Gs[i + 1].compute_fourier_basis()
         else:
-            Gs[i+1].estimate_lmax()
+            Gs[i + 1].estimate_lmax()
 
-        Gs[i+1].mr = {'idx': ind, 'orig_idx': Gs[i].mr['orig_idx'][ind], 'level': i}
+        Gs[i + 1].mr = {"idx": ind, "orig_idx": Gs[i].mr["orig_idx"][ind], "level": i}
 
         L_reg = Gs[i].L + reg_eps * sparse.eye(Gs[i].N)
-        Gs[i].mr['K_reg'] = kron_reduction(L_reg, ind)
-        Gs[i].mr['green_kernel'] = filters.Filter(Gs[i], lambda x: 1./(reg_eps + x))
+        Gs[i].mr["K_reg"] = kron_reduction(L_reg, ind)
+        Gs[i].mr["green_kernel"] = filters.Filter(Gs[i], lambda x: 1.0 / (reg_eps + x))
 
     return Gs
 
@@ -325,19 +334,17 @@ def kron_reduction(G, ind):
 
     """
     if isinstance(G, graphs.Graph):
-
-        if G.lap_type != 'combinatorial':
-                msg = 'Unknown reduction for {} Laplacian.'.format(G.lap_type)
-                raise NotImplementedError(msg)
+        if G.lap_type != "combinatorial":
+            msg = f"Unknown reduction for {G.lap_type} Laplacian."
+            raise NotImplementedError(msg)
 
         if G.is_directed():
-            msg = 'This method only work for undirected graphs.'
+            msg = "This method only work for undirected graphs."
             raise NotImplementedError(msg)
 
         L = G.L
 
     else:
-
         L = G
 
     N = np.shape(L)[0]
@@ -352,7 +359,7 @@ def kron_reduction(G, ind):
 
     # Make the laplacian symmetric if it is almost symmetric!
     if np.abs(Lnew - Lnew.T).sum() < np.spacing(1) * np.abs(Lnew).sum():
-        Lnew = (Lnew + Lnew.T) / 2.
+        Lnew = (Lnew + Lnew.T) / 2.0
 
     if isinstance(G, graphs.Graph):
         # Suppress the diagonal ? This is a good question?
@@ -365,8 +372,9 @@ def kron_reduction(G, ind):
         Wnew = Wnew - Wnew.diagonal()
 
         coords = G.coords[ind, :] if len(G.coords.shape) else np.ndarray(None)
-        Gnew = graphs.Graph(Wnew, coords=coords, lap_type=G.lap_type,
-                            plotting=G.plotting)
+        Gnew = graphs.Graph(
+            Wnew, coords=coords, lap_type=G.lap_type, plotting=G.plotting
+        )
     else:
         Gnew = Lnew
 
@@ -402,25 +410,27 @@ def pyramid_analysis(Gs, f, **kwargs):
 
     """
     if np.shape(f)[0] != Gs[0].N:
-        raise ValueError("PYRAMID ANALYSIS: The signal to analyze should have the same dimension as the first graph.")
+        raise ValueError(
+            "PYRAMID ANALYSIS: The signal to analyze should have the same dimension as the first graph."
+        )
 
     levels = len(Gs) - 1
 
     # check if the type of filters is right.
-    h_filters = kwargs.pop('h_filters', lambda x: 1. / (2*x+1))
+    h_filters = kwargs.pop("h_filters", lambda x: 1.0 / (2 * x + 1))
 
     if not isinstance(h_filters, list):
-        if hasattr(h_filters, '__call__'):
-            logger.warning('Converting filters into a list.')
+        if hasattr(h_filters, "__call__"):
+            logger.warning("Converting filters into a list.")
             h_filters = [h_filters]
         else:
-            logger.error('Filters must be a list of functions.')
+            logger.error("Filters must be a list of functions.")
 
     if len(h_filters) == 1:
         h_filters = h_filters * levels
 
     elif len(h_filters) != levels:
-        message = 'The number of filters must be one or equal to {}.'.format(levels)
+        message = f"The number of filters must be one or equal to {levels}."
         raise ValueError(message)
 
     ca = [f]
@@ -430,9 +440,9 @@ def pyramid_analysis(Gs, f, **kwargs):
         # Low pass the signal
         s_low = _analysis(filters.Filter(Gs[i], h_filters[i]), ca[i], **kwargs)
         # Keep only the coefficient on the selected nodes
-        ca.append(s_low[Gs[i+1].mr['idx']])
+        ca.append(s_low[Gs[i + 1].mr["idx"]])
         # Compute prediction
-        s_pred = interpolate(Gs[i], ca[i+1], Gs[i+1].mr['idx'], **kwargs)
+        s_pred = interpolate(Gs[i], ca[i + 1], Gs[i + 1].mr["idx"], **kwargs)
         # Compute errors
         pe.append(ca[i] - s_pred)
 
@@ -476,32 +486,44 @@ def pyramid_synthesis(Gs, cap, pe, order=30, **kwargs):
         Coarse approximations at each level
 
     """
-    least_squares = bool(kwargs.pop('least_squares', False))
+    least_squares = bool(kwargs.pop("least_squares", False))
     def_ul = Gs[0].N > 3000 or Gs[0]._e is None or Gs[0]._U is None
-    use_landweber = bool(kwargs.pop('use_landweber', def_ul))
-    reg_eps = float(kwargs.get('reg_eps', 0.005))
+    use_landweber = bool(kwargs.pop("use_landweber", def_ul))
+    reg_eps = float(kwargs.get("reg_eps", 0.005))
 
-    if least_squares and 'h_filters' not in kwargs:
-        ValueError('h-filters not provided.')
+    if least_squares and "h_filters" not in kwargs:
+        ValueError("h-filters not provided.")
 
     levels = len(Gs) - 1
     if len(pe) != levels:
-        ValueError('Gs and pe have different shapes.')
+        ValueError("Gs and pe have different shapes.")
 
     ca = [cap]
 
     # Reconstruct each level
     for i in range(levels):
-
         if not least_squares:
-            s_pred = interpolate(Gs[levels - i - 1], ca[i], Gs[levels - i].mr['idx'],
-                                 order=order, reg_eps=reg_eps, **kwargs)
+            s_pred = interpolate(
+                Gs[levels - i - 1],
+                ca[i],
+                Gs[levels - i].mr["idx"],
+                order=order,
+                reg_eps=reg_eps,
+                **kwargs,
+            )
             ca.append(s_pred + pe[levels - i - 1])
 
         else:
-            ca.append(_pyramid_single_interpolation(Gs[levels - i - 1], ca[i],
-                      pe[levels - i - 1], h_filters[levels - i - 1],
-                      use_landweber=use_landweber, **kwargs))
+            ca.append(
+                _pyramid_single_interpolation(
+                    Gs[levels - i - 1],
+                    ca[i],
+                    pe[levels - i - 1],
+                    h_filters[levels - i - 1],
+                    use_landweber=use_landweber,
+                    **kwargs,
+                )
+            )
 
     ca.reverse()
     reconstruction = ca[0]
@@ -543,10 +565,10 @@ def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
     """
     nb_ind = keep_inds.shape
     N = G.N
-    reg_eps = float(kwargs.pop('reg_eps', 0.005))
-    use_landweber = bool(kwargs.pop('use_landweber', False))
-    landweber_its = int(kwargs.pop('landweber_its', 50))
-    landweber_tau = float(kwargs.pop('landweber_tau', 1.))
+    reg_eps = float(kwargs.pop("reg_eps", 0.005))
+    use_landweber = bool(kwargs.pop("use_landweber", False))
+    landweber_its = int(kwargs.pop("landweber_its", 50))
+    landweber_tau = float(kwargs.pop("landweber_tau", 1.0))
 
     # index matrix (nb_ind x N) of keep_inds, S_i,j = 1 iff keep_inds[i] = j
     S = sparse.csr_matrix(([1] * nb_ind, (range(nb_ind), keep_inds)), shape=(nb_ind, N))
@@ -554,7 +576,7 @@ def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
     if use_landweber:
         x = np.zeros(N)
         z = np.concatenate((ca, pe), axis=0)
-        green_kernel = filters.Filter(G, lambda x: 1./(x+reg_eps))
+        green_kernel = filters.Filter(G, lambda x: 1.0 / (x + reg_eps))
         PhiVlt = _analysis(green_kernel, S.T, **kwargs).T
         filt = filters.Filter(G, h_filter, **kwargs)
 
@@ -565,7 +587,9 @@ def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
             z_delt = np.concatenate((x_bar, y_bar), axis=0)
             z_delt = z - z_delt
             alpha_new = PhiVlt * z_delt[nb_ind:]
-            x_up = sparse.csr_matrix((z_delt, (range(nb_ind), [1] * nb_ind)), shape=(N, 1))
+            x_up = sparse.csr_matrix(
+                (z_delt, (range(nb_ind), [1] * nb_ind)), shape=(N, 1)
+            )
             reg_L = G.L + reg_esp * sparse.eye(N)
 
             elim_inds = np.setdiff1d(np.arange(N, dtype=int), keep_inds)
@@ -574,9 +598,16 @@ def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
             L_out_in = reg_L[np.ix_(elim_inds, keep_inds)]
             L_comp = reg_L[np.ix_(elim_inds, elim_inds)]
 
-            next_term = L_red * alpha_new - L_in_out * linalg.spsolve(L_comp, L_out_in * alpha_new)
-            next_up = sparse.csr_matrix((next_term, (keep_inds, [1] * nb_ind)), shape=(N, 1))
-            x += landweber_tau * _analysis(filt, x_up - next_up, **kwargs) + z_delt[nb_ind:]
+            next_term = L_red * alpha_new - L_in_out * linalg.spsolve(
+                L_comp, L_out_in * alpha_new
+            )
+            next_up = sparse.csr_matrix(
+                (next_term, (keep_inds, [1] * nb_ind)), shape=(N, 1)
+            )
+            x += (
+                landweber_tau * _analysis(filt, x_up - next_up, **kwargs)
+                + z_delt[nb_ind:]
+            )
 
         finer_approx = x
 
@@ -584,19 +615,29 @@ def _pyramid_single_interpolation(G, ca, pe, keep_inds, h_filter, **kwargs):
         # When the graph is small enough, we can do a full eigendecomposition
         # and compute the full analysis operator T_a
         H = G.U * sparse.diags(h_filter(G.e), 0) * G.U.T
-        Phi = G.U * sparse.diags(1./(reg_eps + G.e), 0) * G.U.T
-        Ta = np.concatenate((S * H, sparse.eye(G.N) - Phi[:, keep_inds] * linalg.spsolve(Phi[np.ix_(keep_inds, keep_inds)], S*H)), axis=0)
-        finer_approx = linalg.spsolve(Ta.T * Ta, Ta.T * np.concatenate((ca, pe), axis=0))
+        Phi = G.U * sparse.diags(1.0 / (reg_eps + G.e), 0) * G.U.T
+        Ta = np.concatenate(
+            (
+                S * H,
+                sparse.eye(G.N)
+                - Phi[:, keep_inds]
+                * linalg.spsolve(Phi[np.ix_(keep_inds, keep_inds)], S * H),
+            ),
+            axis=0,
+        )
+        finer_approx = linalg.spsolve(
+            Ta.T * Ta, Ta.T * np.concatenate((ca, pe), axis=0)
+        )
 
 
 def _tree_depths(A, root):
     if not graphs.Graph(A=A).is_connected():
-        raise ValueError('Graph is not connected')
+        raise ValueError("Graph is not connected")
 
     N = np.shape(A)[0]
     assigned = root - 1
-    depths = np.zeros((N))
-    parents = np.zeros((N))
+    depths = np.zeros(N)
+    parents = np.zeros(N)
 
     next_to_expand = np.array([root])
     current_depth = 1
@@ -609,8 +650,9 @@ def _tree_depths(A, root):
             parents[new_entries] = next_to_expand[i]
             depths[new_entries] = current_depth
             assigned = np.concatenate((assigned, new_entries))
-            new_entries_whole_round = np.concatenate((new_entries_whole_round,
-                                                      new_entries))
+            new_entries_whole_round = np.concatenate(
+                (new_entries_whole_round, new_entries)
+            )
 
         current_depth = current_depth + 1
         next_to_expand = new_entries_whole_round
@@ -618,8 +660,13 @@ def _tree_depths(A, root):
     return depths, parents
 
 
-def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
-                         compute_full_eigen=False, root=None):
+def tree_multiresolution(
+    G,
+    Nlevel,
+    reduction_method="resistance_distance",
+    compute_full_eigen=False,
+    root=None,
+):
     r"""Compute a multiresolution of trees
 
     Parameters
@@ -644,7 +691,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
     """
 
     if not root:
-        if hasattr(G, 'root'):
+        if hasattr(G, "root"):
             root = G.root
         else:
             root = 1
@@ -661,7 +708,7 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
     for lev in range(Nlevel):
         # Identify the vertices in the even depths of the current tree
         down_odd = round(depths) % 2
-        down_even = np.ones((Gs[lev].N)) - down_odd
+        down_even = np.ones(Gs[lev].N) - down_odd
         keep_inds = np.where(down_even == 1)[0]
         subsampled_vertex_indices.append(keep_inds)
 
@@ -670,7 +717,9 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
         # indices of the new parents
         non_root_keep_inds, new_non_root_inds = np.setdiff1d(keep_inds, root)
         old_parents_of_non_root_keep_inds = parents[non_root_keep_inds]
-        old_grandparents_of_non_root_keep_inds = parents[old_parents_of_non_root_keep_inds]
+        old_grandparents_of_non_root_keep_inds = parents[
+            old_parents_of_non_root_keep_inds
+        ]
         # TODO new_non_root_parents = dsearchn(keep_inds, old_grandparents_of_non_root_keep_inds)
 
         old_W_i_inds, old_W_j_inds, old_W_weights = sparse.find(old_W)
@@ -686,38 +735,45 @@ def tree_multiresolution(G, Nlevel, reduction_method='resistance_distance',
             old_weights_to_parents = old_W_weights[old_weights_to_parents_inds]
             # old_W(non_root_keep_inds,old_parents_of_non_root_keep_inds);
             # TODO old_weights_parents_to_grandparents_inds = dsearchn([old_W_i_inds, old_W_j_inds], [old_parents_of_non_root_keep_inds, old_grandparents_of_non_root_keep_inds])
-            old_weights_parents_to_grandparents = old_W_weights[old_weights_parents_to_grandparents_inds]
+            old_weights_parents_to_grandparents = old_W_weights[
+                old_weights_parents_to_grandparents_inds
+            ]
             # old_W(old_parents_of_non_root_keep_inds,old_grandparents_of_non_root_keep_inds);
             new_weights = old_weights_to_parents + old_weights_parents_to_grandparents
-            new_weights = np.concatenate((new_weights. new_weights))
+            new_weights = np.concatenate(new_weights.new_weights)
 
         elif reduction_method == "resistance_distance":
             # TODO old_weights_to_parents_inds = dsearchn([old_W_i_inds, old_W_j_inds], [non_root_keep_inds, old_parents_of_non_root_keep_inds])
             old_weights_to_parents = old_W_weight[sold_weights_to_parents_inds]
             # old_W(non_root_keep_inds,old_parents_of_non_root_keep_inds);
             # TODO old_weights_parents_to_grandparents_inds = dsearchn([old_W_i_inds, old_W_j_inds], [old_parents_of_non_root_keep_inds, old_grandparents_of_non_root_keep_inds])
-            old_weights_parents_to_grandparents = old_W_weights[old_weights_parents_to_grandparents_inds]
+            old_weights_parents_to_grandparents = old_W_weights[
+                old_weights_parents_to_grandparents_inds
+            ]
             # old_W(old_parents_of_non_root_keep_inds,old_grandparents_of_non_root_keep_inds);
-            new_weights = 1./(1./old_weights_to_parents + 1./old_weights_parents_to_grandparents)
-            new_weights = np.concatenate(([new_weights, new_weights]))
+            new_weights = 1.0 / (
+                1.0 / old_weights_to_parents + 1.0 / old_weights_parents_to_grandparents
+            )
+            new_weights = np.concatenate([new_weights, new_weights])
 
         else:
-            raise ValueError('Unknown graph reduction method.')
+            raise ValueError("Unknown graph reduction method.")
 
-        new_W = sparse.csc_matrix((new_weights, (i_inds, j_inds)),
-                                  shape=(new_N, new_N))
+        new_W = sparse.csc_matrix((new_weights, (i_inds, j_inds)), shape=(new_N, new_N))
         # Update parents
         new_root = np.where(keep_inds == root)[0]
         parents = np.zeros(np.shape(keep_inds)[0], np.shape(keep_inds)[0])
-        parents[:new_root - 1, new_root:] = new_non_root_parents
+        parents[: new_root - 1, new_root:] = new_non_root_parents
 
         # Update depths
         depths = depths[keep_inds]
-        depths = depths/2.
+        depths = depths / 2.0
 
         # Store new tree
-        Gtemp = graphs.Graph(new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, root=new_root)
-        #Gs[lev].copy_graph_attributes(Gtemp, False)
+        Gtemp = graphs.Graph(
+            new_W, coords=Gs[lev].coords[keep_inds], limits=G.limits, root=new_root
+        )
+        # Gs[lev].copy_graph_attributes(Gtemp, False)
 
         if compute_full_eigen:
             Gs[lev + 1].compute_fourier_basis()

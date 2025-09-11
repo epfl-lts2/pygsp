@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 from scipy import sparse
 
-from . import Graph  # prevent circular import in Python < 3.5
+from .graph import Graph  # prevent circular import in Python < 3.5
 
 
 class Ring(Graph):
@@ -55,43 +53,41 @@ class Ring(Graph):
     """
 
     def __init__(self, N=64, k=1, **kwargs):
-
         self.k = k
 
         if N < 3:
             # Asymmetric graph needed for 2 as 2 distances connect them.
-            raise ValueError('There should be at least 3 vertices.')
+            raise ValueError("There should be at least 3 vertices.")
 
-        if 2*k > N:
-            raise ValueError('Too many neighbors requested.')
+        if 2 * k > N:
+            raise ValueError("Too many neighbors requested.")
 
-        if 2*k == N:
+        if 2 * k == N:
             num_edges = N * (k - 1) + k
         else:
             num_edges = N * k
 
-        i_inds = np.zeros((2 * num_edges))
-        j_inds = np.zeros((2 * num_edges))
+        i_inds = np.zeros(2 * num_edges)
+        j_inds = np.zeros(2 * num_edges)
 
         tmpN = np.arange(N, dtype=int)
         for i in range(min(k, (N - 1) // 2)):
-            i_inds[2*i * N + tmpN] = tmpN
-            j_inds[2*i * N + tmpN] = np.remainder(tmpN + i + 1, N)
-            i_inds[(2*i + 1)*N + tmpN] = np.remainder(tmpN + i + 1, N)
-            j_inds[(2*i + 1)*N + tmpN] = tmpN
+            i_inds[2 * i * N + tmpN] = tmpN
+            j_inds[2 * i * N + tmpN] = np.remainder(tmpN + i + 1, N)
+            i_inds[(2 * i + 1) * N + tmpN] = np.remainder(tmpN + i + 1, N)
+            j_inds[(2 * i + 1) * N + tmpN] = tmpN
 
-        if 2*k == N:
-            i_inds[2*N*(k - 1) + tmpN] = tmpN
-            i_inds[2*N*(k - 1) + tmpN] = np.remainder(tmpN + k + 1, N)
+        if 2 * k == N:
+            i_inds[2 * N * (k - 1) + tmpN] = tmpN
+            i_inds[2 * N * (k - 1) + tmpN] = np.remainder(tmpN + k + 1, N)
 
-        W = sparse.csc_matrix((np.ones((2*num_edges)), (i_inds, j_inds)),
-                              shape=(N, N))
+        W = sparse.csc_matrix((np.ones(2 * num_edges), (i_inds, j_inds)), shape=(N, N))
 
-        plotting = {'limits': np.array([-1, 1, -1, 1])}
+        plotting = {"limits": np.array([-1, 1, -1, 1])}
 
-        super(Ring, self).__init__(W, plotting=plotting, **kwargs)
+        super().__init__(W, plotting=plotting, **kwargs)
 
-        self.set_coordinates('ring2D')
+        self.set_coordinates("ring2D")
 
     def _get_extra_repr(self):
         return dict(k=self.k)

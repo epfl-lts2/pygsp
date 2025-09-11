@@ -15,7 +15,7 @@ A (mostly unmaintained) `Matlab version <https://epfl-lts2.github.io/gspbox-html
 +-----------------------------------+
 | |zenodo|  |license|  |pyversions| |
 +-----------------------------------+
-| |travis|  |coveralls|  |github|   |
+| |ci|  |coveralls|  |github|   |
 +-----------------------------------+
 
 .. |doc| image:: https://readthedocs.org/projects/pygsp/badge/?version=latest
@@ -28,8 +28,8 @@ A (mostly unmaintained) `Matlab version <https://epfl-lts2.github.io/gspbox-html
    :target: https://github.com/epfl-lts2/pygsp/blob/master/LICENSE.txt
 .. |pyversions| image:: https://img.shields.io/pypi/pyversions/pygsp.svg
    :target: https://pypi.org/project/PyGSP
-.. |travis| image:: https://img.shields.io/travis/com/epfl-lts2/pygsp.svg
-   :target: https://app.travis-ci.com/github/epfl-lts2/pygsp
+.. |ci| image:: https://github.com/epfl-lts2/pygsp/workflows/CI/badge.svg
+   :target: https://github.com/epfl-lts2/pygsp/actions/workflows/ci.yml
 .. |coveralls| image:: https://img.shields.io/coveralls/github/epfl-lts2/pygsp.svg
    :target: https://coveralls.io/github/epfl-lts2/pygsp
 .. |github| image:: https://img.shields.io/github/stars/epfl-lts2/pygsp.svg?style=social
@@ -122,6 +122,58 @@ The PyGSP is available in the `Arch User Repository <https://aur.archlinux.org/p
    $ git clone https://aur.archlinux.org/python-pygsp.git
    $ cd python-pygsp
    $ makepkg -csi
+
+Optional Dependencies
+~~~~~~~~~~~~~~~~~~~~~
+
+**graph-tool** (optional)
+
+``graph-tool`` is an optional dependency that enables import/export functionality with the graph-tool library. PyGSP works perfectly without it - it's only needed if you want to use ``Graph.to_graphtool()`` or ``Graph.from_graphtool()`` methods.
+
+**Installation:**
+
+- **macOS** (with Homebrew)::
+
+    $ brew install graph-tool
+
+- **Ubuntu/Debian**::
+
+    $ sudo apt-get install python3-graph-tool
+
+- **conda** (recommended for cross-platform)::
+
+    $ conda install -c conda-forge graph-tool
+
+**Note:** ``graph-tool`` cannot be installed via pip or uv due to its complex system dependencies. If not installed, related tests will be automatically skipped and the library will function normally without import/export capabilities to graph-tool format.
+
+**FLANN** (optional)
+
+``FLANN`` (Fast Library for Approximate Nearest Neighbors) is an optional dependency that provides faster nearest neighbor searches for large datasets. PyGSP works without it, but FLANN can significantly speed up k-NN graph construction.
+
+**Installation:**
+
+- **macOS** (with Homebrew)::
+
+    $ brew install flann
+    $ export DYLD_LIBRARY_PATH="$(brew --prefix)/lib:${DYLD_LIBRARY_PATH}"
+    # Optional: persist in your shell rc file (.zshrc, .bash_profile, etc.)
+    $ echo 'export DYLD_LIBRARY_PATH="$(brew --prefix)/lib:${DYLD_LIBRARY_PATH}"' >> ~/.zshrc
+
+- **Ubuntu/Debian**::
+
+    $ sudo apt-get install libflann-dev
+
+- **conda** (recommended for cross-platform)::
+
+    $ conda install -c conda-forge flann
+
+After system installation, install the Python bindings::
+
+    $ uv add pyflann3
+    # or
+    $ pip install pyflann3
+
+**Note:** ``pyflann3`` requires the FLANN system library to be installed first. If not available, PyGSP will automatically fall back to scikit-learn's NearestNeighbors (if available), then to SciPy's KDTree implementation. This multi-level fallback ensures robust k-NN graph construction even when FLANN is not properly configured.
 
 Contributing
 ------------

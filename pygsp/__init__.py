@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 r"""
 The :mod:`pygsp` package is mainly organized around the following two modules:
 
@@ -17,13 +15,13 @@ Moreover, the following modules provide additional functionality:
 
 """
 
-from . import graphs  # noqa: F401
-from . import filters  # noqa: F401
-from . import plotting  # noqa: F401
-from . import reduction  # noqa: F401
 from . import features  # noqa: F401
+from . import filters  # noqa: F401
+from . import graphs  # noqa: F401
 from . import learning  # noqa: F401
 from . import optimization  # noqa: F401
+from . import plotting  # noqa: F401
+from . import reduction  # noqa: F401
 from . import utils  # noqa: F401
 
 # Users only call the plot methods from the objects.
@@ -39,13 +37,17 @@ except AttributeError:
     graphs.Graph.plot.__func__.__doc__ = plotting._plot_graph.__doc__
     graphs.Graph.plot_spectrogram.__func__.__doc__ = plotting._plot_spectrogram.__doc__
 
-__version__ = '0.5.1'
-__release_date__ = '2017-12-15'
+__version__ = "0.5.1"
+__release_date__ = "2017-12-15"
 
 
 def test():  # pragma: no cover
     """Run the test suite."""
-    import unittest
-    # Lazy as it might be slow and require additional dependencies.
-    from pygsp.tests import suite
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    import subprocess
+    import sys
+
+    # Run pytest on the tests directory
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest", "pygsp/tests/", "-v"], capture_output=False
+    )
+    return result.returncode == 0

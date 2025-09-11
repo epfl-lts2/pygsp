@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 
 import numpy as np
@@ -9,9 +7,11 @@ def _import_networkx():
     try:
         import networkx as nx
     except Exception as e:
-        raise ImportError('Cannot import networkx. Use graph-tool or try to '
-                          'install it with pip (or conda) install networkx. '
-                          'Original exception: {}'.format(e))
+        raise ImportError(
+            "Cannot import networkx. Use graph-tool or try to "
+            "install it with pip (or conda) install networkx. "
+            "Original exception: {}".format(e)
+        )
     return nx
 
 
@@ -19,26 +19,27 @@ def _import_graphtool():
     try:
         import graph_tool as gt
     except Exception as e:
-        raise ImportError('Cannot import graph-tool. Use networkx or try to '
-                          'install it. Original exception: {}'.format(e))
+        raise ImportError(
+            "Cannot import graph-tool. Use networkx or try to "
+            "install it. Original exception: {}".format(e)
+        )
     return gt
 
 
-class IOMixIn(object):
-
+class IOMixIn:
     def _break_signals(self):
         r"""Break N-dimensional signals into N 1D signals."""
         for name in list(self.signals.keys()):
             if self.signals[name].ndim == 2:
                 for i, signal_1d in enumerate(self.signals[name].T):
-                    self.signals[name + '_' + str(i)] = signal_1d
+                    self.signals[name + "_" + str(i)] = signal_1d
                 del self.signals[name]
 
     def _join_signals(self):
         r"""Join N 1D signals into one N-dimensional signal."""
         joined = dict()
         for name in self.signals:
-            name_base = name.rsplit('_', 1)[0]
+            name_base = name.rsplit("_", 1)[0]
             names = joined.get(name_base, list())
             names.append(name)
             joined[name_base] = names
@@ -123,12 +124,14 @@ class IOMixIn(object):
 
         def edges():
             for source, target, weight in zip(*self.get_edge_list()):
-                yield int(source), int(target), {'weight': convert(weight)}
+                yield int(source), int(target), {"weight": convert(weight)}
 
         def nodes():
             for vertex in range(self.n_vertices):
-                signals = {name: convert(signal[vertex])
-                           for name, signal in self.signals.items()}
+                signals = {
+                    name: convert(signal[vertex])
+                    for name, signal in self.signals.items()
+                }
                 yield vertex, signals
 
         self._break_signals()
@@ -203,7 +206,7 @@ class IOMixIn(object):
         graph.add_edge_list(zip(sources, targets))
         prop = graph.new_edge_property(gt._gt_type(weights.dtype))
         prop.get_array()[:] = weights
-        graph.edge_properties['weight'] = prop
+        graph.edge_properties["weight"] = prop
 
         self._break_signals()
         for name, signal in self.signals.items():
@@ -214,7 +217,7 @@ class IOMixIn(object):
         return graph
 
     @classmethod
-    def from_networkx(cls, graph, weight='weight'):
+    def from_networkx(cls, graph, weight="weight"):
         r"""Import a graph from NetworkX.
 
         Edge weights are retrieved as an edge attribute,
@@ -276,7 +279,7 @@ class IOMixIn(object):
         nx = _import_networkx()
         from .graph import Graph
 
-        adjacency = nx.to_scipy_sparse_matrix(graph, weight=weight)
+        adjacency = nx.to_scipy_sparse_array(graph, weight=weight)
         graph_pg = Graph(adjacency)
 
         for i, node in enumerate(graph.nodes()):
@@ -295,7 +298,7 @@ class IOMixIn(object):
         return graph_pg
 
     @classmethod
-    def from_graphtool(cls, graph, weight='weight'):
+    def from_graphtool(cls, graph, weight="weight"):
         r"""Import a graph from graph-tool.
 
         Edge weights are retrieved as an edge property,
@@ -355,6 +358,7 @@ class IOMixIn(object):
         """
         gt = _import_graphtool()
         import graph_tool.spectral
+
         from .graph import Graph
 
         weight = graph.edge_properties.get(weight, None)
@@ -420,12 +424,12 @@ class IOMixIn(object):
 
         if fmt is None:
             fmt = os.path.splitext(path)[1][1:]
-        if fmt not in ['graphml', 'gml', 'gexf']:
-            raise ValueError('Unsupported format {}.'.format(fmt))
+        if fmt not in ["graphml", "gml", "gexf"]:
+            raise ValueError(f"Unsupported format {fmt}.")
 
         def load_networkx(path, fmt):
             nx = _import_networkx()
-            load = getattr(nx, 'read_' + fmt)
+            load = getattr(nx, "read_" + fmt)
             graph = load(path)
             return cls.from_networkx(graph)
 
@@ -434,9 +438,9 @@ class IOMixIn(object):
             graph = gt.load_graph(path, fmt=fmt)
             return cls.from_graphtool(graph)
 
-        if backend == 'networkx':
+        if backend == "networkx":
             return load_networkx(path, fmt)
-        elif backend == 'graph-tool':
+        elif backend == "graph-tool":
             return load_graphtool(path, fmt)
         elif backend is None:
             try:
@@ -445,9 +449,9 @@ class IOMixIn(object):
                 try:
                     return load_graphtool(path, fmt)
                 except ImportError:
-                    raise ImportError('Cannot import networkx nor graph-tool.')
+                    raise ImportError("Cannot import networkx nor graph-tool.")
         else:
-            raise ValueError('Unknown backend {}.'.format(backend))
+            raise ValueError(f"Unknown backend {backend}.")
 
     def save(self, path, fmt=None, backend=None):
         r"""Save the graph to a file.
@@ -475,7 +479,7 @@ class IOMixIn(object):
 
         .. _GraphML: https://en.wikipedia.org/wiki/GraphML
         .. _GML: https://en.wikipedia.org/wiki/Graph_Modelling_Language
-        .. _GEXF: https://gephi.org/gexf/format
+        .. _GEXF: https://gexf.net/
         .. _NetworkX: https://networkx.org
         .. _graph-tool: https://graph-tool.skewed.de
         .. _NetworKit: https://networkit.github.io
@@ -527,22 +531,22 @@ class IOMixIn(object):
 
         if fmt is None:
             fmt = os.path.splitext(path)[1][1:]
-        if fmt not in ['graphml', 'gml', 'gexf']:
-            raise ValueError('Unsupported format {}.'.format(fmt))
+        if fmt not in ["graphml", "gml", "gexf"]:
+            raise ValueError(f"Unsupported format {fmt}.")
 
         def save_networkx(graph, path, fmt):
             nx = _import_networkx()
             graph = graph.to_networkx()
-            save = getattr(nx, 'write_' + fmt)
+            save = getattr(nx, "write_" + fmt)
             save(graph, path)
 
         def save_graphtool(graph, path, fmt):
             graph = graph.to_graphtool()
             graph.save(path, fmt=fmt)
 
-        if backend == 'networkx':
+        if backend == "networkx":
             save_networkx(self, path, fmt)
-        elif backend == 'graph-tool':
+        elif backend == "graph-tool":
             save_graphtool(self, path, fmt)
         elif backend is None:
             try:
@@ -551,6 +555,6 @@ class IOMixIn(object):
                 try:
                     save_graphtool(self, path, fmt)
                 except ImportError:
-                    raise ImportError('Cannot import networkx nor graph-tool.')
+                    raise ImportError("Cannot import networkx nor graph-tool.")
         else:
-            raise ValueError('Unknown backend {}.'.format(backend))
+            raise ValueError(f"Unknown backend {backend}.")

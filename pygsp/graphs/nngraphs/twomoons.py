@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 
 from pygsp import utils
-from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
+
+from .nngraph import NNGraph  # prevent circular import in Python < 3.5
 
 
 class TwoMoons(NNGraph):
@@ -56,16 +55,24 @@ class TwoMoons(NNGraph):
 
         if number == 1:
             moonx = np.cos(phi) * r + bx + 0.5
-            moony = -np.sin(phi) * r + by - (distance - 1)/2.
+            moony = -np.sin(phi) * r + by - (distance - 1) / 2.0
         elif number == 2:
             moonx = np.cos(phi) * r + bx - 0.5
-            moony = np.sin(phi) * r + by + (distance - 1)/2.
+            moony = np.sin(phi) * r + by + (distance - 1) / 2.0
 
         return np.concatenate((moonx, moony), axis=1)
 
-    def __init__(self, moontype='standard', dim=2, sigmag=0.05,
-                 N=400, sigmad=0.07, distance=0.5, seed=None, **kwargs):
-
+    def __init__(
+        self,
+        moontype="standard",
+        dim=2,
+        sigmag=0.05,
+        N=400,
+        sigmad=0.07,
+        distance=0.5,
+        seed=None,
+        **kwargs,
+    ):
         self.moontype = moontype
         self.dim = dim
         self.sigmag = sigmag
@@ -73,12 +80,12 @@ class TwoMoons(NNGraph):
         self.distance = distance
         self.seed = seed
 
-        if moontype == 'standard':
+        if moontype == "standard":
             N1, N2 = 1000, 1000
-            data = utils.loadmat('pointclouds/two_moons')
-            Xin = data['features'][:dim].T
+            data = utils.loadmat("pointclouds/two_moons")
+            Xin = data["features"][:dim].T
 
-        elif moontype == 'synthesized':
+        elif moontype == "synthesized":
             N1 = N // 2
             N2 = N - N1
 
@@ -88,24 +95,32 @@ class TwoMoons(NNGraph):
             Xin = np.concatenate((coords1, coords2))
 
         else:
-            raise ValueError('Unknown moontype {}'.format(moontype))
+            raise ValueError(f"Unknown moontype {moontype}")
 
         self.labels = np.concatenate((np.zeros(N1), np.ones(N2)))
 
         plotting = {
-            'vertex_size': 30,
+            "vertex_size": 30,
         }
 
-        super(TwoMoons, self).__init__(Xin=Xin, sigma=sigmag, k=5,
-                                       center=False, rescale=False,
-                                       plotting=plotting, **kwargs)
+        super().__init__(
+            Xin=Xin,
+            sigma=sigmag,
+            k=5,
+            center=False,
+            rescale=False,
+            plotting=plotting,
+            **kwargs,
+        )
 
     def _get_extra_repr(self):
-        attrs = {'moontype': self.moontype,
-                 'dim': self.dim,
-                 'sigmag': '{:.2f}'.format(self.sigmag),
-                 'sigmad': '{:.2f}'.format(self.sigmad),
-                 'distance': '{:.2f}'.format(self.distance),
-                 'seed': self.seed}
-        attrs.update(super(TwoMoons, self)._get_extra_repr())
+        attrs = {
+            "moontype": self.moontype,
+            "dim": self.dim,
+            "sigmag": f"{self.sigmag:.2f}",
+            "sigmad": f"{self.sigmad:.2f}",
+            "distance": f"{self.distance:.2f}",
+            "seed": self.seed,
+        }
+        attrs.update(super()._get_extra_repr())
         return attrs

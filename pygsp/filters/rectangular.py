@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import division
-
 import numpy as np
 
-from . import Filter  # prevent circular import in Python < 3.5
+from .filter import Filter  # prevent circular import in Python < 3.5
 
 
 class Rectangular(Filter):
@@ -56,7 +52,6 @@ class Rectangular(Filter):
     """
 
     def __init__(self, G, band_min=None, band_max=0.2):
-
         self.band_min = band_min
         self.band_max = band_max
 
@@ -77,12 +72,12 @@ class Rectangular(Filter):
         else:
             kernel = lambda x: kernel_lowpass(x) * kernel_highpass(x)
 
-        super(Rectangular, self).__init__(G, kernel)
+        super().__init__(G, kernel)
 
     def _get_extra_repr(self):
         attrs = dict()
         if self.band_min is not None:
-            attrs.update(band_min='{:.2f}'.format(self.band_min))
+            attrs.update(band_min=f"{self.band_min:.2f}")
         if self.band_max is not None:
-            attrs.update(band_max='{:.2f}'.format(self.band_max))
+            attrs.update(band_max=f"{self.band_max:.2f}")
         return attrs

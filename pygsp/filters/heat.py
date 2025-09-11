@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import division
-
 import numpy as np
 
-from . import Filter  # prevent circular import in Python < 3.5
+from .filter import Filter  # prevent circular import in Python < 3.5
 
 
 class Heat(Filter):
@@ -104,7 +100,6 @@ class Heat(Filter):
     """
 
     def __init__(self, G, scale=10, normalize=False):
-
         try:
             iter(scale)
         except TypeError:
@@ -121,8 +116,8 @@ class Heat(Filter):
             norm = np.linalg.norm(kernel(G.e, s)) if normalize else 1
             kernels.append(lambda x, s=s, norm=norm: kernel(x, s) / norm)
 
-        super(Heat, self).__init__(G, kernels)
+        super().__init__(G, kernels)
 
     def _get_extra_repr(self):
-        scale = '[' + ', '.join('{:.2f}'.format(s) for s in self.scale) + ']'
+        scale = "[" + ", ".join(f"{s:.2f}" for s in self.scale) + "]"
         return dict(scale=scale, normalize=self.normalize)

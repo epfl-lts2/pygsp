@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import division
-
 import numpy as np
 
-from . import Filter  # prevent circular import in Python < 3.5
+from .filter import Filter  # prevent circular import in Python < 3.5
 
 
 class Regular(Filter):
@@ -52,7 +48,6 @@ class Regular(Filter):
     """
 
     def __init__(self, G, degree=3):
-
         self.degree = degree
 
         def kernel(x, degree):
@@ -64,8 +59,8 @@ class Regular(Filter):
                     output = np.sin(np.pi * output / 2)
                 return np.sin(np.pi / 4 * (1 + output))
 
-        regular = Filter(G, lambda x: kernel(x*2/G.lmax, degree))
+        regular = Filter(G, lambda x: kernel(x * 2 / G.lmax, degree))
         complement = regular.complement(frame_bound=1)
         kernels = regular._kernels + complement._kernels
 
-        super(Regular, self).__init__(G, kernels)
+        super().__init__(G, kernels)

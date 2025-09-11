@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 from scipy import interpolate
 
-from . import Filter  # prevent circular import in Python < 3.5
+from .filter import Filter  # prevent circular import in Python < 3.5
 
 
 class Modulation(Filter):
@@ -126,18 +124,20 @@ class Modulation(Filter):
     """
 
     def __init__(self, graph, kernel, modulation_first=False):
-
         self.G = graph
         self._kernels = kernel
         self._modulation_first = modulation_first
 
         if kernel.n_filters != 1:
-            raise ValueError('A kernel must be one filter. The passed '
-                             'filter bank {} has {}.'.format(
-                                 kernel, kernel.n_filters))
+            raise ValueError(
+                "A kernel must be one filter. The passed "
+                "filter bank {} has {}.".format(kernel, kernel.n_filters)
+            )
         if kernel.G is not graph:
-            raise ValueError('The graph passed to this filter bank must '
-                             'be the one used to build the mother kernel.')
+            raise ValueError(
+                "The graph passed to this filter bank must "
+                "be the one used to build the mother kernel."
+            )
 
         self.n_features_in, self.n_features_out = (1, graph.n_vertices)
         self.n_filters = self.n_features_in * self.n_features_out
@@ -146,7 +146,7 @@ class Modulation(Filter):
     def evaluate(self, x):
         """TODO: will become _evaluate once polynomial filtering is merged."""
 
-        if not hasattr(self, '_coefficients'):
+        if not hasattr(self, "_coefficients"):
             # Graph Fourier transform -> modulation -> inverse GFT.
             c = self.G.igft(self._kernels.evaluate(self.G.e).squeeze())
             c = np.sqrt(self.G.n_vertices) * self.G.U * c[:, np.newaxis]
@@ -161,12 +161,12 @@ class Modulation(Filter):
                 y[:, i] = query[0]
         return y.reshape((self.n_features_out,) + shape)
 
-    def filter(self, s, method='exact', order=None):
+    def filter(self, s, method="exact", order=None):
         """TODO: indirection will be removed when poly filtering is merged.
         TODO: with _filter and shape handled in Filter.filter, synthesis will work.
         """
         if self._modulation_first:
-            return super(Modulation, self).filter(s, method='exact')
+            return super().filter(s, method="exact")
         else:
             # The dot product with each modulated kernel is equivalent to the
             # GFT, as for the localization and the IGFT.

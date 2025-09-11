@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import division
-
 import numpy as np
 
-from . import Filter  # prevent circular import in Python < 3.5
+from .filter import Filter  # prevent circular import in Python < 3.5
 
 
 class Itersine(Filter):
@@ -39,14 +35,13 @@ class Itersine(Filter):
     """
 
     def __init__(self, G, Nf=6, overlap=2):
-
         self.overlap = overlap
         self.mu = np.linspace(0, G.lmax, num=Nf)
 
         scales = G.lmax / (Nf - overlap + 1) * overlap
 
         def kernel(x):
-            y = np.cos(x * np.pi)**2
+            y = np.cos(x * np.pi) ** 2
             y = np.sin(0.5 * np.pi * y)
             return y * ((x >= -0.5) * (x <= 0.5))
 
@@ -59,7 +54,7 @@ class Itersine(Filter):
 
             kernels.append(kernel_centered)
 
-        super(Itersine, self).__init__(G, kernels)
+        super().__init__(G, kernels)
 
     def _get_extra_repr(self):
-        return dict(overlap='{:.2f}'.format(self.overlap))
+        return dict(overlap=f"{self.overlap:.2f}")

@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
-
 from pygsp import utils
-from . import Filter  # prevent circular import in Python < 3.5
+
+from .filter import Filter  # prevent circular import in Python < 3.5
 
 
 class Gabor(Filter):
@@ -71,21 +70,23 @@ class Gabor(Filter):
     """
 
     def __init__(self, graph, kernel):
-
         if kernel.n_filters != 1:
-            raise ValueError('A kernel must be one filter. The passed '
-                             'filter bank {} has {}.'.format(
-                                 kernel, kernel.n_filters))
+            raise ValueError(
+                "A kernel must be one filter. The passed "
+                "filter bank {} has {}.".format(kernel, kernel.n_filters)
+            )
         if kernel.G is not graph:
-            raise ValueError('The graph passed to this filter bank must '
-                             'be the one used to build the mother kernel.')
+            raise ValueError(
+                "The graph passed to this filter bank must "
+                "be the one used to build the mother kernel."
+            )
 
         kernels = []
         for i in range(graph.n_vertices):
             kernels.append(lambda x, i=i: kernel.evaluate(x - graph.e[i]))
 
-        super(Gabor, self).__init__(graph, kernels)
+        super().__init__(graph, kernels)
 
-    def filter(self, s, method='exact', order=None):
+    def filter(self, s, method="exact", order=None):
         """TODO: indirection will be removed when poly filtering is merged."""
-        return super(Gabor, self).filter(s, method='exact')
+        return super().filter(s, method="exact")

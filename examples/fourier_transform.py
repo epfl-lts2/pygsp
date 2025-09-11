@@ -10,6 +10,7 @@ its energy is concentrated.
 
 import numpy as np
 from matplotlib import pyplot as plt
+
 import pygsp as pg
 
 G = pg.graphs.Sensor(seed=42)
@@ -31,14 +32,14 @@ for i, scale in enumerate(scales):
     assert np.all((-limit < x) & (x < limit))
     G.plot(x, limits=[-limit, limit], ax=axes[0, i])
     axes[0, i].set_axis_off()
-    axes[0, i].set_title('$x^T L x = {:.2f}$'.format(G.dirichlet_energy(x)))
+    axes[0, i].set_title(f"$x^T L x = {G.dirichlet_energy(x):.2f}$")
 
-    axes[1, i].plot(G.e, np.abs(x_hat), '.-')
+    axes[1, i].plot(G.e, np.abs(x_hat), ".-")
     axes[1, i].set_xticks(range(0, 16, 4))
-    axes[1, i].set_xlabel(r'graph frequency $\lambda$')
+    axes[1, i].set_xlabel(r"graph frequency $\lambda$")
     axes[1, i].set_ylim(-0.05, 0.95)
 
-axes[1, 0].set_ylabel(r'frequency content $\hat{x}(\lambda)$')
+axes[1, 0].set_ylabel(r"frequency content $\hat{x}(\lambda)$")
 
 # axes[0, 0].set_title(r'$x$: signal in the vertex domain')
 # axes[1, 0].set_title(r'$\hat{x}$: signal in the spectral domain')

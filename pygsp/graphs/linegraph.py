@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 from scipy import sparse
 
 from pygsp import utils
-from . import Graph  # prevent circular import in Python < 3.5
 
+from .graph import Graph  # prevent circular import in Python < 3.5
 
 logger = utils.build_logger(__name__)
 
@@ -34,14 +32,15 @@ class LineGraph(Graph):
     """
 
     def __init__(self, graph, **kwargs):
-
         if graph.is_weighted():
-            logger.warning('Your graph is weighted, and is considered '
-                           'unweighted to build a binary line graph.')
+            logger.warning(
+                "Your graph is weighted, and is considered "
+                "unweighted to build a binary line graph."
+            )
 
         graph.compute_differential_operator()
         # incidence = np.abs(graph.D)  # weighted?
-        incidence = (graph.D != 0)
+        incidence = graph.D != 0
 
         adjacency = incidence.T.dot(incidence).astype(int)
         adjacency -= sparse.identity(graph.n_edges, dtype=int)
@@ -51,5 +50,4 @@ class LineGraph(Graph):
         except AttributeError:
             coords = None
 
-        super(LineGraph, self).__init__(adjacency, coords=coords,
-                plotting=graph.plotting, **kwargs)
+        super().__init__(adjacency, coords=coords, plotting=graph.plotting, **kwargs)

@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 from scipy import sparse
 
 from pygsp import utils
-from . import Graph  # prevent circular import in Python < 3.5
+
+from .graph import Graph  # prevent circular import in Python < 3.5
 
 
 class StochasticBlockModel(Graph):
@@ -59,10 +58,21 @@ class StochasticBlockModel(Graph):
 
     """
 
-    def __init__(self, N=1024, k=5, z=None, M=None, p=0.7, q=None,
-                 directed=False, self_loops=False, connected=False,
-                 n_try=10, seed=None, **kwargs):
-
+    def __init__(
+        self,
+        N=1024,
+        k=5,
+        z=None,
+        M=None,
+        p=0.7,
+        q=None,
+        directed=False,
+        self_loops=False,
+        connected=False,
+        n_try=10,
+        seed=None,
+        **kwargs,
+    ):
         self.k = k
         self.directed = directed
         self.self_loops = self_loops
@@ -78,14 +88,15 @@ class StochasticBlockModel(Graph):
         self.z = z
 
         if M is None:
-
             self.p = p
             p = np.asanyarray(p)
             if p.size == 1:
                 p = p * np.ones(k)
             if p.shape != (k,):
-                raise ValueError('Optional parameter p is neither a scalar '
-                                 'nor a vector of length k.')
+                raise ValueError(
+                    "Optional parameter p is neither a scalar "
+                    "nor a vector of length k."
+                )
 
             if q is None:
                 q = 0.3 / k
@@ -94,23 +105,24 @@ class StochasticBlockModel(Graph):
             if q.size == 1:
                 q = q * np.ones((k, k))
             if q.shape != (k, k):
-                raise ValueError('Optional parameter q is neither a scalar '
-                                 'nor a matrix of size k x k.')
+                raise ValueError(
+                    "Optional parameter q is neither a scalar "
+                    "nor a matrix of size k x k."
+                )
 
             M = q
-            M.flat[::k+1] = p  # edit the diagonal terms
+            M.flat[:: k + 1] = p  # edit the diagonal terms
 
         self.M = M
 
         if (M < 0).any() or (M > 1).any():
-            raise ValueError('Probabilities should be in [0, 1].')
+            raise ValueError("Probabilities should be in [0, 1].")
 
         # TODO: higher memory, lesser computation alternative.
         # Along the lines of np.random.uniform(size=(N, N)) < p.
         # Or similar to sparse.random(N, N, p, data_rvs=lambda n: np.ones(n)).
 
         while (n_try is None) or (n_try > 0):
-
             nb_row, nb_col = 0, 0
             csr_data, csr_i, csr_j = [], [], []
             for _ in range(N**2):
@@ -120,7 +132,7 @@ class StochasticBlockModel(Graph):
                             csr_data.append(1)
                             csr_i.append(nb_row)
                             csr_j.append(nb_col)
-                if nb_row < N-1:
+                if nb_row < N - 1:
                     nb_row += 1
                 else:
                     nb_row = 0
@@ -129,7 +141,7 @@ class StochasticBlockModel(Graph):
             W = sparse.csr_matrix((csr_data, (csr_i, csr_j)), shape=(N, N))
 
             if not directed:
-                W = utils.symmetrize(W, method='tril')
+                W = utils.symmetrize(W, method="tril")
 
             if not connected:
                 break
@@ -138,23 +150,32 @@ class StochasticBlockModel(Graph):
             if n_try is not None:
                 n_try -= 1
         if connected and n_try == 0:
-            raise ValueError('The graph could not be connected after {} '
-                             'trials. Increase the connection probability '
-                             'or the number of trials.'.format(self.n_try))
+            raise ValueError(
+                "The graph could not be connected after {} "
+                "trials. Increase the connection probability "
+                "or the number of trials.".format(self.n_try)
+            )
 
-        self.info = {'node_com': z, 'comm_sizes': np.bincount(z),
-                     'world_rad': np.sqrt(N)}
+        self.info = {
+            "node_com": z,
+            "comm_sizes": np.bincount(z),
+            "world_rad": np.sqrt(N),
+        }
 
-        super(StochasticBlockModel, self).__init__(W, **kwargs)
+        super().__init__(W, **kwargs)
 
     def _get_extra_repr(self):
-        attrs = {'k': self.k}
+        attrs = {"k": self.k}
         if type(self.p) is float:
-            attrs['p'] = '{:.2f}'.format(self.p)
+            attrs["p"] = f"{self.p:.2f}"
         if type(self.q) is float:
-            attrs['q'] = '{:.2f}'.format(self.q)
-        attrs.update({'directed': self.directed,
-                      'self_loops': self.self_loops,
-                      'connected': self.connected,
-                      'seed': self.seed})
+            attrs["q"] = f"{self.q:.2f}"
+        attrs.update(
+            {
+                "directed": self.directed,
+                "self_loops": self.self_loops,
+                "connected": self.connected,
+                "seed": self.seed,
+            }
+        )
         return attrs

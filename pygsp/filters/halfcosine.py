@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import division
-
 import numpy as np
 
-from . import Filter  # prevent circular import in Python < 3.5
+from .filter import Filter  # prevent circular import in Python < 3.5
 
 
 class HalfCosine(Filter):
@@ -34,15 +30,14 @@ class HalfCosine(Filter):
     """
 
     def __init__(self, G, Nf=6):
-
         if Nf <= 2:
-            raise ValueError('The number of filters must be greater than 2.')
+            raise ValueError("The number of filters must be greater than 2.")
 
         dila_fact = G.lmax * 3 / (Nf - 2)
 
         def kernel(x):
-            y = np.cos(2 * np.pi * (x / dila_fact - .5))
-            y = np.multiply((.5 + .5*y), (x >= 0))
+            y = np.cos(2 * np.pi * (x / dila_fact - 0.5))
+            y = np.multiply((0.5 + 0.5 * y), (x >= 0))
             return np.multiply(y, (x <= dila_fact))
 
         kernels = []
@@ -50,8 +45,8 @@ class HalfCosine(Filter):
         for i in range(Nf):
 
             def kernel_centered(x, i=i):
-                return kernel(x - dila_fact/3 * (i - 2))
+                return kernel(x - dila_fact / 3 * (i - 2))
 
             kernels.append(kernel_centered)
 
-        super(HalfCosine, self).__init__(G, kernels)
+        super().__init__(G, kernels)

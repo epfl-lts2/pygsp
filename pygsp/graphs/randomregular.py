@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 from scipy import sparse
 
 from pygsp import utils
-from . import Graph  # prevent circular import in Python < 3.5
+
+from .graph import Graph  # prevent circular import in Python < 3.5
 
 
 class RandomRegular(Graph):
@@ -48,7 +47,6 @@ class RandomRegular(Graph):
     """
 
     def __init__(self, N=64, k=6, max_iter=10, seed=None, **kwargs):
-
         self.k = k
         self.max_iter = max_iter
         self.seed = seed
@@ -74,8 +72,10 @@ class RandomRegular(Graph):
             edgesTested += 1
 
             if edgesTested % 5000 == 0:
-                self.logger.debug("createRandRegGraph() progress: edges= "
-                                  "{}/{}.".format(edgesTested, N*k/2))
+                self.logger.debug(
+                    "createRandRegGraph() progress: edges= "
+                    "{}/{}.".format(edgesTested, N * k / 2)
+                )
 
             # chose at random 2 half edges
             i1 = rng.integers(0, U.shape[0])
@@ -86,7 +86,7 @@ class RandomRegular(Graph):
             # check that there are no loops nor parallel edges
             if v1 == v2 or A[v1, v2] == 1:
                 # restart process if needed
-                if edgesTested == N*k:
+                if edgesTested == N * k:
                     repetition = repetition + 1
                     edgesTested = 0
                     U = np.kron(np.ones(k), np.arange(N))
@@ -98,9 +98,9 @@ class RandomRegular(Graph):
 
                 # remove used half-edges
                 v = sorted([i1, i2])
-                U = np.concatenate((U[:v[0]], U[v[0] + 1:v[1]], U[v[1] + 1:]))
+                U = np.concatenate((U[: v[0]], U[v[0] + 1 : v[1]], U[v[1] + 1 :]))
 
-        super(RandomRegular, self).__init__(A, **kwargs)
+        super().__init__(A, **kwargs)
 
         self.is_regular()
 
@@ -110,30 +110,30 @@ class RandomRegular(Graph):
 
         """
         warn = False
-        msg = 'The given matrix'
+        msg = "The given matrix"
 
         # check symmetry
         if np.abs(self.A - self.A.T).sum() > 0:
             warn = True
-            msg = '{} is not symmetric,'.format(msg)
+            msg = f"{msg} is not symmetric,"
 
         # check parallel edged
         if self.A.max(axis=None) > 1:
             warn = True
-            msg = '{} has parallel edges,'.format(msg)
+            msg = f"{msg} has parallel edges,"
 
         # check that d is d-regular
         if np.min(self.d) != np.max(self.d):
             warn = True
-            msg = '{} is not d-regular,'.format(msg)
+            msg = f"{msg} is not d-regular,"
 
         # check that g doesn't contain any self-loop
         if self.A.diagonal().any():
             warn = True
-            msg = '{} has self loop.'.format(msg)
+            msg = f"{msg} has self loop."
 
         if warn:
-            self.logger.warning('{}.'.format(msg[:-1]))
+            self.logger.warning(f"{msg[:-1]}.")
 
     def _get_extra_repr(self):
         return dict(k=self.k, seed=self.seed)

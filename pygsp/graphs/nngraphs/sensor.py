@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import division
-
 import numpy as np
 
-from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
+from .nngraph import NNGraph  # prevent circular import in Python < 3.5
 
 
 class Sensor(NNGraph):
@@ -52,34 +48,31 @@ class Sensor(NNGraph):
     """
 
     def __init__(self, N=64, k=6, distributed=False, seed=None, **kwargs):
-
         self.distributed = distributed
         self.seed = seed
 
-        plotting = {'limits': np.array([0, 1, 0, 1])}
+        plotting = {"limits": np.array([0, 1, 0, 1])}
 
         rng = np.random.default_rng(self.seed)
 
         if distributed:
-
             m = np.sqrt(N)
             if not m.is_integer():
-                raise ValueError('The number of vertices must be a '
-                                 'perfect square if they are to be '
-                                 'distributed on a grid.')
+                raise ValueError(
+                    "The number of vertices must be a "
+                    "perfect square if they are to be "
+                    "distributed on a grid."
+                )
 
-            coords = np.mgrid[0:1:1/m, 0:1:1/m].reshape(2, -1).T
-            coords += rng.uniform(0, 1/m, (N, 2))
+            coords = np.mgrid[0 : 1 : 1 / m, 0 : 1 : 1 / m].reshape(2, -1).T
+            coords += rng.uniform(0, 1 / m, (N, 2))
 
         else:
-
             coords = rng.uniform(0, 1, (N, 2))
 
-        super(Sensor, self).__init__(Xin=coords, k=k,
-                                     rescale=False, center=False,
-                                     plotting=plotting, **kwargs)
+        super().__init__(
+            Xin=coords, k=k, rescale=False, center=False, plotting=plotting, **kwargs
+        )
 
     def _get_extra_repr(self):
-        return {'k': self.k,
-                'distributed': self.distributed,
-                'seed': self.seed}
+        return {"k": self.k, "distributed": self.distributed, "seed": self.seed}

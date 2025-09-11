@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import division
-
 import os
 from collections import Counter
 
@@ -9,10 +5,11 @@ import numpy as np
 from scipy import sparse
 
 from pygsp import utils
-from .fourier import FourierMixIn
-from .difference import DifferenceMixIn
+
 from ._io import IOMixIn
 from ._layout import LayoutMixIn
+from .difference import DifferenceMixIn
+from .fourier import FourierMixIn
 
 
 class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
@@ -98,31 +95,31 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
     """
 
-    def __init__(self, adjacency, lap_type='combinatorial', coords=None,
-                 plotting={}):
-
+    def __init__(self, adjacency, lap_type="combinatorial", coords=None, plotting={}):
         self.logger = utils.build_logger(__name__)
 
-        if not sparse.isspmatrix(adjacency):
+        if not sparse.issparse(adjacency):
             adjacency = np.asanyarray(adjacency)
 
         if (adjacency.ndim != 2) or (adjacency.shape[0] != adjacency.shape[1]):
-            raise ValueError('Adjacency: must be a square matrix.')
+            raise ValueError("Adjacency: must be a square matrix.")
 
         # CSR sparse matrices are the most efficient for matrix multiplication.
         # They are the sole sparse matrix type to support eliminate_zeros().
         self._adjacency = sparse.csr_matrix(adjacency, copy=False)
 
         if np.isnan(self._adjacency.sum()):
-            raise ValueError('Adjacency: there is a Not a Number (NaN).')
+            raise ValueError("Adjacency: there is a Not a Number (NaN).")
         if np.isinf(self._adjacency.sum()):
-            raise ValueError('Adjacency: there is an infinite value.')
+            raise ValueError("Adjacency: there is an infinite value.")
         if self.has_loops():
-            self.logger.warning('Adjacency: there are self-loops '
-                                '(non-zeros on the diagonal). '
-                                'The Laplacian will not see them.')
+            self.logger.warning(
+                "Adjacency: there are self-loops "
+                "(non-zeros on the diagonal). "
+                "The Laplacian will not see them."
+            )
         if (self._adjacency < 0).nnz != 0:
-            self.logger.warning('Adjacency: there are negative edge weights.')
+            self.logger.warning("Adjacency: there are negative edge weights.")
 
         self.n_vertices = self._adjacency.shape[0]
 
@@ -147,13 +144,13 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             self.coords = np.asanyarray(coords)
 
         self.plotting = {
-                'vertex_size': 100,
-                'vertex_color': (0.12, 0.47, 0.71, 0.5),
-                'edge_color': (0.5, 0.5, 0.5, 0.5),
-                'edge_width': 2,
-                'edge_style': '-',
-                'highlight_color': 'C1',
-                'normalize_intercept': .25,
+            "vertex_size": 100,
+            "vertex_color": (0.12, 0.47, 0.71, 0.5),
+            "edge_color": (0.5, 0.5, 0.5, 0.5),
+            "edge_width": 2,
+            "edge_style": "-",
+            "highlight_color": "C1",
+            "normalize_intercept": 0.25,
         }
         self.plotting.update(plotting)
         self.signals = dict()
@@ -182,15 +179,15 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         return dict()
 
     def __repr__(self, limit=None):
-        s = ''
-        for attr in ['n_vertices', 'n_edges']:
-            s += '{}={}, '.format(attr, getattr(self, attr))
+        s = ""
+        for attr in ["n_vertices", "n_edges"]:
+            s += f"{attr}={getattr(self, attr)}, "
         for i, (key, value) in enumerate(self._get_extra_repr().items()):
             if (limit is not None) and (i == limit - 2):
-                s += '..., '
+                s += "..., "
                 break
-            s += '{}={}, '.format(key, value)
-        return '{}({})'.format(self.__class__.__name__, s[:-2])
+            s += f"{key}={value}, "
+        return f"{self.__class__.__name__}({s[:-2]})"
 
     def set_signal(self, signal, name):
         r"""Attach a signal to the graph.
@@ -349,7 +346,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         for adjacency in adjacencies:
             visited = np.zeros(self.n_vertices, dtype=bool)
-            stack = set([0])
+            stack = {0}
 
             while stack:
                 vertex = stack.pop()
@@ -470,12 +467,13 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
         """
         if self.A.shape[0] != self.A.shape[1]:
-            self.logger.error('Inconsistent shape to extract components. '
-                              'Square matrix required.')
+            self.logger.error(
+                "Inconsistent shape to extract components. " "Square matrix required."
+            )
             return None
 
         if self.is_directed():
-            raise NotImplementedError('Directed graphs not supported yet.')
+            raise NotImplementedError("Directed graphs not supported yet.")
 
         graphs = []
 
@@ -495,19 +493,21 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
 
                     # Add indices of nodes not visited yet and accessible from
                     # v
-                    stack.update(set([idx for idx in self.A[v, :].nonzero()[1]
-                                      if not visited[idx]]))
+                    stack.update(
+                        {idx for idx in self.A[v, :].nonzero()[1] if not visited[idx]}
+                    )
 
             comp = sorted(comp)
-            self.logger.info(('Constructing subgraph for component of '
-                              'size {}.').format(len(comp)))
+            self.logger.info(
+                ("Constructing subgraph for component of " "size {}.").format(len(comp))
+            )
             G = self.subgraph(comp)
-            G.info = {'orig_idx': comp}
+            G.info = {"orig_idx": comp}
             graphs.append(G)
 
         return graphs
 
-    def compute_laplacian(self, lap_type='combinatorial'):
+    def compute_laplacian(self, lap_type="combinatorial"):
         r"""Compute a graph Laplacian.
 
         For undirected graphs, the combinatorial Laplacian is defined as
@@ -613,28 +613,30 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         if not self.is_directed():
             W = self.W
         else:
-            W = utils.symmetrize(self.W, method='average')
+            W = utils.symmetrize(self.W, method="average")
 
-        if lap_type == 'combinatorial':
+        if lap_type == "combinatorial":
             D = sparse.diags(self.dw)
             self.L = D - W
-        elif lap_type == 'normalized':
+        elif lap_type == "normalized":
             d = np.zeros(self.n_vertices)
-            disconnected = (self.dw == 0)
+            disconnected = self.dw == 0
             np.power(self.dw, -0.5, where=~disconnected, out=d)
             D = sparse.diags(d)
             self.L = sparse.identity(self.n_vertices) - D * W * D
             self.L[disconnected, disconnected] = 0
             self.L.eliminate_zeros()
         else:
-            raise ValueError('Unknown Laplacian type {}'.format(lap_type))
+            raise ValueError(f"Unknown Laplacian type {lap_type}")
 
     def _check_signal(self, s):
         r"""Check if signal is valid."""
         s = np.asanyarray(s)
         if s.shape[0] != self.n_vertices:
-            raise ValueError('First dimension must be the number of vertices '
-                             'G.N = {}, got {}.'.format(self.N, s.shape))
+            raise ValueError(
+                "First dimension must be the number of vertices "
+                "G.N = {}, got {}.".format(self.N, s.shape)
+            )
         return s
 
     def dirichlet_energy(self, x):
@@ -707,8 +709,10 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
     @W.setter
     def W(self, value):
         # TODO: user can still do G.W[0, 0] = 1, or modify the passed W.
-        raise AttributeError('In-place modification of the graph is not '
-                             'supported. Create another Graph object.')
+        raise AttributeError(
+            "In-place modification of the graph is not "
+            "supported. Create another Graph object."
+        )
 
     @property
     def A(self):
@@ -841,15 +845,17 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         approximated by :func:`estimate_lmax`.
         """
         if self._lmax is None:
-            self.logger.warning('The largest eigenvalue G.lmax is not '
-                                'available, we need to estimate it. '
-                                'Explicitly call G.estimate_lmax() or '
-                                'G.compute_fourier_basis() '
-                                'once beforehand to suppress the warning.')
+            self.logger.warning(
+                "The largest eigenvalue G.lmax is not "
+                "available, we need to estimate it. "
+                "Explicitly call G.estimate_lmax() or "
+                "G.compute_fourier_basis() "
+                "once beforehand to suppress the warning."
+            )
             self.estimate_lmax()
         return self._lmax
 
-    def estimate_lmax(self, method='lanczos'):
+    def estimate_lmax(self, method="lanczos"):
         r"""Estimate the Laplacian's largest eigenvalue (cached).
 
         The result is cached and accessible by the :attr:`lmax` property.
@@ -898,33 +904,38 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             return
         self._lmax_method = method
 
-        if method == 'lanczos':
+        if method == "lanczos":
             try:
                 # We need to cast the matrix L to a supported type.
                 # TODO: not good for memory. Cast earlier?
-                lmax = sparse.linalg.eigsh(self.L.asfptype(), k=1, tol=5e-3,
-                                           ncv=min(self.N, 10),
-                                           return_eigenvectors=False)
+                lmax = sparse.linalg.eigsh(
+                    self.L.asfptype(),
+                    k=1,
+                    tol=5e-3,
+                    ncv=min(self.N, 10),
+                    return_eigenvectors=False,
+                )
                 lmax = lmax[0]
                 assert lmax <= self._get_upper_bound() + 1e-12
                 lmax *= 1.01  # Increase by 1% to be robust to errors.
                 self._lmax = lmax
             except sparse.linalg.ArpackNoConvergence:
-                raise ValueError('The Lanczos method did not converge. '
-                                 'Try to use bounds.')
+                raise ValueError(
+                    "The Lanczos method did not converge. " "Try to use bounds."
+                )
 
-        elif method == 'bounds':
+        elif method == "bounds":
             self._lmax = self._get_upper_bound()
 
         else:
-            raise ValueError('Unknown method {}'.format(method))
+            raise ValueError(f"Unknown method {method}")
 
     def _get_upper_bound(self):
         r"""Return an upper bound on the eigenvalues of the Laplacian."""
 
-        if self.lap_type == 'normalized':
+        if self.lap_type == "normalized":
             return 2  # Equal iff the graph is bipartite.
-        elif self.lap_type == 'combinatorial':
+        elif self.lap_type == "combinatorial":
             bounds = []
             # Equal for full graphs.
             bounds += [self.n_vertices * np.max(self.W)]
@@ -940,14 +951,13 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
             if not self.is_directed():
                 W = self.W
             else:
-                W = utils.symmetrize(self.W, method='average')
+                W = utils.symmetrize(self.W, method="average")
             m = W.dot(self.dw) / self.dw  # Mean degree of adjacent vertices.
             bounds += [np.max(self.dw + m)]
             # Good review: On upper bounds for Laplacian graph eigenvalues.
             return min(bounds)
         else:
-            raise ValueError('Unknown Laplacian type '
-                             '{}'.format(self.lap_type))
+            raise ValueError("Unknown Laplacian type " "{}".format(self.lap_type))
 
     def get_edge_list(self):
         r"""Return an edge list, an alternative representation of the graph.
@@ -1009,7 +1019,7 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         if self.is_directed():
             W = self.W.tocoo()
         else:
-            W = sparse.triu(self.W, format='coo')
+            W = sparse.triu(self.W, format="coo")
 
         sources = W.row
         targets = W.col
@@ -1018,17 +1028,39 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
         assert self.n_edges == sources.size == targets.size == weights.size
         return sources, targets, weights
 
-    def plot(self, vertex_color=None, vertex_size=None, highlight=[],
-             edges=None, edge_color=None, edge_width=None,
-             indices=False, colorbar=True, limits=None, ax=None,
-             title=None, backend=None):
+    def plot(
+        self,
+        vertex_color=None,
+        vertex_size=None,
+        highlight=[],
+        edges=None,
+        edge_color=None,
+        edge_width=None,
+        indices=False,
+        colorbar=True,
+        limits=None,
+        ax=None,
+        title=None,
+        backend=None,
+    ):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_graph
-        return _plot_graph(self, vertex_color=vertex_color,
-                           vertex_size=vertex_size, highlight=highlight,
-                           edges=edges, indices=indices, colorbar=colorbar,
-                           edge_color=edge_color, edge_width=edge_width,
-                           limits=limits, ax=ax, title=title, backend=backend)
+
+        return _plot_graph(
+            self,
+            vertex_color=vertex_color,
+            vertex_size=vertex_size,
+            highlight=highlight,
+            edges=edges,
+            indices=indices,
+            colorbar=colorbar,
+            edge_color=edge_color,
+            edge_width=edge_width,
+            limits=limits,
+            ax=ax,
+            title=title,
+            backend=backend,
+        )
 
     def plot_signal(self, *args, **kwargs):
         r"""Deprecated, use plot() instead."""
@@ -1037,4 +1069,5 @@ class Graph(FourierMixIn, DifferenceMixIn, IOMixIn, LayoutMixIn):
     def plot_spectrogram(self, node_idx=None):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_spectrogram
+
         _plot_spectrogram(self, node_idx=node_idx)

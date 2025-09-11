@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 
 from pygsp import utils
-from . import Graph  # prevent circular import in Python < 3.5
+
+from .graph import Graph  # prevent circular import in Python < 3.5
 
 
 class SwissRoll(Graph):
@@ -43,11 +42,21 @@ class SwissRoll(Graph):
 
     """
 
-    def __init__(self, N=400, a=1, b=4, dim=3, thresh=1e-6, s=None,
-                 noise=False, srtype='uniform', seed=None, **kwargs):
-
+    def __init__(
+        self,
+        N=400,
+        a=1,
+        b=4,
+        dim=3,
+        thresh=1e-6,
+        s=None,
+        noise=False,
+        srtype="uniform",
+        seed=None,
+        **kwargs,
+    ):
         if s is None:
-            s = np.sqrt(2. / N)
+            s = np.sqrt(2.0 / N)
 
         self.a = a
         self.b = b
@@ -62,9 +71,9 @@ class SwissRoll(Graph):
         y1 = rng.uniform(size=N)
         y2 = rng.uniform(size=N)
 
-        if srtype == 'uniform':
+        if srtype == "uniform":
             tt = np.sqrt((b * b - a * a) * y1 + a * a)
-        elif srtype == 'classic':
+        elif srtype == "classic":
             tt = (b - a) * y1 + a
         tt *= np.pi
 
@@ -81,28 +90,28 @@ class SwissRoll(Graph):
 
         coords = utils.rescale_center(x)
         dist = utils.distanz(coords)
-        W = np.exp(-np.power(dist, 2) / (2. * s**2))
+        W = np.exp(-np.power(dist, 2) / (2.0 * s**2))
         W -= np.diag(np.diag(W))
         W[W < thresh] = 0
 
         plotting = {
-            'vertex_size': 60,
-            'limits': np.array([-1, 1, -1, 1, -1, 1]),
-            'elevation': 15,
-            'azimuth': -90,
-            'distance': 7,
+            "vertex_size": 60,
+            "limits": np.array([-1, 1, -1, 1, -1, 1]),
+            "elevation": 15,
+            "azimuth": -90,
+            "distance": 7,
         }
 
-        super(SwissRoll, self).__init__(W, coords=coords.T,
-                                        plotting=plotting,
-                                        **kwargs)
+        super().__init__(W, coords=coords.T, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
-        return {'a': self.a,
-                'b': self.b,
-                'dim': self.dim,
-                'thresh': '{:.0e}'.format(self.thresh),
-                's': '{:.2f}'.format(self.s),
-                'noise': self.noise,
-                'srtype': self.srtype,
-                'seed': self.seed}
+        return {
+            "a": self.a,
+            "b": self.b,
+            "dim": self.dim,
+            "thresh": f"{self.thresh:.0e}",
+            "s": f"{self.s:.2f}",
+            "noise": self.noise,
+            "srtype": self.srtype,
+            "seed": self.seed,
+        }

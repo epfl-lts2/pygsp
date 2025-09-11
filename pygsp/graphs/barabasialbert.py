@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 from scipy import sparse
 
-from . import Graph  # prevent circular import in Python < 3.5
+from .graph import Graph  # prevent circular import in Python < 3.5
 
 
 class BarabasiAlbert(Graph):
@@ -41,10 +39,10 @@ class BarabasiAlbert(Graph):
     >>> _ = G.plot(ax=axes[1])
 
     """
-    def __init__(self, N=1000, m0=1, m=1, seed=None, **kwargs):
 
+    def __init__(self, N=1000, m0=1, m=1, seed=None, **kwargs):
         if m > m0:
-            raise ValueError('Parameter m cannot be above parameter m0.')
+            raise ValueError("Parameter m cannot be above parameter m0.")
 
         self.m0 = m0
         self.m = m
@@ -55,15 +53,16 @@ class BarabasiAlbert(Graph):
 
         for i in range(m0, N):
             distr = W.sum(axis=1)
-            distr += np.concatenate((np.ones((i, 1)), np.zeros((N-i, 1))))
+            distr += np.concatenate((np.ones((i, 1)), np.zeros((N - i, 1))))
 
             connections = rng.choice(
-                N, size=m, replace=False, p=np.ravel(distr / distr.sum()))
+                N, size=m, replace=False, p=np.ravel(distr / distr.sum())
+            )
             for elem in connections:
                 W[elem, i] = 1
                 W[i, elem] = 1
 
-        super(BarabasiAlbert, self).__init__(W, **kwargs)
+        super().__init__(W, **kwargs)
 
     def _get_extra_repr(self):
         return dict(m0=self.m0, m=self.m, seed=self.seed)

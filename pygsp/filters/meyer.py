@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 
 from pygsp import utils
-from . import Filter  # prevent circular import in Python < 3.5
+
+from .filter import Filter  # prevent circular import in Python < 3.5
 
 
 class Meyer(Filter):
@@ -40,18 +39,17 @@ class Meyer(Filter):
     """
 
     def __init__(self, G, Nf=6, scales=None):
-
         if scales is None:
-            scales = (4./(3 * G.lmax)) * np.power(2., np.arange(Nf-2, -1, -1))
+            scales = (4.0 / (3 * G.lmax)) * np.power(2.0, np.arange(Nf - 2, -1, -1))
         self.scales = scales
 
         if len(scales) != Nf - 1:
-            raise ValueError('len(scales) should be Nf-1.')
+            raise ValueError("len(scales) should be Nf-1.")
 
-        kernels = [lambda x: kernel(scales[0] * x, 'scaling_function')]
+        kernels = [lambda x: kernel(scales[0] * x, "scaling_function")]
 
         for i in range(Nf - 1):
-            kernels.append(lambda x, i=i: kernel(scales[i] * x, 'wavelet'))
+            kernels.append(lambda x, i=i: kernel(scales[i] * x, "wavelet"))
 
         def kernel(x, kernel_type):
             r"""
@@ -63,29 +61,29 @@ class Meyer(Filter):
 
             x = np.asanyarray(x)
 
-            l1 = 2/3.
-            l2 = 4/3.  # 2*l1
-            l3 = 8/3.  # 4*l1
+            l1 = 2 / 3.0
+            l2 = 4 / 3.0  # 2*l1
+            l3 = 8 / 3.0  # 4*l1
 
             def v(x):
-                return x**4 * (35 - 84*x + 70*x**2 - 20*x**3)
+                return x**4 * (35 - 84 * x + 70 * x**2 - 20 * x**3)
 
-            r1ind = (x < l1)
+            r1ind = x < l1
             r2ind = (x >= l1) * (x < l2)
             r3ind = (x >= l2) * (x < l3)
 
             # as we initialize r with zero, computed function will implicitly
             # be zero for all x not in one of the three regions defined above
             r = np.zeros(x.shape)
-            if kernel_type == 'scaling_function':
+            if kernel_type == "scaling_function":
                 r[r1ind] = 1
-                r[r2ind] = np.cos((np.pi/2) * v(np.abs(x[r2ind])/l1 - 1))
-            elif kernel_type == 'wavelet':
-                r[r2ind] = np.sin((np.pi/2) * v(np.abs(x[r2ind])/l1 - 1))
-                r[r3ind] = np.cos((np.pi/2) * v(np.abs(x[r3ind])/l2 - 1))
+                r[r2ind] = np.cos((np.pi / 2) * v(np.abs(x[r2ind]) / l1 - 1))
+            elif kernel_type == "wavelet":
+                r[r2ind] = np.sin((np.pi / 2) * v(np.abs(x[r2ind]) / l1 - 1))
+                r[r3ind] = np.cos((np.pi / 2) * v(np.abs(x[r3ind]) / l2 - 1))
             else:
-                raise ValueError('Unknown kernel type {}'.format(kernel_type))
+                raise ValueError(f"Unknown kernel type {kernel_type}")
 
             return r
 
-        super(Meyer, self).__init__(G, kernels)
+        super().__init__(G, kernels)

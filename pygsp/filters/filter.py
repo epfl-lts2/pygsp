@@ -1,19 +1,18 @@
-# -*- coding: utf-8 -*-
-
 from functools import partial
 
 import numpy as np
 
 from pygsp import utils
-# prevent circular import in Python < 3.5
-from . import approximations
+
 from ..graphs import Graph
 
+# prevent circular import in Python < 3.5
+from . import approximations
 
 _logger = utils.build_logger(__name__)
 
 
-class Filter(object):
+class Filter:
     r"""
     The base Filter class.
 
@@ -55,7 +54,6 @@ class Filter(object):
     """
 
     def __init__(self, G, kernels):
-
         self.G = G
 
         try:
@@ -75,12 +73,12 @@ class Filter(object):
         return dict()
 
     def __repr__(self):
-        attrs = {'in': self.n_features_in, 'out': self.n_features_out}
+        attrs = {"in": self.n_features_in, "out": self.n_features_out}
         attrs.update(self._get_extra_repr())
-        s = ''
+        s = ""
         for key, value in attrs.items():
-            s += '{}={}, '.format(key, value)
-        return '{}({})'.format(self.__class__.__name__, s[:-2])
+            s += f"{key}={value}, "
+        return f"{self.__class__.__name__}({s[:-2]})"
 
     def __len__(self):
         # Numpy returns shape[0].
@@ -145,7 +143,7 @@ class Filter(object):
             y[i] = kernel(x)
         return y
 
-    def filter(self, s, method='chebyshev', order=30):
+    def filter(self, s, method="chebyshev", order=30):
         r"""Filter signals (analysis or synthesis).
 
         A signal is defined as a rank-3 tensor of shape ``(N_NODES, N_SIGNALS,
@@ -271,9 +269,11 @@ class Filter(object):
         # TODO: not in self.Nin (Nf = Nin x Nout).
         if s.ndim == 1 or s.shape[-1] not in [1, self.Nf]:
             if s.ndim == 3:
-                raise ValueError('Third dimension (#features) should be '
-                                 'either 1 or the number of filters Nf = {}, '
-                                 'got {}.'.format(self.Nf, s.shape))
+                raise ValueError(
+                    "Third dimension (#features) should be "
+                    "either 1 or the number of filters Nf = {}, "
+                    "got {}.".format(self.Nf, s.shape)
+                )
             s = np.expand_dims(s, -1)
         n_features_in = s.shape[-1]
 
@@ -282,16 +282,14 @@ class Filter(object):
         n_signals = s.shape[1]
 
         if s.ndim > 3:
-            raise ValueError('At most 3 dimensions: '
-                             '#nodes x #signals x #features.')
+            raise ValueError("At most 3 dimensions: " "#nodes x #signals x #features.")
         assert s.ndim == 3
 
         # TODO: generalize to 2D (m --> n) filter banks.
         # Only 1 --> Nf (analysis) and Nf --> 1 (synthesis) for now.
         n_features_out = self.Nf if n_features_in == 1 else 1
 
-        if method == 'exact':
-
+        if method == "exact":
             # TODO: will be handled by g.adjoint().
             axis = 1 if n_features_in == 1 else 2
             f = self.evaluate(self.G.e)
@@ -302,51 +300,51 @@ class Filter(object):
             s = np.matmul(s, f)
             s = self.G.igft(s)
 
-        elif method == 'chebyshev':
-
+        elif method == "chebyshev":
             # TODO: update Chebyshev implementation (after 2D filter banks).
             c = approximations.compute_cheby_coeff(self, m=order)
 
             if n_features_in == 1:  # Analysis.
                 s = s.squeeze(axis=2)
                 s = approximations.cheby_op(self.G, c, s)
-                s = s.reshape((self.G.N, n_features_out, n_signals), order='F')
+                s = s.reshape((self.G.N, n_features_out, n_signals), order="F")
                 s = s.swapaxes(1, 2)
 
             elif n_features_in == self.Nf:  # Synthesis.
                 s = s.swapaxes(1, 2)
-                s_in = s.reshape(
-                    (self.G.N * n_features_in, n_signals), order='F')
+                s_in = s.reshape((self.G.N * n_features_in, n_signals), order="F")
                 s = np.zeros((self.G.N, n_signals))
                 tmpN = np.arange(self.G.N, dtype=int)
                 for i in range(n_features_in):
-                    s += approximations.cheby_op(self.G,
-                                                 c[i],
-                                                 s_in[i * self.G.N + tmpN])
+                    s += approximations.cheby_op(
+                        self.G, c[i], s_in[i * self.G.N + tmpN]
+                    )
                 s = np.expand_dims(s, 2)
 
         else:
-            raise ValueError('Unknown method {}.'.format(method))
+            raise ValueError(f"Unknown method {method}.")
 
         # Return a 1D signal if e.g. a 1D signal was filtered by one filter.
         return s.squeeze()
 
-    def analyze(self, s, method='chebyshev', order=30):
+    def analyze(self, s, method="chebyshev", order=30):
         r"""Convenience alias to :meth:`filter`."""
         if s.ndim == 3 and s.shape[-1] != 1:
-            raise ValueError('Last dimension (#features) should be '
-                             '1, got {}.'.format(s.shape))
+            raise ValueError(
+                "Last dimension (#features) should be " "1, got {}.".format(s.shape)
+            )
         return self.filter(s, method, order)
 
-    def synthesize(self, s, method='chebyshev', order=30):
+    def synthesize(self, s, method="chebyshev", order=30):
         r"""Convenience wrapper around :meth:`filter`.
 
         Will be an alias to `adjoint().filter()` in the future.
         """
         if s.shape[-1] != self.Nf:
-            raise ValueError('Last dimension (#features) should be the number '
-                             'of filters Nf = {}, got {}.'.format(self.Nf,
-                                                                  s.shape))
+            raise ValueError(
+                "Last dimension (#features) should be the number "
+                "of filters Nf = {}, got {}.".format(self.Nf, s.shape)
+            )
         return self.filter(s, method, order)
 
     def localize(self, i, **kwargs):
@@ -501,7 +499,7 @@ class Filter(object):
         else:
             x = np.asanyarray(x)
 
-        sum_filters = np.sum(self.evaluate(x)**2, axis=0)
+        sum_filters = np.sum(self.evaluate(x) ** 2, axis=0)
 
         return sum_filters.min(), sum_filters.max()
 
@@ -593,8 +591,9 @@ class Filter(object):
 
         """
         if self.G.N > 2000:
-            _logger.warning('Creating a big matrix. '
-                            'You should prefer the filter method.')
+            _logger.warning(
+                "Creating a big matrix. " "You should prefer the filter method."
+            )
 
         # Filter one delta per vertex.
         s = np.identity(self.G.N)
@@ -643,7 +642,6 @@ class Filter(object):
         """
 
         def kernel(x, *args, **kwargs):
-
             y = self.evaluate(x)
             np.power(y, 2, out=y)
             y = np.sum(y, axis=0)
@@ -651,8 +649,10 @@ class Filter(object):
             if frame_bound is None:
                 bound = y.max()
             elif y.max() > frame_bound:
-                raise ValueError('The chosen bound is not feasible. '
-                                 'Choose at least {}.'.format(y.max()))
+                raise ValueError(
+                    "The chosen bound is not feasible. "
+                    "Choose at least {}.".format(y.max())
+                )
             else:
                 bound = frame_bound
 
@@ -736,10 +736,18 @@ class Filter(object):
 
         """
 
-        A, _ = self.estimate_frame_bounds()
+        A, B = self.estimate_frame_bounds()
         if A == 0:
-            _logger.warning('The filter bank is not invertible as it is not '
-                            'a frame (lower frame bound A=0).')
+            _logger.warning(
+                "The filter bank is not invertible as it is not "
+                "a frame (lower frame bound A=0)."
+            )
+
+        elif A / B < 1e-10:
+            _logger.warning(
+                "The filter bank is badly conditioned. "
+                "The inverse will be approximate."
+            )
 
         def kernel(g, i, x):
             y = g.evaluate(x).T
@@ -750,9 +758,26 @@ class Filter(object):
 
         return Filter(self.G, kernels)
 
-    def plot(self, n=500, eigenvalues=None, sum=None, labels=None, title=None,
-             ax=None, **kwargs):
+    def plot(
+        self,
+        n=500,
+        eigenvalues=None,
+        sum=None,
+        labels=None,
+        title=None,
+        ax=None,
+        **kwargs,
+    ):
         r"""Docstring overloaded at import time."""
         from pygsp.plotting import _plot_filter
-        return _plot_filter(self, n=n, eigenvalues=eigenvalues, sum=sum,
-                            labels=labels, title=title, ax=ax, **kwargs)
+
+        return _plot_filter(
+            self,
+            n=n,
+            eigenvalues=eigenvalues,
+            sum=sum,
+            labels=labels,
+            title=title,
+            ax=ax,
+            **kwargs,
+        )

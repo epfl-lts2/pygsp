@@ -1,12 +1,8 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import division
-
 from functools import partial
 
 import numpy as np
 
-from . import Filter  # prevent circular import in Python < 3.5
+from .filter import Filter  # prevent circular import in Python < 3.5
 
 
 class Wave(Filter):
@@ -93,7 +89,6 @@ class Wave(Filter):
     """
 
     def __init__(self, G, time=10, speed=1):
-
         try:
             iter(time)
         except TypeError:
@@ -112,21 +107,22 @@ class Wave(Filter):
             elif len(time) == 1:
                 time = time * len(speed)
             else:
-                raise ValueError('If both parameters are iterable, '
-                                 'they should have the same length.')
+                raise ValueError(
+                    "If both parameters are iterable, "
+                    "they should have the same length."
+                )
 
         if np.any(np.asanyarray(speed) >= 2):
-            raise ValueError('The wave propagation speed should be in [0, 2[')
+            raise ValueError("The wave propagation speed should be in [0, 2[")
 
         def kernel(x, time, speed):
             return np.cos(time * np.arccos(1 - speed**2 * x / G.lmax / 2))
 
-        kernels = [partial(kernel, time=t, speed=s)
-                   for t, s in zip(time, speed)]
+        kernels = [partial(kernel, time=t, speed=s) for t, s in zip(time, speed)]
 
-        super(Wave, self).__init__(G, kernels)
+        super().__init__(G, kernels)
 
     def _get_extra_repr(self):
-        time = '[' + ', '.join('{:.2f}'.format(t) for t in self.time) + ']'
-        speed = '[' + ', '.join('{:.2f}'.format(s) for s in self.speed) + ']'
+        time = "[" + ", ".join(f"{t:.2f}" for t in self.time) + "]"
+        speed = "[" + ", ".join(f"{s:.2f}" for s in self.speed) + "]"
         return dict(time=time, speed=speed)

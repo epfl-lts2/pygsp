@@ -1,18 +1,12 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import division
-
 import numpy as np
 from scipy import sparse
 
 from pygsp import utils
 
-
 logger = utils.build_logger(__name__)
 
 
-class DifferenceMixIn(object):
-
+class DifferenceMixIn:
     @property
     def D(self):
         r"""Differential operator (for gradient and divergence).
@@ -20,10 +14,12 @@ class DifferenceMixIn(object):
         Is computed by :func:`compute_differential_operator`.
         """
         if self._D is None:
-            self.logger.warning('The differential operator G.D is not '
-                                'available, we need to compute it. Explicitly '
-                                'call G.compute_differential_operator() '
-                                'once beforehand to suppress the warning.')
+            self.logger.warning(
+                "The differential operator G.D is not "
+                "available, we need to compute it. Explicitly "
+                "call G.compute_differential_operator() "
+                "once beforehand to suppress the warning."
+            )
             self.compute_differential_operator()
         return self._D
 
@@ -150,22 +146,23 @@ class DifferenceMixIn(object):
         n = self.n_edges
         rows = np.concatenate([sources, targets])
         columns = np.concatenate([np.arange(n), np.arange(n)])
-        values = np.empty(2*n)
+        values = np.empty(2 * n)
 
-        if self.lap_type == 'combinatorial':
+        if self.lap_type == "combinatorial":
             values[:n] = -np.sqrt(weights)
             values[n:] = -values[:n]
-        elif self.lap_type == 'normalized':
+        elif self.lap_type == "normalized":
             values[:n] = -np.sqrt(weights / self.dw[sources])
             values[n:] = +np.sqrt(weights / self.dw[targets])
         else:
-            raise ValueError('Unknown lap_type {}'.format(self.lap_type))
+            raise ValueError(f"Unknown lap_type {self.lap_type}")
 
         if self.is_directed():
             values /= np.sqrt(2)
 
-        self._D = sparse.csc_matrix((values, (rows, columns)),
-                                    shape=(self.n_vertices, self.n_edges))
+        self._D = sparse.csc_matrix(
+            (values, (rows, columns)), shape=(self.n_vertices, self.n_edges)
+        )
         self._D.eliminate_zeros()  # Self-loops introduce stored zeros.
 
     def grad(self, x):
@@ -327,6 +324,8 @@ class DifferenceMixIn(object):
         """
         y = np.asanyarray(y)
         if y.shape[0] != self.Ne:
-            raise ValueError('First dimension must be the number of edges '
-                             'G.Ne = {}, got {}.'.format(self.Ne, y.shape))
+            raise ValueError(
+                "First dimension must be the number of edges "
+                "G.Ne = {}, got {}.".format(self.Ne, y.shape)
+            )
         return self.D.dot(y)

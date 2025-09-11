@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import division
-
 import numpy as np
 
-from . import Filter  # prevent circular import in Python < 3.5
+from .filter import Filter  # prevent circular import in Python < 3.5
 
 
 class Expwin(Filter):
@@ -45,7 +41,6 @@ class Expwin(Filter):
     """
 
     def __init__(self, G, band_min=None, band_max=0.2, slope=1):
-
         self.band_min = band_min
         self.band_max = band_max
         self.slope = slope
@@ -63,9 +58,10 @@ class Expwin(Filter):
             return y / (y + z)
 
         def kernel_lowpass(x):
-            return h(0.5 - x/G.lmax + band_max)
+            return h(0.5 - x / G.lmax + band_max)
+
         def kernel_highpass(x):
-            return h(0.5 + x/G.lmax - band_min)
+            return h(0.5 + x / G.lmax - band_min)
 
         if (band_min is None) and (band_max is None):
             kernel = lambda x: np.ones_like(x)
@@ -76,13 +72,13 @@ class Expwin(Filter):
         else:
             kernel = lambda x: kernel_lowpass(x) * kernel_highpass(x)
 
-        super(Expwin, self).__init__(G, kernel)
+        super().__init__(G, kernel)
 
     def _get_extra_repr(self):
         attrs = dict()
         if self.band_min is not None:
-            attrs.update(band_min='{:.2f}'.format(self.band_min))
+            attrs.update(band_min=f"{self.band_min:.2f}")
         if self.band_max is not None:
-            attrs.update(band_max='{:.2f}'.format(self.band_max))
-        attrs.update(slope='{:.0f}'.format(self.slope))
+            attrs.update(band_max=f"{self.band_max:.2f}")
+        attrs.update(slope=f"{self.slope:.0f}")
         return attrs

@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
-
 # prevent circular import in Python < 3.5
-from pygsp.graphs import Graph, Grid2d, ImgPatches
+from ..graph import Graph
+from ..grid2d import Grid2d
+from .imgpatches import ImgPatches
 
 
 class Grid2dImgPatches(Graph):
@@ -35,14 +35,11 @@ class Grid2dImgPatches(Graph):
     """
 
     def __init__(self, img, aggregate=lambda Wp, Wg: Wp + Wg, **kwargs):
-
         self.Gg = Grid2d(img.shape[0], img.shape[1])
         self.Gp = ImgPatches(img, **kwargs)
 
         W = aggregate(self.Gp.W, self.Gg.W)
-        super(Grid2dImgPatches, self).__init__(W,
-                                               coords=self.Gg.coords,
-                                               plotting=self.Gg.plotting)
+        super().__init__(W, coords=self.Gg.coords, plotting=self.Gg.plotting)
 
     def _get_extra_repr(self):
         attrs = self.Gg._get_extra_repr()

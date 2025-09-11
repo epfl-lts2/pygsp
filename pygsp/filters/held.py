@@ -1,10 +1,6 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import division
-
 import numpy as np
 
-from . import Filter  # prevent circular import in Python < 3.5
+from .filter import Filter  # prevent circular import in Python < 3.5
 
 
 class Held(Filter):
@@ -47,8 +43,7 @@ class Held(Filter):
 
     """
 
-    def __init__(self, G, a=2./3):
-
+    def __init__(self, G, a=2.0 / 3):
         self.a = a
 
         def kernel(x, a):
@@ -58,10 +53,10 @@ class Held(Filter):
 
             r1ind = (x >= 0) * (x < l1)
             r2ind = (x >= l1) * (x < l2)
-            r3ind = (x >= l2)
+            r3ind = x >= l2
 
             def mu(x):
-                return -1 + 24*x - 144*x**2 + 256*x**3
+                return -1 + 24 * x - 144 * x**2 + 256 * x**3
 
             y[r1ind] = 1
             y[r2ind] = np.sin(2 * np.pi * mu(x[r2ind] / 8 / a))
@@ -69,11 +64,11 @@ class Held(Filter):
 
             return y
 
-        held = Filter(G, lambda x: kernel(x*2/G.lmax, a))
+        held = Filter(G, lambda x: kernel(x * 2 / G.lmax, a))
         complement = held.complement(frame_bound=1)
         kernels = held._kernels + complement._kernels
 
-        super(Held, self).__init__(G, kernels)
+        super().__init__(G, kernels)
 
     def _get_extra_repr(self):
-        return dict(a='{:.2f}'.format(self.a))
+        return dict(a=f"{self.a:.2f}")

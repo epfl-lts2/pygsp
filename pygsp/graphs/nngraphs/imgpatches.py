@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 
-from pygsp.graphs import NNGraph  # prevent circular import in Python < 3.5
+from .nngraph import NNGraph  # prevent circular import in Python < 3.5
 
 
 class ImgPatches(NNGraph):
@@ -51,7 +49,6 @@ class ImgPatches(NNGraph):
     """
 
     def __init__(self, img, patch_shape=(3, 3), **kwargs):
-
         self.img = img
         self.patch_shape = patch_shape
 
@@ -70,8 +67,10 @@ class ImgPatches(NNGraph):
             r = patch_shape[0]
             c = r
 
-        pad_width = [(int((r - 0.5) / 2.), int((r + 0.5) / 2.)),
-                     (int((c - 0.5) / 2.), int((c + 0.5) / 2.))]
+        pad_width = [
+            (int((r - 0.5) / 2.0), int((r + 0.5) / 2.0)),
+            (int((c - 0.5) / 2.0), int((c + 0.5) / 2.0)),
+        ]
 
         if d == 0:
             window_shape = (r, c)
@@ -81,7 +80,7 @@ class ImgPatches(NNGraph):
             window_shape = (r, c, d)
 
         # Pad the image.
-        img = np.pad(img, pad_width=pad_width, mode='symmetric')
+        img = np.pad(img, pad_width=pad_width, mode="symmetric")
 
         # Extract patches as node features.
         # Alternative: sklearn.feature_extraction.image.extract_patches_2d.
@@ -89,16 +88,18 @@ class ImgPatches(NNGraph):
         try:
             import skimage
         except Exception as e:
-            raise ImportError('Cannot import skimage, which is needed to '
-                              'extract patches. Try to install it with '
-                              'pip (or conda) install scikit-image. '
-                              'Original exception: {}'.format(e))
+            raise ImportError(
+                "Cannot import skimage, which is needed to "
+                "extract patches. Try to install it with "
+                "pip (or conda) install scikit-image. "
+                "Original exception: {}".format(e)
+            )
         patches = skimage.util.view_as_windows(img, window_shape=window_shape)
         patches = patches.reshape((h * w, r * c * d))
 
-        super(ImgPatches, self).__init__(patches, **kwargs)
+        super().__init__(patches, **kwargs)
 
     def _get_extra_repr(self):
         attrs = dict(patch_shape=self.patch_shape)
-        attrs.update(super(ImgPatches, self)._get_extra_repr())
+        attrs.update(super()._get_extra_repr())
         return attrs

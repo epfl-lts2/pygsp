@@ -13,8 +13,9 @@ clean:
 	git clean -Xdf
 	jupyter nbconvert --inplace --ClearOutputPreprocessor.enabled=True $(NB)
 
+
 lint:
-	flake8 --doctests --exclude=doc
+	flake8 --doctests --exclude=doc,.venv,build --max-line-length=88 --extend-ignore=E203
 
 # Matplotlib doesn't print to screen. Also faster.
 export MPLBACKEND = agg
@@ -23,7 +24,7 @@ export DISPLAY = :99
 
 test:
 	Xvfb $$DISPLAY -screen 0 800x600x24 &
-	coverage run --branch --source pygsp setup.py test
+	coverage run --branch --source pygsp -m pytest
 	coverage report
 	coverage html
 	killall Xvfb

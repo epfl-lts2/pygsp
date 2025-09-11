@@ -7,7 +7,7 @@ name = "PyGSP"
 version = "0.5.1"
 description = "Graph Signal Processing in Python"
 readme = "README.rst"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = {text = "BSD"}
 keywords = ["graph", "signal", "processing"]
 authors = [
@@ -20,7 +20,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Topic :: Scientific/Engineering",
     "Intended Audience :: Developers",
-    "Intended Audience :: Education", 
+    "Intended Audience :: Education",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
@@ -45,16 +45,18 @@ dev = [
     "networkx",
     # Construct patch graphs from images
     "scikit-image",
+    # Fallback for nearest neighbors when pyflann is not available
+    "scikit-learn",
     # Approximate nearest neighbors for kNN graphs
     "pyflann3",
-    # Convex optimization on graph
-    "pyunlocbox", 
+    # Convex optimization
+    "pyunlocbox>=0.6.1",
     # Plot graphs, signals, and filters
     "matplotlib",
     # Interactive graph visualization
     "pyqtgraph",
     "PyOpenGL",
-    "PyQt5",
+    "PyQt6",
     # Run the tests
     "flake8",
     "coverage",
@@ -63,7 +65,7 @@ dev = [
     "pytest-cov",
     # Build the documentation
     "sphinx",
-    "numpydoc", 
+    "numpydoc",
     "sphinxcontrib-bibtex",
     "sphinx-gallery",
     "memory_profiler",
@@ -72,6 +74,7 @@ dev = [
     # Build and upload packages
     "wheel",
     "twine",
+    "pre-commit",
 ]
 
 test = [
@@ -84,7 +87,7 @@ test = [
 docs = [
     "sphinx",
     "numpydoc",
-    "sphinxcontrib-bibtex", 
+    "sphinxcontrib-bibtex",
     "sphinx-gallery",
     "memory_profiler",
     "sphinx-rtd-theme",
@@ -93,9 +96,9 @@ docs = [
 
 plot = [
     "matplotlib",
-    "pyqtgraph", 
+    "pyqtgraph",
     "PyOpenGL",
-    "PyQt5",
+    "PyQt6",
 ]
 
 [project.urls]

@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 
 from pygsp import utils
-from . import Graph  # prevent circular import in Python < 3.5
+
+from .graph import Graph  # prevent circular import in Python < 3.5
 
 
 class DavidSensorNet(Graph):
@@ -29,36 +28,34 @@ class DavidSensorNet(Graph):
     """
 
     def __init__(self, N=64, seed=None, **kwargs):
-
         self.seed = seed
 
         if N == 64:
-            data = utils.loadmat('pointclouds/david64')
-            assert data['N'][0, 0] == N
-            W = data['W']
-            coords = data['coords']
+            data = utils.loadmat("pointclouds/david64")
+            assert data["N"][0, 0] == N
+            W = data["W"]
+            coords = data["coords"]
 
         elif N == 500:
-            data = utils.loadmat('pointclouds/david500')
-            assert data['N'][0, 0] == N
-            W = data['W']
-            coords = data['coords']
+            data = utils.loadmat("pointclouds/david500")
+            assert data["N"][0, 0] == N
+            W = data["W"]
+            coords = data["coords"]
 
         else:
             coords = np.random.default_rng(seed).uniform(size=(N, 2))
 
             target_dist_cutoff = -0.125 * N / 436.075 + 0.2183
             T = 0.6
-            s = np.sqrt(-target_dist_cutoff**2/(2*np.log(T)))
+            s = np.sqrt(-(target_dist_cutoff**2) / (2 * np.log(T)))
             d = utils.distanz(coords.T)
-            W = np.exp(-np.power(d, 2)/(2.*s**2))
+            W = np.exp(-np.power(d, 2) / (2.0 * s**2))
             W[W < T] = 0
             W[np.diag_indices(N)] = 0
 
         plotting = {"limits": [0, 1, 0, 1]}
 
-        super(DavidSensorNet, self).__init__(W, coords=coords,
-                                             plotting=plotting, **kwargs)
+        super().__init__(W, coords=coords, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         return dict(seed=self.seed)

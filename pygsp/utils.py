@@ -1,21 +1,16 @@
-# -*- coding: utf-8 -*-
-
 r"""
 The :mod:`pygsp.utils` module implements some utility functions used throughout
 the package.
 """
 
-from __future__ import division
-
-import sys
-import logging
 import functools
-import pkgutil
 import io
+import logging
+import pkgutil
 
 import numpy as np
-from scipy import sparse
 import scipy.io
+from scipy import sparse
 
 
 def build_logger(name):
@@ -23,7 +18,8 @@ def build_logger(name):
 
     if not logger.handlers:
         formatter = logging.Formatter(
-            "%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s")
+            "%(asctime)s:[%(levelname)s](%(name)s.%(funcName)s): %(message)s"
+        )
 
         steam_handler = logging.StreamHandler()
         steam_handler.setLevel(logging.DEBUG)
@@ -39,13 +35,10 @@ logger = build_logger(__name__)
 
 
 def filterbank_handler(func):
-
     # Preserve documentation of func.
     @functools.wraps(func)
-
     def inner(f, *args, **kwargs):
-
-        if 'i' in kwargs:
+        if "i" in kwargs:
             return func(f, *args, **kwargs)
 
         elif f.Nf <= 1:
@@ -83,7 +76,7 @@ def loadmat(path):
     (2503, 3)
 
     """
-    data = pkgutil.get_data('pygsp', 'data/' + path + '.mat')
+    data = pkgutil.get_data("pygsp", "data/" + path + ".mat")
     data = io.BytesIO(data)
     return scipy.io.loadmat(data)
 
@@ -139,8 +132,7 @@ def distanz(x, y=None):
     yy = (y * y).sum(axis=0)
     xy = np.dot(x.T, y)
 
-    d = abs(np.kron(np.ones((cy, 1)), xx).T +
-            np.kron(np.ones((cx, 1)), yy) - 2 * xy)
+    d = abs(np.kron(np.ones((cy, 1)), xx).T + np.kron(np.ones((cx, 1)), yy) - 2 * xy)
 
     return np.sqrt(d)
 
@@ -168,8 +160,8 @@ def resistance_distance(G):
         L = G.tocsc()
 
     else:
-        if G.lap_type != 'combinatorial':
-            raise ValueError('Need a combinatorial Laplacian.')
+        if G.lap_type != "combinatorial":
+            raise ValueError("Need a combinatorial Laplacian.")
         L = G.L.tocsc()
 
     try:
@@ -179,14 +171,17 @@ def resistance_distance(G):
 
     N = np.shape(L)[0]
     d = sparse.csc_matrix(pseudo.diagonal())
-    rd = sparse.kron(d, sparse.csc_matrix(np.ones((N, 1)))).T \
-        + sparse.kron(d, sparse.csc_matrix(np.ones((N, 1)))) \
-        - pseudo - pseudo.T
+    rd = (
+        sparse.kron(d, sparse.csc_matrix(np.ones((N, 1)))).T
+        + sparse.kron(d, sparse.csc_matrix(np.ones((N, 1))))
+        - pseudo
+        - pseudo.T
+    )
 
     return rd
 
 
-def symmetrize(W, method='average'):
+def symmetrize(W, method="average"):
     r"""
     Symmetrize a square matrix.
 
@@ -247,20 +242,20 @@ def symmetrize(W, method='average'):
 
     """
     if W.shape[0] != W.shape[1]:
-        raise ValueError('Matrix must be square.')
+        raise ValueError("Matrix must be square.")
 
-    if method == 'average':
+    if method == "average":
         return (W + W.T) / 2
 
-    elif method == 'maximum':
+    elif method == "maximum":
         if sparse.issparse(W):
-            bigger = (W.T > W)
+            bigger = W.T > W
             return W - W.multiply(bigger) + W.T.multiply(bigger)
         else:
             return np.maximum(W, W.T)
 
-    elif method == 'fill':
-        A = (W > 0)  # Boolean type.
+    elif method == "fill":
+        A = W > 0  # Boolean type.
         if sparse.issparse(W):
             mask = (A + A.T) - A
             W = W + mask.multiply(W.T)
@@ -268,18 +263,18 @@ def symmetrize(W, method='average'):
             # Numpy boolean subtract is deprecated.
             mask = np.logical_xor(np.logical_or(A, A.T), A)
             W = W + mask * W.T
-        return symmetrize(W, method='average')  # Resolve ambiguous entries.
+        return symmetrize(W, method="average")  # Resolve ambiguous entries.
 
-    elif method in ['tril', 'triu']:
+    elif method in ["tril", "triu"]:
         if sparse.issparse(W):
             tri = getattr(sparse, method)
         else:
             tri = getattr(np, method)
         W = tri(W)
-        return symmetrize(W, method='maximum')
+        return symmetrize(W, method="maximum")
 
     else:
-        raise ValueError('Unknown symmetrization method {}.'.format(method))
+        raise ValueError(f"Unknown symmetrization method {method}.")
 
 
 def rescale_center(x):

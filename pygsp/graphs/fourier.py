@@ -1,24 +1,22 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
-from scipy import sparse, linalg
+from scipy import linalg, sparse
 
 from pygsp import utils
-
 
 logger = utils.build_logger(__name__)
 
 
-class FourierMixIn(object):
-
+class FourierMixIn:
     def _check_fourier_properties(self, name, desc):
-        if getattr(self, '_' + name) is None:
-            self.logger.warning('The {} G.{} is not available, we need to '
-                                'compute the Fourier basis. Explicitly call '
-                                'G.compute_fourier_basis() once beforehand '
-                                'to suppress the warning.'.format(desc, name))
+        if getattr(self, "_" + name) is None:
+            self.logger.warning(
+                "The {} G.{} is not available, we need to "
+                "compute the Fourier basis. Explicitly call "
+                "G.compute_fourier_basis() once beforehand "
+                "to suppress the warning.".format(desc, name)
+            )
             self.compute_fourier_basis()
-        return getattr(self, '_' + name)
+        return getattr(self, "_" + name)
 
     @property
     def U(self):
@@ -26,7 +24,7 @@ class FourierMixIn(object):
 
         Is computed by :meth:`compute_fourier_basis`.
         """
-        return self._check_fourier_properties('U', 'Fourier basis')
+        return self._check_fourier_properties("U", "Fourier basis")
 
     @property
     def e(self):
@@ -34,7 +32,7 @@ class FourierMixIn(object):
 
         Is computed by :meth:`compute_fourier_basis`.
         """
-        return self._check_fourier_properties('e', 'eigenvalues vector')
+        return self._check_fourier_properties("e", "eigenvalues vector")
 
     @property
     def coherence(self):
@@ -94,8 +92,7 @@ class FourierMixIn(object):
         >>> _ = graph.plot(graph.U[:, idx_fourier], highlight=idx_vertex)
 
         """
-        return self._check_fourier_properties('coherence',
-                                              'Fourier basis coherence')
+        return self._check_fourier_properties("coherence", "Fourier basis coherence")
 
     def compute_fourier_basis(self, n_eigenvectors=None):
         r"""Compute the (partial) Fourier basis of the graph (cached).
@@ -156,27 +153,26 @@ class FourierMixIn(object):
         if n_eigenvectors is None:
             n_eigenvectors = self.n_vertices
 
-        if (self._U is not None and n_eigenvectors <= len(self._e)):
+        if self._U is not None and n_eigenvectors <= len(self._e):
             return
 
         assert self.L.shape == (self.n_vertices, self.n_vertices)
         if self.n_vertices**2 * n_eigenvectors > 3000**3:
             self.logger.warning(
-                'Computing the {0} eigendecomposition of a large matrix ({1} x'
-                ' {1}) is expensive. Consider decreasing n_eigenvectors '
-                'or, if using the Fourier basis to filter, using a '
-                'polynomial filter instead.'.format(
-                    'full' if n_eigenvectors == self.N else 'partial',
-                    self.N))
+                "Computing the {0} eigendecomposition of a large matrix ({1} x"
+                " {1}) is expensive. Consider decreasing n_eigenvectors "
+                "or, if using the Fourier basis to filter, using a "
+                "polynomial filter instead.".format(
+                    "full" if n_eigenvectors == self.N else "partial", self.N
+                )
+            )
 
         # TODO: handle non-symmetric Laplacians. Test lap_type?
         if n_eigenvectors == self.n_vertices:
-            self._e, self._U = linalg.eigh(self.L.toarray(order='F'), overwrite_a=True)
+            self._e, self._U = linalg.eigh(self.L.toarray(order="F"), overwrite_a=True)
         else:
             # fast partial eigendecomposition of hermitian matrices
-            self._e, self._U = sparse.linalg.eigsh(self.L,
-                                                   n_eigenvectors,
-                                                   which='SM')
+            self._e, self._U = sparse.linalg.eigsh(self.L, n_eigenvectors, which="SM")
         # Columns are eigenvectors. Sorted in ascending eigenvalue order.
 
         # Smallest eigenvalue should be zero: correct numerical errors.
@@ -185,13 +181,17 @@ class FourierMixIn(object):
         assert -1e-5 < self._e[0] < 1e-5
         self._e[0] = 0
 
+        # we set the first eigenvector to have positive values:
+        if np.abs(self._U[0, 0]).sum() < 0:
+            self._U[0, :] = -self._U[0, :]
+
         # Bounded spectrum.
         assert self._e[-1] <= self._get_upper_bound() + 1e-5
 
         assert np.max(self._e) == self._e[-1]
         if n_eigenvectors == self.N:
             self._lmax = self._e[-1]
-            self._lmax_method = 'fourier'
+            self._lmax_method = "fourier"
             self._coherence = np.max(np.abs(self._U))
 
     def gft(self, s):

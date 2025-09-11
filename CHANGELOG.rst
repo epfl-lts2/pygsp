@@ -9,6 +9,7 @@ and this project adheres to `Semantic Versioning <https://semver.org>`_.
 Unreleased
 ----------
 
+* Upgrade from PyQt5 to PyQt6.
 * ``print(graph)`` and ``print(filters)`` now show valuable information.
 * Building a graph object is much faster.
 * New rectangular filter (low-pass and band-pass).

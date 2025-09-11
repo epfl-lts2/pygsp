@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 from scipy import sparse
 
-from . import Graph  # prevent circular import in Python < 3.5
+from .graph import Graph  # prevent circular import in Python < 3.5
 
 
 class LowStretchTree(Graph):
@@ -29,7 +27,6 @@ class LowStretchTree(Graph):
     """
 
     def __init__(self, k=6, **kwargs):
-
         self.k = k
 
         XCoords = np.array([1, 2, 1, 2], dtype=int)
@@ -39,16 +36,34 @@ class LowStretchTree(Graph):
         jj = np.array([1, 2, 1, 3, 0, 2], dtype=int)
 
         for p in range(1, k):
-            ii = np.concatenate((ii, ii + 4**p, ii + 2*4**p, ii + 3*4**p,
-                                 [4**p - 1], [4**p - 1],
-                                 [4**p + (4**(p+1) + 2) // 3 - 1],
-                                 [(5*4**p + 1) // 3 - 1],
-                                 [4**p + (4**(p+1) + 2) // 3 - 1], [3*4**p]))
-            jj = np.concatenate((jj, jj + 4**p, jj + 2*4**p, jj + 3*4**p,
-                                 [(5*4**p + 1) // 3 - 1],
-                                 [4**p + (4**(p+1) + 2) // 3 - 1],
-                                 [3*4**p], [4**p - 1], [4**p - 1],
-                                 [4**p + (4**(p+1) + 2) // 3 - 1]))
+            ii = np.concatenate(
+                (
+                    ii,
+                    ii + 4**p,
+                    ii + 2 * 4**p,
+                    ii + 3 * 4**p,
+                    [4**p - 1],
+                    [4**p - 1],
+                    [4**p + (4 ** (p + 1) + 2) // 3 - 1],
+                    [(5 * 4**p + 1) // 3 - 1],
+                    [4**p + (4 ** (p + 1) + 2) // 3 - 1],
+                    [3 * 4**p],
+                )
+            )
+            jj = np.concatenate(
+                (
+                    jj,
+                    jj + 4**p,
+                    jj + 2 * 4**p,
+                    jj + 3 * 4**p,
+                    [(5 * 4**p + 1) // 3 - 1],
+                    [4**p + (4 ** (p + 1) + 2) // 3 - 1],
+                    [3 * 4**p],
+                    [4**p - 1],
+                    [4**p - 1],
+                    [4**p + (4 ** (p + 1) + 2) // 3 - 1],
+                )
+            )
 
             YCoords = np.kron(np.ones((2), dtype=int), YCoords)
             YCoords = np.concatenate((YCoords, YCoords + 2**p))
@@ -57,20 +72,19 @@ class LowStretchTree(Graph):
             XCoords = np.kron(np.ones((2), dtype=int), XCoords)
 
         W = sparse.csc_matrix((np.ones_like(ii), (ii, jj)))
-        coords = np.concatenate((XCoords[:, np.newaxis],
-                                 YCoords[:, np.newaxis]),
-                                axis=1)
+        coords = np.concatenate(
+            (XCoords[:, np.newaxis], YCoords[:, np.newaxis]), axis=1
+        )
 
-        self.root = 4**(k - 1)
+        self.root = 4 ** (k - 1)
 
-        plotting = {"edges_width": 1.25,
-                    "vertex_size": 75,
-                    "limits": np.array([0, 2**k + 1, 0, 2**k + 1])}
+        plotting = {
+            "edges_width": 1.25,
+            "vertex_size": 75,
+            "limits": np.array([0, 2**k + 1, 0, 2**k + 1]),
+        }
 
-        super(LowStretchTree, self).__init__(W,
-                                             coords=coords,
-                                             plotting=plotting,
-                                             **kwargs)
+        super().__init__(W, coords=coords, plotting=plotting, **kwargs)
 
     def _get_extra_repr(self):
         return dict(k=self.k)
