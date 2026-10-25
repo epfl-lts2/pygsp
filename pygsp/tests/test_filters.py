@@ -415,3 +415,18 @@ def test_approximations(test_graph, test_signal):
 
     with pytest.raises(ValueError):
         f.filter(test_signal, method="lanczos")
+
+
+@pytest.mark.parametrize("shape", [(), (6,), (2, 3), (2, 1, 3)])
+@pytest.mark.parametrize("n_filters", [1, 3])
+def test_inverse_frequency_shapes(test_graph, shape, n_filters):
+    bank = filters.Filter(
+        test_graph, [lambda x, i=i: x**i for i in range(n_filters)]
+    )
+    frequencies = np.linspace(0, 2, int(np.prod(shape))).reshape(shape)
+    expected = np.array([frequencies**i for i in range(n_filters)])
+    expected /= np.sum(expected**2, axis=0)
+    inverse = bank.inverse()
+    actual = inverse.evaluate(frequencies)
+    assert actual.shape == (n_filters,) + shape
+    np.testing.assert_allclose(actual, expected, atol=1e-14)

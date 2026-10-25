@@ -750,9 +750,9 @@ class Filter:
             )
 
         def kernel(g, i, x):
-            y = g.evaluate(x).T
+            y = np.moveaxis(g.evaluate(x), 0, -1)
             z = np.linalg.pinv(np.expand_dims(y, axis=-1)).squeeze(axis=-2)
-            return z[:, i]  # Return one filter.
+            return z[..., i]  # Return one filter.
 
         kernels = [partial(kernel, self, i) for i in range(self.n_filters)]
 
