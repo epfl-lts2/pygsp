@@ -71,17 +71,13 @@ def _test_filter_methods(test_graph, test_signal, f, tight, check=True):
         assert np.linalg.norm(s5 - A * test_signal) < 0.1
 
     # Computing the frame is an alternative way to filter.
-    if f.n_filters != test_graph.n_vertices:
-        # It doesn't work (yet) if the number of filters is the same as the
-        # number of nodes as f.filter() infers that we want synthesis where
-        # we actually want analysis.
-        F = f.compute_frame(method="exact")
-        s = F.dot(test_signal).reshape(-1, test_graph.N).T.squeeze()
-        np.testing.assert_allclose(s, s2)
+    F = f.compute_frame(method="exact")
+    s = F.dot(test_signal).reshape(-1, test_graph.N).T.squeeze()
+    np.testing.assert_allclose(s, s2)
 
-        F = f.compute_frame(method="chebyshev", order=100)
-        s = F.dot(test_signal).reshape(-1, test_graph.N).T.squeeze()
-        np.testing.assert_allclose(s, s3)
+    F = f.compute_frame(method="chebyshev", order=100)
+    s = F.dot(test_signal).reshape(-1, test_graph.N).T.squeeze()
+    np.testing.assert_allclose(s, s3)
 
 
 def test_filter(test_graph, rng, n_filters=5):
@@ -415,3 +411,19 @@ def test_approximations(test_graph, test_signal):
 
     with pytest.raises(ValueError):
         f.filter(test_signal, method="lanczos")
+
+
+@pytest.mark.parametrize("n_vertices", [3, 5])
+@pytest.mark.parametrize("method", ["exact", "chebyshev"])
+def test_frame_with_one_filter_per_vertex(n_vertices, method):
+    graph = graphs.Path(n_vertices)
+    graph.compute_fourier_basis()
+    bank = filters.Filter(
+        graph, [lambda x, i=i: x**i for i in range(n_vertices)]
+    )
+    expected = np.concatenate(
+        [np.linalg.matrix_power(graph.L.toarray(), i) for i in range(n_vertices)]
+    )
+    frame = bank.compute_frame(method=method)
+    assert frame.shape == (n_vertices**2, n_vertices)
+    np.testing.assert_allclose(frame, expected, atol=1e-10)

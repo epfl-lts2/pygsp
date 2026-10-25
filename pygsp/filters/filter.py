@@ -596,7 +596,7 @@ class Filter:
             )
 
         # Filter one delta per vertex.
-        s = np.identity(self.G.N)
+        s = np.identity(self.G.N)[..., np.newaxis]
         return self.filter(s, **kwargs).T.reshape(-1, self.G.N)
 
     def complement(self, frame_bound=None):
